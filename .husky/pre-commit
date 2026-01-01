@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 echo "Running pre-commit checks..."
 
@@ -8,8 +9,8 @@ if [ -s "$HOME/.nvm/nvm.sh" ]; then
   export NVM_DIR="$HOME/.nvm"
   \. "$NVM_DIR/nvm.sh" # This loads nvm
   
-  # Use Node.js 20+
-  nvm use 20 >/dev/null 2>&1
+  # Use Node.js 20+ (|| true because nvm use failing is non-fatal; version check below is the gate)
+  nvm use 20 >/dev/null 2>&1 || true
   
   echo "Using Node.js $(node -v) from NVM"
 fi
@@ -32,3 +33,6 @@ fi
 # Run formatting and linting
 echo "Running formatting and linting..."
 pnpm fix-all
+
+# Re-stage files that were originally staged (to include any formatting fixes)
+echo "$staged_files" | xargs -I {} git add {}
