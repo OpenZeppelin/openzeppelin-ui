@@ -1,0 +1,4 @@
+packages:
+  - 'packages/*'
+  - 'examples/*'
+  - '!**/node_modules/**'
