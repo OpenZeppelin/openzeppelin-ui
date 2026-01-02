@@ -11,7 +11,7 @@
     ]
   },
   "scripts": {
-    "install-pnpm": "npm install -g pnpm",
+    "install-pnpm": "npm install -g pnpm@10.22.0",
     "install-deps": "pnpm install --frozen-lockfile --ignore-scripts --prefer-offline",
     "clean": "pnpm -r clean",
     "build": "pnpm -r build",
