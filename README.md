@@ -139,6 +139,11 @@ pnpm typecheck
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines.
 
+## Documentation
+
+- [DevOps Setup Guide](./docs/DEVOPS_SETUP.md) - CI/CD secrets and GitHub App configuration
+- [Operations Runbook](./docs/RUNBOOK.md) - Release management and incident procedures
+
 ## License
 
 [AGPL-3.0](./LICENSE)
