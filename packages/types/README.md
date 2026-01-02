@@ -1,12 +1,25 @@
-# UI Builder Types
+# @openzeppelin/ui-types
 
-This package contains shared TypeScript type definitions for the OpenZeppelin UI Builder ecosystem.
+Shared TypeScript type definitions for the OpenZeppelin UI ecosystem.
 
-[![npm version](https://img.shields.io/npm/v/@openzeppelin/ui-builder-types.svg)](https://www.npmjs.com/package/@openzeppelin/ui-builder-types)
+[![npm version](https://img.shields.io/npm/v/@openzeppelin/ui-types.svg)](https://www.npmjs.com/package/@openzeppelin/ui-types)
+
+## Installation
+
+```bash
+# Using npm
+npm install @openzeppelin/ui-types
+
+# Using yarn
+yarn add @openzeppelin/ui-types
+
+# Using pnpm
+pnpm add @openzeppelin/ui-types
+```
 
 ## Purpose
 
-This package serves as the single source of truth for all shared types used across the UI Builder packages, including:
+This package serves as the single source of truth for all shared types used across the OpenZeppelin UI packages, including:
 
 - Contract and blockchain related types
 - Form field and layout definitions
@@ -14,35 +27,22 @@ This package serves as the single source of truth for all shared types used acro
 
 By centralizing type definitions, we ensure consistency across all packages and eliminate type duplication.
 
-## Installation
-
-```bash
-# Using npm
-npm install @openzeppelin/ui-builder-types
-
-# Using yarn
-yarn add @openzeppelin/ui-builder-types
-
-# Using pnpm
-pnpm add @openzeppelin/ui-builder-types
-```
-
 ## Usage
 
 The package is organized into namespaces for better organization and to prevent naming collisions.
 
 ```typescript
 // Import everything
-import { adapters, contracts, forms } from '@openzeppelin/ui-builder-types';
+import { adapters, contracts, forms } from '@openzeppelin/ui-types';
 
 // Import specific namespaces
-import * as contracts from '@openzeppelin/ui-builder-types';
-import * as adapters from '@openzeppelin/ui-builder-types';
-import * as forms from '@openzeppelin/ui-builder-types';
+import * as contracts from '@openzeppelin/ui-types';
+import * as adapters from '@openzeppelin/ui-types';
+import * as forms from '@openzeppelin/ui-types';
 
 // Import specific types from their respective namespaces
-import { ContractAdapter } from '@openzeppelin/ui-builder-types';
-import { FieldType, FormFieldType } from '@openzeppelin/ui-builder-types';
+import { ContractAdapter } from '@openzeppelin/ui-types';
+import { FieldType, FormFieldType } from '@openzeppelin/ui-types';
 
 // Example usage in a function
 function validateField(field: forms.FormFieldType): boolean {
@@ -53,9 +53,7 @@ function validateField(field: forms.FormFieldType): boolean {
 
 ## Package Structure
 
-The package is organized into the following directories and files:
-
-```
+```text
 types/
 ├── src/
 │   ├── adapters/           # Contract adapter interfaces
@@ -83,16 +81,15 @@ types/
 │   │   ├── values.ts       # FormValues type
 │   │   └── index.ts        # Re-exports all form types
 │   ├── networks/           # Network configuration types
-│   │   ├── config.ts       # Defines BaseNetworkConfig, EvmNetworkConfig, SolanaNetworkConfig, etc., NetworkConfig union type, and type guards
+│   │   ├── config.ts       # Network config interfaces and type guards
 │   │   ├── validation.ts   # Network configuration validation utilities
-│   │   ├── README.md       # Documentation for network types
 │   │   └── index.ts        # Re-exports all network types
 │   ├── transactions/       # Types related to transaction submission status
 │   │   ├── status.ts       # TransactionStatus types
 │   │   └── index.ts        # Re-exports transaction types
 │   └── index.ts            # Main entry point that re-exports all modules
-├── package.json            # Package configuration
-└── tsconfig.json           # TypeScript configuration
+├── package.json
+└── tsconfig.json
 ```
 
 ## Type Definitions
@@ -101,40 +98,18 @@ types/
 
 Interfaces for blockchain-specific adapters:
 
-- `ContractAdapter`: The core interface defining methods for loading contracts, mapping types, querying state, formatting data, validating addresses, handling transactions, and interacting with wallets. It can also now optionally provide methods to facilitate richer, ecosystem-specific UI experiences, such as:
-  - `signAndBroadcast`: The core method for submitting a transaction, now using an `ExecutionConfig` to determine the submission strategy (e.g., `EOA` or `Relayer`).
-  - `getRelayers?`: An optional method to fetch a list of available relayers for the adapter's ecosystem.
-  - `getRelayer?`: An optional method to fetch detailed information about a specific relayer.
-  - `getRelayerOptionsComponent?`: An optional method that returns a React component for configuring relayer-specific options (e.g., custom gas settings).
-  - `getAccessControlService?`: An optional method that returns an `AccessControlService` instance for managing access control and ownership on contracts (e.g., OpenZeppelin AccessControl and Ownable patterns).
-  - `configureUiKit?`: To inform the adapter about a desired UI kit (e.g., for wallet connection modals) and its configuration. The `kitConfig` within this configuration can include an optional `components: { exclude: [...] }` property to prevent specific default UI components (like `NetworkSwitcher`) from being provided by the adapter.
-  - `getEcosystemReactUiContextProvider?`: To obtain a React component that sets up necessary UI context (like WagmiProvider for EVM).
-  - `getEcosystemReactHooks?`: To get a set of facade React hooks for common wallet operations, abstracting direct library hook usage. Adapters implementing this should aim to return objects from these hooks with conventionally named properties (e.g., `{ isConnected, address, chainId }` for an account hook, or `{ switchChain, isPending, error }` for a network switching hook) to ensure consistent consumption.
-  - `getEcosystemWalletComponents?`: To retrieve standardized UI components (e.g., Connect Button) sourced from the configured UI kit or a basic custom implementation provided by the adapter.
-    These optional methods allow the main application to leverage advanced UI patterns of specific ecosystems (like EVM with `wagmi/react`) while remaining decoupled from the underlying libraries.
-
-- `AccessControlService`: Interface for access control and ownership management operations on contracts. Provides chain-agnostic methods for:
-  - Capability detection (`getCapabilities`): Determine if a contract implements AccessControl, Ownable, or both
-  - Ownership management (`getOwnership`, `transferOwnership`): Query and transfer contract ownership
-  - Role management (`getCurrentRoles`, `grantRole`, `revokeRole`): Query, grant, and revoke roles
-  - Snapshot export (`exportSnapshot`): Export current access control state
-  - History queries (`getHistory`): Query historical role changes and ownership transfers (when indexer is available)
-
-  Related types include `AccessControlCapabilities`, `OwnershipInfo`, `RoleAssignment`, `AccessSnapshot`, `HistoryEntry`, and `OperationResult`. See `./src/adapters/access-control.ts` for full type definitions.
+- `ContractAdapter`: The core interface defining methods for loading contracts, mapping types, querying state, formatting data, validating addresses, handling transactions, and interacting with wallets.
+- `AccessControlService`: Interface for access control and ownership management operations on contracts.
 
 ### Config Types (`./src/config`)
 
-- `AppRuntimeConfig`: Defines the shape of the `app.config.json` file used by exported applications to configure runtime settings like RPC endpoints and API keys.
+- `AppRuntimeConfig`: Defines the shape of the `app.config.json` file used by exported applications.
 
 ### Common Types (`./src/common`)
-
-Shared foundational types:
 
 - `NetworkEcosystem`: Enum or type defining supported blockchain ecosystems (e.g., 'evm', 'solana').
 
 ### Contract Types (`./src/contracts`)
-
-Types related to blockchain contract structure:
 
 - `ContractSchema`: Interface for contract schema definitions (ABI in EVM).
 - `ContractFunction`: Interface for function definitions within a contract.
@@ -142,26 +117,18 @@ Types related to blockchain contract structure:
 
 ### Form Types (`./src/forms`)
 
-Types for form structure, rendering, and handling:
-
 - `FieldType`: Types of form fields (text, number, boolean, address, select, etc.).
 - `FormField`: Complete definition of a form field including ID, type, label, validation, etc.
 - `RenderFormSchema`: The schema used by the renderer package.
-- `BuilderFormConfig`: The configuration used by the builder app UI.
+- `BuilderFormConfig`: The configuration used by builder applications.
 - `FieldValidation`: Validation rules for form fields.
 - `FormValues`: Type representing the collected data from a form submission.
 
-**Note on Field Duplication**: Some fields (like `contractAddress`, `functionId`, `executionConfig`) appear in both storage records and form schemas. This is intentional architectural design where top-level fields enable database indexing/queries while nested fields serve runtime form functionality.
-
 ### Network Types (`./src/networks`)
 
-Types for defining specific blockchain network configurations:
-
-- Interfaces for common properties (`BaseNetworkConfig`) and ecosystem-specific details (`EvmNetworkConfig`, `SolanaNetworkConfig`, `StellarNetworkConfig`, `MidnightNetworkConfig`).
+- Interfaces for common properties (`BaseNetworkConfig`) and ecosystem-specific details.
 - The discriminated union type `NetworkConfig` representing any valid network configuration.
 - Type guard functions (e.g., `isEvmNetworkConfig(config)`) to safely narrow down the `NetworkConfig` union type.
-- Optional indexer configuration: `BaseNetworkConfig` includes optional `indexerUri` and `indexerWsUri` fields for configuring GraphQL endpoints for historical data queries (e.g., access control event history).
-- (These are primarily defined within `config.ts`)
 
 ### Execution Types (`./src/execution`)
 
@@ -169,17 +136,16 @@ Types for defining specific blockchain network configurations:
 
 ### Transaction Types (`./src/transactions`)
 
-Types related to the status of transaction submissions:
-
-- `TransactionStatus`: Enum or type defining possible states (Idle, Signing, Broadcasting, PendingConfirmation, **PendingRelayer**, Success, Error).
-- `TransactionProgress`: Interface potentially holding details like transaction hash, error messages, explorer links.
+- `TransactionStatus`: Enum or type defining possible states (Idle, Signing, Broadcasting, PendingConfirmation, Success, Error).
+- `TransactionProgress`: Interface holding details like transaction hash, error messages, explorer links.
 
 ## Integration with Other Packages
 
-This package is a dependency for both the builder and renderer packages:
+This package is a dependency for multiple packages in the ecosystem:
 
-- **Builder Package**: Uses these types for its adapter implementations, form generation, and export functionality
-- **Renderer Package**: Uses these types for form field rendering and validation
+- **@openzeppelin/ui-components**: Uses types for form field rendering
+- **@openzeppelin/ui-renderer**: Uses types for form rendering and validation
+- **@openzeppelin/ui-utils**: Uses types for utility functions
 
 ## Development
 
@@ -187,7 +153,7 @@ This package is a dependency for both the builder and renderer packages:
 
 ```bash
 # From the monorepo root
-pnpm --filter @openzeppelin/ui-builder-types build
+pnpm --filter @openzeppelin/ui-types build
 
 # Or from within the types package directory
 pnpm build
@@ -197,7 +163,7 @@ pnpm build
 
 ```bash
 # From the monorepo root
-pnpm --filter @openzeppelin/ui-builder-types test
+pnpm --filter @openzeppelin/ui-types test
 
 # Or from within the types package directory
 pnpm test
@@ -205,4 +171,4 @@ pnpm test
 
 ## License
 
-[MIT](https://github.com/OpenZeppelin/ui-builder/blob/main/LICENSE) © OpenZeppelin
+[AGPL-3.0](https://github.com/OpenZeppelin/openzeppelin-ui/blob/main/LICENSE)

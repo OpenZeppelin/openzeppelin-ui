@@ -1,6 +1,6 @@
 # Adding New Field Components
 
-This document outlines the step-by-step process for adding new field components to the UI Builder system.
+This document outlines the step-by-step process for adding new field components to the OpenZeppelin UI system.
 
 ## Architecture Overview
 
@@ -40,7 +40,7 @@ If your field requires a new UI component not already available, create it first
 
 import * as React from 'react';
 import * as YourPrimitive from '@radix-ui/react-your-primitive';
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { cn } from '@openzeppelin/ui-utils';
 
 const YourComponent = React.forwardRef<
   HTMLDivElement,
@@ -67,7 +67,7 @@ import { FieldValues, Controller, FieldPath } from 'react-hook-form';
 import { BaseFieldProps } from './BaseField';
 import { YourComponent } from '../ui/your-component';
 import { Label } from '../ui/label';
-import { cn } from '@openzeppelin/ui-builder-utils';
+import { cn } from '@openzeppelin/ui-utils';
 
 /**
  * YourNewField component properties
@@ -250,7 +250,7 @@ Here's an example of creating a SelectField:
    import * as SelectPrimitive from '@radix-ui/react-select';
    import * as React from 'react';
 
-   import { cn } from '@openzeppelin/ui-builder-utils';
+   import { cn } from '@openzeppelin/ui-utils';
 
    // packages/renderer/src/components/ui/select.tsx
 
@@ -288,7 +288,7 @@ Here's an example of creating a SelectField:
    import React from 'react';
    import { Controller, FieldValues } from 'react-hook-form';
 
-   import { cn } from '@openzeppelin/ui-builder-utils';
+   import { cn } from '@openzeppelin/ui-utils';
 
    import { Label } from '../ui/label';
    import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';

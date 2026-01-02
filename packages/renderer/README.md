@@ -1,152 +1,116 @@
-# Renderer Package
+# @openzeppelin/ui-renderer
 
-[![npm version](https://img.shields.io/npm/v/@openzeppelin/ui-builder-renderer.svg)](https://www.npmjs.com/package/@openzeppelin/ui-builder-renderer)
-[![License](https://img.shields.io/npm/l/@openzeppelin/ui-builder-renderer.svg)](https://github.com/OpenZeppelin/ui-builder/blob/main/LICENSE)
+React components for rendering blockchain transaction forms, contract state displays, and wallet interactions.
 
-A specialized library for rendering customizable transaction form and other components for blockchain applications. Part of the UI Builder ecosystem.
+[![npm version](https://img.shields.io/npm/v/@openzeppelin/ui-renderer.svg)](https://www.npmjs.com/package/@openzeppelin/ui-renderer)
 
 ## Installation
 
 ```bash
 # Using npm
-npm install @openzeppelin/ui-builder-renderer @openzeppelin/ui-builder-types
+npm install @openzeppelin/ui-renderer @openzeppelin/ui-types
 
 # Using yarn
-yarn add @openzeppelin/ui-builder-renderer @openzeppelin/ui-builder-types
+yarn add @openzeppelin/ui-renderer @openzeppelin/ui-types
 
 # Using pnpm
-pnpm add @openzeppelin/ui-builder-renderer @openzeppelin/ui-builder-types
+pnpm add @openzeppelin/ui-renderer @openzeppelin/ui-types
+```
+
+## Peer Dependencies
+
+```bash
+pnpm add react react-dom react-hook-form
 ```
 
 ## Features
 
-- Lightweight app rendering components
-- Framework-agnostic design
-- TypeScript support with full type definitions (via @openzeppelin/ui-builder-types)
+- Transaction form rendering with dynamic field generation
+- Contract state querying and display (view functions)
+- Transaction status tracking with explorer links
+- Execution method configuration (EOA/Relayer)
+- Network settings and wallet connection components
+- TypeScript support with full type definitions
 - Support for both ESM and CommonJS environments
-- Customizable styling options
-- Optimized for blockchain transaction data
+
+## Components
+
+### TransactionForm
+
+Main component for rendering blockchain transaction forms with dynamic field generation.
+
+### ContractStateWidget
+
+Widget for querying and displaying contract state through view functions. Supports parameter-less view functions with auto-refresh capabilities.
+
+### ContractActionBar
+
+Action bar component displaying network status and contract state toggle controls.
+
+### ExecutionConfigDisplay
+
+Displays and configures transaction execution methods (EOA direct signing or Relayer-based).
+
+### TransactionStatusDisplay
+
+Shows transaction progress, hash display with explorer links, and execution results.
+
+### NetworkSettingsDialog
+
+Dialog for configuring network-specific settings like RPC endpoints and indexer URLs.
+
+### WalletConnectionWithSettings
+
+Composed wallet connection component with integrated settings controls.
+
+### DynamicFormField
+
+Renders form fields dynamically based on field type configuration.
 
 ## Type System
 
-This package uses type definitions from the `@openzeppelin/ui-builder-types` package, which serves as the single source of truth for types used across the UI Builder ecosystem. These types include:
-
-- Form field and component definitions
-- Layout and validation schemas
-- Adapter interfaces for blockchain interactions
-
-When using this package, you should also install `@openzeppelin/ui-builder-types` to ensure proper type checking in your application.
+This package uses type definitions from `@openzeppelin/ui-types`:
 
 ```tsx
-// Example of importing types
-import { TransactionForm } from '@openzeppelin/ui-builder-renderer';
-import type {
-  ContractAdapter,
-  FormValues,
-  RenderFormSchema,
-} from '@openzeppelin/ui-builder-types';
+import { TransactionForm } from '@openzeppelin/ui-renderer';
+import type { ContractAdapter, FormValues, RenderFormSchema } from '@openzeppelin/ui-types';
 ```
 
 ## Component Styling
 
-This package renders forms using UI components and field components sourced from the `@openzeppelin/ui-builder-ui` package. **This `renderer` package itself does not ship with pre-compiled CSS or contain UI component implementations directly.**
+This package renders forms using UI components from `@openzeppelin/ui-components`. **This package does not ship pre-compiled CSS.**
 
-Styling relies on the consuming application (like `packages/builder` or an exported project) to:
+Styling relies on the consuming application to:
 
-1.  **Include Tailwind CSS** in its build process.
-2.  **Configure Tailwind** to scan the `@openzeppelin/ui-builder-ui` package's source files within `node_modules` (Tailwind v4 does this automatically for dependencies) and also its own source files.
-3.  **Import the shared theme** from the `@openzeppelin/ui-builder-styles` package (e.g., importing `packages/styles/global.css`).
+1. **Include Tailwind CSS** in its build process.
+2. **Configure Tailwind** to scan the `@openzeppelin/ui-components` package's source files.
+3. **Import the shared theme** from `@openzeppelin/ui-styles`.
 
-This ensures that the necessary utility classes used by the components from `@openzeppelin/ui-builder-ui` are generated by the consumer's build, using the consistent theme.
+```css
+@import '@openzeppelin/ui-styles/global.css';
+@import 'tailwindcss';
+```
 
 ## Usage
 
+### Transaction Form
+
 ```tsx
-import { TransactionForm } from '@openzeppelin/ui-builder-renderer';
-// UI and Field components are now typically imported directly from @openzeppelin/ui-builder-ui if needed outside the form
-// import { Button, TextField } from '@openzeppelin/ui-builder-ui';
-import type {
-  ContractAdapter,
-  EvmNetworkConfig,
-  NetworkConfig,
-  RenderFormSchema,
-} from '@openzeppelin/ui-builder-types';
+import { TransactionForm } from '@openzeppelin/ui-renderer';
+import type { ContractAdapter, EvmNetworkConfig, RenderFormSchema } from '@openzeppelin/ui-types';
 
-// Example form schema
 const schema: RenderFormSchema = {
-  id: 'example-form',
-  title: 'Example Form',
+  id: 'transfer-form',
+  title: 'Transfer Tokens',
   fields: [
-    // Your form fields here
+    { id: 'to', name: 'to', type: 'address', label: 'Recipient' },
+    { id: 'amount', name: 'amount', type: 'amount', label: 'Amount' },
   ],
-  layout: {
-    columns: 1,
-    spacing: 'normal',
-    labelPosition: 'top',
-  },
-  validation: {
-    mode: 'onChange',
-    showErrors: 'inline',
-  },
-  submitButton: {
-    text: 'Submit',
-    loadingText: 'Submitting...',
-  },
-};
-
-// Example network configuration (replace with actual config from adapter packages)
-const networkConfig: EvmNetworkConfig = {
-  id: 'example-evm-network',
-  name: 'Example EVM Network',
-  ecosystem: 'evm',
-  network: 'ethereum',
-  type: 'testnet',
-  isTestnet: true,
-  chainId: 11155111,
-  rpcUrl: 'https://rpc.example.com',
-  explorerUrl: 'https://explorer.example.com',
-  nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-  apiUrl: 'https://api.example.com',
-};
-
-// Simple adapter implementation for demonstration.
-// Real applications use adapters like @openzeppelin/ui-builder-adapter-evm
-// crucially, the adapter instance should be configured for the specific networkConfig
-const adapter: ContractAdapter = {
-  // Adapter methods should use the networkConfig passed during instantiation
-  // (or assume it was passed during instantiation as shown in adapter READMEs)
-  networkConfig: networkConfig, // Adapters hold their config internally
-  ecosystem: 'evm', // Example ecosystem
-  loadContract: async (source: string) => {
-    // Implementation would use this.networkConfig
-    throw new Error('Not implemented');
-  },
-  mapParameterTypeToFieldType: (type: string) => 'text',
-  getCompatibleFieldTypes: (type: string) => ['text'],
-  generateDefaultField: (param: any) => ({ id: 'f', name: 'p', label: 'L', type: 'text' }),
-  formatTransactionData: (functionId, inputs) => inputs,
-  isValidAddress: (address) => !!address && address.length > 0,
-  getWritableFunctions: (schema: any) => [],
-  getSupportedExecutionMethods: async () => [],
-  validateExecutionConfig: async (config: any) => true,
-  isViewFunction: (func: any) => false,
-  queryViewFunction: async (addr: string, funcId: string, params: any[]) => {
-    // Implementation would use this.networkConfig
-    return null;
-  },
-  formatFunctionResult: (result: any) => String(result),
-  supportsWalletConnection: () => false, // Indicate no support in this simple example
-  getExplorerUrl: (address: string) => `${networkConfig.explorerUrl}/address/${address}`, // Example usage
-  getExplorerTxUrl: (txHash: string) => `${networkConfig.explorerUrl}/tx/${txHash}`, // Example usage
-  // Other methods omitted for brevity...
+  layout: { columns: 1, spacing: 'normal', labelPosition: 'top' },
+  submitButton: { text: 'Transfer', loadingText: 'Transferring...' },
 };
 
 function App() {
-  const handleSubmit = (data: FormData) => {
-    console.log('Form submitted with data:', data);
-    // Process transaction using the configured adapter and network
-  };
-
   return (
     <TransactionForm
       schema={schema}
@@ -158,235 +122,103 @@ function App() {
 }
 ```
 
+### Contract State Widget
+
+```tsx
+import { ContractStateWidget } from '@openzeppelin/ui-renderer';
+
+function ContractView() {
+  return (
+    <ContractStateWidget
+      contractSchema={schema}
+      contractAddress="0x..."
+      adapter={adapter}
+      isVisible={true}
+    />
+  );
+}
+```
+
+### Contract Action Bar
+
+```tsx
+import { ContractActionBar } from '@openzeppelin/ui-renderer';
+
+function FormHeader() {
+  return (
+    <ContractActionBar
+      networkConfig={networkConfig}
+      contractAddress={contractAddress}
+      onToggleContractState={handleToggle}
+    />
+  );
+}
+```
+
 ## API Reference
 
 ### `<TransactionForm>`
 
-The main component for rendering transaction forms. It internally uses `DynamicFormField` which in turn renders specific field components (like `TextField`, `AddressField`, etc.) and basic UI primitives (like `Button`, `Input`) sourced from the `@openzeppelin/ui-builder-ui` package.
+| Prop            | Type                       | Description                                  |
+| --------------- | -------------------------- | -------------------------------------------- |
+| `schema`        | `RenderFormSchema`         | The schema definition for the form           |
+| `adapter`       | `ContractAdapter`          | The blockchain adapter instance              |
+| `networkConfig` | `NetworkConfig`            | Network configuration for the target network |
+| `onSubmit`      | `(data: FormData) => void` | Callback function when form is submitted     |
+| `previewMode`   | `boolean`                  | (Optional) Renders form in preview mode      |
+| `initialValues` | `FormData`                 | (Optional) Initial values for form fields    |
+| `disabled`      | `boolean`                  | (Optional) Disables all form fields          |
+| `loading`       | `boolean`                  | (Optional) Shows loading state               |
 
-#### Props
+### `<ContractStateWidget>`
 
-| Prop            | Type                       | Description                                                          |
-| --------------- | -------------------------- | -------------------------------------------------------------------- |
-| `schema`        | `RenderFormSchema`         | The schema definition for the form                                   |
-| `adapter`       | `ContractAdapter`          | The blockchain adapter instance (must be configured for the network) |
-| `networkConfig` | `NetworkConfig`            | The specific network configuration object for the target network     |
-| `onSubmit`      | `(data: FormData) => void` | Callback function when form is submitted                             |
-| `previewMode`   | `boolean`                  | (Optional) Renders form in preview mode                              |
-| `initialValues` | `FormData`                 | (Optional) Initial values for form fields [TODO]                     |
-| `disabled`      | `boolean`                  | (Optional) Disables all form fields [TODO]                           |
-| `loading`       | `boolean`                  | (Optional) Shows loading state [TODO]                                |
-| `theme`         | `ThemeOptions`             | (Optional) Custom theme options [TODO]                               |
+| Prop              | Type              | Description                             |
+| ----------------- | ----------------- | --------------------------------------- |
+| `contractSchema`  | `ContractSchema`  | The contract schema with view functions |
+| `contractAddress` | `string`          | The deployed contract address           |
+| `adapter`         | `ContractAdapter` | The blockchain adapter instance         |
+| `isVisible`       | `boolean`         | (Optional) Controls widget visibility   |
+| `onToggle`        | `() => void`      | (Optional) Callback for toggle actions  |
 
-### Utilities
+### `<ContractActionBar>`
 
-This package provides core app rendering logic and utilities. For UI components (Buttons, Inputs, Cards, etc.) and Field components (AddressField, TextField, etc.), please refer to the `@openzeppelin/ui-builder-ui` package.
-
-#### `logger`
-
-A pre-configured singleton instance of the Logger utility for consistent application logging.
-
-```typescript
-import { logger } from '@openzeppelin/ui-builder-renderer';
-
-logger.info('MyComponent', 'Component loaded');
-```
-
-#### `generateId`
-
-A utility function to generate unique IDs for form elements or other components.
-
-```typescript
-import { generateId } from '@openzeppelin/ui-builder-renderer';
-
-const uniqueFieldId = generateId('field_');
-```
-
-## Configuration System
-
-The renderer package includes a configuration system that defines dependencies and other settings. This configuration is used when forms are exported to ensure proper dependencies are included in the generated project.
-
-### Renderer Configuration File
-
-Create a `config.ts` file in the renderer package:
-
-```typescript
-// packages/renderer/src/config.ts
-import type { RendererConfig } from './types/RendererConfig';
-
-/**
- * Configuration for the renderer package
- */
-export const rendererConfig: RendererConfig = {
-  /**
-   * Dependencies for specific field types
-   * Only dependencies for fields used in a form will be included in exports
-   */
-  fieldDependencies: {
-    // Date field dependencies
-    date: {
-      runtimeDependencies: {
-        'react-datepicker': '^4.14.0',
-      },
-      devDependencies: {
-        '@types/react-datepicker': '^4.11.2',
-      },
-    },
-
-    // Select field dependencies
-    select: {
-      runtimeDependencies: {
-        'react-select': '^5.7.3',
-      },
-      devDependencies: {
-        '@types/react-select': '^5.0.1',
-      },
-    },
-
-    // Complex fields like file uploads
-    file: {
-      runtimeDependencies: {
-        'react-dropzone': '^14.2.3',
-      },
-    },
-
-    // Basic fields don't need additional dependencies
-    text: { runtimeDependencies: {} },
-    number: { runtimeDependencies: {} },
-    checkbox: { runtimeDependencies: {} },
-    radio: { runtimeDependencies: {} },
-  },
-
-  /**
-   * Core dependencies required by renderer
-   * These will be included in all exported projects
-   */
-  coreDependencies: {
-    react: '^19.0.0',
-    'react-dom': '^19.0.0',
-    'react-hook-form': '^7.43.9',
-    '@openzeppelin/ui-builder-renderer': '^1.0.0',
-    '@openzeppelin/ui-builder-ui': '^1.0.0',
-    '@openzeppelin/ui-builder-types': '^1.0.0',
-    '@openzeppelin/ui-builder-utils': '^1.0.0',
-  },
-};
-```
-
-### Dependency Management
-
-The RendererConfig is used by the export system to:
-
-1. Include core dependencies required by all forms
-2. Add field-specific dependencies based on the fields used in a form
-3. Separate runtime from development dependencies
-
-#### Field-specific Dependencies
-
-When a user exports a form, the system analyzes the fields used in the form and only includes dependencies for those specific field types. For example, if a form doesn't use a date picker, the 'react-datepicker' dependency won't be included.
-
-#### Versioning Strategy
-
-The system applies a semantic versioning strategy to dependencies:
-
-1. For renderer packages, it uses caret ranges (^) to allow minor and patch updates
-2. This enables exported forms to receive updates without needing to re-export the entire form
-
-### Configuration Discovery
-
-The Package Management System automatically discovers the renderer configuration. The exported `rendererConfig` constant name is expected by the system.
+| Prop                    | Type            | Description                              |
+| ----------------------- | --------------- | ---------------------------------------- |
+| `networkConfig`         | `NetworkConfig` | Network configuration to display         |
+| `contractAddress`       | `string`        | (Optional) Contract address              |
+| `onToggleContractState` | `() => void`    | (Optional) Toggle contract state widget  |
+| `isWidgetExpanded`      | `boolean`       | (Optional) Current widget expanded state |
 
 ## Package Structure
 
 ```text
 renderer/
 ├── src/
-│   ├── components/              # Core rendering components
-│   ├── hooks/                   # Rendering-specific hooks
-│   ├── utils/                   # Rendering utilities
-│   ├── types/                   # Package-specific types
-│   ├── stories/                 # Storybook stories
-│   ├── test/                    # Package-specific tests
-│   ├── config.ts                # Renderer configuration
-│   └── index.ts                 # Main package exports
-├── scripts/                     # Build and development scripts
-├── package.json                 # Package configuration
-├── tsconfig.json                # TypeScript configuration
-├── tsup.config.ts               # Build configuration
-├── vitest.config.ts             # Test configuration
-└── README.md                    # This documentation
+│   ├── components/
+│   │   ├── ContractActionBar/       # Network status and actions
+│   │   ├── ContractStateWidget/     # View function queries
+│   │   ├── ExecutionConfigDisplay/  # EOA/Relayer configuration
+│   │   ├── network/                 # Network settings components
+│   │   ├── transaction/             # Transaction status components
+│   │   ├── TransactionForm.tsx      # Main form component
+│   │   └── DynamicFormField.tsx     # Dynamic field rendering
+│   ├── types/
+│   ├── utils/
+│   └── index.ts
+├── package.json
+├── tsconfig.json
+└── tsdown.config.ts
 ```
 
 ## Development
 
-### Build System
-
-This package uses `tsup` for building, following the monorepo's standardized build configuration. This ensures proper ES module output with correct import extensions.
-
 ```bash
-# Install dependencies
 pnpm install
-
-# Build the package (generates both ESM and CJS outputs)
 pnpm build
-
-# Run tests
 pnpm test
+pnpm lint
 ```
-
-### Build Output
-
-The build process, which uses `tsup` and `tsc`, creates the following outputs in the `dist/` directory:
-
-- `index.js` - ES module with proper `.js` extensions in imports
-- `index.cjs` - CommonJS build for compatibility
-- `index.d.ts` - TypeScript declaration files for the entire package.
-
-**Note:** No CSS is generated or included in the `dist` output.
-
-### Release Process
-
-> **Note**: Automatic publishing is currently disabled during early development. The workflow is configured but commented out until the package is ready for production release.
-
-This package is published to the public npm registry as part of the monorepo's release process using Changesets.
-
-The release workflow (when enabled):
-
-1. Runs when code is pushed to the main branch or via manual trigger
-2. Runs tests and builds the package
-3. Uses changesets to determine the next version based on changeset files
-4. Publishes to npm with appropriate tags
-5. Creates a GitHub release with generated release notes
-
-Manual releases can be triggered through the GitHub Actions interface with a version parameter when needed during development.
-
-### Commit Guidelines
-
-This project follows the [Conventional Commits](https://www.conventionalcommits.org/) standard to automate version management and changelog generation.
-
-Commit format:
-
-```
-<type>(<scope>): <description>
-
-[optional body]
-
-[optional footer(s)]
-```
-
-Common types:
-
-- `feat`: A new feature (triggers a minor version bump)
-- `fix`: A bug fix (triggers a patch version bump)
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting, semicolons, etc)
-- `refactor`: Code changes that neither fix bugs nor add features
-- `perf`: Performance improvements
-- `test`: Adding or updating tests
-- `chore`: Changes to the build process or auxiliary tools
-
-Breaking changes should be indicated by adding `BREAKING CHANGE:` in the commit body, which will trigger a major version bump.
 
 ## License
 
-[MIT](https://github.com/OpenZeppelin/ui-builder/blob/main/LICENSE) © OpenZeppelin
+[AGPL-3.0](https://github.com/OpenZeppelin/openzeppelin-ui/blob/main/LICENSE)

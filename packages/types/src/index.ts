@@ -1,8 +1,8 @@
 /**
- * UI Builder Types
+ * OpenZeppelin UI Types
  *
  * This is the main entry point for all shared type definitions used across
- * the UI Builder ecosystem.
+ * the OpenZeppelin UI ecosystem.
  *
  */
 

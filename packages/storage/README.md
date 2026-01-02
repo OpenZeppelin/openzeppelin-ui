@@ -1,37 +1,51 @@
-# @openzeppelin/ui-builder-storage
+# @openzeppelin/ui-storage
 
-A React-first storage abstraction built on Dexie.js for IndexedDB. This package provides a reusable foundation for creating type-safe storage services that can be used across multiple applications.
+A React-first storage abstraction built on Dexie.js for IndexedDB.
 
-## Description
+[![npm version](https://img.shields.io/npm/v/@openzeppelin/ui-storage.svg)](https://www.npmjs.com/package/@openzeppelin/ui-storage)
+
+## Installation
+
+```bash
+# Using npm
+npm install @openzeppelin/ui-storage
+
+# Using yarn
+yarn add @openzeppelin/ui-storage
+
+# Using pnpm
+pnpm add @openzeppelin/ui-storage
+```
+
+## Peer Dependencies
+
+```bash
+pnpm add react
+```
+
+## Overview
 
 This package provides a generic storage infrastructure built on top of IndexedDB using Dexie.js. It includes base classes for creating type-safe storage services, a React live-query hook, database creation utilities, and helpful abstractions. Each consuming application defines its own database name, schema, and domain-specific storage classes.
 
 ## Features
 
-- 🗄️ **Entity Storage**: `EntityStorage` class for creating entity/record storage services
-- 🔑 **Key-Value Storage**: `KeyValueStorage` class for settings, preferences, and configuration stores
-- ⚛️ **React Support**: `useLiveQuery` re-exported for convenience
-- 🔧 **App-Agnostic Schemas**: Each app defines its own DB name and stores
-- 🔒 **Type Safety**: Full TypeScript support with generics
-- 🚀 **Performance**: Optimized for large datasets with configurable limits
-- 📦 **CRUD Operations**: Create, Read, Update, Delete helpers
-- 🔄 **Bulk Operations**: Efficient bulk add/put/delete
-- 🔍 **Index Queries**: Query by indexed fields
-- ⚠️ **Quota Handling**: Cross-browser quota exceeded error detection
-- 🧰 **Ecosystem utilities**: Uses `@openzeppelin/ui-builder-utils` for logging and ID generation
-
-## Installation
-
-```bash
-pnpm add @openzeppelin/ui-builder-storage
-```
+- **Entity Storage**: `EntityStorage` class for creating entity/record storage services
+- **Key-Value Storage**: `KeyValueStorage` class for settings, preferences, and configuration stores
+- **React Support**: `useLiveQuery` re-exported for convenience
+- **App-Agnostic Schemas**: Each app defines its own DB name and stores
+- **Type Safety**: Full TypeScript support with generics
+- **Performance**: Optimized for large datasets with configurable limits
+- **CRUD Operations**: Create, Read, Update, Delete helpers
+- **Bulk Operations**: Efficient bulk add/put/delete
+- **Index Queries**: Query by indexed fields
+- **Quota Handling**: Cross-browser quota exceeded error detection
 
 ## Quick Start
 
 ### 1. Define Your Database Schema
 
 ```typescript
-import { createDexieDatabase } from '@openzeppelin/ui-builder-storage';
+import { createDexieDatabase } from '@openzeppelin/ui-storage';
 
 export const db = createDexieDatabase('MyApp', [
   {
@@ -49,7 +63,6 @@ export const db = createDexieDatabase('MyApp', [
     },
     upgrade: async (trans) => {
       // Migration logic for version 2
-      // Access db via trans.db if needed
     },
   },
 ]);
@@ -58,7 +71,7 @@ export const db = createDexieDatabase('MyApp', [
 ### 2. Define Your Record Types
 
 ```typescript
-import type { BaseRecord } from '@openzeppelin/ui-builder-storage';
+import type { BaseRecord } from '@openzeppelin/ui-storage';
 
 export interface ItemRecord extends BaseRecord {
   name: string;
@@ -69,7 +82,7 @@ export interface ItemRecord extends BaseRecord {
 ### 3. Create Storage Services
 
 ```typescript
-import { EntityStorage, useLiveQuery } from '@openzeppelin/ui-builder-storage';
+import { EntityStorage, useLiveQuery } from '@openzeppelin/ui-storage';
 
 import { db } from './database';
 import type { ItemRecord } from './types';
@@ -112,47 +125,46 @@ Creates a configured Dexie database instance with versioned stores.
 
 ### `EntityStorage<T>`
 
-Abstract base class for entity storage. Use this for collections of records with auto-generated IDs (users, items, contracts, etc.).
-
-**When to use `EntityStorage` vs `KeyValueStorage`:**
+Abstract base class for entity storage. Use this for collections of records with auto-generated IDs.
 
 | Use Case                                     | Base Class           | Schema      |
 | -------------------------------------------- | -------------------- | ----------- |
 | Entity collections (users, items, contracts) | `EntityStorage<T>`   | `++id, ...` |
 | Settings, preferences, config                | `KeyValueStorage<V>` | `&key`      |
 
-**Constructor:**
+**Methods:**
 
-```typescript
-constructor(
-  db: Dexie,
-  tableName: string,
-  options?: EntityStorageOptions
-)
-```
+- `save(record)`: Create a new record
+- `update(id, updates)`: Update an existing record
+- `delete(id)`: Delete a record
+- `get(id)`: Get a record by ID
+- `getAll()`: Get all records
+- `has(id)`: Check if record exists
+- `count()`: Count records
+- `clear()`: Delete all records
+- `bulkAdd(records)`: Add multiple records
+- `bulkPut(records)`: Upsert multiple records
+- `bulkDelete(ids)`: Delete multiple records
+- `findByIndex(index, value)`: Query by index
 
-**Options:**
+### `KeyValueStorage<V>`
 
-```typescript
-interface EntityStorageOptions {
-  maxRecordSizeBytes?: number; // Default: 10MB
-}
-```
+Abstract base class for key-value storage. Use for settings, preferences, and configuration.
 
 **Methods:**
 
-- `save(record: Omit<T, 'id' | 'createdAt' | 'updatedAt'>): Promise<string>`
-- `update(id: string, updates: Partial<T>): Promise<void>`
-- `delete(id: string): Promise<void>`
-- `get(id: string): Promise<T | undefined>`
-- `getAll(): Promise<T[]>`
-- `has(id: string): Promise<boolean>`
-- `count(): Promise<number>`
-- `clear(): Promise<void>`
-- `bulkAdd(records: T[]): Promise<string[]>`
-- `bulkPut(records: T[]): Promise<void>`
-- `bulkDelete(ids: string[]): Promise<void>`
-- `findByIndex(index: string, value: IndexableType): Promise<T[]>`
+- `set(key, value)`: Set a value (upsert)
+- `get<T>(key)`: Get a value with type casting
+- `getOrDefault<T>(key, defaultValue)`: Get with fallback
+- `delete(key)`: Delete a key
+- `has(key)`: Check if key exists
+- `keys()`: Get all keys
+- `getAll()`: Get all records
+- `clear()`: Clear all entries
+- `count()`: Count entries
+- `setMany(entries)`: Bulk set
+- `getMany(keys)`: Bulk get
+- `deleteMany(keys)`: Bulk delete
 
 ### `BaseRecord`
 
@@ -164,111 +176,48 @@ interface BaseRecord {
 }
 ```
 
-### `KeyValueStorage<V>`
-
-Abstract base class for key-value storage. Use this for settings, preferences, feature flags, or any data where you access by a string key rather than an auto-generated ID.
-
-**Constructor:**
-
-```typescript
-constructor(
-  db: Dexie,
-  tableName: string,
-  options?: KeyValueStorageOptions
-)
-```
-
-**Options:**
-
-```typescript
-interface KeyValueStorageOptions {
-  maxKeyLength?: number; // Default: 128
-  maxValueSizeBytes?: number; // Default: 1MB
-}
-```
-
-**Methods:**
-
-- `set(key: string, value: V): Promise<void>` - Set a value (upsert)
-- `get<T>(key: string): Promise<T | undefined>` - Get a value with type casting
-- `getOrDefault<T>(key: string, defaultValue: T): Promise<T>` - Get with fallback
-- `delete(key: string): Promise<void>` - Delete a key
-- `has(key: string): Promise<boolean>` - Check if key exists
-- `keys(): Promise<string[]>` - Get all keys
-- `getAll(): Promise<KeyValueRecord<V>[]>` - Get all records
-- `clear(): Promise<void>` - Clear all entries
-- `count(): Promise<number>` - Count entries
-- `setMany(entries: Record<string, V> | Map<string, V>): Promise<void>` - Bulk set
-- `getMany(keys: string[]): Promise<Map<string, V>>` - Bulk get
-- `deleteMany(keys: string[]): Promise<void>` - Bulk delete
-
-### `KeyValueRecord<V>`
-
-```typescript
-interface KeyValueRecord<V = unknown> {
-  key: string; // Primary key
-  value: V; // The stored value
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
-
 ## Examples
 
-### Entity Storage (UI Builder App)
+### Entity Storage
 
 ```typescript
-// packages/builder/src/storage/database.ts
-import { createDexieDatabase } from '@openzeppelin/ui-builder-storage';
-
-export const db = createDexieDatabase('UIBuilder', [
-  {
-    version: 1,
-    stores: {
-      contractUIs: '++id, title, createdAt, updatedAt, ecosystem, networkId, contractAddress, functionId',
-    },
-  },
-]);
-
-// packages/builder/src/storage/ContractUIStorage.ts
-import { EntityStorage } from '@openzeppelin/ui-builder-storage';
-import { db } from './database';
-import type { ContractUIRecord } from './types';
-
-export class ContractUIStorage extends EntityStorage<ContractUIRecord> {
-  constructor() {
-    // 50MB limit for records containing large contract definitions
-    super(db, 'contractUIs', { maxRecordSizeBytes: 50 * 1024 * 1024 });
-  }
-  // Domain-specific methods...
-}
-```
-
-### Key-Value Storage (Settings/Preferences)
-
-```typescript
-// database.ts
-import { createDexieDatabase } from '@openzeppelin/ui-builder-storage';
+import { createDexieDatabase, EntityStorage } from '@openzeppelin/ui-storage';
 
 export const db = createDexieDatabase('MyApp', [
   {
     version: 1,
     stores: {
-      settings: '&key', // Key is the primary key
+      items: '++id, title, createdAt, updatedAt',
     },
   },
 ]);
 
-// SettingsStorage.ts
-import { KeyValueStorage } from '@openzeppelin/ui-builder-storage';
-import { db } from './database';
+export class ItemStorage extends EntityStorage<ItemRecord> {
+  constructor() {
+    super(db, 'items', { maxRecordSizeBytes: 50 * 1024 * 1024 });
+  }
+}
+```
+
+### Key-Value Storage
+
+```typescript
+import { createDexieDatabase, KeyValueStorage } from '@openzeppelin/ui-storage';
+
+export const db = createDexieDatabase('MyApp', [
+  {
+    version: 1,
+    stores: {
+      settings: '&key',
+    },
+  },
+]);
 
 class SettingsStorage extends KeyValueStorage<unknown> {
   constructor() {
     super(db, 'settings');
   }
 
-  // Add typed convenience methods
   async getTheme(): Promise<'light' | 'dark'> {
     return (await this.get<'light' | 'dark'>('theme')) ?? 'light';
   }
@@ -283,30 +232,22 @@ export const settingsStorage = new SettingsStorage();
 // Usage
 await settingsStorage.set('theme', 'dark');
 await settingsStorage.set('language', 'en');
-await settingsStorage.set('notifications', { email: true, push: false });
-
 const theme = await settingsStorage.get<string>('theme'); // 'dark'
-const lang = await settingsStorage.getOrDefault('language', 'en'); // 'en'
-const hasTheme = await settingsStorage.has('theme'); // true
-
-// Bulk operations
-await settingsStorage.setMany({
-  theme: 'light',
-  language: 'fr',
-});
-
-const values = await settingsStorage.getMany(['theme', 'language']);
-// Map { 'theme' => 'light', 'language' => 'fr' }
 ```
 
 ## Development
 
 ```bash
-pnpm install
+# Build the package
 pnpm build
+
+# Run tests
 pnpm test
+
+# Lint
+pnpm lint
 ```
 
 ## License
 
-MIT
+[AGPL-3.0](https://github.com/OpenZeppelin/openzeppelin-ui/blob/main/LICENSE)

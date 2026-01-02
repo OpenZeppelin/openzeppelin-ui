@@ -394,7 +394,7 @@ describe('AppConfigService', () => {
             },
             metadata: {
               name: 'My App',
-              description: 'App using OpenZeppelin UI Builder',
+              description: 'App using OpenZeppelin UI',
             },
           },
           analytics: {

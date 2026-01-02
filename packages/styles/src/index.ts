@@ -1,5 +1,5 @@
 /**
- * Styles package for the UI Builder
+ * Styles package for the OpenZeppelin UI ecosystem
  */
 import './index.css';
 

@@ -1,6 +1,25 @@
-# Centralized Styling System
+# @openzeppelin/ui-styles
 
-This package contains the centralized styling system for the UI Builder monorepo. It uses Tailwind CSS 4.0 with OKLCH colors and follows the new-york style from shadcn/ui.
+Centralized styling system for the OpenZeppelin UI ecosystem.
+
+[![npm version](https://img.shields.io/npm/v/@openzeppelin/ui-styles.svg)](https://www.npmjs.com/package/@openzeppelin/ui-styles)
+
+## Installation
+
+```bash
+# Using npm
+npm install @openzeppelin/ui-styles
+
+# Using yarn
+yarn add @openzeppelin/ui-styles
+
+# Using pnpm
+pnpm add @openzeppelin/ui-styles
+```
+
+## Overview
+
+This package contains the centralized styling system for the OpenZeppelin UI monorepo. It uses Tailwind CSS 4.0 with OKLCH colors and follows the new-york style from shadcn/ui.
 
 ## Package Structure
 
@@ -8,31 +27,28 @@ This package contains the centralized styling system for the UI Builder monorepo
 styles/
 ├── src/                        # Source stylesheets and utilities
 ├── global.css                  # Main CSS file with theme variables and base styles
-├── package.json                # Package configuration
-├── tsconfig.json               # TypeScript configuration
-├── tsup.config.ts              # Build configuration
-└── README.md                   # This documentation
+├── variables.css               # CSS custom properties
+├── base.css                    # Base styles
+├── package.json
+├── tsconfig.json
+└── README.md
 ```
 
 ## Key Files
 
 - `global.css` - Main CSS file with theme variables and base styles that's shared across all packages.
 - `src/utils/` - Utility CSS files and styling functions (if any).
-- Configuration is centralized at the repo root and consumed by packages via lightweight JS proxy configs and copied JSON to ensure consistency.
 
 ## Styling Approach
 
 This monorepo utilizes a consistent styling approach driven by the consuming application:
 
-1.  **Centralized Theme:** This `@styles` package provides the single source of truth for theme variables (colors, spacing, radius) and base styles in `global.css`.
-2.  **Centralized Configuration:** Root-level `tailwind.config.cjs`, `postcss.config.cjs`, and `components.json` are consumed by packages using:
-    - package-level JS proxy configs (`tailwind.config.cjs`, `postcss.config.cjs`) that `require('../../...')`
-    - a per-package `components.json` file (regular JSON, not a symlink)
-3.  **Consumer-Driven Build:** The main application (`packages/builder`) or exported applications are responsible for the Tailwind CSS build process.
-4.  **Automatic Content Scanning:** Tailwind v4 automatically scans the source code of the application _and its dependencies_ (like `@openzeppelin/ui-builder-ui` and `@openzeppelin/ui-builder-renderer`) for utility class usage.
-5.  **CSS Generation:** The consumer app's build generates the final CSS file, including base styles from `global.css`, theme variables, and all necessary utility classes used throughout the application and its dependencies.
+1. **Centralized Theme:** This `@openzeppelin/ui-styles` package provides the single source of truth for theme variables (colors, spacing, radius) and base styles in `global.css`.
+2. **Consumer-Driven Build:** The main application or exported applications are responsible for the Tailwind CSS build process.
+3. **Automatic Content Scanning:** Tailwind v4 automatically scans the source code of the application _and its dependencies_ (like `@openzeppelin/ui-components` and `@openzeppelin/ui-renderer`) for utility class usage.
+4. **CSS Generation:** The consumer app's build generates the final CSS file, including base styles from `global.css`, theme variables, and all necessary utility classes.
 
-**Key Point:** Library packages like `renderer` and `ui` do **not** build or ship their own CSS. Styling is entirely managed by the final application build, ensuring consistency and leveraging the shared theme from this `@styles` package.
+**Key Point:** Library packages like `ui-renderer` and `ui-components` do **not** build or ship their own CSS. Styling is entirely managed by the final application build.
 
 ## Features
 
@@ -44,7 +60,7 @@ This monorepo utilizes a consistent styling approach driven by the consuming app
 
 ## CSS Variables
 
-The system uses CSS variables for all theme colors and properties. These variables are defined directly with OKLCH values for better readability and maintenance:
+The system uses CSS variables for all theme colors and properties. These variables are defined directly with OKLCH values:
 
 ```css
 :root {
@@ -52,6 +68,15 @@ The system uses CSS variables for all theme colors and properties. These variabl
   --primary-foreground: oklch(0.985 0 0);
   /* ... other variables */
 }
+```
+
+## Usage
+
+Import the global styles in your application's entry CSS file:
+
+```css
+@import '@openzeppelin/ui-styles/global.css';
+@import 'tailwindcss';
 ```
 
 ## Form Component Spacing
@@ -62,68 +87,16 @@ Form components follow our design system with consistent spacing:
 - `space-y-4` - Used for spacing between form fields in a group
 - `space-y-6` - Used for spacing between form sections
 
-## Adding New Components
-
-When adding new shadcn/ui components, use the root components.json config:
+## Development
 
 ```bash
-pnpm ui:add button
+# Format CSS files
+pnpm format
+
+# Check formatting
+pnpm format:check
 ```
 
-This ensures all components follow the same unified styling approach.
+## License
 
-## Configuration Architecture
-
-This package provides centralized styling utilities and components used across all packages in the monorepo. The project uses a
-proxy-config approach (no symlinks) for consistency:
-
-### Root Configuration Files
-
-The root directory contains these key configuration files:
-
-- **tailwind.config.cjs**: Shared Tailwind configuration with CSS variable-based theming
-- **postcss.config.cjs**: Shared PostCSS configuration for processing
-- **components.json**: Shared shadcn/ui component configuration
-
-### Package Integration
-
-Packages that contain UI elements needing Tailwind processing (like `builder`, `renderer`, and `ui`) include:
-
-- `tailwind.config.cjs` and `postcss.config.cjs` as simple JS proxies that `require('../../tailwind.config.cjs')` and `require('../../postcss.config.cjs')`
-- a local `components.json` that points to the package's CSS entry (e.g., `../styles/global.css`)
-
-### Exported Templates
-
-During the export process:
-
-1. Template files in the builder package are used to create standalone projects
-2. Proxy configs and JSON are copied as needed to create standalone configuration files
-3. The styles from this package are included in the exported project
-4. The result is a self-contained project with proper styling
-
-### Testing Exported Apps in the Monorepo
-
-When testing exported applications locally within the monorepo workspace (before publishing packages), you need to ensure Tailwind CSS scans the source files of unpublished packages rather than trying to use built distributions.
-
-**Workaround:** Use the `source()` function in your exported app's CSS entry file to point Tailwind to the monorepo root:
-
-```css
-/* In exports/your-app/src/styles.css */
-@import 'tailwindcss' source('../../../');
-```
-
-The `source()` function is a Tailwind v4 feature that sets the base path for automatic content detection. By pointing it to the monorepo root (`../../../` from `exports/your-app/src/`), Tailwind will correctly scan all source files in `packages/ui`, `packages/renderer`, and other workspace packages.
-
-**Why this is needed:**
-
-- When packages are published, consumers import the built CSS and everything works normally
-- When testing locally with unpublished packages, Tailwind's JIT compiler needs access to source files to:
-  - Parse `@apply` directives
-  - Include all CSS variables and theme definitions
-  - Scan component source code for utility classes
-
-**Note:** This workaround should only be used for local testing. When the exported app is deployed or used as a standalone project with published packages, the standard `@import 'tailwindcss';` should be used.
-
-## Utilities
-
-(Add details about any utility functions or components provided by this package if applicable)
+[AGPL-3.0](https://github.com/OpenZeppelin/openzeppelin-ui/blob/main/LICENSE)
