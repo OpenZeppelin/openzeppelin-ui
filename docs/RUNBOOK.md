@@ -146,28 +146,28 @@ pnpm -r publish --access public
 
 ### Build Failures
 
-| Symptom                    | Cause                        | Resolution                           |
-| -------------------------- | ---------------------------- | ------------------------------------ |
-| TypeScript errors          | Type incompatibility         | Check `pnpm typecheck` locally       |
-| Missing dependencies       | Package not in workspace     | Run `pnpm install`                   |
-| Out of memory              | Large build                  | Increase NODE_OPTIONS memory         |
+| Symptom              | Cause                    | Resolution                     |
+| -------------------- | ------------------------ | ------------------------------ |
+| TypeScript errors    | Type incompatibility     | Check `pnpm typecheck` locally |
+| Missing dependencies | Package not in workspace | Run `pnpm install`             |
+| Out of memory        | Large build              | Increase NODE_OPTIONS memory   |
 
 ### Publish Failures
 
-| Symptom                    | Cause                        | Resolution                           |
-| -------------------------- | ---------------------------- | ------------------------------------ |
-| 403 Forbidden              | Invalid npm token            | Regenerate NPM_TOKEN                 |
-| 401 Unauthorized           | Token expired                | Regenerate NPM_TOKEN                 |
-| Version already exists     | Duplicate publish            | Check npm, may already be published  |
-| SLSA verification failed   | Provenance mismatch          | Re-run workflow from clean state     |
+| Symptom                  | Cause               | Resolution                          |
+| ------------------------ | ------------------- | ----------------------------------- |
+| 403 Forbidden            | Invalid npm token   | Regenerate NPM_TOKEN                |
+| 401 Unauthorized         | Token expired       | Regenerate NPM_TOKEN                |
+| Version already exists   | Duplicate publish   | Check npm, may already be published |
+| SLSA verification failed | Provenance mismatch | Re-run workflow from clean state    |
 
 ### GitHub App Issues
 
-| Symptom                       | Cause                     | Resolution                           |
-| ----------------------------- | ------------------------- | ------------------------------------ |
-| Token generation failed       | Missing GH_APP_ID         | Set as repository variable           |
-| Push permission denied        | App not installed         | Install app on repository            |
-| Resource not accessible       | Insufficient permissions  | Update app permissions               |
+| Symptom                 | Cause                    | Resolution                 |
+| ----------------------- | ------------------------ | -------------------------- |
+| Token generation failed | Missing GH_APP_ID        | Set as repository variable |
+| Push permission denied  | App not installed        | Install app on repository  |
+| Resource not accessible | Insufficient permissions | Update app permissions     |
 
 ### Rerunning Failed Workflows
 
@@ -189,22 +189,27 @@ When responding to a release incident, use this template:
 **Status**: Active/Resolved
 
 ### Summary
+
 Brief description of the issue.
 
 ### Impact
+
 - Affected packages: @openzeppelin/ui-{package}
 - Affected versions: x.y.z
 - User impact: Description
 
 ### Timeline
+
 - HH:MM - Issue discovered
 - HH:MM - Version deprecated
 - HH:MM - Fix released
 
 ### Resolution
+
 Steps taken to resolve.
 
 ### Prevention
+
 Changes to prevent recurrence.
 ```
 
