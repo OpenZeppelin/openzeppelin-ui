@@ -11,7 +11,7 @@ module.exports = {
   quoteProps: 'as-needed',
   plugins: [
     require.resolve('prettier-plugin-tailwindcss'),
-    require.resolve('@ianvs/prettier-plugin-sort-imports')
+    require.resolve('@ianvs/prettier-plugin-sort-imports'),
   ],
   tailwindFunctions: ['cva', 'cn', 'clsx', 'twMerge'],
   importOrder: [
@@ -31,6 +31,6 @@ module.exports = {
     '',
     '^\\./?$',
     '',
-    '^.+\\.s?css$'
-  ]
+    '^.+\\.s?css$',
+  ],
 };

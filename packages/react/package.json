@@ -1,0 +1,78 @@
+{
+  "name": "@openzeppelin/ui-react",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Core React context providers and hooks for the OpenZeppelin UI ecosystem.",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown && pnpm build:dts-fix",
+    "build:dts-fix": "cd dist && for f in index-*.d.ts; do [ -f \"$f\" ] && cp \"$f\" index.d.ts; done && for f in index-*.d.cts; do [ -f \"$f\" ] && cp \"$f\" index.d.cts; done || true",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "prepublishOnly": "[ \"$SKIP_PUBLISH_BUILD\" = \"true\" ] || pnpm run build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage --passWithNoTests",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\""
+  },
+  "keywords": [
+    "react",
+    "hooks",
+    "context",
+    "blockchain",
+    "form",
+    "typescript",
+    "openzeppelin"
+  ],
+  "author": "OpenZeppelin",
+  "license": "AGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenZeppelin/openzeppelin-ui",
+    "directory": "packages/react"
+  },
+  "dependencies": {
+    "@openzeppelin/ui-types": "workspace:^",
+    "@openzeppelin/ui-components": "workspace:^",
+    "@openzeppelin/ui-utils": "workspace:^",
+    "lucide-react": "^0.510.0"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.4",
+    "@testing-library/react": "^16.3.0",
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "jsdom": "^26.1.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

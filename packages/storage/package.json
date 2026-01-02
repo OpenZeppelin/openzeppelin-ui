@@ -1,0 +1,66 @@
+{
+  "name": "@openzeppelin/ui-storage",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Universal, app-agnostic storage abstraction built on Dexie.js for IndexedDB.",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown && pnpm build:dts-fix",
+    "build:dts-fix": "cd dist && for f in index-*.d.ts; do [ -f \"$f\" ] && cp \"$f\" index.d.ts; done && for f in index-*.d.cts; do [ -f \"$f\" ] && cp \"$f\" index.d.cts; done || true",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "prepublishOnly": "[ \"$SKIP_PUBLISH_BUILD\" = \"true\" ] || pnpm run build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage --passWithNoTests",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\""
+  },
+  "keywords": [
+    "storage",
+    "indexeddb",
+    "dexie",
+    "blockchain",
+    "typescript"
+  ],
+  "author": "OpenZeppelin",
+  "license": "AGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenZeppelin/openzeppelin-ui",
+    "directory": "packages/storage"
+  },
+  "dependencies": {
+    "@openzeppelin/ui-utils": "workspace:^",
+    "dexie": "^4.0.11",
+    "dexie-react-hooks": "^1.1.7"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "fake-indexeddb": "^6.0.1",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}
