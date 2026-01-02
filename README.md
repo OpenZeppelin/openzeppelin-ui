@@ -135,6 +135,25 @@ pnpm lint
 pnpm typecheck
 ```
 
+## Local Development (Consuming Projects)
+
+If you're developing a project that uses `@openzeppelin/ui-*` packages and want to test changes against a local checkout of this repo, run the setup script:
+
+```bash
+# From your project directory (with openzeppelin-ui as a sibling):
+node ../openzeppelin-ui/scripts/setup-local-dev.mjs
+
+# Or with a custom path:
+node /path/to/openzeppelin-ui/scripts/setup-local-dev.mjs --ui-path ../my-ui-fork
+```
+
+This creates a `.pnpmfile.cjs` hook and adds convenience scripts to your `package.json`:
+
+```bash
+pnpm dev:local   # Use local UI Kit packages
+pnpm dev:npm     # Switch back to npm packages
+```
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines.
