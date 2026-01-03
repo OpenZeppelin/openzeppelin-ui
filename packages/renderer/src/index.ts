@@ -7,6 +7,9 @@
 // Export types from FormTypes
 export type { RendererConfig } from './types/RendererConfig';
 
+// Export config object used by export system to determine dependencies
+export { rendererConfig } from './config';
+
 // Export internal components to avoid name conflicts
 export { TransactionForm } from './components/TransactionForm';
 
