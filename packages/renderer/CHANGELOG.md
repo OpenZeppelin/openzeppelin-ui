@@ -1,5 +1,13 @@
 # @openzeppelin/ui-renderer
 
+## 1.0.2
+
+### Patch Changes
+
+- [#6](https://github.com/OpenZeppelin/openzeppelin-ui/pull/6) [`3a24b04`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/3a24b04b48967d9eede253fc81ca163b45b6f97b) Thanks [@pasevin](https://github.com/pasevin)! - Export `rendererConfig` from the renderer package
+
+  The `rendererConfig` object defines core and field-specific dependencies used by the export system to determine which packages to include in exported forms. This was previously only available internally but is now exported for use by the UI Builder export pipeline.
+
 ## 1.0.1
 
 ### Patch Changes
