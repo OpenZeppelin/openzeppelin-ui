@@ -81,7 +81,6 @@ jobs:
 
       - name: Test
         run: pnpm test
-        continue-on-error: true
 
   lint:
     runs-on: ubuntu-latest
@@ -104,11 +103,9 @@ jobs:
 
       - name: Lint
         run: pnpm lint
-        continue-on-error: true
 
       - name: Format check
         run: pnpm format:check
-        continue-on-error: true
 
   typecheck:
     runs-on: ubuntu-latest
@@ -134,4 +131,3 @@ jobs:
 
       - name: Typecheck
         run: pnpm typecheck
-        continue-on-error: true
