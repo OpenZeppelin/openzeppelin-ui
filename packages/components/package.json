@@ -12,6 +12,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./code-editor": {
+      "types": "./dist/code-editor.d.ts",
+      "import": "./dist/code-editor.js",
+      "require": "./dist/code-editor.cjs"
     }
   },
   "sideEffects": false,
@@ -24,7 +29,7 @@
   },
   "scripts": {
     "build": "tsdown && pnpm build:dts-fix",
-    "build:dts-fix": "cd dist && for f in index-*.d.ts; do [ -f \"$f\" ] && cp \"$f\" index.d.ts; done && for f in index-*.d.cts; do [ -f \"$f\" ] && cp \"$f\" index.d.cts; done || true",
+    "build:dts-fix": "bash scripts/fix-dts.sh",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "prepublishOnly": "[ \"$SKIP_PUBLISH_BUILD\" = \"true\" ] || pnpm run build",
     "typecheck": "tsc --noEmit",

@@ -9,7 +9,6 @@ import {
   BigIntField,
   BooleanField,
   BytesField,
-  CodeEditorField,
   EnumField,
   FileUploadField,
   MapField,
@@ -23,6 +22,7 @@ import {
   TextField,
   UrlField,
 } from '@openzeppelin/ui-components';
+import { CodeEditorField } from '@openzeppelin/ui-components/code-editor';
 import type { ContractAdapter, ContractSchema } from '@openzeppelin/ui-types';
 import { FieldType, FormValues } from '@openzeppelin/ui-types';
 
