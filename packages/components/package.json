@@ -1,6 +1,6 @@
 {
   "name": "@openzeppelin/ui-components",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": false,
   "description": "Shared React UI components for the OpenZeppelin UI ecosystem.",
   "type": "module",
