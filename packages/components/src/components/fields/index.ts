@@ -1,5 +1,8 @@
 /**
  * Field components index
+ *
+ * Note: CodeEditorField is exported separately via '@openzeppelin/ui-components/code-editor'
+ * to avoid bundling CSS dependencies with the main package.
  */
 
 export * from './AddressField';
@@ -10,7 +13,6 @@ export * from './BaseField';
 export * from './BigIntField';
 export * from './BooleanField';
 export * from './BytesField';
-export * from './CodeEditorField';
 export * from './DateTimeField';
 export * from './EnumField';
 export * from './FileUploadField';

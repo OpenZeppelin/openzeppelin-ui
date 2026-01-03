@@ -14,7 +14,7 @@ import { defineConfig } from 'tsdown';
  * - https://github.com/egoist/tsup/issues/1084
  */
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: ['src/index.ts', 'src/code-editor.ts'],
   format: ['esm', 'cjs'],
   dts: true,
   clean: true,
