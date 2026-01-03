@@ -1,0 +1,15 @@
+/* Define layer order first - this is critical for predictability */
+@layer base, components, utilities;
+
+/* 
+  Import Tailwind directives.
+  The `source()` function is a Tailwind v4 feature that sets the base path for
+  automatic content detection. By setting it to the monorepo root, Tailwind
+  can discover all necessary files in all packages.
+*/
+@import 'tailwindcss' source('../../../');
+
+/*
+  Import global theme variables and base styles from the styles package.
+*/
+@import '@openzeppelin/ui-styles/global.css';
