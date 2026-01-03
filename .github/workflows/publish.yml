@@ -108,6 +108,9 @@ jobs:
           publish: pnpm changeset publish --no-git-checks
           # Use git-cli commit mode instead of github-api to support executable files in .husky/
           commitMode: "git-cli"
+          # Use conventional commit format to satisfy commitlint
+          commit: "chore(release): version packages"
+          title: "chore(release): version packages"
         env:
           GITHUB_TOKEN: ${{ steps.gh-app-token.outputs.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
