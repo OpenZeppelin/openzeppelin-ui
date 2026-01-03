@@ -17,7 +17,12 @@ module.exports = {
   importOrder: [
     '^react',
     '',
-    '^@openzeppelin/',
+    // Main @openzeppelin package imports (without subpaths)
+    '^@openzeppelin/[^/]+$',
+    '',
+    // Subpath imports like @openzeppelin/ui-components/code-editor
+    // Kept separate to avoid merging with main imports
+    '^@openzeppelin/.+/.+',
     '',
     '^@/',
     '',
