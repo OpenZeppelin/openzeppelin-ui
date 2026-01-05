@@ -1,0 +1,46 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "labels": ["dependencies"],
+  "rangeStrategy": "bump",
+  "packageRules": [
+    {
+      "description": "Group all non-major dependencies together",
+      "groupName": "all non-major dependencies",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackagePatterns": ["*"]
+    },
+    {
+      "description": "Group TypeScript and related packages",
+      "groupName": "typescript",
+      "matchPackageNames": ["typescript", "tsdown", "tslib"]
+    },
+    {
+      "description": "Group React packages",
+      "groupName": "react",
+      "matchPackageNames": ["react", "react-dom", "@types/react", "@types/react-dom"]
+    },
+    {
+      "description": "Group testing packages",
+      "groupName": "testing",
+      "matchPackageNames": ["vitest", "@vitest/coverage-v8"]
+    },
+    {
+      "description": "Group linting packages",
+      "groupName": "linting",
+      "matchPackageNames": ["eslint", "prettier", "@typescript-eslint/*"]
+    },
+    {
+      "description": "Automerge minor and patch updates for dev dependencies",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"]
+  },
+  "osvVulnerabilityAlerts": true,
+  "schedule": ["before 6am on monday"]
+}
