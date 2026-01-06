@@ -5,9 +5,9 @@ export { DemoSection } from './DemoSection';
 export { ButtonDemo } from './ButtonDemo';
 export { InputDemo } from './InputDemo';
 export { SelectDemo } from './SelectDemo';
-// export { TextareaDemo } from './TextareaDemo'; // TODO: Phase 3
-// export { CheckboxDemo } from './CheckboxDemo'; // TODO: Phase 3
-// export { RadioGroupDemo } from './RadioGroupDemo'; // TODO: Phase 3
+export { TextareaDemo } from './TextareaDemo';
+export { CheckboxDemo } from './CheckboxDemo';
+export { RadioGroupDemo } from './RadioGroupDemo';
 
 // Feedback Demos
 // export { AlertDemo } from './AlertDemo'; // TODO: Phase 5

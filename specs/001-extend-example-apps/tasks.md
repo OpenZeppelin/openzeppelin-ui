@@ -48,14 +48,14 @@
 
 ### Implementation for User Story 1
 
-- [ ] T008 [P] [US1] Create TextareaDemo in examples/basic-react-app/src/components/TextareaDemo.tsx
-- [ ] T009 [P] [US1] Create CheckboxDemo in examples/basic-react-app/src/components/CheckboxDemo.tsx
-- [ ] T010 [P] [US1] Create RadioGroupDemo in examples/basic-react-app/src/components/RadioGroupDemo.tsx
-- [ ] T011 [US1] Update examples/basic-react-app/src/components/index.ts with new Input demo exports
-- [ ] T012 [US1] Update demoComponents in examples/basic-react-app/src/App.tsx to import US1 demos
-- [ ] T013 [US1] Enhance existing ButtonDemo with loading and disabled states in examples/basic-react-app/src/components/ButtonDemo.tsx
-- [ ] T014 [US1] Enhance existing InputDemo with error states in examples/basic-react-app/src/components/InputDemo.tsx
-- [ ] T015 [US1] Enhance existing SelectDemo with grouped options in examples/basic-react-app/src/components/SelectDemo.tsx
+- [x] T008 [P] [US1] Create TextareaDemo in examples/basic-react-app/src/components/TextareaDemo.tsx
+- [x] T009 [P] [US1] Create CheckboxDemo in examples/basic-react-app/src/components/CheckboxDemo.tsx
+- [x] T010 [P] [US1] Create RadioGroupDemo in examples/basic-react-app/src/components/RadioGroupDemo.tsx
+- [x] T011 [US1] Update examples/basic-react-app/src/components/index.ts with new Input demo exports
+- [x] T012 [US1] Update demoComponents in examples/basic-react-app/src/App.tsx to import US1 demos
+- [x] T013 [US1] Enhance existing ButtonDemo with loading and disabled states in examples/basic-react-app/src/components/ButtonDemo.tsx
+- [x] T014 [US1] Enhance existing InputDemo with error states in examples/basic-react-app/src/components/InputDemo.tsx
+- [x] T015 [US1] Enhance existing SelectDemo with grouped options in examples/basic-react-app/src/components/SelectDemo.tsx
 
 **Checkpoint**: All Input category components functional and testable
 

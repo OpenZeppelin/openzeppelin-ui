@@ -33,7 +33,16 @@ import {
   SidebarSection,
 } from '@openzeppelin/ui-components';
 
-import { ButtonDemo, FormDemo, InputDemo, RendererDemo, SelectDemo } from './components';
+import {
+  ButtonDemo,
+  CheckboxDemo,
+  FormDemo,
+  InputDemo,
+  RadioGroupDemo,
+  RendererDemo,
+  SelectDemo,
+  TextareaDemo,
+} from './components';
 
 // ============================================================================
 // Types (T004)
@@ -204,10 +213,7 @@ function PlaceholderDemo({ name }: { name: string }): React.ReactElement {
   );
 }
 
-// Create placeholder components for unimplemented demos
-const TextareaDemo = () => <PlaceholderDemo name="Textarea" />;
-const CheckboxDemo = () => <PlaceholderDemo name="Checkbox" />;
-const RadioGroupDemo = () => <PlaceholderDemo name="RadioGroup" />;
+// Placeholder components for demos not yet implemented
 const AlertDemo = () => <PlaceholderDemo name="Alert" />;
 const DialogDemo = () => <PlaceholderDemo name="Dialog" />;
 const TooltipDemo = () => <PlaceholderDemo name="Tooltip" />;
@@ -238,11 +244,10 @@ const WalletDemo = () => <PlaceholderDemo name="Wallet" />;
  * Existing demos use actual implementations; future demos use placeholders.
  */
 const demoComponents: Record<DemoKey, React.ComponentType> = {
-  // Inputs - existing
+  // Inputs
   button: ButtonDemo,
   input: InputDemo,
   select: SelectDemo,
-  // Inputs - placeholders (Phase 3)
   textarea: TextareaDemo,
   checkbox: CheckboxDemo,
   'radio-group': RadioGroupDemo,
