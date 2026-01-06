@@ -103,8 +103,9 @@ function TransferPage() {
 | Layer | Package                       | Purpose                      |
 | ----- | ----------------------------- | ---------------------------- |
 | App   | Your Application              | Consumer application         |
-| 6     | `@openzeppelin/ui-react`      | Context providers & hooks    |
-| 5     | `@openzeppelin/ui-renderer`   | Form & contract UI rendering |
+| 7     | `@openzeppelin/ui-storage`    | IndexedDB storage            |
+| 6     | `@openzeppelin/ui-renderer`   | Form & contract UI rendering |
+| 5     | `@openzeppelin/ui-react`      | Context providers & hooks    |
 | 4     | `@openzeppelin/ui-components` | UI primitives & form fields  |
 | 3     | `@openzeppelin/ui-styles`     | Tailwind theme & variables   |
 | 2     | `@openzeppelin/ui-utils`      | Shared utilities             |
