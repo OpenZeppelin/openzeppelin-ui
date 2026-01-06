@@ -158,6 +158,10 @@ pnpm dev:npm     # Switch back to npm packages
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines.
 
+This project uses [GitHub Speckit](https://github.com/github/spec-kit) for spec-driven development. Feature specifications, implementation plans, and task breakdowns are managed in the `.specify/` directory.
+
+> **Note**: Even if you're not using Speckit, please read the [project constitution](/.specify/memory/constitution.md) before contributing. It defines the architectural principles and quality standards that all contributions must follow.
+
 ## Documentation
 
 - [Migration Guide](./docs/MIGRATION.md) - Migrate from `@openzeppelin/ui-builder-*` packages
