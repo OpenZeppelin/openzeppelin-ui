@@ -1,22 +1,10 @@
 <!--
 Sync Impact Report
-Version: 0.0.0 → 1.0.0
-Modified Principles: Initial constitution creation
-- Section I: Library-First Architecture - establishes package independence and layering
-- Section II: Chain-Agnostic Design - prohibits chain-specific code in library packages
-- Section III: Type Safety & API Stability - defines TypeScript standards and public API contracts
-- Section IV: Design System Ownership - establishes Tailwind CSS 4 and shadcn/ui standards
-- Section V: Testing & Documentation - defines Vitest standards and API documentation requirements
-- Section VI: Packaging & Release Management - defines Changesets and dual-format output requirements
-- Section VII: Consumer-First Development - prioritizes downstream compatibility
-Added sections:
-- Additional Constraints
-- Development Workflow and Review Process
-- Governance
+Version: 1.0.1 → 1.0.2
+Modified Principles:
+- Section I: Swapped layers 5 and 6 (ui-react → Layer 5, ui-renderer → Layer 6) to reflect actual dependency graph
 Templates:
-- ✅ .specify/templates/plan-template.md (aligned with constitution checks)
-- ✅ .specify/templates/spec-template.md (no changes needed)
-- ✅ .specify/templates/tasks-template.md (no changes needed)
+- ✅ No template updates needed
 Follow-up TODOs: none
 -->
 
@@ -32,11 +20,11 @@ Follow-up TODOs: none
   - Layer 2: `@openzeppelin/ui-utils` — Framework-agnostic utilities
   - Layer 3: `@openzeppelin/ui-styles` — Tailwind CSS theme and variables
   - Layer 4: `@openzeppelin/ui-components` — React UI primitives (shadcn/ui based)
-  - Layer 5: `@openzeppelin/ui-renderer` — Contract UI rendering (forms, state widgets, transaction status)
-  - Layer 6: `@openzeppelin/ui-react` — React context providers and hooks (wallet state, adapter context)
+  - Layer 5: `@openzeppelin/ui-react` — React context providers and hooks (wallet state, adapter context)
+  - Layer 6: `@openzeppelin/ui-renderer` — Contract UI rendering (forms, state widgets, transaction status)
   - Layer 7: `@openzeppelin/ui-storage` — IndexedDB storage abstraction
 - Lower-layer packages MUST NOT depend on higher-layer packages; circular dependencies are forbidden.
-- Each package MUST have its own README, CHANGELOG, and version managed via Changesets.
+- Each package MUST have its own README and version managed via Changesets (CHANGELOGs are auto-generated on release).
 - Rationale: Enables consuming applications (UI Builder, Role Manager, external apps) to import only the packages they need, minimizing bundle size and dependency overhead.
 
 ### II. Chain-Agnostic Design (NON-NEGOTIABLE)
@@ -140,4 +128,4 @@ Follow-up TODOs: none
   - MINOR: New features, non-breaking additions
   - PATCH: Bug fixes, documentation improvements
 
-**Version**: 1.0.0 | **Ratified**: 2026-01-06 | **Last Amended**: 2026-01-06
+**Version**: 1.0.2 | **Ratified**: 2026-01-06 | **Last Amended**: 2026-01-06
