@@ -16,14 +16,19 @@
   },
   "dependencies": {
     "@openzeppelin/ui-components": "workspace:^",
+    "@openzeppelin/ui-react": "workspace:^",
     "@openzeppelin/ui-renderer": "workspace:^",
     "@openzeppelin/ui-styles": "workspace:^",
     "@openzeppelin/ui-types": "workspace:^",
     "@openzeppelin/ui-utils": "workspace:^",
+    "@rainbow-me/rainbowkit": "^2.2.3",
+    "@tanstack/react-query": "^5.80.2",
     "lucide-react": "^0.510.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
-    "react-hook-form": "^7.62.0"
+    "react-hook-form": "^7.62.0",
+    "viem": "^2.31.3",
+    "wagmi": "^2.17.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.11",

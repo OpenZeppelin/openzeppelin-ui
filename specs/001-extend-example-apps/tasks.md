@@ -19,9 +19,9 @@
 
 **Purpose**: Project initialization and shared component creation
 
-- [ ] T001 Add wallet dependencies to examples/basic-react-app/package.json (@openzeppelin/ui-react, wagmi, viem, @rainbow-me/rainbowkit, @tanstack/react-query)
-- [ ] T002 Create DemoSection wrapper component in examples/basic-react-app/src/components/DemoSection.tsx
-- [ ] T003 Export DemoSection from examples/basic-react-app/src/components/index.ts
+- [x] T001 Add wallet dependencies to examples/basic-react-app/package.json (@openzeppelin/ui-react, wagmi, viem, @rainbow-me/rainbowkit, @tanstack/react-query)
+- [x] T002 Create DemoSection wrapper component in examples/basic-react-app/src/components/DemoSection.tsx
+- [x] T003 Export DemoSection from examples/basic-react-app/src/components/index.ts
 
 ---
 
@@ -31,10 +31,10 @@
 
 **⚠️ CRITICAL**: Navigation structure needed for all demo components
 
-- [ ] T004 Update DemoKey type in examples/basic-react-app/src/App.tsx to include all new demo keys per data-model.md
-- [ ] T005 Restructure navItems in examples/basic-react-app/src/App.tsx into NavCategory groups (Inputs, Feedback, Layout, Data Display, Forms, Integration)
-- [ ] T006 Update SidebarLayout in examples/basic-react-app/src/App.tsx to render categorized SidebarSections
-- [ ] T007 Update demoComponents registry in examples/basic-react-app/src/App.tsx with placeholder imports for new demos
+- [x] T004 Update DemoKey type in examples/basic-react-app/src/App.tsx to include all new demo keys per data-model.md
+- [x] T005 Restructure navItems in examples/basic-react-app/src/App.tsx into NavCategory groups (Inputs, Feedback, Layout, Data Display, Forms, Integration)
+- [x] T006 Update SidebarLayout in examples/basic-react-app/src/App.tsx to render categorized SidebarSections
+- [x] T007 Update demoComponents registry in examples/basic-react-app/src/App.tsx with placeholder imports for new demos
 
 **Checkpoint**: Navigation structure ready - user story implementation can now begin in parallel
 

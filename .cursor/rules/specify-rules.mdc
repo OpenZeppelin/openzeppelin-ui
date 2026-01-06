@@ -1,0 +1,29 @@
+# openzeppelin-ui Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2026-01-06
+
+## Active Technologies
+
+- TypeScript 5.8+, React 19.x + @openzeppelin/ui-* packages, react-hook-form, lucide-react, wagmi, viem, @rainbow-me/rainbowki (001-extend-example-apps)
+
+## Project Structure
+
+```text
+src/
+tests/
+```
+
+## Commands
+
+npm test && npm run lint
+
+## Code Style
+
+TypeScript 5.8+, React 19.x: Follow standard conventions
+
+## Recent Changes
+
+- 001-extend-example-apps: Added TypeScript 5.8+, React 19.x + @openzeppelin/ui-* packages, react-hook-form, lucide-react, wagmi, viem, @rainbow-me/rainbowki
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->
