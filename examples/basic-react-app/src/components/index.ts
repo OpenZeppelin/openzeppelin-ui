@@ -24,12 +24,12 @@ export { RadioGroupDemo } from './RadioGroupDemo';
 // export { DropdownMenuDemo } from './DropdownMenuDemo'; // TODO: Phase 7
 
 // Data Display Demos
-// export { AddressDisplayDemo } from './AddressDisplayDemo'; // TODO: Phase 4
-// export { NetworkDemo } from './NetworkDemo'; // TODO: Phase 4
-// export { EmptyStateDemo } from './EmptyStateDemo'; // TODO: Phase 4
-// export { BannerDemo } from './BannerDemo'; // TODO: Phase 4
-// export { ExternalLinkDemo } from './ExternalLinkDemo'; // TODO: Phase 4
-// export { LoadingButtonDemo } from './LoadingButtonDemo'; // TODO: Phase 4
+export { AddressDisplayDemo } from './AddressDisplayDemo';
+export { NetworkDemo } from './NetworkDemo';
+export { EmptyStateDemo } from './EmptyStateDemo';
+export { BannerDemo } from './BannerDemo';
+export { ExternalLinkDemo } from './ExternalLinkDemo';
+export { LoadingButtonDemo } from './LoadingButtonDemo';
 
 // Form Demos
 export { FormDemo } from './FormDemo';

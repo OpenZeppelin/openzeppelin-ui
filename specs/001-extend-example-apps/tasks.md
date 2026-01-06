@@ -69,14 +69,14 @@
 
 ### Implementation for User Story 2
 
-- [ ] T016 [P] [US2] Create AddressDisplayDemo in examples/basic-react-app/src/components/AddressDisplayDemo.tsx
-- [ ] T017 [P] [US2] Create NetworkDemo (NetworkIcon, NetworkSelector with loading state, NetworkStatusBadge) in examples/basic-react-app/src/components/NetworkDemo.tsx
-- [ ] T018 [P] [US2] Create EmptyStateDemo in examples/basic-react-app/src/components/EmptyStateDemo.tsx
-- [ ] T019 [P] [US2] Create BannerDemo in examples/basic-react-app/src/components/BannerDemo.tsx
-- [ ] T020 [P] [US2] Create ExternalLinkDemo in examples/basic-react-app/src/components/ExternalLinkDemo.tsx
-- [ ] T021 [P] [US2] Create LoadingButtonDemo in examples/basic-react-app/src/components/LoadingButtonDemo.tsx
-- [ ] T022 [US2] Update examples/basic-react-app/src/components/index.ts with Data Display exports
-- [ ] T023 [US2] Update demoComponents in examples/basic-react-app/src/App.tsx to import US2 demos
+- [x] T016 [P] [US2] Create AddressDisplayDemo in examples/basic-react-app/src/components/AddressDisplayDemo.tsx
+- [x] T017 [P] [US2] Create NetworkDemo (NetworkIcon, NetworkSelector with loading state, NetworkStatusBadge) in examples/basic-react-app/src/components/NetworkDemo.tsx
+- [x] T018 [P] [US2] Create EmptyStateDemo in examples/basic-react-app/src/components/EmptyStateDemo.tsx
+- [x] T019 [P] [US2] Create BannerDemo in examples/basic-react-app/src/components/BannerDemo.tsx
+- [x] T020 [P] [US2] Create ExternalLinkDemo in examples/basic-react-app/src/components/ExternalLinkDemo.tsx
+- [x] T021 [P] [US2] Create LoadingButtonDemo in examples/basic-react-app/src/components/LoadingButtonDemo.tsx
+- [x] T022 [US2] Update examples/basic-react-app/src/components/index.ts with Data Display exports
+- [x] T023 [US2] Update demoComponents in examples/basic-react-app/src/App.tsx to import US2 demos
 
 **Checkpoint**: All Data Display components functional - P1 stories complete
 

@@ -34,10 +34,16 @@ import {
 } from '@openzeppelin/ui-components';
 
 import {
+  AddressDisplayDemo,
+  BannerDemo,
   ButtonDemo,
   CheckboxDemo,
+  EmptyStateDemo,
+  ExternalLinkDemo,
   FormDemo,
   InputDemo,
+  LoadingButtonDemo,
+  NetworkDemo,
   RadioGroupDemo,
   RendererDemo,
   SelectDemo,
@@ -224,12 +230,7 @@ const TabsDemo = () => <PlaceholderDemo name="Tabs" />;
 const AccordionDemo = () => <PlaceholderDemo name="Accordion" />;
 const ProgressDemo = () => <PlaceholderDemo name="Progress" />;
 const DropdownMenuDemo = () => <PlaceholderDemo name="DropdownMenu" />;
-const AddressDisplayDemo = () => <PlaceholderDemo name="AddressDisplay" />;
-const NetworkDemo = () => <PlaceholderDemo name="Network" />;
-const EmptyStateDemo = () => <PlaceholderDemo name="EmptyState" />;
-const BannerDemo = () => <PlaceholderDemo name="Banner" />;
-const ExternalLinkDemo = () => <PlaceholderDemo name="ExternalLink" />;
-const LoadingButtonDemo = () => <PlaceholderDemo name="LoadingButton" />;
+// Data Display demos imported from components (Phase 4)
 const FormFieldsDemo = () => <PlaceholderDemo name="FormFields" />;
 const CalendarDemo = () => <PlaceholderDemo name="Calendar" />;
 const DateRangePickerDemo = () => <PlaceholderDemo name="DateRangePicker" />;
@@ -263,7 +264,7 @@ const demoComponents: Record<DemoKey, React.ComponentType> = {
   accordion: AccordionDemo,
   progress: ProgressDemo,
   'dropdown-menu': DropdownMenuDemo,
-  // Data Display - placeholders (Phase 4)
+  // Data Display (Phase 4)
   'address-display': AddressDisplayDemo,
   network: NetworkDemo,
   'empty-state': EmptyStateDemo,
