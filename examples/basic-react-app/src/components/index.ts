@@ -10,11 +10,11 @@ export { CheckboxDemo } from './CheckboxDemo';
 export { RadioGroupDemo } from './RadioGroupDemo';
 
 // Feedback Demos
-// export { AlertDemo } from './AlertDemo'; // TODO: Phase 5
-// export { DialogDemo } from './DialogDemo'; // TODO: Phase 5
-// export { TooltipDemo } from './TooltipDemo'; // TODO: Phase 5
-// export { PopoverDemo } from './PopoverDemo'; // TODO: Phase 5
-// export { ToastDemo } from './ToastDemo'; // TODO: Phase 5
+export { AlertDemo } from './AlertDemo';
+export { DialogDemo } from './DialogDemo';
+export { TooltipDemo } from './TooltipDemo';
+export { PopoverDemo } from './PopoverDemo';
+export { ToastDemo } from './ToastDemo';
 
 // Layout Demos
 // export { CardDemo } from './CardDemo'; // TODO: Phase 7

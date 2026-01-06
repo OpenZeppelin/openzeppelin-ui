@@ -35,19 +35,24 @@ import {
 
 import {
   AddressDisplayDemo,
+  AlertDemo,
   BannerDemo,
   ButtonDemo,
   CheckboxDemo,
+  DialogDemo,
   EmptyStateDemo,
   ExternalLinkDemo,
   FormDemo,
   InputDemo,
   LoadingButtonDemo,
   NetworkDemo,
+  PopoverDemo,
   RadioGroupDemo,
   RendererDemo,
   SelectDemo,
   TextareaDemo,
+  ToastDemo,
+  TooltipDemo,
 } from './components';
 
 // ============================================================================
@@ -220,11 +225,6 @@ function PlaceholderDemo({ name }: { name: string }): React.ReactElement {
 }
 
 // Placeholder components for demos not yet implemented
-const AlertDemo = () => <PlaceholderDemo name="Alert" />;
-const DialogDemo = () => <PlaceholderDemo name="Dialog" />;
-const TooltipDemo = () => <PlaceholderDemo name="Tooltip" />;
-const PopoverDemo = () => <PlaceholderDemo name="Popover" />;
-const ToastDemo = () => <PlaceholderDemo name="Toast" />;
 const CardDemo = () => <PlaceholderDemo name="Card" />;
 const TabsDemo = () => <PlaceholderDemo name="Tabs" />;
 const AccordionDemo = () => <PlaceholderDemo name="Accordion" />;

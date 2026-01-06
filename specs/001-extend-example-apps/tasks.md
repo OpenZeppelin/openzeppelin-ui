@@ -90,14 +90,14 @@
 
 ### Implementation for User Story 3
 
-- [ ] T024 [P] [US3] Create AlertDemo in examples/basic-react-app/src/components/AlertDemo.tsx
-- [ ] T025 [P] [US3] Create DialogDemo in examples/basic-react-app/src/components/DialogDemo.tsx
-- [ ] T026 [P] [US3] Create TooltipDemo in examples/basic-react-app/src/components/TooltipDemo.tsx
-- [ ] T027 [P] [US3] Create PopoverDemo in examples/basic-react-app/src/components/PopoverDemo.tsx
-- [ ] T028 [P] [US3] Create ToastDemo (Sonner) in examples/basic-react-app/src/components/ToastDemo.tsx
-- [ ] T029 [US3] Add Toaster provider to examples/basic-react-app/src/main.tsx
-- [ ] T030 [US3] Update examples/basic-react-app/src/components/index.ts with Feedback exports
-- [ ] T031 [US3] Update demoComponents in examples/basic-react-app/src/App.tsx to import US3 demos
+- [x] T024 [P] [US3] Create AlertDemo in examples/basic-react-app/src/components/AlertDemo.tsx
+- [x] T025 [P] [US3] Create DialogDemo in examples/basic-react-app/src/components/DialogDemo.tsx
+- [x] T026 [P] [US3] Create TooltipDemo in examples/basic-react-app/src/components/TooltipDemo.tsx
+- [x] T027 [P] [US3] Create PopoverDemo in examples/basic-react-app/src/components/PopoverDemo.tsx
+- [x] T028 [P] [US3] Create ToastDemo (Sonner) in examples/basic-react-app/src/components/ToastDemo.tsx
+- [x] T029 [US3] Add Toaster provider to examples/basic-react-app/src/main.tsx
+- [x] T030 [US3] Update examples/basic-react-app/src/components/index.ts with Feedback exports
+- [x] T031 [US3] Update demoComponents in examples/basic-react-app/src/App.tsx to import US3 demos
 
 **Checkpoint**: All Feedback components functional and testable
 
