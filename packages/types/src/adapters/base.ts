@@ -19,6 +19,55 @@ import type {
 
 // Base types and interfaces for adapters will be defined here.
 
+/**
+ * Information about a dynamic type pattern supported by an adapter.
+ * Dynamic patterns are types that require pattern matching rather than exact lookup,
+ * such as arrays, generics, and composite types.
+ */
+export interface DynamicTypePattern {
+  /**
+   * Pattern identifier/name (e.g., 'array', 'option', 'tuple', 'map')
+   */
+  name: string;
+
+  /**
+   * Human-readable syntax example (e.g., 'T[]', 'Option<T>', 'Map<K,V>')
+   */
+  syntax: string;
+
+  /**
+   * The FieldType this pattern maps to.
+   * - A specific FieldType string if the pattern always maps to that type
+   * - 'unwrap' if the pattern resolves to its inner type (e.g., Option<T> → T's field type)
+   * - null if the mapping depends on the inner type (e.g., Vec<Primitive> → array, Vec<Complex> → array-object)
+   */
+  mapsTo: FieldType | 'unwrap' | null;
+
+  /**
+   * Brief description of how this pattern is handled
+   */
+  description: string;
+}
+
+/**
+ * Complete type mapping information for an adapter.
+ * This provides full visibility into both primitive and dynamic type support.
+ */
+export interface TypeMappingInfo {
+  /**
+   * Primitive types with direct mappings to field types.
+   * Keys are blockchain type names (e.g., 'address', 'uint256', 'U128'),
+   * values are the default FieldType for each.
+   */
+  primitives: Record<string, FieldType>;
+
+  /**
+   * Dynamic type patterns that the adapter recognizes.
+   * These patterns are handled through pattern matching rather than exact lookup.
+   */
+  dynamicPatterns: DynamicTypePattern[];
+}
+
 export type ExecutionMethodType = 'eoa' | 'relayer' | 'multisig'; // Extendable
 
 export interface ExecutionMethodDetail {
@@ -747,4 +796,17 @@ export interface ContractAdapter {
    * @returns The AccessControlService instance, or undefined if not supported
    */
   getAccessControlService?(): AccessControlService | undefined;
+
+  /**
+   * Returns complete type mapping information for this adapter.
+   *
+   * This method enables consuming applications to:
+   * - Dynamically render type documentation/demos for all supported types
+   * - Understand both primitive types and dynamic type patterns
+   * - Validate that a type is supported before calling mapParameterTypeToFieldType()
+   * - Keep UIs in sync with adapter capabilities without hardcoding
+   *
+   * @returns TypeMappingInfo containing primitives and dynamic patterns
+   */
+  getTypeMappingInfo(): TypeMappingInfo;
 }
