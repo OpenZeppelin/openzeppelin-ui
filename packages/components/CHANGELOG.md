@@ -1,5 +1,14 @@
 # @openzeppelin/ui-components
 
+## 1.0.2
+
+### Patch Changes
+
+- [#12](https://github.com/OpenZeppelin/openzeppelin-ui/pull/12) [`6e2e802`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/6e2e80226bfa421d88c9b7ed1cfcbee3fc1d01b7) Thanks [@pasevin](https://github.com/pasevin)! - Fix Calendar navigation buttons floating outside container by adding `position: relative` to the root element
+
+- Updated dependencies [[`779a5fb`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/779a5fb82ae2611fb571f8015dae7a29177c4100)]:
+  - @openzeppelin/ui-types@1.1.0
+
 ## 1.0.1
 
 ### Patch Changes
