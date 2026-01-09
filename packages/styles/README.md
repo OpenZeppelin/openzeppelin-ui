@@ -75,9 +75,33 @@ The system uses CSS variables for all theme colors and properties. These variabl
 Import the global styles in your application's entry CSS file:
 
 ```css
+/* Define layer order first - critical for predictability */
+@layer base, components, utilities;
+
+/* 
+  Import Tailwind with source() directive.
+  The source() function sets the base path for scanning - use your monorepo root.
+  This ensures Tailwind finds classes in all local packages.
+*/
+@import 'tailwindcss' source('../../../');
+
+/*
+  Explicitly scan @openzeppelin npm packages for class names.
+  node_modules is ignored by default, so we must register it with @source.
+  Adjust the path based on your CSS file's location.
+*/
+@source "../../../node_modules/@openzeppelin";
+
+/* Import global theme variables and base styles */
 @import '@openzeppelin/ui-styles/global.css';
-@import 'tailwindcss';
 ```
+
+### Key Points
+
+- **`source()` directive**: Sets base path for Tailwind's content scanning
+- **`@source` directive**: Explicitly includes node_modules paths (ignored by default)
+- **Layer order**: Define `@layer` first for predictable CSS specificity
+- **Path adjustment**: Modify paths based on your CSS file's location relative to monorepo root
 
 ## Form Component Spacing
 

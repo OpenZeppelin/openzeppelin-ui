@@ -18,6 +18,18 @@ export function InputDemo(): React.ReactElement {
         </p>
       </div>
 
+      {/* Recommendation Note */}
+      <div className="bg-muted/50 rounded-lg border p-4">
+        <p className="text-sm">
+          <strong>💡 For forms:</strong> Use{' '}
+          <code className="bg-muted rounded px-1">TextField</code> from{' '}
+          <code className="bg-muted rounded px-1">@openzeppelin/ui-components/fields</code> which
+          includes built-in label, validation, and React Hook Form integration. The primitive{' '}
+          <code className="bg-muted rounded px-1">Input</code> shown here is for custom
+          compositions.
+        </p>
+      </div>
+
       {/* Basic Inputs */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Basic</h3>
@@ -86,6 +98,63 @@ export function InputDemo(): React.ReactElement {
             <Label htmlFor="readonly">Read Only</Label>
             <Input id="readonly" readOnly defaultValue="Read only value" />
           </div>
+        </div>
+      </div>
+
+      {/* Error States */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Error States</h3>
+        <div className="grid max-w-md gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="error-required" className="text-destructive">
+              Email *
+            </Label>
+            <Input
+              id="error-required"
+              type="email"
+              placeholder="name@example.com"
+              aria-invalid="true"
+              className="border-destructive focus-visible:ring-destructive"
+            />
+            <p className="text-destructive text-sm">Email is required</p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="error-format">Wallet Address</Label>
+            <Input
+              id="error-format"
+              defaultValue="0xinvalid"
+              aria-invalid="true"
+              className="border-destructive focus-visible:ring-destructive"
+            />
+            <p className="text-destructive text-sm">
+              Invalid address format. Must be a valid Ethereum address.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="error-custom">Amount (ETH)</Label>
+            <Input
+              id="error-custom"
+              type="number"
+              defaultValue="1000"
+              aria-invalid="true"
+              className="border-destructive focus-visible:ring-destructive"
+            />
+            <p className="text-destructive text-sm">Insufficient balance. Available: 0.5 ETH</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Success/Valid State */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Valid State</h3>
+        <div className="max-w-md space-y-2">
+          <Label htmlFor="valid-address">Wallet Address</Label>
+          <Input
+            id="valid-address"
+            defaultValue="0x742d35Cc6634C0532925a3b844Bc9e7595f2bD54"
+            className="border-green-500 focus-visible:ring-green-500"
+          />
+          <p className="text-sm text-green-600">Valid Ethereum address ✓</p>
         </div>
       </div>
 
