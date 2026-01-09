@@ -157,17 +157,14 @@ In addition to the core contract interaction and wallet connection methods, the 
 
 These capabilities are defined in `packages/types/src/adapters/ui-enhancements.ts` and include:
 
-- **`configureUiKit?(config: UiKitConfiguration): void;`**
+- `**configureUiKit?(config: UiKitConfiguration): void;**`
   - Allows the consuming application to inform the adapter about the desired UI kit and pass any kit-specific configuration.
-
-- **`getEcosystemReactUiContextProvider?(): React.ComponentType<EcosystemReactUiProviderProps> | undefined;`**
+- `**getEcosystemReactUiContextProvider?(): React.ComponentType<EcosystemReactUiProviderProps> | undefined;**`
   - Adapters can return a React component that sets up the necessary UI context for that adapter's ecosystem.
-
-- **`getEcosystemReactHooks?(): EcosystemSpecificReactHooks | undefined;`**
+- `**getEcosystemReactHooks?(): EcosystemSpecificReactHooks | undefined;**`
   - Returns an object containing facade React hooks for common wallet and blockchain interactions.
   - **Convention for Hook Return Objects:** Adapters implementing this should ensure their facade hooks return objects with conventionally named properties for common states and actions.
-
-- **`getEcosystemWalletComponents?(): EcosystemWalletComponents | undefined;`**
+- `**getEcosystemWalletComponents?(): EcosystemWalletComponents | undefined;**`
   - Returns an object mapping standardized names to React components for wallet interactions.
 
 By implementing these optional methods, adapters can offer a deeply integrated and reactive UI experience while allowing applications to remain decoupled from the specifics of any particular wallet library or UI kit.
