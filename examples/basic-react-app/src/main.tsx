@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import { Toaster } from '@openzeppelin/ui-components';
 
 import App from './App';
+import { EcosystemProvider } from './context';
 
 import './index.css';
 
@@ -16,8 +17,10 @@ if (!rootElement) throw new Error('Failed to find the root element');
 createRoot(rootElement).render(
   <StrictMode>
     <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
-      <App />
-      <Toaster position="bottom-right" />
+      <EcosystemProvider>
+        <App />
+        <Toaster position="bottom-right" />
+      </EcosystemProvider>
     </ThemeProvider>
   </StrictMode>
 );
