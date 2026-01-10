@@ -11,6 +11,8 @@ import {
   SelectValue,
 } from '@openzeppelin/ui-components';
 
+import { CodeBlock } from './CodeBlock';
+
 /**
  * Demonstrates Select component usage with various configurations
  */
@@ -102,8 +104,8 @@ export function SelectDemo(): React.ReactElement {
       {/* Code Example */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Usage</h3>
-        <pre className="bg-muted overflow-x-auto rounded-lg p-4 text-sm">
-          <code>{`import {
+        <CodeBlock
+          code={`import {
   Select,
   SelectContent,
   SelectItem,
@@ -119,8 +121,9 @@ export function SelectDemo(): React.ReactElement {
     <SelectItem value="option1">Option 1</SelectItem>
     <SelectItem value="option2">Option 2</SelectItem>
   </SelectContent>
-</Select>`}</code>
-        </pre>
+</Select>`}
+          language="tsx"
+        />
       </div>
     </section>
   );

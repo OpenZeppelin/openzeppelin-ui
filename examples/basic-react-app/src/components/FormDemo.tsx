@@ -14,6 +14,8 @@ import {
   SelectValue,
 } from '@openzeppelin/ui-components';
 
+import { CodeBlock } from './CodeBlock';
+
 interface FormData {
   username: string;
   email: string;
@@ -151,17 +153,15 @@ export function FormDemo(): React.ReactElement {
       {submittedData && (
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Submitted Data</h3>
-          <pre className="bg-muted overflow-x-auto rounded-lg p-4 text-sm">
-            <code>{JSON.stringify(submittedData, null, 2)}</code>
-          </pre>
+          <CodeBlock code={JSON.stringify(submittedData, null, 2)} language="json" />
         </div>
       )}
 
       {/* Code Example */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Usage</h3>
-        <pre className="bg-muted overflow-x-auto rounded-lg p-4 text-sm">
-          <code>{`import { FormItem, Input, Label, Button } from '@openzeppelin/ui-components';
+        <CodeBlock
+          code={`import { FormItem, Input, Label, Button } from '@openzeppelin/ui-components';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 
 const form = useForm({ defaultValues: { name: '' }, mode: 'onChange' });
@@ -186,8 +186,9 @@ const form = useForm({ defaultValues: { name: '' }, mode: 'onChange' });
     </FormItem>
     <Button type="submit">Submit</Button>
   </form>
-</FormProvider>`}</code>
-        </pre>
+</FormProvider>`}
+          language="tsx"
+        />
       </div>
     </section>
   );

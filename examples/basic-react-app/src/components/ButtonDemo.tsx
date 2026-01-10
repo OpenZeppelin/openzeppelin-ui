@@ -2,6 +2,8 @@ import { Download, Loader2, Mail, Plus, Send, Trash2 } from 'lucide-react';
 
 import { Button } from '@openzeppelin/ui-components';
 
+import { CodeBlock } from './CodeBlock';
+
 /**
  * Demonstrates Button component variants, sizes, and states
  */
@@ -79,13 +81,14 @@ export function ButtonDemo(): React.ReactElement {
       {/* Code Example */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Usage</h3>
-        <pre className="bg-muted overflow-x-auto rounded-lg p-4 text-sm">
-          <code>{`import { Button } from '@openzeppelin/ui-components';
+        <CodeBlock
+          code={`import { Button } from '@openzeppelin/ui-components';
 
 <Button variant="default">Click me</Button>
 <Button variant="secondary" size="lg">Large Secondary</Button>
-<Button variant="outline" disabled>Disabled</Button>`}</code>
-        </pre>
+<Button variant="outline" disabled>Disabled</Button>`}
+          language="tsx"
+        />
       </div>
     </section>
   );

@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { CodeBlock } from './CodeBlock';
+
 /**
  * Props for the DemoSection wrapper component
  */
@@ -36,9 +38,7 @@ export function DemoSection({
       {codeExample && (
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Usage</h3>
-          <pre className="bg-muted overflow-x-auto rounded-lg p-4 text-sm">
-            <code>{codeExample}</code>
-          </pre>
+          <CodeBlock code={codeExample} language="tsx" />
         </div>
       )}
     </section>
