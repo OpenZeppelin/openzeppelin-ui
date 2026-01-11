@@ -1,5 +1,6 @@
 // Shared Components
 export { DemoSection } from './DemoSection';
+export { EcosystemIndicator } from './EcosystemIndicator';
 
 // Input Demos
 export { ButtonDemo } from './ButtonDemo';
@@ -33,10 +34,12 @@ export { LoadingButtonDemo } from './LoadingButtonDemo';
 
 // Form Demos
 export { FormDemo } from './FormDemo';
-// export { FormFieldsDemo } from './FormFieldsDemo'; // TODO: Phase 6
-// export { CalendarDemo } from './CalendarDemo'; // TODO: Phase 6
-// export { DateRangePickerDemo } from './DateRangePickerDemo'; // TODO: Phase 6
+export { FormFieldsDemo } from './FormFieldsDemo';
+export { CalendarDemo } from './CalendarDemo';
+export { DateRangePickerDemo } from './DateRangePickerDemo';
 
 // Integration Demos
 export { RendererDemo } from './RendererDemo';
+export { TypeMappingDemo } from './TypeMappingDemo';
+export { HomeDemo } from './HomeDemo';
 // export { WalletDemo } from './WalletDemo'; // TODO: Phase 8
