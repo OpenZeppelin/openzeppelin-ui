@@ -111,12 +111,12 @@
 
 ### Implementation for User Story 4
 
-- [ ] T032 [P] [US4] Create FormFieldsDemo (all 20 fields with tabs) in examples/basic-react-app/src/components/FormFieldsDemo.tsx
-- [ ] T033 [P] [US4] Create CalendarDemo in examples/basic-react-app/src/components/CalendarDemo.tsx
-- [ ] T034 [P] [US4] Create DateRangePickerDemo in examples/basic-react-app/src/components/DateRangePickerDemo.tsx
-- [ ] T035 [US4] Enhance existing FormDemo with additional field examples in examples/basic-react-app/src/components/FormDemo.tsx
-- [ ] T036 [US4] Update examples/basic-react-app/src/components/index.ts with Form exports
-- [ ] T037 [US4] Update demoComponents in examples/basic-react-app/src/App.tsx to import US4 demos
+- [x] T032 [P] [US4] Create FormFieldsDemo (all 20 fields with tabs) in examples/basic-react-app/src/components/FormFieldsDemo.tsx
+- [x] T033 [P] [US4] Create CalendarDemo in examples/basic-react-app/src/components/CalendarDemo.tsx
+- [x] T034 [P] [US4] Create DateRangePickerDemo in examples/basic-react-app/src/components/DateRangePickerDemo.tsx
+- [x] T035 [US4] Enhance existing FormDemo with additional field examples in examples/basic-react-app/src/components/FormDemo.tsx
+- [x] T036 [US4] Update examples/basic-react-app/src/components/index.ts with Form exports
+- [x] T037 [US4] Update demoComponents in examples/basic-react-app/src/App.tsx to import US4 demos
 
 **Checkpoint**: All Form Field components functional - P2 stories complete
 
