@@ -3,6 +3,8 @@ import { useState } from 'react';
 
 import { Input, Label } from '@openzeppelin/ui-components';
 
+import { CodeBlock } from './CodeBlock';
+
 /**
  * Demonstrates Input component variations and usage patterns
  */
@@ -161,14 +163,15 @@ export function InputDemo(): React.ReactElement {
       {/* Code Example */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Usage</h3>
-        <pre className="bg-muted overflow-x-auto rounded-lg p-4 text-sm">
-          <code>{`import { Input, Label } from '@openzeppelin/ui-components';
+        <CodeBlock
+          code={`import { Input, Label } from '@openzeppelin/ui-components';
 
 <div className="space-y-2">
   <Label htmlFor="email">Email</Label>
   <Input id="email" type="email" placeholder="name@example.com" />
-</div>`}</code>
-        </pre>
+</div>`}
+          language="tsx"
+        />
       </div>
     </section>
   );

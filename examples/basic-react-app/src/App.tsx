@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  ArrowLeftRight,
   Calendar,
   CalendarRange,
   CheckSquare,
@@ -9,6 +10,7 @@ import {
   FileCode2,
   FormInput,
   Hash,
+  Home,
   Layers,
   LayoutGrid,
   List,
@@ -33,16 +35,22 @@ import {
   SidebarSection,
 } from '@openzeppelin/ui-components';
 
+import { EcosystemSwitcher } from './components/EcosystemSwitcher';
+
 import {
   AddressDisplayDemo,
   AlertDemo,
   BannerDemo,
   ButtonDemo,
+  CalendarDemo,
   CheckboxDemo,
+  DateRangePickerDemo,
   DialogDemo,
   EmptyStateDemo,
   ExternalLinkDemo,
   FormDemo,
+  FormFieldsDemo,
+  HomeDemo,
   InputDemo,
   LoadingButtonDemo,
   NetworkDemo,
@@ -53,6 +61,7 @@ import {
   TextareaDemo,
   ToastDemo,
   TooltipDemo,
+  TypeMappingDemo,
 } from './components';
 
 // ============================================================================
@@ -64,6 +73,9 @@ import {
  * Organized by category per data-model.md specification.
  */
 type DemoKey =
+  // Getting Started
+  | 'home'
+  | 'type-mapping'
   // Inputs
   | 'button'
   | 'input'
@@ -126,6 +138,14 @@ interface NavCategory {
  * Categories: Inputs, Feedback, Layout, Data Display, Forms, Integration
  */
 const navCategories: NavCategory[] = [
+  {
+    key: 'getting-started',
+    title: 'Getting Started',
+    items: [
+      { key: 'home', label: 'Overview', icon: <Home className="size-4" /> },
+      { key: 'type-mapping', label: 'Type Mapping', icon: <ArrowLeftRight className="size-4" /> },
+    ],
+  },
   {
     key: 'inputs',
     title: 'Inputs',
@@ -230,10 +250,6 @@ const TabsDemo = () => <PlaceholderDemo name="Tabs" />;
 const AccordionDemo = () => <PlaceholderDemo name="Accordion" />;
 const ProgressDemo = () => <PlaceholderDemo name="Progress" />;
 const DropdownMenuDemo = () => <PlaceholderDemo name="DropdownMenu" />;
-// Data Display demos imported from components (Phase 4)
-const FormFieldsDemo = () => <PlaceholderDemo name="FormFields" />;
-const CalendarDemo = () => <PlaceholderDemo name="Calendar" />;
-const DateRangePickerDemo = () => <PlaceholderDemo name="DateRangePicker" />;
 const WalletDemo = () => <PlaceholderDemo name="Wallet" />;
 
 // ============================================================================
@@ -245,6 +261,9 @@ const WalletDemo = () => <PlaceholderDemo name="Wallet" />;
  * Existing demos use actual implementations; future demos use placeholders.
  */
 const demoComponents: Record<DemoKey, React.ComponentType> = {
+  // Getting Started
+  home: HomeDemo,
+  'type-mapping': TypeMappingDemo,
   // Inputs
   button: ButtonDemo,
   input: InputDemo,
@@ -324,7 +343,7 @@ function SidebarFooter(): React.ReactElement {
  * Navigation is organized into categories per FR-015 specification.
  */
 function App(): React.ReactElement {
-  const [activeDemo, setActiveDemo] = useState<DemoKey>('button');
+  const [activeDemo, setActiveDemo] = useState<DemoKey>('home');
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const ActiveComponent = demoComponents[activeDemo];
@@ -380,24 +399,31 @@ function App(): React.ReactElement {
       <div className="flex min-h-screen flex-1 flex-col">
         {/* Header - visible on all screen sizes, mobile menu on small screens */}
         <Header
-          title="Component Examples"
+          title="OpenZeppelin UI"
           onOpenSidebar={() => setMobileOpen(true)}
           rightContent={
-            <a
-              href="https://github.com/OpenZeppelin/openzeppelin-ui"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-foreground text-sm transition-colors"
-            >
-              GitHub
-            </a>
+            <div className="flex items-center gap-4">
+              <EcosystemSwitcher />
+              <a
+                href="https://github.com/OpenZeppelin/openzeppelin-ui"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+              >
+                GitHub
+              </a>
+            </div>
           }
         />
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-6 lg:p-8">
           <div className="mx-auto max-w-4xl">
-            <ActiveComponent />
+            {activeDemo === 'home' ? (
+              <HomeDemo onNavigate={(key) => setActiveDemo(key as DemoKey)} />
+            ) : (
+              <ActiveComponent />
+            )}
           </div>
         </main>
 

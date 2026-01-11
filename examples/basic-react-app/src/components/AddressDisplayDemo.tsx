@@ -1,54 +1,67 @@
 import { AddressDisplay } from '@openzeppelin/ui-components';
 
+import { useEcosystem } from '../context';
 import { DemoSection } from './DemoSection';
-
-/**
- * Sample Ethereum addresses for demonstration
- */
-const SAMPLE_ADDRESSES = {
-  wallet: '0x742d35Cc6634C0532925a3b844Bc9e7595f1D3F4',
-  contract: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-  zero: '0x0000000000000000000000000000000000000000',
-  short: '0xAbCdEf0123456789',
-} as const;
+import { EcosystemIndicator } from './EcosystemIndicator';
 
 /**
  * Demonstrates AddressDisplay component variations for blockchain address rendering
+ * Uses real sample addresses from the active ecosystem adapter.
  */
 export function AddressDisplayDemo(): React.ReactElement {
+  const { adapter, sampleAddresses, metadata } = useEcosystem();
+
+  // Get explorer URL using the adapter (ecosystem-specific)
+  const getExplorerUrl = (address: string): string | undefined => {
+    try {
+      return adapter.getExplorerUrl(address) ?? undefined;
+    } catch {
+      return undefined;
+    }
+  };
+
   return (
     <DemoSection
       title="AddressDisplay"
       description="Displays blockchain addresses with optional truncation, copy functionality, and explorer links. Ideal for showing wallet addresses, contract addresses, and transaction hashes."
       codeExample={`import { AddressDisplay } from '@openzeppelin/ui-components';
+import { useEcosystem } from './context';
+
+// Get adapter for explorer URLs
+const { adapter, sampleAddresses } = useEcosystem();
 
 // Basic truncated display
-<AddressDisplay address="0x742d35Cc6634C0532925a3b844Bc9e7595f1D3F4" />
+<AddressDisplay address={sampleAddresses.wallet} />
 
 // With copy button
 <AddressDisplay
-  address="0x742d35Cc6634C0532925a3b844Bc9e7595f1D3F4"
+  address={sampleAddresses.wallet}
   showCopyButton
 />
 
-// With explorer link
+// With explorer link (using adapter)
 <AddressDisplay
-  address="0x742d35Cc6634C0532925a3b844Bc9e7595f1D3F4"
+  address={sampleAddresses.contract}
   showCopyButton
-  explorerUrl="https://etherscan.io/address/0x742d35..."
+  explorerUrl={adapter.getExplorerUrl(address)}
 />`}
     >
+      <EcosystemIndicator
+        description="Sample addresses and explorer URLs are ecosystem-specific."
+        className="mb-6"
+      />
+
       {/* Basic Usage */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Basic</h3>
         <div className="flex flex-col gap-4">
           <div className="space-y-2">
             <p className="text-muted-foreground text-sm">Default (truncated)</p>
-            <AddressDisplay address={SAMPLE_ADDRESSES.wallet} />
+            <AddressDisplay address={sampleAddresses.wallet} />
           </div>
           <div className="space-y-2">
             <p className="text-muted-foreground text-sm">Full address (no truncation)</p>
-            <AddressDisplay address={SAMPLE_ADDRESSES.wallet} truncate={false} />
+            <AddressDisplay address={sampleAddresses.wallet} truncate={false} />
           </div>
         </div>
       </div>
@@ -59,15 +72,15 @@ export function AddressDisplayDemo(): React.ReactElement {
         <div className="flex flex-col gap-4">
           <div className="space-y-2">
             <p className="text-muted-foreground text-sm">Default (6 start, 4 end)</p>
-            <AddressDisplay address={SAMPLE_ADDRESSES.wallet} />
+            <AddressDisplay address={sampleAddresses.wallet} />
           </div>
           <div className="space-y-2">
             <p className="text-muted-foreground text-sm">Custom (4 start, 4 end)</p>
-            <AddressDisplay address={SAMPLE_ADDRESSES.wallet} startChars={4} endChars={4} />
+            <AddressDisplay address={sampleAddresses.wallet} startChars={4} endChars={4} />
           </div>
           <div className="space-y-2">
             <p className="text-muted-foreground text-sm">Extended (10 start, 6 end)</p>
-            <AddressDisplay address={SAMPLE_ADDRESSES.wallet} startChars={10} endChars={6} />
+            <AddressDisplay address={sampleAddresses.wallet} startChars={10} endChars={6} />
           </div>
         </div>
       </div>
@@ -78,15 +91,11 @@ export function AddressDisplayDemo(): React.ReactElement {
         <div className="flex flex-col gap-4">
           <div className="space-y-2">
             <p className="text-muted-foreground text-sm">Always visible</p>
-            <AddressDisplay address={SAMPLE_ADDRESSES.wallet} showCopyButton />
+            <AddressDisplay address={sampleAddresses.wallet} showCopyButton />
           </div>
           <div className="space-y-2">
             <p className="text-muted-foreground text-sm">Show on hover only</p>
-            <AddressDisplay
-              address={SAMPLE_ADDRESSES.wallet}
-              showCopyButton
-              showCopyButtonOnHover
-            />
+            <AddressDisplay address={sampleAddresses.wallet} showCopyButton showCopyButtonOnHover />
           </div>
         </div>
       </div>
@@ -94,21 +103,25 @@ export function AddressDisplayDemo(): React.ReactElement {
       {/* Explorer Link */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Explorer Link</h3>
+        <p className="text-muted-foreground text-sm">
+          Explorer URLs are generated using{' '}
+          <code className="bg-muted rounded px-1">adapter.getExplorerUrl()</code>
+        </p>
         <div className="flex flex-col gap-4">
           <div className="space-y-2">
-            <p className="text-muted-foreground text-sm">With Etherscan link</p>
+            <p className="text-muted-foreground text-sm">Wallet address with explorer</p>
             <AddressDisplay
-              address={SAMPLE_ADDRESSES.contract}
+              address={sampleAddresses.wallet}
               showCopyButton
-              explorerUrl={`https://etherscan.io/address/${SAMPLE_ADDRESSES.contract}`}
+              explorerUrl={getExplorerUrl(sampleAddresses.wallet)}
             />
           </div>
           <div className="space-y-2">
-            <p className="text-muted-foreground text-sm">With Polygon explorer</p>
+            <p className="text-muted-foreground text-sm">Contract address with explorer</p>
             <AddressDisplay
-              address={SAMPLE_ADDRESSES.wallet}
+              address={sampleAddresses.contract}
               showCopyButton
-              explorerUrl={`https://polygonscan.com/address/${SAMPLE_ADDRESSES.wallet}`}
+              explorerUrl={getExplorerUrl(sampleAddresses.contract)}
             />
           </div>
         </div>
@@ -122,25 +135,18 @@ export function AddressDisplayDemo(): React.ReactElement {
             <p className="text-muted-foreground text-sm">Wallet Address</p>
             <div className="bg-muted/30 flex items-center gap-3 rounded-lg p-3">
               <span className="text-muted-foreground text-sm">Connected:</span>
-              <AddressDisplay address={SAMPLE_ADDRESSES.wallet} showCopyButton />
+              <AddressDisplay address={sampleAddresses.wallet} showCopyButton />
             </div>
           </div>
           <div className="space-y-2">
-            <p className="text-muted-foreground text-sm">Contract Address (USDT)</p>
+            <p className="text-muted-foreground text-sm">Contract Address</p>
             <div className="bg-muted/30 flex items-center gap-3 rounded-lg p-3">
               <span className="text-muted-foreground text-sm">Contract:</span>
               <AddressDisplay
-                address={SAMPLE_ADDRESSES.contract}
+                address={sampleAddresses.contract}
                 showCopyButton
-                explorerUrl={`https://etherscan.io/address/${SAMPLE_ADDRESSES.contract}`}
+                explorerUrl={getExplorerUrl(sampleAddresses.contract)}
               />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <p className="text-muted-foreground text-sm">Zero Address</p>
-            <div className="bg-muted/30 flex items-center gap-3 rounded-lg p-3">
-              <span className="text-muted-foreground text-sm">Burn Address:</span>
-              <AddressDisplay address={SAMPLE_ADDRESSES.zero} showCopyButton />
             </div>
           </div>
         </div>
@@ -159,7 +165,7 @@ export function AddressDisplayDemo(): React.ReactElement {
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">From</span>
                 <AddressDisplay
-                  address={SAMPLE_ADDRESSES.wallet}
+                  address={sampleAddresses.wallet}
                   showCopyButton
                   showCopyButtonOnHover
                 />
@@ -167,14 +173,14 @@ export function AddressDisplayDemo(): React.ReactElement {
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">To</span>
                 <AddressDisplay
-                  address={SAMPLE_ADDRESSES.contract}
+                  address={sampleAddresses.contract}
                   showCopyButton
                   showCopyButtonOnHover
                 />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Amount</span>
-                <span className="font-mono">1.5 ETH</span>
+                <span className="font-mono">1.5 {metadata.name === 'EVM' ? 'ETH' : 'XLM'}</span>
               </div>
             </div>
           </div>

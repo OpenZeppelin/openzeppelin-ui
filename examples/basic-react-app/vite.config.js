@@ -11,4 +11,8 @@ export default defineConfig({
         port: 3000,
         open: true,
     },
+    // Polyfill for Node.js globals required by some adapter dependencies
+    define: {
+        global: 'globalThis',
+    },
 });

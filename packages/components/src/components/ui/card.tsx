@@ -2,15 +2,12 @@ import { JSX } from 'react';
 
 import { cn } from '@openzeppelin/ui-utils';
 
-/** Card container component with rounded borders and shadow. */
+/** Card container component with rounded borders. */
 function Card({ className, ...props }: React.ComponentProps<'div'>): JSX.Element {
   return (
     <div
       data-slot="card"
-      className={cn(
-        'bg-card text-card-foreground flex flex-col rounded-xl border py-6 shadow-sm',
-        className
-      )}
+      className={cn('bg-card text-card-foreground flex flex-col rounded-xl border py-6', className)}
       {...props}
     />
   );
@@ -49,15 +46,19 @@ function CardDescription({ className, ...props }: React.ComponentProps<'div'>): 
   );
 }
 
-/** Card content area with horizontal padding. */
+/** Card content area with horizontal padding and top spacing. */
 function CardContent({ className, ...props }: React.ComponentProps<'div'>): JSX.Element {
-  return <div data-slot="card-content" className={cn('px-6', className)} {...props} />;
+  return <div data-slot="card-content" className={cn('px-6 pt-4', className)} {...props} />;
 }
 
-/** Card footer with flex alignment for actions. */
+/** Card footer with flex alignment for actions and top spacing. */
 function CardFooter({ className, ...props }: React.ComponentProps<'div'>): JSX.Element {
   return (
-    <div data-slot="card-footer" className={cn('flex items-center px-6', className)} {...props} />
+    <div
+      data-slot="card-footer"
+      className={cn('flex items-center px-6 pt-4', className)}
+      {...props}
+    />
   );
 }
 
