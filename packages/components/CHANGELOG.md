@@ -1,5 +1,24 @@
 # @openzeppelin/ui-components
 
+## 1.0.4
+
+### Patch Changes
+
+- [#17](https://github.com/OpenZeppelin/openzeppelin-ui/pull/17) [`c6fc89e`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/c6fc89e7254f48b6f27e4b7d1f897022251c9e9d) Thanks [@pasevin](https://github.com/pasevin)! - fix(Card, Accordion): remove default shadows and improve section spacing
+
+  Card changes:
+  - Remove default `shadow-sm` from Card, matching actual usage patterns where `shadow-none` was consistently applied
+  - Move vertical padding from Card container to individual sections for better flexibility:
+    - CardHeader: `pt-6` (provides top padding for the card)
+    - CardContent: `pt-4 pb-6` (gap from header + bottom padding)
+    - CardFooter: `pt-4 pb-6` (gap from content + bottom padding)
+  - This allows consumers to override Card's styling without breaking internal spacing
+
+  Accordion changes:
+  - Remove default `shadow-sm` from Accordion card variant for visual consistency
+
+  Consumers who want a shadow can add `shadow-sm` via className. Spacing can be overridden with `pt-0`, `pb-0`, or custom padding classes.
+
 ## 1.0.3
 
 ### Patch Changes
