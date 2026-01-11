@@ -1,5 +1,16 @@
 # @openzeppelin/ui-components
 
+## 1.0.3
+
+### Patch Changes
+
+- [#15](https://github.com/OpenZeppelin/openzeppelin-ui/pull/15) [`f5769f4`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/f5769f40b77d2ac68da9a52a84f1eb52b7ea8f9e) Thanks [@pasevin](https://github.com/pasevin)! - fix(Card): remove default shadow and add section spacing
+  - Remove default `shadow-sm` from Card, matching actual usage patterns where `shadow-none` was consistently applied
+  - Add default `pt-4` spacing to CardContent (space between header and content)
+  - Add default `pt-4` spacing to CardFooter (space between content and footer)
+
+  Consumers who want a shadow can add `shadow-sm` via className. Spacing can be overridden with `pt-0` or custom padding classes.
+
 ## 1.0.2
 
 ### Patch Changes
