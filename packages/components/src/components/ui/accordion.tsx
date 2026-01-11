@@ -9,7 +9,7 @@ const accordionItemVariants = cva('', {
   variants: {
     variant: {
       default: 'border-b',
-      card: 'mb-3 rounded-lg border bg-card shadow-sm overflow-hidden',
+      card: 'mb-3 rounded-lg border bg-card overflow-hidden',
     },
   },
   defaultVariants: {
