@@ -4,6 +4,10 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  define: {
+    // Polyfill for Node.js globals used by some wallet dependencies
+    global: 'globalThis',
+  },
   build: {
     outDir: 'dist',
     sourcemap: true,

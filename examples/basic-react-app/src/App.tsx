@@ -38,14 +38,17 @@ import {
 import { EcosystemSwitcher } from './components/EcosystemSwitcher';
 
 import {
+  AccordionDemo,
   AddressDisplayDemo,
   AlertDemo,
   BannerDemo,
   ButtonDemo,
   CalendarDemo,
+  CardDemo,
   CheckboxDemo,
   DateRangePickerDemo,
   DialogDemo,
+  DropdownMenuDemo,
   EmptyStateDemo,
   ExternalLinkDemo,
   FormDemo,
@@ -55,9 +58,11 @@ import {
   LoadingButtonDemo,
   NetworkDemo,
   PopoverDemo,
+  ProgressDemo,
   RadioGroupDemo,
   RendererDemo,
   SelectDemo,
+  TabsDemo,
   TextareaDemo,
   ToastDemo,
   TooltipDemo,
@@ -245,11 +250,6 @@ function PlaceholderDemo({ name }: { name: string }): React.ReactElement {
 }
 
 // Placeholder components for demos not yet implemented
-const CardDemo = () => <PlaceholderDemo name="Card" />;
-const TabsDemo = () => <PlaceholderDemo name="Tabs" />;
-const AccordionDemo = () => <PlaceholderDemo name="Accordion" />;
-const ProgressDemo = () => <PlaceholderDemo name="Progress" />;
-const DropdownMenuDemo = () => <PlaceholderDemo name="DropdownMenu" />;
 const WalletDemo = () => <PlaceholderDemo name="Wallet" />;
 
 // ============================================================================
@@ -277,7 +277,7 @@ const demoComponents: Record<DemoKey, React.ComponentType> = {
   tooltip: TooltipDemo,
   popover: PopoverDemo,
   toast: ToastDemo,
-  // Layout - placeholders (Phase 7)
+  // Layout (Phase 7)
   card: CardDemo,
   tabs: TabsDemo,
   accordion: AccordionDemo,

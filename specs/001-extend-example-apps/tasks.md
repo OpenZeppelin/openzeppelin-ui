@@ -130,13 +130,13 @@
 
 ### Implementation for User Story 5
 
-- [ ] T038 [P] [US5] Create CardDemo in examples/basic-react-app/src/components/CardDemo.tsx
-- [ ] T039 [P] [US5] Create TabsDemo in examples/basic-react-app/src/components/TabsDemo.tsx
-- [ ] T040 [P] [US5] Create AccordionDemo in examples/basic-react-app/src/components/AccordionDemo.tsx
-- [ ] T041 [P] [US5] Create ProgressDemo in examples/basic-react-app/src/components/ProgressDemo.tsx
-- [ ] T042 [P] [US5] Create DropdownMenuDemo in examples/basic-react-app/src/components/DropdownMenuDemo.tsx
-- [ ] T043 [US5] Update examples/basic-react-app/src/components/index.ts with Layout exports
-- [ ] T044 [US5] Update demoComponents in examples/basic-react-app/src/App.tsx to import US5 demos
+- [x] T038 [P] [US5] Create CardDemo in examples/basic-react-app/src/components/CardDemo.tsx
+- [x] T039 [P] [US5] Create TabsDemo in examples/basic-react-app/src/components/TabsDemo.tsx
+- [x] T040 [P] [US5] Create AccordionDemo in examples/basic-react-app/src/components/AccordionDemo.tsx
+- [x] T041 [P] [US5] Create ProgressDemo in examples/basic-react-app/src/components/ProgressDemo.tsx
+- [x] T042 [P] [US5] Create DropdownMenuDemo in examples/basic-react-app/src/components/DropdownMenuDemo.tsx
+- [x] T043 [US5] Update examples/basic-react-app/src/components/index.ts with Layout exports
+- [x] T044 [US5] Update demoComponents in examples/basic-react-app/src/App.tsx to import US5 demos
 
 **Checkpoint**: All Layout components functional
 
