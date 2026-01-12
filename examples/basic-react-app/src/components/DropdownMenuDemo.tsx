@@ -1,7 +1,7 @@
 import {
   Cloud,
   CreditCard,
-  Github,
+  ExternalLink,
   Keyboard,
   LifeBuoy,
   LogOut,
@@ -15,6 +15,7 @@ import {
   Users,
   Wallet,
 } from 'lucide-react';
+import type { ReactElement } from 'react';
 import { useState } from 'react';
 
 import {
@@ -42,7 +43,7 @@ import { DemoSection } from './DemoSection';
  * Demonstrates DropdownMenu component for displaying menus triggered by a button.
  * Shows basic menus, checkboxes, radio groups, sub-menus, and shortcuts.
  */
-export function DropdownMenuDemo(): React.ReactElement {
+export function DropdownMenuDemo(): ReactElement {
   const [showStatusBar, setShowStatusBar] = useState(true);
   const [showActivityBar, setShowActivityBar] = useState(false);
   const [showPanel, setShowPanel] = useState(false);
@@ -273,7 +274,7 @@ export function DropdownMenuDemo(): React.ReactElement {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <Github className="mr-2 h-4 w-4" />
+              <ExternalLink className="mr-2 h-4 w-4" />
               <span>GitHub</span>
             </DropdownMenuItem>
             <DropdownMenuItem>

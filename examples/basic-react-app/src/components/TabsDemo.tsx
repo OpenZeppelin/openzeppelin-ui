@@ -1,4 +1,5 @@
 import { Code, FileText, Settings, Shield, Users, Wallet } from 'lucide-react';
+import type { ReactElement } from 'react';
 import { useState } from 'react';
 
 import {
@@ -20,7 +21,7 @@ import { DemoSection } from './DemoSection';
  * Demonstrates Tabs component for organizing content into switchable panels.
  * Shows basic tabs, tabs with icons, and blockchain-specific use cases.
  */
-export function TabsDemo(): React.ReactElement {
+export function TabsDemo(): ReactElement {
   const [activeTab, setActiveTab] = useState('account');
 
   return (

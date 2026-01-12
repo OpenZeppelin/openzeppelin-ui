@@ -1,4 +1,5 @@
 import { HelpCircle, Info, Shield } from 'lucide-react';
+import type { ReactElement } from 'react';
 
 import {
   Accordion,
@@ -13,7 +14,7 @@ import { DemoSection } from './DemoSection';
  * Demonstrates Accordion component for collapsible content sections.
  * Shows default and card variants with single and multiple item selection.
  */
-export function AccordionDemo(): React.ReactElement {
+export function AccordionDemo(): ReactElement {
   return (
     <DemoSection
       title="Accordion"

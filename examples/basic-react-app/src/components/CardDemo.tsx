@@ -1,4 +1,5 @@
 import { CreditCard, Settings, Shield, Users, Wallet } from 'lucide-react';
+import type { ReactElement } from 'react';
 
 import {
   Button,
@@ -16,7 +17,7 @@ import { DemoSection } from './DemoSection';
  * Demonstrates Card component variations for content containers.
  * Shows basic cards, cards with headers/footers, and blockchain-specific use cases.
  */
-export function CardDemo(): React.ReactElement {
+export function CardDemo(): ReactElement {
   return (
     <DemoSection
       title="Card"

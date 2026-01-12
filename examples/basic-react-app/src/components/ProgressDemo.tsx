@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import { useEffect, useState } from 'react';
 
 import { Button, Progress } from '@openzeppelin/ui-components';
@@ -8,7 +9,7 @@ import { DemoSection } from './DemoSection';
  * Demonstrates Progress component for displaying task completion status.
  * Shows static progress, animated progress, and blockchain-specific use cases.
  */
-export function ProgressDemo(): React.ReactElement {
+export function ProgressDemo(): ReactElement {
   const [progress, setProgress] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
