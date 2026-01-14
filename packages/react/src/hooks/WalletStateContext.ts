@@ -55,10 +55,37 @@ export interface WalletStateContextValue {
  * workaround may not be strictly necessary. However, it provides a safety net
  * and has minimal overhead.
  */
-const WALLET_STATE_CONTEXT_KEY = '__OPENZEPPELIN_WALLET_STATE_CONTEXT__';
 
+/**
+ * Use Symbol.for() to create a globally unique key that is consistent across
+ * all module instances. Unlike Symbol(), Symbol.for() returns the same symbol
+ * for the same key string, which is essential for cross-module sharing.
+ */
+const WALLET_STATE_CONTEXT_KEY = Symbol.for('@openzeppelin/ui-react/WalletStateContext');
+
+/**
+ * Type-safe interface for the global object extension.
+ * This provides better type safety than using Record<string, unknown>.
+ */
+interface GlobalWithWalletContext {
+  [WALLET_STATE_CONTEXT_KEY]?: React.Context<WalletStateContextValue | undefined>;
+}
+
+/**
+ * Retrieves or creates the shared WalletStateContext.
+ *
+ * NOTE ON ATOMICITY:
+ * The check-then-set pattern here is not atomic, but this is acceptable because:
+ * 1. JavaScript is single-threaded; module initialization is synchronous
+ * 2. Even if multiple modules initialize "simultaneously" during parallel loading,
+ *    they execute sequentially on the main thread
+ * 3. The worst case (two contexts created) would only happen if the check and set
+ *    were somehow interleaved, which cannot occur in JS's execution model
+ * 4. For React contexts specifically, having the same context object is what matters,
+ *    and this pattern guarantees that after initialization
+ */
 function getOrCreateSharedContext(): React.Context<WalletStateContextValue | undefined> {
-  const global = globalThis as Record<string, unknown>;
+  const global = globalThis as GlobalWithWalletContext;
 
   if (!global[WALLET_STATE_CONTEXT_KEY]) {
     global[WALLET_STATE_CONTEXT_KEY] = createContext<WalletStateContextValue | undefined>(
@@ -66,7 +93,7 @@ function getOrCreateSharedContext(): React.Context<WalletStateContextValue | und
     );
   }
 
-  return global[WALLET_STATE_CONTEXT_KEY] as React.Context<WalletStateContextValue | undefined>;
+  return global[WALLET_STATE_CONTEXT_KEY];
 }
 
 export const WalletStateContext = getOrCreateSharedContext();
