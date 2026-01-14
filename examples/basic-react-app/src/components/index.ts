@@ -42,4 +42,4 @@ export { DateRangePickerDemo } from './DateRangePickerDemo';
 export { RendererDemo } from './RendererDemo';
 export { TypeMappingDemo } from './TypeMappingDemo';
 export { HomeDemo } from './HomeDemo';
-// export { WalletDemo } from './WalletDemo'; // TODO: Phase 8
+export { WalletDemo } from './WalletDemo';

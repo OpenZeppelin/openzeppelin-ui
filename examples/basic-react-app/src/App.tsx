@@ -25,7 +25,6 @@ import {
   Type,
   Wallet,
 } from 'lucide-react';
-import { useState } from 'react';
 
 import {
   Footer,
@@ -67,7 +66,9 @@ import {
   ToastDemo,
   TooltipDemo,
   TypeMappingDemo,
+  WalletDemo,
 } from './components';
+import { useUiStore } from './stores';
 
 // ============================================================================
 // Types (T004)
@@ -226,33 +227,6 @@ const navCategories: NavCategory[] = [
 ];
 
 // ============================================================================
-// Placeholder Components (T007)
-// ============================================================================
-
-/**
- * Placeholder component for demos not yet implemented.
- * Shows a "Coming Soon" message with the component name.
- */
-function PlaceholderDemo({ name }: { name: string }): React.ReactElement {
-  return (
-    <section className="space-y-8">
-      <div>
-        <h2 className="mb-4 text-2xl font-semibold tracking-tight">{name}</h2>
-        <p className="text-muted-foreground mb-6">
-          This demo is coming soon. Check back after the corresponding phase is implemented.
-        </p>
-      </div>
-      <div className="bg-muted/50 flex h-48 items-center justify-center rounded-lg border border-dashed">
-        <span className="text-muted-foreground text-sm">Demo placeholder</span>
-      </div>
-    </section>
-  );
-}
-
-// Placeholder components for demos not yet implemented
-const WalletDemo = () => <PlaceholderDemo name="Wallet" />;
-
-// ============================================================================
 // Demo Component Registry (T007)
 // ============================================================================
 
@@ -343,8 +317,10 @@ function SidebarFooter(): React.ReactElement {
  * Navigation is organized into categories per FR-015 specification.
  */
 function App(): React.ReactElement {
-  const [activeDemo, setActiveDemo] = useState<DemoKey>('home');
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const activeDemo = useUiStore((s) => s.activeDemo) as DemoKey;
+  const setActiveDemo = useUiStore((s) => s.setActiveDemo);
+  const mobileOpen = useUiStore((s) => s.mobileOpen);
+  const setMobileOpen = useUiStore((s) => s.setMobileOpen);
 
   const ActiveComponent = demoComponents[activeDemo];
 

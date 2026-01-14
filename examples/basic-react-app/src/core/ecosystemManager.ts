@@ -1,22 +1,16 @@
 /**
  * Ecosystem Manager for the Demo App
  *
- * Uses REAL adapter packages from @openzeppelin/ui-builder-adapter-*
- * to demonstrate actual blockchain integration patterns.
+ * Centralized module for ecosystem/network/adapter management.
+ * Follows the UI Builder pattern with LAZY LOADING of adapters.
+ *
+ * Key features:
+ * - Adapters are loaded on-demand when first needed (not at startup)
+ * - Networks are cached after first load
+ * - Single source of truth for ecosystem metadata
  */
 
-// Import real adapters and networks
-import {
-  ethereumSepolia,
-  EvmAdapter,
-  evmNetworks,
-  type TypedEvmNetworkConfig,
-} from '@openzeppelin/ui-builder-adapter-evm';
-import {
-  StellarAdapter,
-  stellarNetworks,
-  stellarTestnet,
-} from '@openzeppelin/ui-builder-adapter-stellar';
+import type { TypedEvmNetworkConfig } from '@openzeppelin/ui-builder-adapter-evm';
 import type {
   ContractAdapter,
   Ecosystem,
@@ -29,26 +23,36 @@ import type {
 // ============================================================================
 
 /**
- * Ecosystems supported in the demo app
- * Note: Midnight adapter has complex WASM dependencies, so we exclude it for now
+ * Ecosystems supported in the demo app.
+ * Note: Midnight/Solana adapters have complex dependencies, excluded for simplicity.
  */
 export type DemoEcosystem = Extract<Ecosystem, 'evm' | 'stellar'>;
 
 /**
- * Metadata for each ecosystem including UI display info
+ * Static metadata for each ecosystem (doesn't require loading adapter).
  */
-export interface EcosystemMetadata {
+export interface EcosystemStaticMetadata {
   name: string;
   description: string;
-  networks: NetworkConfig[];
-  defaultNetwork: NetworkConfig;
   sampleAddresses: Record<string, string>;
   addressFormat: string;
   iconName: string;
+  /** Export name for networks array in adapter package */
+  networksExportName: string;
+  /** Export name for default network in adapter package */
+  defaultNetworkExportName: string;
+}
+
+/**
+ * Full metadata including loaded networks.
+ */
+export interface EcosystemMetadata extends EcosystemStaticMetadata {
+  networks: NetworkConfig[];
+  defaultNetwork: NetworkConfig;
 }
 
 // ============================================================================
-// Sample Addresses for Demo
+// Sample Addresses for Demo (static, no loading required)
 // ============================================================================
 
 const evmSampleAddresses = {
@@ -64,99 +68,222 @@ const stellarSampleAddresses = {
 };
 
 // ============================================================================
-// Ecosystem Registry
+// Ecosystem Registry (Static Metadata)
 // ============================================================================
 
 /**
- * Registry of supported ecosystems with their metadata
+ * Static registry - does NOT trigger adapter loading.
+ * Networks are loaded lazily when needed.
  */
-export const ecosystemRegistry: Record<DemoEcosystem, EcosystemMetadata> = {
+const ecosystemStaticRegistry: Record<DemoEcosystem, EcosystemStaticMetadata> = {
   evm: {
     name: 'EVM',
     description: 'Ethereum Virtual Machine compatible chains',
-    networks: evmNetworks,
-    defaultNetwork: ethereumSepolia,
     sampleAddresses: evmSampleAddresses,
     addressFormat: '0x + 40 hex characters (42 total)',
     iconName: 'ethereum',
+    networksExportName: 'evmNetworks',
+    defaultNetworkExportName: 'ethereumSepolia',
   },
   stellar: {
     name: 'Stellar',
     description: 'Stellar network with Soroban smart contracts',
-    networks: stellarNetworks,
-    defaultNetwork: stellarTestnet,
     sampleAddresses: stellarSampleAddresses,
     addressFormat: 'G/C + 55 base32 characters (56 total)',
     iconName: 'stellar',
+    networksExportName: 'stellarNetworks',
+    defaultNetworkExportName: 'stellarTestnet',
   },
 };
 
 // ============================================================================
-// Adapter Cache
+// Caches (populated on-demand)
 // ============================================================================
 
-/**
- * Cache for adapter instances by network ID
- * Avoids recreating adapters unnecessarily
- */
+/** Cache for loaded adapter modules */
+const adapterModuleCache = new Map<DemoEcosystem, Record<string, unknown>>();
+
+/** Cache for networks by ecosystem */
+const networksCache = new Map<DemoEcosystem, NetworkConfig[]>();
+
+/** Cache for default networks by ecosystem */
+const defaultNetworkCache = new Map<DemoEcosystem, NetworkConfig>();
+
+/** Cache for adapter instances by network ID */
 const adapterCache = new Map<string, ContractAdapter>();
 
 // ============================================================================
-// Public API
+// Dynamic Module Loading
 // ============================================================================
 
 /**
- * Get all supported ecosystems
+ * Dynamically load an adapter package module.
+ * Uses static switch for Vite compatibility (dynamic import paths must be static).
  */
-export function getSupportedEcosystems(): DemoEcosystem[] {
-  return Object.keys(ecosystemRegistry) as DemoEcosystem[];
-}
-
-/**
- * Get metadata for an ecosystem
- */
-export function getEcosystemMetadata(ecosystem: DemoEcosystem): EcosystemMetadata {
-  return ecosystemRegistry[ecosystem];
-}
-
-/**
- * Get available networks for an ecosystem
- */
-export function getNetworksForEcosystem(ecosystem: DemoEcosystem): NetworkConfig[] {
-  return ecosystemRegistry[ecosystem].networks;
-}
-
-/**
- * Get the default network for an ecosystem
- */
-export function getDefaultNetwork(ecosystem: DemoEcosystem): NetworkConfig {
-  return ecosystemRegistry[ecosystem].defaultNetwork;
-}
-
-/**
- * Create an adapter instance for a network configuration
- *
- * @param networkConfig - The network to create an adapter for
- * @returns A ContractAdapter instance
- */
-export function createAdapter(networkConfig: NetworkConfig): ContractAdapter {
+async function loadAdapterModule(ecosystem: DemoEcosystem): Promise<Record<string, unknown>> {
   // Check cache first
-  const cached = adapterCache.get(networkConfig.id);
-  if (cached) {
-    return cached;
+  const cached = adapterModuleCache.get(ecosystem);
+  if (cached) return cached;
+
+  // Dynamic import based on ecosystem
+  let module: Record<string, unknown>;
+  switch (ecosystem) {
+    case 'evm':
+      module = await import('@openzeppelin/ui-builder-adapter-evm');
+      break;
+    case 'stellar':
+      module = await import('@openzeppelin/ui-builder-adapter-stellar');
+      break;
+    default: {
+      const _exhaustiveCheck: never = ecosystem;
+      throw new Error(`Unknown ecosystem: ${String(_exhaustiveCheck)}`);
+    }
   }
 
-  // Create new adapter based on ecosystem
+  // Cache and return
+  adapterModuleCache.set(ecosystem, module);
+  return module;
+}
+
+// ============================================================================
+// Public API - Synchronous (no loading required)
+// ============================================================================
+
+/**
+ * Get all supported ecosystems.
+ */
+export function getSupportedEcosystems(): DemoEcosystem[] {
+  return Object.keys(ecosystemStaticRegistry) as DemoEcosystem[];
+}
+
+/**
+ * Get static metadata for an ecosystem (no loading required).
+ */
+export function getEcosystemStaticMetadata(ecosystem: DemoEcosystem): EcosystemStaticMetadata {
+  return ecosystemStaticRegistry[ecosystem];
+}
+
+/**
+ * Get sample addresses for an ecosystem (no loading required).
+ */
+export function getSampleAddresses(ecosystem: DemoEcosystem): Record<string, string> {
+  return ecosystemStaticRegistry[ecosystem]?.sampleAddresses ?? {};
+}
+
+// ============================================================================
+// Public API - Asynchronous (may trigger lazy loading)
+// ============================================================================
+
+/**
+ * Get available networks for an ecosystem.
+ * Lazily loads the adapter package if not already loaded.
+ */
+export async function getNetworksForEcosystem(ecosystem: DemoEcosystem): Promise<NetworkConfig[]> {
+  // Check cache first
+  const cached = networksCache.get(ecosystem);
+  if (cached) return cached;
+
+  // Load adapter module
+  const meta = ecosystemStaticRegistry[ecosystem];
+  if (!meta) return [];
+
+  const module = await loadAdapterModule(ecosystem);
+  const networks = (module[meta.networksExportName] as NetworkConfig[]) ?? [];
+
+  // Cache and return
+  networksCache.set(ecosystem, networks);
+  return networks;
+}
+
+/**
+ * Get the default network for an ecosystem.
+ * Lazily loads the adapter package if not already loaded.
+ */
+export async function getDefaultNetwork(ecosystem: DemoEcosystem): Promise<NetworkConfig> {
+  // Check cache first
+  const cached = defaultNetworkCache.get(ecosystem);
+  if (cached) return cached;
+
+  // Load adapter module
+  const meta = ecosystemStaticRegistry[ecosystem];
+  const module = await loadAdapterModule(ecosystem);
+  const defaultNetwork = module[meta.defaultNetworkExportName] as NetworkConfig;
+
+  // Cache and return
+  defaultNetworkCache.set(ecosystem, defaultNetwork);
+  return defaultNetwork;
+}
+
+/**
+ * Get a network configuration by ID.
+ * Searches across all ecosystems, loading them as needed.
+ */
+export async function getNetworkById(id: string): Promise<NetworkConfig | undefined> {
+  // First check already-loaded caches
+  for (const [, networks] of networksCache) {
+    const network = networks.find((n) => n.id === id);
+    if (network) return network;
+  }
+
+  // Load each ecosystem until we find the network
+  for (const ecosystem of getSupportedEcosystems()) {
+    if (networksCache.has(ecosystem)) continue; // Already checked above
+
+    const networks = await getNetworksForEcosystem(ecosystem);
+    const network = networks.find((n) => n.id === id);
+    if (network) return network;
+  }
+
+  return undefined;
+}
+
+/**
+ * Get full metadata for an ecosystem (includes loaded networks).
+ * Lazily loads the adapter package if not already loaded.
+ */
+export async function getEcosystemMetadata(ecosystem: DemoEcosystem): Promise<EcosystemMetadata> {
+  const staticMeta = ecosystemStaticRegistry[ecosystem];
+  const [networks, defaultNetwork] = await Promise.all([
+    getNetworksForEcosystem(ecosystem),
+    getDefaultNetwork(ecosystem),
+  ]);
+
+  return {
+    ...staticMeta,
+    networks,
+    defaultNetwork,
+  };
+}
+
+/**
+ * Create an adapter instance for a network configuration.
+ * Lazily loads the adapter class if not already loaded.
+ * Adapters are cached by network ID.
+ */
+export async function createAdapter(networkConfig: NetworkConfig): Promise<ContractAdapter> {
+  // Check cache first
+  const cached = adapterCache.get(networkConfig.id);
+  if (cached) return cached;
+
+  // Load adapter module and create instance
+  const module = await loadAdapterModule(networkConfig.ecosystem as DemoEcosystem);
   let adapter: ContractAdapter;
 
   switch (networkConfig.ecosystem) {
-    case 'evm':
-      // Cast to TypedEvmNetworkConfig as evmNetworks uses the extended type
+    case 'evm': {
+      const EvmAdapter = module.EvmAdapter as new (
+        config: TypedEvmNetworkConfig
+      ) => ContractAdapter;
       adapter = new EvmAdapter(networkConfig as TypedEvmNetworkConfig);
       break;
-    case 'stellar':
+    }
+    case 'stellar': {
+      const StellarAdapter = module.StellarAdapter as new (
+        config: StellarNetworkConfig
+      ) => ContractAdapter;
       adapter = new StellarAdapter(networkConfig as StellarNetworkConfig);
       break;
+    }
     default:
       throw new Error(`Unsupported ecosystem: ${networkConfig.ecosystem}`);
   }
@@ -166,16 +293,30 @@ export function createAdapter(networkConfig: NetworkConfig): ContractAdapter {
   return adapter;
 }
 
+// ============================================================================
+// Utility Functions
+// ============================================================================
+
 /**
- * Get sample addresses for an ecosystem
+ * Clear all caches (useful for testing).
  */
-export function getSampleAddresses(ecosystem: DemoEcosystem): Record<string, string> {
-  return ecosystemRegistry[ecosystem].sampleAddresses;
+export function clearAllCaches(): void {
+  adapterModuleCache.clear();
+  networksCache.clear();
+  defaultNetworkCache.clear();
+  adapterCache.clear();
 }
 
 /**
- * Clear the adapter cache (useful for testing)
+ * Check if an ecosystem's adapter module is already loaded.
  */
-export function clearAdapterCache(): void {
-  adapterCache.clear();
+export function isEcosystemLoaded(ecosystem: DemoEcosystem): boolean {
+  return adapterModuleCache.has(ecosystem);
+}
+
+/**
+ * Preload an ecosystem's adapter module (for eager loading if desired).
+ */
+export async function preloadEcosystem(ecosystem: DemoEcosystem): Promise<void> {
+  await loadAdapterModule(ecosystem);
 }

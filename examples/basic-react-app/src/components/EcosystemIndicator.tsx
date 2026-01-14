@@ -15,7 +15,15 @@ export function EcosystemIndicator({
   description,
   className = '',
 }: EcosystemIndicatorProps): React.ReactElement {
-  const { metadata } = useEcosystem();
+  const { metadata, isLoading } = useEcosystem();
+
+  if (isLoading || !metadata) {
+    return (
+      <div className={`bg-muted/50 rounded-lg p-3 ${className}`.trim()}>
+        <p className="text-muted-foreground text-sm">Loading ecosystem...</p>
+      </div>
+    );
+  }
 
   return (
     <div className={`bg-muted/50 rounded-lg p-3 ${className}`.trim()}>

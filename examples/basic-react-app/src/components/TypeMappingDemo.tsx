@@ -414,7 +414,16 @@ adapter.isValidAddress('0x742d35Cc6634C0532925a3b844Bc9e7595f1D3F4'); // true`;
  * TypeMappingDemo - Demonstrates how REAL adapters map blockchain types to UI components
  */
 export function TypeMappingDemo(): React.ReactElement {
-  const { adapter } = useEcosystem();
+  const { adapter, isLoading } = useEcosystem();
+
+  // Show loading state while ecosystem data is being loaded
+  if (isLoading || !adapter) {
+    return (
+      <DemoSection title="Type Mapping" description="Loading...">
+        <div className="text-muted-foreground">Loading ecosystem...</div>
+      </DemoSection>
+    );
+  }
 
   return (
     <DemoSection

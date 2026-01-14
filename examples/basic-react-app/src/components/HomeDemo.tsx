@@ -16,7 +16,7 @@ import { Input } from '@openzeppelin/ui-components';
 
 import { useEcosystem } from '../context';
 import {
-  ecosystemRegistry,
+  getEcosystemStaticMetadata,
   getSupportedEcosystems,
   type DemoEcosystem,
 } from '../core/ecosystemManager';
@@ -27,12 +27,21 @@ export interface HomeDemoProps {
 
 // Ecosystem icon helper
 function EcosystemIcon({ ecosystem, size = 24 }: { ecosystem: DemoEcosystem; size?: number }) {
-  return <NetworkIcon network={ecosystemRegistry[ecosystem].iconName} size={size} />;
+  return <NetworkIcon network={getEcosystemStaticMetadata(ecosystem).iconName} size={size} />;
 }
 
 export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
-  const { ecosystem, setEcosystem, adapter, sampleAddresses, metadata } = useEcosystem();
+  const { ecosystem, setEcosystem, adapter, sampleAddresses, metadata, isLoading } = useEcosystem();
   const [testAddress, setTestAddress] = useState('');
+
+  // Show loading state while ecosystem data is being loaded
+  if (isLoading || !adapter || !metadata) {
+    return (
+      <section className="flex min-h-[400px] items-center justify-center">
+        <div className="text-muted-foreground">Loading ecosystem...</div>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-12">
@@ -57,13 +66,13 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
         {/* Ecosystem Switcher */}
         <div className="flex flex-wrap gap-3">
           {getSupportedEcosystems().map((eco) => {
-            const info = ecosystemRegistry[eco];
+            const info = getEcosystemStaticMetadata(eco);
             const isActive = ecosystem === eco;
             return (
               <button
                 key={eco}
                 onClick={() => {
-                  setEcosystem(eco);
+                  void setEcosystem(eco);
                   setTestAddress('');
                 }}
                 className={`flex items-center gap-2 rounded-lg border px-4 py-2 transition-all ${

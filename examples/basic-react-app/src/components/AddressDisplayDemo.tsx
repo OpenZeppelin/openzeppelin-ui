@@ -9,7 +9,16 @@ import { EcosystemIndicator } from './EcosystemIndicator';
  * Uses real sample addresses from the active ecosystem adapter.
  */
 export function AddressDisplayDemo(): React.ReactElement {
-  const { adapter, sampleAddresses, metadata } = useEcosystem();
+  const { adapter, sampleAddresses, metadata, isLoading } = useEcosystem();
+
+  // Show loading state while ecosystem data is being loaded
+  if (isLoading || !adapter || !metadata) {
+    return (
+      <DemoSection title="AddressDisplay" description="Loading...">
+        <div className="text-muted-foreground">Loading ecosystem...</div>
+      </DemoSection>
+    );
+  }
 
   // Get explorer URL using the adapter (ecosystem-specific)
   const getExplorerUrl = (address: string): string | undefined => {

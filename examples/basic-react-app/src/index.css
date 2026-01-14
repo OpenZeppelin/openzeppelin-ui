@@ -10,6 +10,18 @@
 @import 'tailwindcss' source('../../../');
 
 /*
+  Tell Tailwind to scan @openzeppelin npm packages for class names.
+  These packages are installed in node_modules and contain compiled JS files
+  with Tailwind classes that need to be included in the final CSS.
+  
+  pnpm hoisting behavior may place packages at different levels:
+  - Root node_modules: where packages are hoisted
+  - App's node_modules: where pnpm may install them directly
+*/
+@source "../../../node_modules/@openzeppelin";
+@source "../node_modules/@openzeppelin";
+
+/*
   Import global theme variables and base styles from the styles package.
 */
 @import '@openzeppelin/ui-styles/global.css';

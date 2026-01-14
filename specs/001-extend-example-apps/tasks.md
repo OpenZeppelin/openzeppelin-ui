@@ -144,20 +144,79 @@
 
 ## Phase 8: User Story 6 - React Hooks and Providers (P3)
 
-**Goal**: Live wallet connection demo using EVM adapter pattern
+**Goal**: Live wallet connection demo using the **adapter-driven wallet management** system (same behavior as UI Builder).
 
-**Independent Test**: Connect wallet, verify connection state, test disconnect flow
+**Non-negotiables (scope guardrails)**:
+- **Fully interactive**: real wallet flows only (no mocks, no fake “connected” state).
+- **No custom wallet logic**: no bespoke connection code, no kit-specific wiring, no “demo-only” wallet components.
+  - Wallet behavior must be controlled by **adapters**, `@openzeppelin/ui-react` hooks/providers, and existing shared components.
+- **No code duplication**: do not hardcode kit configs or copy/paste config strings into the demo.
+  - Use real config modules (`src/config/wallet/*.config.ts`) and adapter-supplied metadata as the source of truth.
+- **UI Builder parity**:
+  - Switching **between adapters/ecosystems** and switching **between UI kits** must work the same way it does in UI Builder.
+  - Switching UI kits must be **seamless and embedded** (no “full UI remount”, no flicker, no page-level rerender/reset).
+  - Users must be able to switch **between all available UI kits for the active adapter**.
+- **Config visibility**: users must be able to see the **real configuration** for the currently selected UI kit as **code previews**.
+- **Bundling caveat**: adapters may bundle `@openzeppelin/ui-react` internally → can cause context fragmentation/runtime errors.
+  - Phase 8 must explicitly mitigate/validate deduplication so there is a single instance of shared React contexts.
+
+**Independent Test**:
+- Switch ecosystems/adapters and verify the wallet UI stays “in-line” (no full page reload / no lost app state).
+- Switch UI kits within the same adapter and verify wallet UI updates without losing connection state.
+- Validate config previews reflect the actual config modules and current selection.
 
 ### Implementation for User Story 6
 
-- [ ] T045 [P] [US6] Create network config in examples/basic-react-app/src/config/networks.ts
-- [ ] T046 [P] [US6] Create AppProviders wrapper in examples/basic-react-app/src/providers/AppProviders.tsx
-- [ ] T047 [US6] Update examples/basic-react-app/src/main.tsx to wrap App with AppProviders
-- [ ] T048 [US6] Create WalletDemo in examples/basic-react-app/src/components/WalletDemo.tsx
-- [ ] T049 [US6] Enhance RendererDemo with additional examples in examples/basic-react-app/src/components/RendererDemo.tsx
-- [ ] T050 [US6] Update examples/basic-react-app/src/components/index.ts with Integration exports
-- [ ] T051 [US6] Update demoComponents in examples/basic-react-app/src/App.tsx to import US6 demos
-- [ ] T052 [US6] Add wallet error handling UI (no wallet, rejected, network mismatch) to WalletDemo
+- [x] T045 [P] [US6] Create network config in examples/basic-react-app/src/config/networks.ts
+  - **Must include**: networks for each supported ecosystem (at least EVM + Stellar), with stable IDs and ecosystem metadata.
+  - **Must export**: `getNetworkById(id)`, `getDefaultNetwork(ecosystem)`, and `getNetworksForEcosystem(ecosystem)` (or equivalent),
+    matching the lookups needed by `WalletStateProvider` and the demo selectors.
+
+- [x] T046 [P] [US6] Create AppProviders wrapper in examples/basic-react-app/src/providers/AppProviders.tsx
+  - **Provider parity with UI Builder**:
+    - Use `AdapterProvider` + `WalletStateProvider` (and only these) as the source of truth for wallet/adapters.
+    - Implement `resolveAdapter(networkConfig)` that constructs the adapter instance based on `networkConfig.ecosystem`.
+  - **Native config loading parity** (no hardcoded kit configs):
+    - Implement `loadConfigModule(relativePath)` using Vite `import.meta.glob` and the same convention as UI Builder:
+      `./config/wallet/[kitName].config.ts`.
+    - This enables adapters (e.g., EVM/RainbowKit) to load native kit configs without demo-specific glue.
+  - **Seamless kit switching requirement**:
+    - Ensure the wallet UI kit can be reconfigured via `useWalletState().reconfigureActiveAdapterUiKit(...)`
+      without changing React keys or forcing a provider remount.
+  - **Bundling/context caveat mitigation**:
+    - Add/verify Vite deduplication for shared context-bearing packages so adapters and the app share one instance.
+    - Target modules to dedupe (minimum): `react`, `react-dom`, `@openzeppelin/ui-react`, `@tanstack/react-query`,
+      `wagmi`, `@wagmi/core` (and any other adapter-declared singleton modules).
+    - Document in code comments that this is required to prevent “multiple provider/context” runtime errors.
+
+- [x] T047 [US6] Update examples/basic-react-app/src/main.tsx to wrap App with AppProviders
+  - **Requirement**: the wallet demo must be rendered inside the providers (no per-demo provider nesting).
+
+- [x] T048 [US6] Create WalletDemo in examples/basic-react-app/src/components/WalletDemo.tsx
+  - **Wallet UI (no custom wallet code)**:
+    - Render wallet UI using `@openzeppelin/ui-react` components (e.g., `WalletConnectionUI`) and adapter-provided components.
+    - Do not implement kit-specific connect buttons or custom wallet UI components in the example app.
+  - **Adapter + ecosystem switching**:
+    - Provide controls to switch ecosystem/network using existing shared components (selectors) while keeping wallet UI embedded.
+  - **UI kit switching**:
+    - Fetch available kits from `activeAdapter.getAvailableUiKits()` and allow switching to **all** of them.
+    - Switch kits via `reconfigureActiveAdapterUiKit({ kitName, kitConfig? })` only (no direct kit imports).
+  - **Config previews (real configs)**:
+    - Show a code preview for the “active kit configuration”:
+      - The selected `UiKitConfiguration` being applied (kitName + kitConfig).
+      - The loaded native config module object for kits that support it (e.g., RainbowKit), sourced from `src/config/wallet/*.config.ts`.
+      - If the adapter exposes kit “default code” via `getAvailableUiKits()` metadata, use that as the preview rather than hardcoding strings.
+    - The preview must reflect the **currently selected kit** and update on kit switches.
+
+- [x] T049 [US6] Enhance RendererDemo with additional examples in examples/basic-react-app/src/components/RendererDemo.tsx
+
+- [x] T050 [US6] Update examples/basic-react-app/src/components/index.ts with Integration exports
+- [x] T051 [US6] Update demoComponents in examples/basic-react-app/src/App.tsx to import US6 demos
+
+- [x] T052 [US6] Add wallet error handling UI (no wallet, rejected, network mismatch) to WalletDemo
+  - **Must be derived from real state**: use `@openzeppelin/ui-react` derived hooks and adapter state (no simulated errors).
+  - **Must cover**: adapter not ready/loading, config module missing/invalid (for kit-native configs), user rejected connection,
+    network mismatch / switch-chain unavailable, and “wallet components unavailable for this adapter/kit”.
 
 **Checkpoint**: All user stories complete - full feature functional
 

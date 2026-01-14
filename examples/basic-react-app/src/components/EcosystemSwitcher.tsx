@@ -17,7 +17,7 @@ import {
 } from '@openzeppelin/ui-components';
 
 import { useEcosystem } from '../context';
-import { ecosystemRegistry, getSupportedEcosystems } from '../core/ecosystemManager';
+import { getEcosystemStaticMetadata, getSupportedEcosystems } from '../core/ecosystemManager';
 
 // =============================================================================
 // Component
@@ -30,15 +30,15 @@ import { ecosystemRegistry, getSupportedEcosystems } from '../core/ecosystemMana
  * Integrates with the EcosystemContext to manage global ecosystem state.
  */
 export function EcosystemSwitcher(): React.ReactElement {
-  const { ecosystem, setEcosystem } = useEcosystem();
+  const { ecosystem, setEcosystem, isLoading } = useEcosystem();
   const availableEcosystems = getSupportedEcosystems();
 
-  const currentMeta = ecosystemRegistry[ecosystem];
+  const currentMeta = getEcosystemStaticMetadata(ecosystem);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="gap-2" disabled={isLoading}>
           <NetworkIcon key={ecosystem} network={currentMeta.iconName} size={16} />
           <span className="hidden sm:inline">{currentMeta.name}</span>
           <ChevronDown className="size-3 opacity-50" />
@@ -46,11 +46,11 @@ export function EcosystemSwitcher(): React.ReactElement {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {availableEcosystems.map((eco) => {
-          const meta = ecosystemRegistry[eco];
+          const meta = getEcosystemStaticMetadata(eco);
           return (
             <DropdownMenuItem
               key={eco}
-              onClick={() => setEcosystem(eco)}
+              onClick={() => void setEcosystem(eco)}
               className={ecosystem === eco ? 'bg-accent' : ''}
             >
               <NetworkIcon network={meta.iconName} size={16} className="mr-2" />

@@ -66,7 +66,7 @@ interface FormFieldsData {
 export function FormFieldsDemo(): React.ReactElement {
   const [submittedData, setSubmittedData] = useState<Partial<FormFieldsData> | null>(null);
 
-  const { ecosystem, adapter, sampleAddresses, metadata } = useEcosystem();
+  const { ecosystem, adapter, sampleAddresses, metadata, isLoading } = useEcosystem();
 
   const form = useForm<FormFieldsData>({
     defaultValues: {
@@ -95,6 +95,15 @@ export function FormFieldsDemo(): React.ReactElement {
   const onSubmit = (data: FormFieldsData): void => {
     setSubmittedData(data);
   };
+
+  // Show loading state while ecosystem data is being loaded
+  if (isLoading || !adapter || !metadata) {
+    return (
+      <DemoSection title="Form Fields" description="Loading...">
+        <div className="text-muted-foreground">Loading ecosystem...</div>
+      </DemoSection>
+    );
+  }
 
   const codeExample = `import {
   TextField,
