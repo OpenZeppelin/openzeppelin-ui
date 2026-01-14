@@ -2,6 +2,8 @@
 
 A modular React component library for building blockchain transaction interfaces.
 
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/OpenZeppelin/openzeppelin-ui/badge)](https://api.securityscorecards.dev/projects/github.com/OpenZeppelin/openzeppelin-ui)
+[![Scorecard supply-chain security](https://github.com/OpenZeppelin/openzeppelin-ui/actions/workflows/scorecard.yml/badge.svg)](https://github.com/OpenZeppelin/openzeppelin-ui/actions/workflows/scorecard.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
 ## Packages
