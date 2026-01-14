@@ -34,3 +34,4 @@ test-results/
 # Temporary files
 *.tmp
 .temp/
+.pnpm-store
