@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-import { Input } from '@openzeppelin/ui-components';
+import { AddressDisplay, Input } from '@openzeppelin/ui-components';
 
 import { useEcosystem } from '../context';
 import {
@@ -107,14 +107,14 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
                 : `✗ Invalid ${metadata.name} address`}
             </p>
           ) : (
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground flex items-center gap-2 text-sm">
               Try a sample:{' '}
               <button
                 type="button"
                 onClick={() => setTestAddress(sampleAddresses.wallet)}
-                className="text-primary font-mono hover:underline"
+                className="hover:ring-primary/50 rounded-md transition-shadow hover:ring-2"
               >
-                {sampleAddresses.wallet.slice(0, 24)}...
+                <AddressDisplay address={sampleAddresses.wallet} startChars={6} endChars={6} />
               </button>
             </p>
           )}
