@@ -39,7 +39,8 @@ export { CalendarDemo } from './CalendarDemo';
 export { DateRangePickerDemo } from './DateRangePickerDemo';
 
 // Integration Demos
+export { ArchitectureDemo } from './ArchitectureDemo';
+export { HomeDemo } from './HomeDemo';
 export { RendererDemo } from './RendererDemo';
 export { TypeMappingDemo } from './TypeMappingDemo';
-export { HomeDemo } from './HomeDemo';
 export { WalletDemo } from './WalletDemo';
