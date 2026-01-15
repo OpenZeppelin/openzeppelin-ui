@@ -41,8 +41,6 @@ import {
 import { DemoSection } from '../DemoSection';
 import { EcosystemSwitcher } from '../EcosystemSwitcher';
 import {
-  AdapterPatternSection,
-  ArchitectureSection,
   FacadeHooksSection,
   StateManagementSection,
   UiKitSwitchingSection,
@@ -139,15 +137,13 @@ export function WalletDemo(): React.ReactElement {
           <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
             <Layers className="size-4 text-blue-600 dark:text-blue-400" />
             <AlertDescription className="text-blue-800 dark:text-blue-200">
-              This section explains the architecture powering the wallet integration — the same
-              pattern used in the full UI Builder application.
+              Wallet integration is powered by adapters and facade hooks. See the{' '}
+              <strong>Architecture</strong> page for how adapters work across all ecosystems.
             </AlertDescription>
           </Alert>
 
-          <ArchitectureSection />
-          <AdapterPatternSection />
-          <FacadeHooksSection />
           <WalletComponentsSection />
+          <FacadeHooksSection />
           <UiKitSwitchingSection />
           <StateManagementSection />
 

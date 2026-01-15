@@ -5,7 +5,7 @@
  * Explains architecture, adapters, facade hooks, and state management.
  */
 
-import { Boxes, Code2, Cpu, Layers, Network, Puzzle, Zap } from 'lucide-react';
+import { Boxes, Code2, Network, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import {
@@ -33,141 +33,11 @@ import type { AvailableUiKit } from '@openzeppelin/ui-types';
 
 import { CodeBlock } from '../CodeBlock';
 import {
-  ADAPTER_PATTERN_CODE,
-  ARCHITECTURE_OVERVIEW_CODE,
   FACADE_HOOKS_CODE,
   STATE_MANAGEMENT_CODE,
   UI_KIT_SWITCHING_CODE,
   WALLET_COMPONENTS_CODE,
 } from './code-snippets';
-
-export function ArchitectureSection(): React.ReactElement {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Layers className="size-5" />
-          Architecture Overview
-        </CardTitle>
-        <CardDescription>
-          How adapters, facade hooks, and wallet components work together to create a unified wallet
-          experience across multiple blockchain ecosystems.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="space-y-2 rounded-lg border bg-gradient-to-br from-blue-50 to-blue-100 p-4 dark:from-blue-950/30 dark:to-blue-900/30">
-            <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-              <Puzzle className="size-4" />
-              <span className="font-semibold">Adapters</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Ecosystem-specific implementations that encapsulate wallet libraries and provide
-              unified interfaces.
-            </p>
-          </div>
-          <div className="space-y-2 rounded-lg border bg-gradient-to-br from-purple-50 to-purple-100 p-4 dark:from-purple-950/30 dark:to-purple-900/30">
-            <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
-              <Code2 className="size-4" />
-              <span className="font-semibold">Facade Hooks</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Unified React hooks that abstract away ecosystem-specific wallet libraries like wagmi
-              or stellar-wallets-kit.
-            </p>
-          </div>
-          <div className="space-y-2 rounded-lg border bg-gradient-to-br from-green-50 to-green-100 p-4 dark:from-green-950/30 dark:to-green-900/30">
-            <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-              <Boxes className="size-4" />
-              <span className="font-semibold">UI Components</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Adapter-provided React components for wallet connection, account display, and network
-              switching.
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium">Provider Hierarchy</h4>
-          <CodeBlock code={ARCHITECTURE_OVERVIEW_CODE} language="tsx" />
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-export function AdapterPatternSection(): React.ReactElement {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Cpu className="size-5" />
-          Adapter Pattern
-        </CardTitle>
-        <CardDescription>
-          Adapters provide ecosystem-specific implementations while exposing a unified interface for
-          wallet management.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Accordion type="single" collapsible className="w-full">
-          <AccordionItem value="what">
-            <AccordionTrigger>What do adapters provide?</AccordionTrigger>
-            <AccordionContent className="space-y-3">
-              <ul className="ml-4 list-disc space-y-2 text-sm text-muted-foreground">
-                <li>
-                  <strong>Network validation</strong> — Validates addresses, chain IDs, and network
-                  parameters
-                </li>
-                <li>
-                  <strong>Wallet UI components</strong> — ConnectButton, AccountDisplay,
-                  NetworkSwitcher
-                </li>
-                <li>
-                  <strong>React hooks</strong> — Ecosystem-specific hooks wrapped in facade hooks
-                </li>
-                <li>
-                  <strong>UI kit management</strong> — Support for multiple wallet kits (RainbowKit,
-                  custom)
-                </li>
-                <li>
-                  <strong>Transaction execution</strong> — Contract interactions and transaction
-                  building
-                </li>
-              </ul>
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="how">
-            <AccordionTrigger>How does adapter resolution work?</AccordionTrigger>
-            <AccordionContent>
-              <CodeBlock code={ADAPTER_PATTERN_CODE} language="typescript" />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="lazy">
-            <AccordionTrigger>Lazy loading for performance</AccordionTrigger>
-            <AccordionContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Adapters are loaded on-demand using dynamic imports. This means the Stellar adapter
-                code is only loaded when a user actually selects a Stellar network, reducing initial
-                bundle size.
-              </p>
-              <CodeBlock
-                code={`// Adapters use dynamic imports for code splitting
-const module = await import('@openzeppelin/ui-builder-adapter-evm');
-const adapter = new module.EvmAdapter(networkConfig);
-
-// Caching prevents redundant loads
-adapterCache.set(networkConfig.id, adapter);`}
-                language="typescript"
-              />
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </CardContent>
-    </Card>
-  );
-}
 
 export function FacadeHooksSection(): React.ReactElement {
   const { isConnected, address, chainId } = useDerivedAccountStatus();
