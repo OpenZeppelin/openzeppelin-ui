@@ -331,7 +331,8 @@ function App(): React.ReactElement {
 
   // Scroll to top when navigating to a different demo
   useEffect(() => {
-    contentColumnRef.current?.scrollTo(0, 0);
+    contentColumnRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }, [activeDemo]);
 
   // Find which category contains the active demo
