@@ -22,4 +22,12 @@ export {
   type EcosystemStore,
 } from './ecosystemStore';
 
-export { useUiStore, type UiActions, type UiState, type UiStore } from './uiStore';
+export {
+  useUiStore,
+  useWalletDemoTab,
+  useSetWalletDemoTab,
+  type UiActions,
+  type UiState,
+  type UiStore,
+  type WalletDemoTab,
+} from './uiStore';
