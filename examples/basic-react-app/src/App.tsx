@@ -26,6 +26,7 @@ import {
   Wallet,
   Wand2,
 } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
 
 import {
   Footer,
@@ -322,6 +323,40 @@ function App(): React.ReactElement {
   const mobileOpen = useUiStore((s) => s.mobileOpen);
   const setMobileOpen = useUiStore((s) => s.setMobileOpen);
 
+  // Track which sidebar groups are open (by category key)
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+
+  // Find which category contains the active demo
+  const activeCategoryKey = useMemo(() => {
+    for (const category of galleryCategories) {
+      if (category.items.some((item) => item.key === activeDemo)) {
+        return category.key;
+      }
+    }
+    return null;
+  }, [activeDemo]);
+
+  // Handle toggling a sidebar group
+  const handleGroupToggle = useCallback((categoryKey: string, isOpen: boolean) => {
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      if (isOpen) {
+        next.add(categoryKey);
+      } else {
+        next.delete(categoryKey);
+      }
+      return next;
+    });
+  }, []);
+
+  // A group is open if it contains the active demo OR user manually opened it
+  const isGroupOpen = useCallback(
+    (categoryKey: string) => {
+      return categoryKey === activeCategoryKey || openGroups.has(categoryKey);
+    },
+    [activeCategoryKey, openGroups]
+  );
+
   // Handle navigation with type coercion
   const handleNavigate = (key: string) => {
     setActiveDemo(key as DemoKey);
@@ -366,7 +401,8 @@ function App(): React.ReactElement {
               <SidebarGroup
                 key={category.key}
                 title={category.title}
-                defaultOpen={category.items.some((item) => item.key === activeDemo)}
+                open={isGroupOpen(category.key)}
+                onOpenChange={(isOpen) => handleGroupToggle(category.key, isOpen)}
               >
                 <div className="flex flex-col gap-0.5">
                   {category.items.map((item) => (
