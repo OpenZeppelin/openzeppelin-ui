@@ -34,7 +34,8 @@
     "react-syntax-highlighter": "^15.6.1",
     "sonner": "^2.0.7",
     "viem": "^2.31.3",
-    "wagmi": "^2.17.0"
+    "wagmi": "^2.17.0",
+    "zustand": "^5.0.10"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.11",

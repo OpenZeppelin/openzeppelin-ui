@@ -84,7 +84,7 @@ const exampleSchema: RenderFormSchema = {
  */
 export function RendererDemo(): React.ReactElement {
   const [submittedData, setSubmittedData] = useState<Record<string, unknown> | null>(null);
-  const { adapter } = useEcosystem();
+  const { adapter, isLoading } = useEcosystem();
 
   const methods = useForm({
     mode: 'onChange',
@@ -98,6 +98,18 @@ export function RendererDemo(): React.ReactElement {
   const onSubmit = (data: Record<string, unknown>): void => {
     setSubmittedData(data);
   };
+
+  // Show loading state while ecosystem data is being loaded
+  if (isLoading || !adapter) {
+    return (
+      <section className="space-y-8">
+        <div>
+          <h2 className="mb-4 text-2xl font-semibold tracking-tight">FormRenderer</h2>
+          <p className="text-muted-foreground">Loading ecosystem...</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-8">

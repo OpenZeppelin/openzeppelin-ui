@@ -25,7 +25,6 @@ import {
   Type,
   Wallet,
 } from 'lucide-react';
-import { useState } from 'react';
 
 import {
   Footer,
@@ -38,14 +37,17 @@ import {
 import { EcosystemSwitcher } from './components/EcosystemSwitcher';
 
 import {
+  AccordionDemo,
   AddressDisplayDemo,
   AlertDemo,
   BannerDemo,
   ButtonDemo,
   CalendarDemo,
+  CardDemo,
   CheckboxDemo,
   DateRangePickerDemo,
   DialogDemo,
+  DropdownMenuDemo,
   EmptyStateDemo,
   ExternalLinkDemo,
   FormDemo,
@@ -55,14 +57,18 @@ import {
   LoadingButtonDemo,
   NetworkDemo,
   PopoverDemo,
+  ProgressDemo,
   RadioGroupDemo,
   RendererDemo,
   SelectDemo,
+  TabsDemo,
   TextareaDemo,
   ToastDemo,
   TooltipDemo,
   TypeMappingDemo,
+  WalletDemo,
 } from './components';
+import { useUiStore } from './stores';
 
 // ============================================================================
 // Types (T004)
@@ -221,38 +227,6 @@ const navCategories: NavCategory[] = [
 ];
 
 // ============================================================================
-// Placeholder Components (T007)
-// ============================================================================
-
-/**
- * Placeholder component for demos not yet implemented.
- * Shows a "Coming Soon" message with the component name.
- */
-function PlaceholderDemo({ name }: { name: string }): React.ReactElement {
-  return (
-    <section className="space-y-8">
-      <div>
-        <h2 className="mb-4 text-2xl font-semibold tracking-tight">{name}</h2>
-        <p className="text-muted-foreground mb-6">
-          This demo is coming soon. Check back after the corresponding phase is implemented.
-        </p>
-      </div>
-      <div className="bg-muted/50 flex h-48 items-center justify-center rounded-lg border border-dashed">
-        <span className="text-muted-foreground text-sm">Demo placeholder</span>
-      </div>
-    </section>
-  );
-}
-
-// Placeholder components for demos not yet implemented
-const CardDemo = () => <PlaceholderDemo name="Card" />;
-const TabsDemo = () => <PlaceholderDemo name="Tabs" />;
-const AccordionDemo = () => <PlaceholderDemo name="Accordion" />;
-const ProgressDemo = () => <PlaceholderDemo name="Progress" />;
-const DropdownMenuDemo = () => <PlaceholderDemo name="DropdownMenu" />;
-const WalletDemo = () => <PlaceholderDemo name="Wallet" />;
-
-// ============================================================================
 // Demo Component Registry (T007)
 // ============================================================================
 
@@ -277,7 +251,7 @@ const demoComponents: Record<DemoKey, React.ComponentType> = {
   tooltip: TooltipDemo,
   popover: PopoverDemo,
   toast: ToastDemo,
-  // Layout - placeholders (Phase 7)
+  // Layout (Phase 7)
   card: CardDemo,
   tabs: TabsDemo,
   accordion: AccordionDemo,
@@ -343,8 +317,10 @@ function SidebarFooter(): React.ReactElement {
  * Navigation is organized into categories per FR-015 specification.
  */
 function App(): React.ReactElement {
-  const [activeDemo, setActiveDemo] = useState<DemoKey>('home');
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const activeDemo = useUiStore((s) => s.activeDemo) as DemoKey;
+  const setActiveDemo = useUiStore((s) => s.setActiveDemo);
+  const mobileOpen = useUiStore((s) => s.mobileOpen);
+  const setMobileOpen = useUiStore((s) => s.setMobileOpen);
 
   const ActiveComponent = demoComponents[activeDemo];
 
