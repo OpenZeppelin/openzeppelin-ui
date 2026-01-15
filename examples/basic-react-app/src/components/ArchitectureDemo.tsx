@@ -8,7 +8,20 @@
  * the pieces fit together before diving into specific features.
  */
 
-import { Boxes, Code2, ExternalLink, Puzzle } from 'lucide-react';
+import { NetworkIcon } from '@web3icons/react';
+import {
+  Boxes,
+  Check,
+  Code2,
+  Database,
+  ExternalLink,
+  FileSearch,
+  Puzzle,
+  Send,
+  Shield,
+  Wallet,
+  X,
+} from 'lucide-react';
 
 import {
   Card,
@@ -36,25 +49,30 @@ function App() {
 }`;
 
 const ADAPTER_INTERFACE_CODE = `interface ContractAdapter {
-  // Identity & Validation
-  isValidAddress(address: string): boolean;
-  normalizeAddress(address: string): string;
+  // Contract Loading
+  loadContract(address: string): Promise<ContractSchema>;
+  loadContractWithMetadata(address: string): Promise<ContractWithMetadata>;
   
-  // Type System
-  getTypeMapping(): TypeMapping;
-  getSupportedTypes(): string[];
+  // Type System & Form Generation
+  mapParameterTypeToFieldType(type: string): FieldType;
+  generateDefaultField(param: Parameter): FormFieldConfig;
+  getTypeMappingInfo(): TypeMappingInfo;
   
-  // Network Management
-  getSupportedNetworks(): NetworkConfig[];
-  switchNetwork(chainId: number): Promise<void>;
+  // Transaction Execution
+  signAndBroadcast(tx: Transaction, callbacks: TxCallbacks): Promise<TxResult>;
+  getSupportedExecutionMethods(): ExecutionMethod[]; // EOA, Relayer
   
-  // Wallet UI
-  getWalletComponents(): WalletComponents;
+  // View Function Queries
+  queryViewFunction(contract: string, fn: string, args: unknown[]): Promise<unknown>;
+  isViewFunction(fn: FunctionSchema): boolean;
+  
+  // Wallet Integration
   getAvailableUiKits(): Promise<AvailableUiKit[]>;
+  getEcosystemWalletComponents(): WalletComponents;
   
-  // Contract Interaction (coming soon)
-  executeTransaction(tx: Transaction): Promise<TxResult>;
-  queryContract(query: ContractQuery): Promise<unknown>;
+  // Validation & Utils
+  isValidAddress(address: string): boolean;
+  getExplorerUrl(address: string): string;
 }`;
 
 const FACADE_HOOKS_CODE = `// Same API, any blockchain
@@ -93,69 +111,195 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
     >
       {/* The Three Pillars */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 dark:border-blue-800 dark:from-blue-950/30 dark:to-blue-900/30">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-              <Puzzle className="size-5" />
-              <CardTitle className="text-lg">Adapters</CardTitle>
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2.5">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/50">
+                <Puzzle className="size-[18px] text-blue-600 dark:text-blue-400" />
+              </div>
+              <CardTitle className="text-base">Adapters</CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <CardDescription className="text-sm">
-              Ecosystem-specific implementations that encapsulate wallet libraries and provide
-              unified interfaces.
-            </CardDescription>
-            <ul className="space-y-1 text-sm text-muted-foreground">
-              <li>• Address validation & normalization</li>
-              <li>• Type mapping for form generation</li>
-              <li>• Network configuration</li>
-              <li>• Wallet UI components</li>
-            </ul>
+          <CardContent className="pt-0">
+            <p className="text-sm text-muted-foreground">
+              Ecosystem-specific implementations for contract loading, transactions, type mapping,
+              wallet integration, and more.
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100 dark:border-purple-800 dark:from-purple-950/30 dark:to-purple-900/30">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
-              <Code2 className="size-5" />
-              <CardTitle className="text-lg">Facade Hooks</CardTitle>
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2.5">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/50">
+                <Code2 className="size-[18px] text-purple-600 dark:text-purple-400" />
+              </div>
+              <CardTitle className="text-base">Facade Hooks</CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <CardDescription className="text-sm">
-              Unified React hooks that abstract away ecosystem-specific wallet libraries like wagmi
-              or stellar-wallets-kit.
-            </CardDescription>
-            <ul className="space-y-1 text-sm text-muted-foreground">
-              <li>• useDerivedAccountStatus</li>
-              <li>• useDerivedChainInfo</li>
-              <li>• useDerivedConnectStatus</li>
-              <li>• useDerivedSwitchChainStatus</li>
-            </ul>
+          <CardContent className="pt-0">
+            <p className="text-sm text-muted-foreground">
+              Unified React hooks that abstract wallet libraries like wagmi and stellar-wallets-kit
+              behind a single API.
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-green-100 dark:border-green-800 dark:from-green-950/30 dark:to-green-900/30">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-              <Boxes className="size-5" />
-              <CardTitle className="text-lg">UI Components</CardTitle>
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2.5">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/50">
+                <Boxes className="size-[18px] text-green-600 dark:text-green-400" />
+              </div>
+              <CardTitle className="text-base">UI Components</CardTitle>
             </div>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <CardDescription className="text-sm">
-              Adapter-provided React components for wallet connection, account display, and network
-              switching.
-            </CardDescription>
-            <ul className="space-y-1 text-sm text-muted-foreground">
-              <li>• WalletConnectionUI</li>
-              <li>• ConnectButton</li>
-              <li>• AccountDisplay</li>
-              <li>• NetworkSwitcher</li>
-            </ul>
+          <CardContent className="pt-0">
+            <p className="text-sm text-muted-foreground">
+              Pre-built React components for wallet connection, account display, network switching,
+              and more.
+            </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Adapter Capabilities */}
+      <Card>
+        <CardHeader>
+          <CardTitle>What Adapters Can Do</CardTitle>
+          <CardDescription>
+            Each adapter provides a comprehensive set of capabilities for interacting with its
+            blockchain ecosystem. Here&apos;s what you get out of the box.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="space-y-2 rounded-lg border p-4">
+              <div className="flex items-center gap-2 font-medium">
+                <FileSearch className="size-4 text-blue-600" />
+                Contract Loading
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Load contracts from Etherscan, Sourcify, or Soroban. Automatic proxy detection and
+                ABI parsing included.
+              </p>
+            </div>
+
+            <div className="space-y-2 rounded-lg border p-4">
+              <div className="flex items-center gap-2 font-medium">
+                <Database className="size-4 text-purple-600" />
+                Type Mapping
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Auto-generate form fields from blockchain types. Handles uint256, address, bytes,
+                structs, arrays, and more.
+              </p>
+            </div>
+
+            <div className="space-y-2 rounded-lg border p-4">
+              <div className="flex items-center gap-2 font-medium">
+                <Send className="size-4 text-green-600" />
+                Transaction Execution
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Execute via wallet (EOA) or meta-transactions (Relayer). Gas estimation, status
+                callbacks, and confirmation tracking.
+              </p>
+            </div>
+
+            <div className="space-y-2 rounded-lg border p-4">
+              <div className="flex items-center gap-2 font-medium">
+                <Code2 className="size-4 text-orange-600" />
+                View Function Queries
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Query read-only contract functions. Automatic detection of view/pure functions with
+                result formatting.
+              </p>
+            </div>
+
+            <div className="space-y-2 rounded-lg border p-4">
+              <div className="flex items-center gap-2 font-medium">
+                <Wallet className="size-4 text-pink-600" />
+                Wallet Integration
+              </div>
+              <p className="text-sm text-muted-foreground">
+                RainbowKit for EVM, Stellar Wallets Kit for Soroban. Configurable UI kits with
+                connection state management.
+              </p>
+            </div>
+
+            <div className="space-y-2 rounded-lg border p-4">
+              <div className="flex items-center gap-2 font-medium">
+                <Shield className="size-4 text-cyan-600" />
+                Access Control
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Ownable and AccessControl pattern support. Role management, ownership transfers, and
+                permission queries.
+              </p>
+            </div>
+          </div>
+
+          {/* Extensibility callout */}
+          <div className="mt-6 flex items-center gap-4 rounded-lg bg-muted/50 p-4">
+            <div className="flex shrink-0 items-center gap-1">
+              <div className="flex size-8 items-center justify-center rounded-md border-2 border-dashed border-muted-foreground/30 bg-background">
+                <span className="text-xs font-medium text-muted-foreground">+</span>
+              </div>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium">Extensible by Design</p>
+              <p className="text-sm text-muted-foreground">
+                Extend existing adapters or create your own for new blockchains. The interface is
+                standardized, so your custom adapter works seamlessly with all hooks and components.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Ecosystem Comparison */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Supported Ecosystems</CardTitle>
+          <CardDescription>
+            Each adapter is tailored for its ecosystem while exposing the same interface.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-3 rounded-lg border p-4">
+              <h4 className="flex items-center gap-2.5 font-semibold">
+                <NetworkIcon network="ethereum" size={24} />
+                EVM Adapter
+              </h4>
+              <ul className="space-y-1.5 text-sm text-muted-foreground">
+                <li>• Etherscan & Sourcify contract verification</li>
+                <li>• Proxy contract detection & resolution</li>
+                <li>• RainbowKit + Wagmi wallet integration</li>
+                <li>• Gas price presets (fast/standard/slow)</li>
+                <li>• EIP-1559 transaction support</li>
+                <li>• Multi-chain support (Ethereum, Polygon, etc.)</li>
+              </ul>
+            </div>
+            <div className="space-y-3 rounded-lg border p-4">
+              <h4 className="flex items-center gap-2.5 font-semibold">
+                <NetworkIcon network="stellar" size={24} />
+                Stellar Adapter
+              </h4>
+              <ul className="space-y-1.5 text-sm text-muted-foreground">
+                <li>• Soroban smart contract support</li>
+                <li>• Stellar Wallets Kit integration</li>
+                <li>• XDR encoding/decoding</li>
+                <li>• Access control service (Ownable, Roles)</li>
+                <li>• Complex type support (Vec, Map, Option)</li>
+                <li>• Testnet and mainnet support</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Why This Architecture */}
       <Card>
@@ -169,50 +313,50 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-4">
               <h4 className="font-semibold text-destructive">Without OpenZeppelin UI</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-destructive">✗</span>
-                  <span>Write separate validation logic for each chain</span>
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2.5">
+                  <X className="size-4 shrink-0 text-destructive" />
+                  <span>Write separate contract loading for each explorer API</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-destructive">✗</span>
+                <li className="flex items-center gap-2.5">
+                  <X className="size-4 shrink-0 text-destructive" />
                   <span>Learn different wallet libraries (wagmi, stellar-sdk, etc.)</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-destructive">✗</span>
+                <li className="flex items-center gap-2.5">
+                  <X className="size-4 shrink-0 text-destructive" />
                   <span>Build custom form fields for each blockchain type</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-destructive">✗</span>
-                  <span>Handle network switching differently per ecosystem</span>
+                <li className="flex items-center gap-2.5">
+                  <X className="size-4 shrink-0 text-destructive" />
+                  <span>Handle transaction signing differently per ecosystem</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-destructive">✗</span>
+                <li className="flex items-center gap-2.5">
+                  <X className="size-4 shrink-0 text-destructive" />
                   <span>Maintain separate codebases for multi-chain support</span>
                 </li>
               </ul>
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold text-green-600">With OpenZeppelin UI</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-green-600">✓</span>
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2.5">
+                  <Check className="size-4 shrink-0 text-green-600" />
                   <span>One API for all chains - adapters handle the differences</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-green-600">✓</span>
+                <li className="flex items-center gap-2.5">
+                  <Check className="size-4 shrink-0 text-green-600" />
                   <span>Facade hooks provide consistent wallet state</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-green-600">✓</span>
+                <li className="flex items-center gap-2.5">
+                  <Check className="size-4 shrink-0 text-green-600" />
                   <span>Type mapping auto-generates correct form fields</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-green-600">✓</span>
-                  <span>Network switching works the same everywhere</span>
+                <li className="flex items-center gap-2.5">
+                  <Check className="size-4 shrink-0 text-green-600" />
+                  <span>Transaction execution works the same everywhere</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 text-green-600">✓</span>
+                <li className="flex items-center gap-2.5">
+                  <Check className="size-4 shrink-0 text-green-600" />
                   <span>Single codebase scales to any supported chain</span>
                 </li>
               </ul>

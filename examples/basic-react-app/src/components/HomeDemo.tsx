@@ -3,10 +3,10 @@ import {
   ArrowLeftRight,
   ArrowRight,
   BadgeCheck,
-  ExternalLink,
-  FileCode2,
+  FileSearch,
   Globe,
   Layers,
+  Send,
   Wallet,
   Wand2,
 } from 'lucide-react';
@@ -137,6 +137,22 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
         {/* Capability Grid */}
         <div className="grid gap-3 sm:grid-cols-2">
           <button
+            onClick={() => onNavigate?.('architecture')}
+            className="group flex items-start gap-3 rounded-lg border p-4 text-left transition-colors hover:border-primary hover:bg-primary/5"
+          >
+            <FileSearch className="text-muted-foreground size-5 shrink-0" />
+            <div className="flex-1">
+              <div className="flex items-center gap-1">
+                <h3 className="font-medium">Contract Loading</h3>
+                <ArrowRight className="text-muted-foreground size-3 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
+              </div>
+              <p className="text-muted-foreground mt-0.5 text-sm">
+                Load from Etherscan, Sourcify, or Soroban
+              </p>
+            </div>
+          </button>
+
+          <button
             onClick={() => onNavigate?.('type-mapping')}
             className="group flex items-start gap-3 rounded-lg border p-4 text-left transition-colors hover:border-primary hover:bg-primary/5"
           >
@@ -156,30 +172,14 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
             onClick={() => onNavigate?.('renderer')}
             className="group flex items-start gap-3 rounded-lg border p-4 text-left transition-colors hover:border-primary hover:bg-primary/5"
           >
-            <FileCode2 className="text-muted-foreground size-5 shrink-0" />
+            <Send className="text-muted-foreground size-5 shrink-0" />
             <div className="flex-1">
               <div className="flex items-center gap-1">
-                <h3 className="font-medium">Contract Interaction</h3>
+                <h3 className="font-medium">Transaction Execution</h3>
                 <ArrowRight className="text-muted-foreground size-3 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
               </div>
               <p className="text-muted-foreground mt-0.5 text-sm">
-                Read/write functions, transaction handling
-              </p>
-            </div>
-          </button>
-
-          <button
-            onClick={() => onNavigate?.('network')}
-            className="group flex items-start gap-3 rounded-lg border p-4 text-left transition-colors hover:border-primary hover:bg-primary/5"
-          >
-            <Globe className="text-muted-foreground size-5 shrink-0" />
-            <div className="flex-1">
-              <div className="flex items-center gap-1">
-                <h3 className="font-medium">Network Management</h3>
-                <ArrowRight className="text-muted-foreground size-3 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
-              </div>
-              <p className="text-muted-foreground mt-0.5 text-sm">
-                Switch networks, configure RPC, chain IDs
+                EOA or Relayer, with status callbacks
               </p>
             </div>
           </button>
@@ -195,23 +195,23 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
                 <ArrowRight className="text-muted-foreground size-3 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
               </div>
               <p className="text-muted-foreground mt-0.5 text-sm">
-                Connect wallets, sign transactions
+                RainbowKit, Stellar Wallets Kit, and more
               </p>
             </div>
           </button>
 
           <button
-            onClick={() => onNavigate?.('address-display')}
+            onClick={() => onNavigate?.('network')}
             className="group flex items-start gap-3 rounded-lg border p-4 text-left transition-colors hover:border-primary hover:bg-primary/5"
           >
-            <ExternalLink className="text-muted-foreground size-5 shrink-0" />
+            <Globe className="text-muted-foreground size-5 shrink-0" />
             <div className="flex-1">
               <div className="flex items-center gap-1">
-                <h3 className="font-medium">Explorer Links</h3>
+                <h3 className="font-medium">Network Management</h3>
                 <ArrowRight className="text-muted-foreground size-3 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
               </div>
               <p className="text-muted-foreground mt-0.5 text-sm">
-                Auto-generate block explorer URLs
+                Multi-chain support with network switching
               </p>
             </div>
           </button>
@@ -242,9 +242,9 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
       {/* Highlighted Demos */}
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Start here</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
           <button
-            onClick={() => onNavigate?.('type-mapping')}
+            onClick={() => onNavigate?.('architecture')}
             className="group flex items-start gap-4 rounded-xl border-2 border-primary/30 bg-primary/5 p-5 text-left transition-colors hover:border-primary"
           >
             <div className="bg-primary text-primary-foreground shrink-0 rounded-lg p-3">
@@ -252,11 +252,28 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold">Type Mapping Demo</h3>
+                <h3 className="font-semibold">Architecture</h3>
                 <ArrowRight className="text-primary size-4 transition-transform group-hover:translate-x-1" />
               </div>
               <p className="text-muted-foreground mt-1 text-sm">
-                The best way to understand adapter power. See blockchain types become form fields.
+                The big picture. How adapters, hooks, and components fit together.
+              </p>
+            </div>
+          </button>
+          <button
+            onClick={() => onNavigate?.('type-mapping')}
+            className="group flex items-start gap-4 rounded-xl border-2 border-primary/30 bg-primary/5 p-5 text-left transition-colors hover:border-primary"
+          >
+            <div className="bg-primary text-primary-foreground shrink-0 rounded-lg p-3">
+              <ArrowLeftRight className="size-6" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold">Type Mapping</h3>
+                <ArrowRight className="text-primary size-4 transition-transform group-hover:translate-x-1" />
+              </div>
+              <p className="text-muted-foreground mt-1 text-sm">
+                See blockchain types become form fields automatically.
               </p>
             </div>
           </button>
@@ -269,11 +286,11 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold">Form Renderer Demo</h3>
+                <h3 className="font-semibold">Form Renderer</h3>
                 <ArrowRight className="text-primary size-4 transition-transform group-hover:translate-x-1" />
               </div>
               <p className="text-muted-foreground mt-1 text-sm">
-                Generate complete forms from contract schemas. Real adapters, real validation.
+                Generate complete forms from contract schemas.
               </p>
             </div>
           </button>
