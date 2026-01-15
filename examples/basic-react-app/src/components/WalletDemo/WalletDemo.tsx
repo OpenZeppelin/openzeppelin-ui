@@ -84,7 +84,7 @@ export function WalletDemo(): React.ReactElement {
               </span>
               <span className="size-4" /> {/* Spacer for arrow alignment */}
               <span className="flex-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Kit
+                Available Kits
               </span>
               <span className="size-4" /> {/* Spacer for arrow alignment */}
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -112,6 +112,11 @@ export function WalletDemo(): React.ReactElement {
                 <WalletConnectionUI className="justify-center" />
               </div>
             </div>
+
+            {/* Helper text */}
+            <p className="-mt-2 text-xs text-muted-foreground">
+              Toggle between kits to see their documentation, configuration and status below.
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -133,7 +138,7 @@ export function WalletDemo(): React.ReactElement {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="learn" className="space-y-6">
+        <TabsContent value="learn" className="mt-6 space-y-6">
           <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
             <Layers className="size-4 text-blue-600 dark:text-blue-400" />
             <AlertDescription className="text-blue-800 dark:text-blue-200">
@@ -171,7 +176,7 @@ export function WalletDemo(): React.ReactElement {
           </Card>
         </TabsContent>
 
-        <TabsContent value="config" className="space-y-6">
+        <TabsContent value="config" className="mt-6 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -189,7 +194,7 @@ export function WalletDemo(): React.ReactElement {
           </Card>
         </TabsContent>
 
-        <TabsContent value="status" className="space-y-6">
+        <TabsContent value="status" className="mt-6 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

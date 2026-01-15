@@ -6,30 +6,18 @@
  */
 
 import { Boxes, Code2, Network, Zap } from 'lucide-react';
-import { useEffect, useState } from 'react';
 
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-  Alert,
-  AlertDescription,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from '@openzeppelin/ui-components';
-import {
-  useDerivedAccountStatus,
-  useDerivedChainInfo,
-  useDerivedConnectStatus,
-  useDerivedSwitchChainStatus,
-  useWalletState,
-  WalletConnectionUI,
-} from '@openzeppelin/ui-react';
-import type { AvailableUiKit } from '@openzeppelin/ui-types';
 
 import { CodeBlock } from '../CodeBlock';
 import {
@@ -40,11 +28,6 @@ import {
 } from './code-snippets';
 
 export function FacadeHooksSection(): React.ReactElement {
-  const { isConnected, address, chainId } = useDerivedAccountStatus();
-  const { isConnecting, error: connectError } = useDerivedConnectStatus();
-  const { currentChainId } = useDerivedChainInfo();
-  const { isSwitching } = useDerivedSwitchChainStatus();
-
   return (
     <Card>
       <CardHeader>
@@ -57,50 +40,7 @@ export function FacadeHooksSection(): React.ReactElement {
           hooks abstract away ecosystem-specific libraries like wagmi.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="rounded-lg border bg-muted/30 p-4">
-          <h4 className="mb-3 text-sm font-medium">Live Hook Values</h4>
-          <div className="grid gap-3 text-sm sm:grid-cols-2">
-            <div className="flex items-center justify-between rounded-md bg-background px-3 py-2">
-              <span className="text-muted-foreground">isConnected</span>
-              <code className={isConnected ? 'text-green-600' : 'text-red-600'}>
-                {String(isConnected)}
-              </code>
-            </div>
-            <div className="flex items-center justify-between rounded-md bg-background px-3 py-2">
-              <span className="text-muted-foreground">isConnecting</span>
-              <code className={isConnecting ? 'text-yellow-600' : 'text-muted-foreground'}>
-                {String(isConnecting)}
-              </code>
-            </div>
-            <div className="flex items-center justify-between rounded-md bg-background px-3 py-2">
-              <span className="text-muted-foreground">address</span>
-              <code className="max-w-[120px] truncate text-xs">
-                {address || <span className="text-muted-foreground">—</span>}
-              </code>
-            </div>
-            <div className="flex items-center justify-between rounded-md bg-background px-3 py-2">
-              <span className="text-muted-foreground">chainId</span>
-              <code>{chainId ?? <span className="text-muted-foreground">—</span>}</code>
-            </div>
-            <div className="flex items-center justify-between rounded-md bg-background px-3 py-2">
-              <span className="text-muted-foreground">currentChainId</span>
-              <code>{currentChainId ?? <span className="text-muted-foreground">—</span>}</code>
-            </div>
-            <div className="flex items-center justify-between rounded-md bg-background px-3 py-2">
-              <span className="text-muted-foreground">isSwitching</span>
-              <code className={isSwitching ? 'text-yellow-600' : 'text-muted-foreground'}>
-                {String(isSwitching)}
-              </code>
-            </div>
-          </div>
-          {connectError && (
-            <Alert variant="destructive" className="mt-3">
-              <AlertDescription className="text-xs">{connectError.message}</AlertDescription>
-            </Alert>
-          )}
-        </div>
-
+      <CardContent>
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="hooks">
             <AccordionTrigger>Available Facade Hooks</AccordionTrigger>
@@ -149,15 +89,6 @@ export function WalletComponentsSection(): React.ReactElement {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="rounded-lg border-2 border-dashed bg-muted/30 p-6">
-          <p className="mb-4 text-center text-sm text-muted-foreground">
-            Live WalletConnectionUI component from @openzeppelin/ui-react
-          </p>
-          <div className="flex justify-center">
-            <WalletConnectionUI />
-          </div>
-        </div>
-
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="how">
             <AccordionTrigger>How WalletConnectionUI works</AccordionTrigger>
@@ -200,18 +131,6 @@ export function WalletComponentsSection(): React.ReactElement {
 }
 
 export function UiKitSwitchingSection(): React.ReactElement {
-  const { activeAdapter } = useWalletState();
-  const [kits, setKits] = useState<AvailableUiKit[]>([]);
-
-  useEffect(() => {
-    if (activeAdapter) {
-      activeAdapter
-        .getAvailableUiKits()
-        .then(setKits)
-        .catch(() => setKits([]));
-    }
-  }, [activeAdapter]);
-
   return (
     <Card>
       <CardHeader>
@@ -224,32 +143,7 @@ export function UiKitSwitchingSection(): React.ReactElement {
           state.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="rounded-lg border bg-muted/30 p-4">
-          <h4 className="mb-3 text-sm font-medium">Available UI Kits for Current Adapter</h4>
-          {kits.length > 0 ? (
-            <div className="grid gap-2 sm:grid-cols-2">
-              {kits.map((kit) => (
-                <div
-                  key={kit.id}
-                  className="flex items-center gap-2 rounded-md bg-background px-3 py-2"
-                >
-                  <div
-                    className="size-2 rounded-full"
-                    style={{ backgroundColor: kit.id === 'rainbowkit' ? '#7C3AED' : '#10B981' }}
-                  />
-                  <span className="font-medium">{kit.name}</span>
-                  <span className="text-xs text-muted-foreground">({kit.id})</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              No adapter active or no UI kits available.
-            </p>
-          )}
-        </div>
-
+      <CardContent>
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="code">
             <AccordionTrigger>Implementing kit switching</AccordionTrigger>
