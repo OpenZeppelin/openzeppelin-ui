@@ -80,7 +80,7 @@
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
-    "tsdown": "^0.12.5",
+    "tsdown": "^0.19.0",
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
