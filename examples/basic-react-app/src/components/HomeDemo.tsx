@@ -28,7 +28,7 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
   if (isLoading || !adapter || !metadata) {
     return (
       <section className="flex min-h-[400px] items-center justify-center">
-        <div className="text-muted-foreground">Loading ecosystem...</div>
+        <div className="text-muted-foreground">Loading adapter...</div>
       </section>
     );
   }
@@ -41,7 +41,7 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
           Build for <span className="text-primary">any blockchain</span>
         </h1>
         <p className="text-muted-foreground text-lg">
-          One component library. Switch ecosystems—the UI adapts automatically.
+          One component library. Switch adapters—the UI adapts automatically.
         </p>
       </div>
 

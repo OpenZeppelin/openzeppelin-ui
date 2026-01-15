@@ -36,8 +36,8 @@ export function FacadeHooksSection(): React.ReactElement {
           Facade Hooks
         </CardTitle>
         <CardDescription>
-          Unified React hooks that provide consistent wallet state across all ecosystems. These
-          hooks abstract away ecosystem-specific libraries like wagmi.
+          Unified React hooks that provide consistent wallet state across all adapters. These hooks
+          abstract away blockchain-specific libraries like wagmi.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -53,8 +53,8 @@ export function FacadeHooksSection(): React.ReactElement {
             <AccordionContent className="space-y-3">
               <ul className="ml-4 list-disc space-y-2 text-sm text-muted-foreground">
                 <li>
-                  <strong>Ecosystem agnostic</strong> — Same API whether using EVM, Stellar, or
-                  other chains
+                  <strong>Adapter agnostic</strong> — Same API whether using EVM, Stellar, or other
+                  chains
                 </li>
                 <li>
                   <strong>Type-safe</strong> — Full TypeScript support with proper return types

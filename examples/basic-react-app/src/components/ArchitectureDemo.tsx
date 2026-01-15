@@ -122,7 +122,7 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
           </CardHeader>
           <CardContent className="pt-0">
             <p className="text-sm text-muted-foreground">
-              Ecosystem-specific implementations for contract loading, transactions, type mapping,
+              Blockchain-specific implementations for contract loading, transactions, type mapping,
               wallet integration, and more.
             </p>
           </CardContent>
@@ -169,7 +169,7 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
           <CardTitle>What Adapters Can Do</CardTitle>
           <CardDescription>
             Each adapter provides a comprehensive set of capabilities for interacting with its
-            blockchain ecosystem. Here&apos;s what you get out of the box.
+            blockchain. Here&apos;s what you get out of the box.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -262,9 +262,9 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
       {/* Ecosystem Comparison */}
       <Card>
         <CardHeader>
-          <CardTitle>Supported Ecosystems</CardTitle>
+          <CardTitle>Supported Adapters</CardTitle>
           <CardDescription>
-            Each adapter is tailored for its ecosystem while exposing the same interface.
+            Each adapter is tailored for its blockchain while exposing the same interface.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -328,7 +328,7 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
                 </li>
                 <li className="flex items-center gap-2.5">
                   <X className="size-4 shrink-0 text-destructive" />
-                  <span>Handle transaction signing differently per ecosystem</span>
+                  <span>Handle transaction signing differently per blockchain</span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <X className="size-4 shrink-0 text-destructive" />
@@ -383,7 +383,8 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
         <CardHeader>
           <CardTitle>The ContractAdapter Interface</CardTitle>
           <CardDescription>
-            Every adapter implements this interface, ensuring consistent behavior across ecosystems.
+            Every adapter implements this interface, ensuring consistent behavior across all
+            adapters.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -410,7 +411,7 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
           <div className="flex flex-col items-center gap-4 text-center">
             <h3 className="font-semibold">Explore the Architecture in Action</h3>
             <p className="max-w-lg text-sm text-muted-foreground">
-              See these concepts applied in real demos. Try switching ecosystems and watch how the
+              See these concepts applied in real demos. Try switching adapters and watch how the
               same code adapts automatically.
             </p>
             <div className="flex flex-wrap justify-center gap-3">

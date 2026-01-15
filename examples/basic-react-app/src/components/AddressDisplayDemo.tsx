@@ -15,7 +15,7 @@ export function AddressDisplayDemo(): React.ReactElement {
   if (isLoading || !adapter || !metadata) {
     return (
       <DemoSection title="AddressDisplay" description="Loading...">
-        <div className="text-muted-foreground">Loading ecosystem...</div>
+        <div className="text-muted-foreground">Loading adapter...</div>
       </DemoSection>
     );
   }

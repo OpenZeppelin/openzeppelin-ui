@@ -47,7 +47,7 @@ export function NetworkDemo(): React.ReactElement {
 
   if (ecosystemLoading || !metadata) {
     return (
-      <DemoSection title="Network Components" description="Loading ecosystem data...">
+      <DemoSection title="Network Components" description="Loading adapter data...">
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
@@ -58,7 +58,7 @@ export function NetworkDemo(): React.ReactElement {
   return (
     <DemoSection
       title="Network Components"
-      description={`Network components for ${metadata.name}. Switch ecosystems to see different networks. Currently showing ${networks.length} ${metadata.name} networks.`}
+      description={`Network components for ${metadata.name}. Switch adapters to see different networks. Currently showing ${networks.length} ${metadata.name} networks.`}
       codeExample={`import { NetworkIcon, NetworkSelector, NetworkStatusBadge } from '@openzeppelin/ui-components';
 import type { NetworkConfig } from '@openzeppelin/ui-types';
 
@@ -79,10 +79,10 @@ import type { NetworkConfig } from '@openzeppelin/ui-types';
     >
       {/* Ecosystem Switcher */}
       <div className="space-y-4">
-        <h3 className="text-lg font-medium">Current Ecosystem</h3>
+        <h3 className="text-lg font-medium">Current Adapter</h3>
         <p className="text-muted-foreground text-sm">
-          Switch ecosystems to see how network components adapt. Networks, icons, and selectors all
-          change based on the active ecosystem.
+          Switch adapters to see how network components adapt. Networks, icons, and selectors all
+          change based on the active adapter.
         </p>
         <div className="flex items-center gap-4">
           <EcosystemSwitcher />

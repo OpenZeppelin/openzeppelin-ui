@@ -100,7 +100,7 @@ export function FormFieldsDemo(): React.ReactElement {
   if (isLoading || !adapter || !metadata) {
     return (
       <DemoSection title="Form Fields" description="Loading...">
-        <div className="text-muted-foreground">Loading ecosystem...</div>
+        <div className="text-muted-foreground">Loading adapter...</div>
       </DemoSection>
     );
   }

@@ -80,7 +80,7 @@ export function WalletDemo(): React.ReactElement {
             {/* Labels Row */}
             <div className="hidden items-center gap-2 sm:flex sm:gap-3">
               <span className="min-w-[120px] text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Ecosystem
+                Adapter
               </span>
               <span className="size-4" /> {/* Spacer for arrow alignment */}
               <span className="flex-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -143,7 +143,7 @@ export function WalletDemo(): React.ReactElement {
             <Layers className="size-4 text-blue-600 dark:text-blue-400" />
             <AlertDescription className="text-blue-800 dark:text-blue-200">
               Wallet integration is powered by adapters and facade hooks. See the{' '}
-              <strong>Architecture</strong> page for how adapters work across all ecosystems.
+              <strong>Architecture</strong> page for how adapters work.
             </AlertDescription>
           </Alert>
 
