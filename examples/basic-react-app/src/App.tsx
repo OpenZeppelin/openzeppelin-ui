@@ -21,6 +21,7 @@ import {
   MessageSquare,
   MousePointerClick,
   Network,
+  PanelLeft,
   PanelTop,
   TextCursorInput,
   Type,
@@ -67,6 +68,7 @@ import {
   RadioGroupDemo,
   RendererDemo,
   SelectDemo,
+  SidebarLayoutDemo,
   TabsDemo,
   TextareaDemo,
   ToastDemo,
@@ -106,6 +108,7 @@ type DemoKey =
   | 'popover'
   | 'toast'
   // Component Gallery - Layout
+  | 'sidebar-layout'
   | 'card'
   | 'tabs'
   | 'accordion'
@@ -193,6 +196,7 @@ const galleryCategories: GalleryCategory[] = [
     key: 'layout',
     title: 'Layout',
     items: [
+      { key: 'sidebar-layout', label: 'Scaffold', icon: <PanelLeft className="size-4" /> },
       { key: 'card', label: 'Card', icon: <CreditCard className="size-4" /> },
       { key: 'tabs', label: 'Tabs', icon: <LayoutGrid className="size-4" /> },
       { key: 'accordion', label: 'Accordion', icon: <ListCollapse className="size-4" /> },
@@ -264,6 +268,7 @@ const demoComponents: Record<
   popover: PopoverDemo,
   toast: ToastDemo,
   // Component Gallery - Layout
+  'sidebar-layout': SidebarLayoutDemo,
   card: CardDemo,
   tabs: TabsDemo,
   accordion: AccordionDemo,

@@ -1,5 +1,13 @@
 import { NetworkIcon } from '@web3icons/react';
-import { ArrowLeftRight, ArrowRight, Globe, Layers, Wallet, Wand2 } from 'lucide-react';
+import {
+  ArrowLeftRight,
+  ArrowRight,
+  ExternalLink,
+  Globe,
+  Layers,
+  Wallet,
+  Wand2,
+} from 'lucide-react';
 import { useState } from 'react';
 
 import { AddressDisplay, Input } from '@openzeppelin/ui-components';
@@ -212,6 +220,58 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
               real-world use.
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Powering Production Apps */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold">Powering Production Apps</h2>
+        <p className="text-muted-foreground">
+          These libraries and adapters are already powering real OpenZeppelin products in
+          production.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <a
+            href="https://builder.openzeppelin.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-start gap-4 rounded-lg border p-5 transition-colors hover:border-primary hover:bg-primary/5"
+          >
+            <div className="bg-primary/10 shrink-0 rounded-lg p-2.5">
+              <Wand2 className="text-primary size-5" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold">UI Builder</h3>
+                <ExternalLink className="text-muted-foreground size-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
+              </div>
+              <p className="text-muted-foreground mt-1 text-sm">
+                Build and deploy smart contract interfaces with a visual editor. Uses UI components
+                and adapters to support multiple blockchain ecosystems.
+              </p>
+            </div>
+          </a>
+
+          <a
+            href="https://rolemanager.openzeppelin.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-start gap-4 rounded-lg border p-5 transition-colors hover:border-primary hover:bg-primary/5"
+          >
+            <div className="bg-primary/10 shrink-0 rounded-lg p-2.5">
+              <Layers className="text-primary size-5" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold">Role Manager</h3>
+                <ExternalLink className="text-muted-foreground size-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
+              </div>
+              <p className="text-muted-foreground mt-1 text-sm">
+                Manage access control roles for smart contracts. Built with the same component
+                library and adapter patterns for seamless multi-chain support.
+              </p>
+            </div>
+          </a>
         </div>
       </div>
 
