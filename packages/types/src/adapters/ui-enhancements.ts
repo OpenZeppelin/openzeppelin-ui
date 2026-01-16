@@ -97,11 +97,35 @@ export interface EcosystemReactUiProviderProps {
 }
 
 /**
+ * Size variants available for wallet UI components.
+ * Maps to standard button sizing conventions.
+ */
+export type WalletComponentSize = 'sm' | 'default' | 'lg' | 'xl';
+
+/**
+ * Visual style variants for wallet UI components.
+ */
+export type WalletComponentVariant = 'default' | 'outline' | 'ghost' | 'secondary';
+
+/**
  * Base props interface that all component props should be compatible with.
  * Components can extend this with additional props as needed.
+ *
+ * Adapters implementing wallet components should respect these props:
+ * - `className`: Additional CSS classes to apply
+ * - `size`: Controls the component's size (height, padding, font-size)
+ * - `variant`: Controls the visual style (colors, borders)
+ * - `fullWidth`: When true, component expands to fill container width
  */
 export interface BaseComponentProps {
+  /** Additional CSS classes to apply to the component */
   className?: string;
+  /** Size variant for the component */
+  size?: WalletComponentSize;
+  /** Visual style variant */
+  variant?: WalletComponentVariant;
+  /** If true, component expands to fill its container width */
+  fullWidth?: boolean;
 }
 
 /**

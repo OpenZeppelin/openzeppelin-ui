@@ -1,19 +1,53 @@
 import React, { useEffect, useState } from 'react';
 
 import { Button } from '@openzeppelin/ui-components';
+import type { BaseComponentProps } from '@openzeppelin/ui-types';
 import { cn, logger } from '@openzeppelin/ui-utils';
 
 import { useWalletState } from '../hooks/WalletStateContext';
 
-interface WalletConnectionUIProps {
+/**
+ * Props for the WalletConnectionUI component.
+ */
+export interface WalletConnectionUIProps {
+  /** Additional CSS classes to apply to the wrapper container */
   className?: string;
+  /** Props forwarded to the ConnectButton component */
+  connectButtonProps?: BaseComponentProps;
+  /** Props forwarded to the AccountDisplay component */
+  accountDisplayProps?: BaseComponentProps;
+  /** Props forwarded to the NetworkSwitcher component */
+  networkSwitcherProps?: BaseComponentProps;
 }
 
 /**
  * Component that displays wallet connection UI components
  * provided by the active adapter.
+ *
+ * @example
+ * ```tsx
+ * // Basic usage
+ * <WalletConnectionUI />
+ *
+ * // With custom styling for the connect button
+ * <WalletConnectionUI
+ *   connectButtonProps={{ size: "lg", variant: "outline", fullWidth: true }}
+ * />
+ *
+ * // Customizing all components
+ * <WalletConnectionUI
+ *   connectButtonProps={{ size: "lg" }}
+ *   accountDisplayProps={{ size: "lg" }}
+ *   networkSwitcherProps={{ size: "lg" }}
+ * />
+ * ```
  */
-export const WalletConnectionUI: React.FC<WalletConnectionUIProps> = ({ className }) => {
+export const WalletConnectionUI: React.FC<WalletConnectionUIProps> = ({
+  className,
+  connectButtonProps,
+  accountDisplayProps,
+  networkSwitcherProps,
+}) => {
   const [isError, setIsError] = useState(false);
   const { activeAdapter, walletFacadeHooks } = useWalletState();
 
@@ -76,13 +110,13 @@ export const WalletConnectionUI: React.FC<WalletConnectionUIProps> = ({ classNam
   return (
     <div className={cn('flex items-center gap-4', className)}>
       {/* Display network switcher if available - moved before account to match typical wallet UI flow */}
-      {NetworkSwitcher && <NetworkSwitcher />}
+      {NetworkSwitcher && <NetworkSwitcher {...networkSwitcherProps} />}
 
       {/* Display account info if available */}
-      {AccountDisplay && <AccountDisplay />}
+      {AccountDisplay && <AccountDisplay {...accountDisplayProps} />}
 
       {/* Display connect button if available */}
-      {ConnectButton && <ConnectButton />}
+      {ConnectButton && <ConnectButton {...connectButtonProps} />}
     </div>
   );
 };
