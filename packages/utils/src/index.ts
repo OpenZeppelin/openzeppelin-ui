@@ -24,3 +24,4 @@ export * from './deepLink';
 export * from './sanitize';
 export * from './access/snapshot';
 export * from './access/errors';
+export * from './walletComponentSizing';

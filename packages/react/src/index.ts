@@ -16,6 +16,7 @@ export { useAnalytics } from './hooks/useAnalytics';
 // Consumer Hooks
 export { useAdapterContext } from './hooks/useAdapterContext';
 export { useWalletState } from './hooks/WalletStateContext';
+export { useWalletComponents } from './hooks/useWalletComponents';
 export {
   useDerivedAccountStatus,
   type DerivedAccountStatus,
@@ -34,7 +35,7 @@ export { useWalletReconnectionHandler } from './hooks/useWalletReconnectionHandl
 
 // UI Components
 export { WalletConnectionHeader } from './components/WalletConnectionHeader';
-export { WalletConnectionUI } from './components/WalletConnectionUI';
+export { WalletConnectionUI, type WalletConnectionUIProps } from './components/WalletConnectionUI';
 export {
   NetworkSwitchManager,
   type NetworkSwitchManagerProps,
