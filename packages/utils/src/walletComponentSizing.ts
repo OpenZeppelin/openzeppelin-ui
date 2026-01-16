@@ -78,12 +78,12 @@ export function getWalletButtonSizeProps(
     case 'sm':
       return { size: 'sm', className: 'h-7 px-2 text-[11px]', iconSize: 'size-3' };
     case 'lg':
-      return { size: 'default', className: 'h-10 px-4', iconSize: 'size-4' };
+      return { size: 'lg', className: 'h-11 px-5', iconSize: 'size-5' };
     case 'xl':
       return { size: 'lg', className: 'h-12 px-6 text-base', iconSize: 'size-5' };
     case 'default':
     default:
-      return { size: 'sm', className: 'h-8 px-2 text-xs', iconSize: 'size-3.5' };
+      return { size: 'default', className: 'h-9 px-4 text-sm', iconSize: 'size-4' };
   }
 }
 
@@ -109,10 +109,10 @@ export function getWalletAccountDisplaySizeProps(
   switch (walletSize) {
     case 'sm':
       return {
-        textSize: 'text-xs',
-        subTextSize: 'text-[9px]',
-        iconButtonSize: 'size-6',
-        iconSize: 'size-3.5',
+        textSize: 'text-[11px]',
+        subTextSize: 'text-[8px]',
+        iconButtonSize: 'size-5',
+        iconSize: 'size-3',
       };
     case 'lg':
       return {
@@ -130,7 +130,6 @@ export function getWalletAccountDisplaySizeProps(
       };
     case 'default':
     default:
-      // Matches original AccountDisplay styling for backward compatibility
       return {
         textSize: 'text-xs',
         subTextSize: 'text-[9px]',
