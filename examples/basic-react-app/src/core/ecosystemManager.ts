@@ -41,6 +41,8 @@ export interface EcosystemStaticMetadata {
   networksExportName: string;
   /** Export name for default network in adapter package */
   defaultNetworkExportName: string;
+  /** Demo contract address for testing (deployed on testnet) */
+  demoContractAddress: string;
 }
 
 /**
@@ -85,6 +87,7 @@ const ecosystemStaticRegistry: Record<DemoEcosystem, EcosystemStaticMetadata> = 
     iconName: 'ethereum',
     networksExportName: 'evmNetworks',
     defaultNetworkExportName: 'ethereumSepolia',
+    demoContractAddress: '0x3814B80Df228055EA043F14219c5b70F40a7Bf14',
   },
   stellar: {
     name: 'Stellar',
@@ -94,6 +97,7 @@ const ecosystemStaticRegistry: Record<DemoEcosystem, EcosystemStaticMetadata> = 
     iconName: 'stellar',
     networksExportName: 'stellarNetworks',
     defaultNetworkExportName: 'stellarTestnet',
+    demoContractAddress: 'CDXBAC2SN6DR67PWHP45KIG2A2AY7EC2O2H4IIW4GR3NQP7AY37RKJU5',
   },
 };
 
@@ -169,6 +173,21 @@ export function getEcosystemStaticMetadata(ecosystem: DemoEcosystem): EcosystemS
  */
 export function getSampleAddresses(ecosystem: DemoEcosystem): Record<string, string> {
   return ecosystemStaticRegistry[ecosystem]?.sampleAddresses ?? {};
+}
+
+/**
+ * Get demo contract address for an ecosystem (no loading required).
+ */
+export function getDemoContractAddress(ecosystem: DemoEcosystem): string {
+  return ecosystemStaticRegistry[ecosystem].demoContractAddress;
+}
+
+/**
+ * Check if demo contract is deployed (not a placeholder).
+ */
+export function isDemoContractDeployed(ecosystem: DemoEcosystem): boolean {
+  const address = getDemoContractAddress(ecosystem);
+  return !address.startsWith('PLACEHOLDER');
 }
 
 // ============================================================================

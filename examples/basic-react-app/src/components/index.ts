@@ -40,6 +40,7 @@ export { DateRangePickerDemo } from './DateRangePickerDemo';
 
 // Integration Demos
 export { ArchitectureDemo } from './ArchitectureDemo';
+export { ContractInteractionsDemo } from './ContractInteractionsDemo';
 export { HomeDemo } from './HomeDemo';
 export { RendererDemo } from './RendererDemo';
 export { TypeMappingDemo } from './TypeMappingDemo';

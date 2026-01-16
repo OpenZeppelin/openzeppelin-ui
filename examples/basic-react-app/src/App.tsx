@@ -8,6 +8,7 @@ import {
   CreditCard,
   ExternalLink as ExternalLinkIcon,
   FileCode2,
+  FileText,
   FormInput,
   Hash,
   Home,
@@ -49,6 +50,7 @@ import {
   CalendarDemo,
   CardDemo,
   CheckboxDemo,
+  ContractInteractionsDemo,
   DateRangePickerDemo,
   DialogDemo,
   DropdownMenuDemo,
@@ -89,6 +91,7 @@ type DemoKey =
   | 'wallet'
   | 'renderer'
   | 'network'
+  | 'contract-interactions'
   // Component Gallery - Inputs
   | 'button'
   | 'input'
@@ -152,6 +155,11 @@ const integrationItems: NavItem[] = [
   { key: 'wallet', label: 'Wallet Connect', icon: <Wallet className="size-4" /> },
   { key: 'renderer', label: 'Form Renderer', icon: <Wand2 className="size-4" /> },
   { key: 'network', label: 'Network Management', icon: <Network className="size-4" /> },
+  {
+    key: 'contract-interactions',
+    label: 'Contract Interactions',
+    icon: <FileText className="size-4" />,
+  },
 ];
 
 /**
@@ -241,6 +249,7 @@ const demoComponents: Record<
   wallet: WalletDemo,
   renderer: RendererDemo,
   network: NetworkDemo,
+  'contract-interactions': ContractInteractionsDemo,
   // Component Gallery - Inputs
   button: ButtonDemo,
   input: InputDemo,
