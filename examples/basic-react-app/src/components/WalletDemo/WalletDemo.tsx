@@ -215,6 +215,7 @@ export function WalletDemo(): React.ReactElement {
 
       {/* Tabs for Learn/Customize/Config/Status */}
       <Tabs value={tab} onValueChange={(v) => setTab(v as WalletDemoTab)} className="w-full">
+        {/* NOTE: grid-cols-4 is coupled to the number of TabsTrigger items below. Update this when adding/removing tabs. */}
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="learn" className="gap-1.5">
             <BookOpen className="size-3.5" />
@@ -367,7 +368,7 @@ export function WalletDemo(): React.ReactElement {
               <div className="space-y-3">
                 <Label>Size Comparison</Label>
                 <div className="space-y-4 rounded-lg border border-dashed bg-muted/30 p-6">
-                  {(['sm', 'default', 'lg', 'xl'] as const).map((size) => (
+                  {(['sm', 'default', 'lg', 'xl'] as WalletComponentSize[]).map((size) => (
                     <div key={size} className="flex items-center gap-4">
                       <span className="w-20 text-xs font-medium text-muted-foreground">{size}</span>
                       <WalletConnectionUI
