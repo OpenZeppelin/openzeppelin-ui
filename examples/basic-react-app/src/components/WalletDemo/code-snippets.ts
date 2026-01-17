@@ -180,3 +180,99 @@ function CustomWalletUI() {
     </div>
   );
 }`;
+
+// ============================================================
+// Customization API Code Snippets
+// ============================================================
+
+export const WALLET_CONNECTION_UI_EXAMPLE = `import { WalletConnectionUI } from '@openzeppelin/ui-react';
+
+// Standard usage with customization
+<WalletConnectionUI
+  className="justify-center"
+  connectButtonProps={{
+    size: "lg",
+    variant: "outline",
+    fullWidth: true,
+    className: "font-semibold"
+  }}
+  accountDisplayProps={{
+    size: "lg",
+    variant: "ghost"
+  }}
+  networkSwitcherProps={{
+    size: "lg"
+  }}
+/>`;
+
+export const USE_WALLET_COMPONENTS_SIGNATURE = `function useWalletComponents(): EcosystemWalletComponents | null
+
+// Returns:
+interface EcosystemWalletComponents {
+  ConnectButton?: React.ComponentType<BaseComponentProps>;
+  AccountDisplay?: React.ComponentType<BaseComponentProps>;
+  NetworkSwitcher?: React.ComponentType<BaseComponentProps>;
+}`;
+
+export const USE_WALLET_COMPONENTS_EXAMPLE = `import { useDerivedAccountStatus, useWalletComponents } from '@openzeppelin/ui-react';
+
+function CustomWalletSection() {
+  const walletComponents = useWalletComponents();
+  const { isConnected } = useDerivedAccountStatus();
+
+  if (!walletComponents) {
+    return <p>Loading wallet...</p>;
+  }
+
+  const { ConnectButton, NetworkSwitcher, AccountDisplay } = walletComponents;
+
+  // Disconnected state - prominent connect button
+  if (!isConnected) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-6">
+        <h4 className="font-semibold text-lg">Connect Your Wallet</h4>
+        {ConnectButton && (
+          <ConnectButton
+            size="xl"
+            variant="default"
+            className="font-bold shadow-lg"
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Connected state - rich custom layout
+  return (
+    <div className="space-y-4">
+      {/* Header with gradient background */}
+      <div className="rounded-lg bg-gradient-to-r from-primary/10 to-transparent p-4">
+        <div className="flex items-center justify-between">
+          {/* Styled account display */}
+          {AccountDisplay && (
+            <AccountDisplay
+              size="lg"
+              variant="ghost"
+              className="font-mono text-primary"
+            />
+          )}
+          {/* Styled network switcher */}
+          {NetworkSwitcher && (
+            <NetworkSwitcher
+              size="default"
+              variant="outline"
+              className="border-primary/30"
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Action row */}
+      <div className="flex gap-2">
+        {ConnectButton && (
+          <ConnectButton size="sm" variant="secondary" className="flex-1" />
+        )}
+      </div>
+    </div>
+  );
+}`;

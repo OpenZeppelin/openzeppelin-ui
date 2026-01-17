@@ -8,7 +8,7 @@
 import { create } from 'zustand';
 
 /** Valid tab values for the WalletDemo component */
-export type WalletDemoTab = 'learn' | 'config' | 'status';
+export type WalletDemoTab = 'learn' | 'customize' | 'config' | 'status';
 
 export interface UiState {
   activeDemo: string;
