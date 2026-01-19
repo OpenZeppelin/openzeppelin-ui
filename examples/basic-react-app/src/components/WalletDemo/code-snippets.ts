@@ -1,46 +1,7 @@
 /**
  * Code snippets for documentation sections in the WalletDemo.
- * These are displayed in CodeBlock components to explain the architecture.
+ * These are displayed in CodeBlock components to explain wallet-specific functionality.
  */
-
-export const ARCHITECTURE_OVERVIEW_CODE = `// The wallet architecture follows a three-layer pattern:
-// 1. Adapters - Ecosystem-specific implementations (EVM, Stellar)
-// 2. Facade Hooks - Unified React hooks across all ecosystems
-// 3. UI Components - Adapter-provided wallet UI components
-
-import { AdapterProvider, WalletStateProvider } from '@openzeppelin/ui-react';
-
-// Provider hierarchy (top to bottom):
-<AdapterProvider resolveAdapter={resolveAdapter}>
-  <WalletStateProvider
-    initialNetworkId={networkId}
-    getNetworkConfigById={getNetworkConfigById}
-    loadConfigModule={loadAppConfigModule}
-  >
-    <YourApp />
-  </WalletStateProvider>
-</AdapterProvider>`;
-
-export const ADAPTER_PATTERN_CODE = `// Adapters are ecosystem-specific implementations that provide:
-// 1. Network configuration and validation
-// 2. Wallet UI components (ConnectButton, AccountDisplay, etc.)
-// 3. React hooks for wallet state (facade hooks)
-// 4. UI kit management (RainbowKit, custom, etc.)
-
-import { EvmAdapter } from '@openzeppelin/ui-builder-adapter-evm';
-import { StellarAdapter } from '@openzeppelin/ui-builder-adapter-stellar';
-
-// Adapters are created based on network ecosystem
-async function resolveAdapter(networkConfig: NetworkConfig): Promise<ContractAdapter> {
-  switch (networkConfig.ecosystem) {
-    case 'evm':
-      return new EvmAdapter(networkConfig);
-    case 'stellar':
-      return new StellarAdapter(networkConfig);
-    default:
-      throw new Error(\`Unsupported ecosystem: \${networkConfig.ecosystem}\`);
-  }
-}`;
 
 export const FACADE_HOOKS_CODE = `// Facade hooks provide a unified API across all ecosystems
 // They abstract away ecosystem-specific wallet libraries (wagmi, stellar-wallets-kit)

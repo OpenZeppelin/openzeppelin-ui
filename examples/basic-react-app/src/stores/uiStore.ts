@@ -26,7 +26,7 @@ export interface UiActions {
 export type UiStore = UiState & UiActions;
 
 export const useUiStore = create<UiStore>((set) => ({
-  activeDemo: 'home',
+  activeDemo: 'overview',
   mobileOpen: false,
   walletDemoTab: 'learn',
   setActiveDemo: (demo) => set({ activeDemo: demo }),

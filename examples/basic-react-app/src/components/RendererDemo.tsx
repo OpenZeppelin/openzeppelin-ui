@@ -105,7 +105,7 @@ export function RendererDemo(): React.ReactElement {
       <section className="space-y-8">
         <div>
           <h2 className="mb-4 text-2xl font-semibold tracking-tight">FormRenderer</h2>
-          <p className="text-muted-foreground">Loading ecosystem...</p>
+          <p className="text-muted-foreground">Loading adapter...</p>
         </div>
       </section>
     );

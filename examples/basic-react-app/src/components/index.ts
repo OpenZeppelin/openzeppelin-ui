@@ -18,6 +18,7 @@ export { PopoverDemo } from './PopoverDemo';
 export { ToastDemo } from './ToastDemo';
 
 // Layout Demos
+export { SidebarLayoutDemo } from './SidebarLayoutDemo';
 export { CardDemo } from './CardDemo';
 export { TabsDemo } from './TabsDemo';
 export { AccordionDemo } from './AccordionDemo';
@@ -39,7 +40,9 @@ export { CalendarDemo } from './CalendarDemo';
 export { DateRangePickerDemo } from './DateRangePickerDemo';
 
 // Integration Demos
+export { ArchitectureDemo } from './ArchitectureDemo';
+export { ContractInteractionsDemo } from './ContractInteractionsDemo';
+export { HomeDemo } from './HomeDemo';
 export { RendererDemo } from './RendererDemo';
 export { TypeMappingDemo } from './TypeMappingDemo';
-export { HomeDemo } from './HomeDemo';
 export { WalletDemo } from './WalletDemo';

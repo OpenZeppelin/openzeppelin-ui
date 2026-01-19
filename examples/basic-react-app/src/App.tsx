@@ -8,6 +8,7 @@ import {
   CreditCard,
   ExternalLink as ExternalLinkIcon,
   FileCode2,
+  FileText,
   FormInput,
   Hash,
   Home,
@@ -20,16 +21,20 @@ import {
   MessageSquare,
   MousePointerClick,
   Network,
+  PanelLeft,
   PanelTop,
   TextCursorInput,
   Type,
   Wallet,
+  Wand2,
 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Footer,
   Header,
   SidebarButton,
+  SidebarGroup,
   SidebarLayout,
   SidebarSection,
 } from '@openzeppelin/ui-components';
@@ -40,11 +45,13 @@ import {
   AccordionDemo,
   AddressDisplayDemo,
   AlertDemo,
+  ArchitectureDemo,
   BannerDemo,
   ButtonDemo,
   CalendarDemo,
   CardDemo,
   CheckboxDemo,
+  ContractInteractionsDemo,
   DateRangePickerDemo,
   DialogDemo,
   DropdownMenuDemo,
@@ -61,6 +68,7 @@ import {
   RadioGroupDemo,
   RendererDemo,
   SelectDemo,
+  SidebarLayoutDemo,
   TabsDemo,
   TextareaDemo,
   ToastDemo,
@@ -71,54 +79,55 @@ import {
 import { useUiStore } from './stores';
 
 // ============================================================================
-// Types (T004)
+// Types
 // ============================================================================
 
 /**
  * Union type identifying all demo components for navigation routing.
- * Organized by category per data-model.md specification.
  */
 type DemoKey =
-  // Getting Started
-  | 'home'
+  // Integration
+  | 'overview'
+  | 'architecture'
   | 'type-mapping'
-  // Inputs
+  | 'wallet'
+  | 'renderer'
+  | 'network'
+  | 'contract-interactions'
+  // Component Gallery - Inputs
   | 'button'
   | 'input'
   | 'select'
   | 'textarea'
   | 'checkbox'
   | 'radio-group'
-  // Feedback
+  // Component Gallery - Feedback
   | 'alert'
   | 'dialog'
   | 'tooltip'
   | 'popover'
   | 'toast'
-  // Layout
+  // Component Gallery - Layout
+  | 'sidebar-layout'
   | 'card'
   | 'tabs'
   | 'accordion'
   | 'progress'
   | 'dropdown-menu'
-  // Data Display
+  // Component Gallery - Data Display
   | 'address-display'
-  | 'network'
   | 'empty-state'
   | 'banner'
   | 'external-link'
   | 'loading-button'
-  // Forms
+  // Component Gallery - Forms
   | 'form'
   | 'form-fields'
   | 'calendar'
-  | 'date-range-picker'
-  // Integration
-  | 'wallet'
-  | 'renderer';
+  | 'date-range-picker';
 
 /**
- * Single navigation item within a category
+ * Single navigation item
  */
 interface NavItem {
   key: DemoKey;
@@ -127,31 +136,39 @@ interface NavItem {
 }
 
 /**
- * Category grouping for navigation items (T005)
+ * Collapsible category for Component Gallery
  */
-interface NavCategory {
+interface GalleryCategory {
   key: string;
   title: string;
   items: NavItem[];
 }
 
 // ============================================================================
-// Navigation Configuration (T005)
+// Navigation Configuration
 // ============================================================================
 
 /**
- * Navigation items grouped by category per plan.md specification.
- * Categories: Inputs, Feedback, Layout, Data Display, Forms, Integration
+ * Integration section - flat list of demos showcasing adapter power
  */
-const navCategories: NavCategory[] = [
+const integrationItems: NavItem[] = [
+  { key: 'overview', label: 'Overview', icon: <Home className="size-4" /> },
+  { key: 'architecture', label: 'Architecture', icon: <Layers className="size-4" /> },
+  { key: 'type-mapping', label: 'Type Mapping', icon: <ArrowLeftRight className="size-4" /> },
+  { key: 'wallet', label: 'Wallet Connect', icon: <Wallet className="size-4" /> },
+  { key: 'renderer', label: 'Form Renderer', icon: <Wand2 className="size-4" /> },
+  { key: 'network', label: 'Network Management', icon: <Network className="size-4" /> },
   {
-    key: 'getting-started',
-    title: 'Getting Started',
-    items: [
-      { key: 'home', label: 'Overview', icon: <Home className="size-4" /> },
-      { key: 'type-mapping', label: 'Type Mapping', icon: <ArrowLeftRight className="size-4" /> },
-    ],
+    key: 'contract-interactions',
+    label: 'Contract Interactions',
+    icon: <FileText className="size-4" />,
   },
+];
+
+/**
+ * Component Gallery - collapsible categories
+ */
+const galleryCategories: GalleryCategory[] = [
   {
     key: 'inputs',
     title: 'Inputs',
@@ -179,6 +196,7 @@ const navCategories: NavCategory[] = [
     key: 'layout',
     title: 'Layout',
     items: [
+      { key: 'sidebar-layout', label: 'Scaffold', icon: <PanelLeft className="size-4" /> },
       { key: 'card', label: 'Card', icon: <CreditCard className="size-4" /> },
       { key: 'tabs', label: 'Tabs', icon: <LayoutGrid className="size-4" /> },
       { key: 'accordion', label: 'Accordion', icon: <ListCollapse className="size-4" /> },
@@ -191,7 +209,6 @@ const navCategories: NavCategory[] = [
     title: 'Data Display',
     items: [
       { key: 'address-display', label: 'AddressDisplay', icon: <Hash className="size-4" /> },
-      { key: 'network', label: 'Network', icon: <Network className="size-4" /> },
       { key: 'empty-state', label: 'EmptyState', icon: <LayoutGrid className="size-4" /> },
       { key: 'banner', label: 'Banner', icon: <PanelTop className="size-4" /> },
       {
@@ -216,62 +233,58 @@ const navCategories: NavCategory[] = [
       },
     ],
   },
-  {
-    key: 'integration',
-    title: 'Integration',
-    items: [
-      { key: 'wallet', label: 'Wallet', icon: <Wallet className="size-4" /> },
-      { key: 'renderer', label: 'Renderer', icon: <Layers className="size-4" /> },
-    ],
-  },
 ];
 
 // ============================================================================
-// Demo Component Registry (T007)
+// Demo Component Registry
 // ============================================================================
 
 /**
  * Registry mapping demo keys to their component implementations.
- * Existing demos use actual implementations; future demos use placeholders.
  */
-const demoComponents: Record<DemoKey, React.ComponentType> = {
-  // Getting Started
-  home: HomeDemo,
+const demoComponents: Record<
+  DemoKey,
+  React.ComponentType<{ onNavigate?: (key: string) => void }>
+> = {
+  // Integration
+  overview: HomeDemo,
+  architecture: ArchitectureDemo,
   'type-mapping': TypeMappingDemo,
-  // Inputs
+  wallet: WalletDemo,
+  renderer: RendererDemo,
+  network: NetworkDemo,
+  'contract-interactions': ContractInteractionsDemo,
+  // Component Gallery - Inputs
   button: ButtonDemo,
   input: InputDemo,
   select: SelectDemo,
   textarea: TextareaDemo,
   checkbox: CheckboxDemo,
   'radio-group': RadioGroupDemo,
-  // Feedback - placeholders (Phase 5)
+  // Component Gallery - Feedback
   alert: AlertDemo,
   dialog: DialogDemo,
   tooltip: TooltipDemo,
   popover: PopoverDemo,
   toast: ToastDemo,
-  // Layout (Phase 7)
+  // Component Gallery - Layout
+  'sidebar-layout': SidebarLayoutDemo,
   card: CardDemo,
   tabs: TabsDemo,
   accordion: AccordionDemo,
   progress: ProgressDemo,
   'dropdown-menu': DropdownMenuDemo,
-  // Data Display (Phase 4)
+  // Component Gallery - Data Display
   'address-display': AddressDisplayDemo,
-  network: NetworkDemo,
   'empty-state': EmptyStateDemo,
   banner: BannerDemo,
   'external-link': ExternalLinkDemo,
   'loading-button': LoadingButtonDemo,
-  // Forms - existing + placeholders (Phase 6)
+  // Component Gallery - Forms
   form: FormDemo,
   'form-fields': FormFieldsDemo,
   calendar: CalendarDemo,
   'date-range-picker': DateRangePickerDemo,
-  // Integration - existing + placeholders (Phase 8)
-  wallet: WalletDemo,
-  renderer: RendererDemo,
 };
 
 // ============================================================================
@@ -314,7 +327,9 @@ function SidebarFooter(): React.ReactElement {
 
 /**
  * Main application showcasing OpenZeppelin UI components.
- * Navigation is organized into categories per FR-015 specification.
+ * Navigation is split into two sections:
+ * 1. Integration - Showcases adapter power and cross-chain capabilities
+ * 2. Component Gallery - Pure component reference with collapsible categories
  */
 function App(): React.ReactElement {
   const activeDemo = useUiStore((s) => s.activeDemo) as DemoKey;
@@ -322,11 +337,58 @@ function App(): React.ReactElement {
   const mobileOpen = useUiStore((s) => s.mobileOpen);
   const setMobileOpen = useUiStore((s) => s.setMobileOpen);
 
-  const ActiveComponent = demoComponents[activeDemo];
+  // Track which sidebar groups are open (by category key)
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+
+  // Ref for the main content column (scrollable container)
+  const contentColumnRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to top when navigating to a different demo
+  useEffect(() => {
+    contentColumnRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [activeDemo]);
+
+  // Find which category contains the active demo
+  const activeCategoryKey = useMemo(() => {
+    for (const category of galleryCategories) {
+      if (category.items.some((item) => item.key === activeDemo)) {
+        return category.key;
+      }
+    }
+    return null;
+  }, [activeDemo]);
+
+  // Handle toggling a sidebar group
+  const handleGroupToggle = useCallback((categoryKey: string, isOpen: boolean) => {
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      if (isOpen) {
+        next.add(categoryKey);
+      } else {
+        next.delete(categoryKey);
+      }
+      return next;
+    });
+  }, []);
+
+  // A group is open if it contains the active demo OR user manually opened it
+  const isGroupOpen = useCallback(
+    (categoryKey: string) => {
+      return categoryKey === activeCategoryKey || openGroups.has(categoryKey);
+    },
+    [activeCategoryKey, openGroups]
+  );
+
+  // Handle navigation with type coercion
+  const handleNavigate = (key: string) => {
+    setActiveDemo(key as DemoKey);
+  };
+
+  const ActiveComponent = demoComponents[activeDemo] ?? demoComponents.overview;
 
   return (
     <div className="bg-background text-foreground flex min-h-screen">
-      {/* Sidebar with categorized navigation (T006) */}
       <SidebarLayout
         header={<SidebarHeader />}
         footer={<SidebarFooter />}
@@ -336,26 +398,55 @@ function App(): React.ReactElement {
         background="bg-sidebar"
         width={280}
       >
-        {/* Render each navigation category as a SidebarSection */}
-        {navCategories.map((category) => (
-          <SidebarSection key={category.key} title={category.title} className="mt-6">
-            <nav className="flex flex-col gap-1">
-              {category.items.map((item) => (
-                <SidebarButton
-                  key={item.key}
-                  icon={item.icon}
-                  isSelected={activeDemo === item.key}
-                  onClick={() => {
-                    setActiveDemo(item.key);
-                    setMobileOpen(false);
-                  }}
-                >
-                  {item.label}
-                </SidebarButton>
-              ))}
-            </nav>
-          </SidebarSection>
-        ))}
+        {/* Integration Section */}
+        <SidebarSection title="Integration" className="mt-6">
+          <nav className="flex flex-col gap-1">
+            {integrationItems.map((item) => (
+              <SidebarButton
+                key={item.key}
+                icon={item.icon}
+                isSelected={activeDemo === item.key}
+                onClick={() => {
+                  setActiveDemo(item.key);
+                  setMobileOpen(false);
+                }}
+              >
+                {item.label}
+              </SidebarButton>
+            ))}
+          </nav>
+        </SidebarSection>
+
+        {/* Component Gallery Section */}
+        <SidebarSection title="Component Gallery" className="mt-8">
+          <nav className="flex flex-col gap-1">
+            {galleryCategories.map((category) => (
+              <SidebarGroup
+                key={category.key}
+                title={category.title}
+                open={isGroupOpen(category.key)}
+                onOpenChange={(isOpen) => handleGroupToggle(category.key, isOpen)}
+              >
+                <div className="flex flex-col gap-0.5">
+                  {category.items.map((item) => (
+                    <SidebarButton
+                      key={item.key}
+                      icon={item.icon}
+                      size="small"
+                      isSelected={activeDemo === item.key}
+                      onClick={() => {
+                        setActiveDemo(item.key);
+                        setMobileOpen(false);
+                      }}
+                    >
+                      {item.label}
+                    </SidebarButton>
+                  ))}
+                </div>
+              </SidebarGroup>
+            ))}
+          </nav>
+        </SidebarSection>
 
         {/* Package reference section */}
         <SidebarSection title="Packages" className="mt-8">
@@ -372,8 +463,8 @@ function App(): React.ReactElement {
       </SidebarLayout>
 
       {/* Main Content Area */}
-      <div className="flex min-h-screen flex-1 flex-col">
-        {/* Header - visible on all screen sizes, mobile menu on small screens */}
+      <div ref={contentColumnRef} className="flex min-h-screen flex-1 flex-col overflow-y-auto">
+        {/* Header */}
         <Header
           title="OpenZeppelin UI"
           onOpenSidebar={() => setMobileOpen(true)}
@@ -393,13 +484,9 @@ function App(): React.ReactElement {
         />
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8">
+        <main className="flex-1 p-6 lg:p-8">
           <div className="mx-auto max-w-4xl">
-            {activeDemo === 'home' ? (
-              <HomeDemo onNavigate={(key) => setActiveDemo(key as DemoKey)} />
-            ) : (
-              <ActiveComponent />
-            )}
+            <ActiveComponent onNavigate={handleNavigate} />
           </div>
         </main>
 

@@ -420,7 +420,7 @@ export function TypeMappingDemo(): React.ReactElement {
   if (isLoading || !adapter) {
     return (
       <DemoSection title="Type Mapping" description="Loading...">
-        <div className="text-muted-foreground">Loading ecosystem...</div>
+        <div className="text-muted-foreground">Loading adapter...</div>
       </DemoSection>
     );
   }

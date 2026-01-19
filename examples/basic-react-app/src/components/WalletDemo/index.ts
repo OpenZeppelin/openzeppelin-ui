@@ -7,8 +7,6 @@ export { WalletKitSwitcher, type WalletKitSwitcherProps } from './WalletKitSwitc
 export { WalletStatusPanel, type WalletStatusPanelProps } from './WalletStatusPanel';
 export { WalletKitConfigPreview, type WalletKitConfigPreviewProps } from './WalletKitConfigPreview';
 export {
-  ArchitectureSection,
-  AdapterPatternSection,
   FacadeHooksSection,
   WalletComponentsSection,
   UiKitSwitchingSection,

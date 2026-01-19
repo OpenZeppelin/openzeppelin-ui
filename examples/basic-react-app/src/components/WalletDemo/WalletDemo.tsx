@@ -61,8 +61,6 @@ import {
   WALLET_CONNECTION_UI_EXAMPLE,
 } from './code-snippets';
 import {
-  AdapterPatternSection,
-  ArchitectureSection,
   FacadeHooksSection,
   StateManagementSection,
   UiKitSwitchingSection,
@@ -177,11 +175,11 @@ export function WalletDemo(): React.ReactElement {
             {/* Labels Row */}
             <div className="hidden items-center gap-2 sm:flex sm:gap-3">
               <span className="min-w-[120px] text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Ecosystem
+                Adapter
               </span>
               <span className="size-4" /> {/* Spacer for arrow alignment */}
               <span className="flex-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Kit
+                Available Kits
               </span>
               <span className="size-4" /> {/* Spacer for arrow alignment */}
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -209,6 +207,11 @@ export function WalletDemo(): React.ReactElement {
                 <WalletConnectionUI className="justify-center" />
               </div>
             </div>
+
+            {/* Helper text */}
+            <p className="-mt-2 text-xs text-muted-foreground">
+              Toggle between kits to see their documentation, configuration and status below.
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -235,19 +238,17 @@ export function WalletDemo(): React.ReactElement {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="learn" className="space-y-6">
+        <TabsContent value="learn" className="mt-6 space-y-6">
           <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
             <Layers className="size-4 text-blue-600 dark:text-blue-400" />
             <AlertDescription className="text-blue-800 dark:text-blue-200">
-              This section explains the architecture powering the wallet integration — the same
-              pattern used in the full UI Builder application.
+              Wallet integration is powered by adapters and facade hooks. See the{' '}
+              <strong>Architecture</strong> page for how adapters work.
             </AlertDescription>
           </Alert>
 
-          <ArchitectureSection />
-          <AdapterPatternSection />
-          <FacadeHooksSection />
           <WalletComponentsSection />
+          <FacadeHooksSection />
           <UiKitSwitchingSection />
           <StateManagementSection />
 
@@ -275,7 +276,7 @@ export function WalletDemo(): React.ReactElement {
           </Card>
         </TabsContent>
 
-        <TabsContent value="customize" className="space-y-6">
+        <TabsContent value="customize" className="mt-6 space-y-6">
           {/* Interactive Playground */}
           <Card>
             <CardHeader>
@@ -318,8 +319,8 @@ export function WalletDemo(): React.ReactElement {
                       <SelectValue placeholder="Select variant" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="default">Default (filled)</SelectItem>
-                      <SelectItem value="outline">Outline</SelectItem>
+                      <SelectItem value="outline">Outline (default)</SelectItem>
+                      <SelectItem value="default">Filled</SelectItem>
                       <SelectItem value="ghost">Ghost</SelectItem>
                       <SelectItem value="secondary">Secondary</SelectItem>
                     </SelectContent>
@@ -516,7 +517,7 @@ export function WalletDemo(): React.ReactElement {
                       <tr className="border-b border-dashed">
                         <td className="py-2 text-blue-600 dark:text-blue-400">variant</td>
                         <td className="py-2 text-muted-foreground">
-                          {`'default' | 'outline' | 'ghost' | 'secondary'`}
+                          {`'outline' | 'default' | 'ghost' | 'secondary'`}
                         </td>
                         <td className="py-2 text-muted-foreground">{`'outline'`}</td>
                         <td className="py-2 font-sans">Visual style variant</td>
@@ -589,7 +590,7 @@ export function WalletDemo(): React.ReactElement {
           </Card>
         </TabsContent>
 
-        <TabsContent value="config" className="space-y-6">
+        <TabsContent value="config" className="mt-6 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -607,7 +608,7 @@ export function WalletDemo(): React.ReactElement {
           </Card>
         </TabsContent>
 
-        <TabsContent value="status" className="space-y-6">
+        <TabsContent value="status" className="mt-6 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
