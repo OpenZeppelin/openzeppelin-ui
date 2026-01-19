@@ -319,8 +319,8 @@ export function WalletDemo(): React.ReactElement {
                       <SelectValue placeholder="Select variant" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="default">Default (filled)</SelectItem>
-                      <SelectItem value="outline">Outline</SelectItem>
+                      <SelectItem value="outline">Outline (default)</SelectItem>
+                      <SelectItem value="default">Filled</SelectItem>
                       <SelectItem value="ghost">Ghost</SelectItem>
                       <SelectItem value="secondary">Secondary</SelectItem>
                     </SelectContent>
@@ -517,7 +517,7 @@ export function WalletDemo(): React.ReactElement {
                       <tr className="border-b border-dashed">
                         <td className="py-2 text-blue-600 dark:text-blue-400">variant</td>
                         <td className="py-2 text-muted-foreground">
-                          {`'default' | 'outline' | 'ghost' | 'secondary'`}
+                          {`'outline' | 'default' | 'ghost' | 'secondary'`}
                         </td>
                         <td className="py-2 text-muted-foreground">{`'outline'`}</td>
                         <td className="py-2 font-sans">Visual style variant</td>
