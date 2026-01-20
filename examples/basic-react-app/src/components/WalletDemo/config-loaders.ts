@@ -4,7 +4,8 @@
  */
 
 export const kitConfigSourceImporters = import.meta.glob('../../config/wallet/*.config.ts', {
-  as: 'raw',
+  query: '?raw',
+  import: 'default',
 });
 
 export const kitConfigModuleImporters = import.meta.glob('../../config/wallet/*.config.ts');

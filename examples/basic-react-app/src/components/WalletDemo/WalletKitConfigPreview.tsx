@@ -12,7 +12,12 @@ import { Alert, AlertDescription } from '@openzeppelin/ui-components';
 import type { AvailableUiKit } from '@openzeppelin/ui-types';
 
 import { CodeBlock } from '../CodeBlock';
-import { CUSTOM_KIT_EXPLANATION_CODE, CUSTOM_KIT_USAGE_CODE } from './code-snippets';
+import {
+  CUSTOM_KIT_EXPLANATION_CODE,
+  CUSTOM_KIT_USAGE_CODE,
+  STELLAR_WALLETS_KIT_EXPLANATION_CODE,
+  STELLAR_WALLETS_KIT_USAGE_CODE,
+} from './code-snippets';
 import {
   buildAppliedConfigSnippet,
   loadKitConfigModule,
@@ -36,11 +41,14 @@ export function WalletKitConfigPreview({
   // Check if this is a "zero-config" kit (custom, none)
   const isZeroConfigKit = selectedKitName === 'custom' || selectedKitName === 'none';
 
+  // Check if this is the Stellar Wallets Kit (uses built-in UI, no user config file)
+  const isStellarWalletsKit = selectedKitName === 'stellar-wallets-kit';
+
   useEffect(() => {
     let isMounted = true;
 
     async function load() {
-      if (!selectedKitName || isZeroConfigKit) {
+      if (!selectedKitName || isZeroConfigKit || isStellarWalletsKit) {
         if (!isMounted) return;
         setNativeConfigSource(null);
         setNativeConfigObject(null);
@@ -61,7 +69,7 @@ export function WalletKitConfigPreview({
     return () => {
       isMounted = false;
     };
-  }, [selectedKitName, isZeroConfigKit]);
+  }, [selectedKitName, isZeroConfigKit, isStellarWalletsKit]);
 
   const previews = useMemo(() => {
     if (!selectedKitName) return [];
@@ -87,6 +95,21 @@ export function WalletKitConfigPreview({
         title: 'Direct wagmi usage (advanced)',
         code: CUSTOM_KIT_USAGE_CODE,
         language: 'tsx',
+      });
+      return items;
+    }
+
+    // For Stellar Wallets Kit, show explanation and usage code
+    if (isStellarWalletsKit) {
+      items.push({
+        title: 'Stellar Wallets Kit overview',
+        code: STELLAR_WALLETS_KIT_EXPLANATION_CODE,
+        language: 'typescript',
+      });
+      items.push({
+        title: 'How it works (internal implementation)',
+        code: STELLAR_WALLETS_KIT_USAGE_CODE,
+        language: 'typescript',
       });
       return items;
     }
@@ -127,6 +150,7 @@ export function WalletKitConfigPreview({
     selectedKit?.defaultCode,
     selectedKitName,
     isZeroConfigKit,
+    isStellarWalletsKit,
   ]);
 
   if (!selectedKitName) {
@@ -140,7 +164,11 @@ export function WalletKitConfigPreview({
 
   // Show informative message for zero-config kits instead of an error
   const showNoConfigWarning =
-    !isZeroConfigKit && !selectedKit?.defaultCode && !nativeConfigSource && !nativeConfigObject;
+    !isZeroConfigKit &&
+    !isStellarWalletsKit &&
+    !selectedKit?.defaultCode &&
+    !nativeConfigSource &&
+    !nativeConfigObject;
 
   return (
     <div className="space-y-4">
@@ -152,6 +180,16 @@ export function WalletKitConfigPreview({
             without a native config file. You can still configure it at runtime to exclude
             components like <code className="text-xs">NetworkSwitcher</code> or{' '}
             <code className="text-xs">AccountDisplay</code>.
+          </AlertDescription>
+        </Alert>
+      )}
+      {isStellarWalletsKit && (
+        <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
+          <Info className="size-4 text-blue-600 dark:text-blue-400" />
+          <AlertDescription className="text-blue-800 dark:text-blue-200">
+            The <span className="font-medium">Stellar Wallets Kit</span> uses its own built-in UI
+            and does not require a separate configuration file. The adapter automatically
+            initializes it based on the current network (testnet or mainnet).
           </AlertDescription>
         </Alert>
       )}
