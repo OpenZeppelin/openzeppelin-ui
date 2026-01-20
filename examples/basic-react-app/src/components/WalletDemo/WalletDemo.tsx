@@ -300,20 +300,19 @@ export function WalletDemo(): React.ReactElement {
                     and layout customization options for wallet components.
                   </p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-2"
-                  onClick={() => {
-                    const customKit = kits.find((k) => k.id === 'custom');
-                    if (customKit) {
+                {kits.some((k) => k.id === 'custom') && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => {
                       reconfigureActiveAdapterUiKit({ kitName: 'custom' as UiKitName });
                       setSelectedKitName('custom');
-                    }
-                  }}
-                >
-                  Switch to Wagmi Custom
-                </Button>
+                    }}
+                  >
+                    Switch to Wagmi Custom
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ) : (
