@@ -37,10 +37,12 @@ import {
 import {
   useDerivedAccountStatus,
   useWalletComponents,
+  useWalletState,
   WalletConnectionUI,
 } from '@openzeppelin/ui-react';
 import type {
   AvailableUiKit,
+  UiKitName,
   WalletComponentSize,
   WalletComponentVariant,
 } from '@openzeppelin/ui-types';
@@ -148,6 +150,7 @@ export function WalletDemo(): React.ReactElement {
   const selectedKitName = useSelectedKitName();
   const setSelectedKitName = useSetSelectedKitName();
   const [kits, setKits] = useState<AvailableUiKit[]>([]);
+  const { reconfigureActiveAdapterUiKit } = useWalletState();
 
   // Customization state for testing new props
   const [buttonSize, setButtonSize] = useState<WalletComponentSize>('default');
@@ -277,317 +280,360 @@ export function WalletDemo(): React.ReactElement {
         </TabsContent>
 
         <TabsContent value="customize" className="mt-6 space-y-6">
-          {/* Interactive Playground */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="size-5" />
-                Interactive Playground
-              </CardTitle>
-              <CardDescription>
-                Test the customization props on wallet components in real-time.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Controls */}
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="space-y-2">
-                  <Label htmlFor="size-select">Size</Label>
-                  <Select
-                    value={buttonSize}
-                    onValueChange={(v) => setButtonSize(v as WalletComponentSize)}
-                  >
-                    <SelectTrigger id="size-select">
-                      <SelectValue placeholder="Select size" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sm">Small (sm)</SelectItem>
-                      <SelectItem value="default">Default</SelectItem>
-                      <SelectItem value="lg">Large (lg)</SelectItem>
-                      <SelectItem value="xl">Extra Large (xl)</SelectItem>
-                    </SelectContent>
-                  </Select>
+          {selectedKitName !== 'custom' ? (
+            /* Placeholder for non-custom kits */
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
+                <div className="rounded-full bg-muted p-4">
+                  <Palette className="size-8 text-muted-foreground" />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="variant-select">Variant</Label>
-                  <Select
-                    value={buttonVariant}
-                    onValueChange={(v) => setButtonVariant(v as WalletComponentVariant)}
-                  >
-                    <SelectTrigger id="variant-select">
-                      <SelectValue placeholder="Select variant" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="outline">Outline (default)</SelectItem>
-                      <SelectItem value="default">Filled</SelectItem>
-                      <SelectItem value="ghost">Ghost</SelectItem>
-                      <SelectItem value="secondary">Secondary</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="max-w-md space-y-2">
+                  <h3 className="text-lg font-semibold">Customization Not Available</h3>
+                  <p className="text-sm text-muted-foreground">
+                    The interactive customization playground is only available for the{' '}
+                    <strong>Wagmi Custom</strong> kit. Third-party kits like RainbowKit have their
+                    own theming systems and component styles that cannot be modified through this
+                    interface.
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Switch to the <strong>Wagmi Custom</strong> kit above to access size, variant,
+                    and layout customization options for wallet components.
+                  </p>
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => {
+                    const customKit = kits.find((k) => k.id === 'custom');
+                    if (customKit) {
+                      reconfigureActiveAdapterUiKit({ kitName: 'custom' as UiKitName });
+                      setSelectedKitName('custom');
+                    }
+                  }}
+                >
+                  Switch to Wagmi Custom
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {/* Interactive Playground */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Palette className="size-5" />
+                    Interactive Playground
+                  </CardTitle>
+                  <CardDescription>
+                    Test the customization props on wallet components in real-time.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Controls */}
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="size-select">Size</Label>
+                      <Select
+                        value={buttonSize}
+                        onValueChange={(v) => setButtonSize(v as WalletComponentSize)}
+                      >
+                        <SelectTrigger id="size-select">
+                          <SelectValue placeholder="Select size" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="sm">Small (sm)</SelectItem>
+                          <SelectItem value="default">Default</SelectItem>
+                          <SelectItem value="lg">Large (lg)</SelectItem>
+                          <SelectItem value="xl">Extra Large (xl)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="fullwidth-select">Full Width</Label>
-                  <Select
-                    value={fullWidth ? 'true' : 'false'}
-                    onValueChange={(v) => setFullWidth(v === 'true')}
-                  >
-                    <SelectTrigger id="fullwidth-select">
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="false">No</SelectItem>
-                      <SelectItem value="true">Yes</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="variant-select">Variant</Label>
+                      <Select
+                        value={buttonVariant}
+                        onValueChange={(v) => setButtonVariant(v as WalletComponentVariant)}
+                      >
+                        <SelectTrigger id="variant-select">
+                          <SelectValue placeholder="Select variant" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="outline">Outline (default)</SelectItem>
+                          <SelectItem value="default">Filled</SelectItem>
+                          <SelectItem value="ghost">Ghost</SelectItem>
+                          <SelectItem value="secondary">Secondary</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-              {/* Preview */}
-              <div className="space-y-3">
-                <Label>Preview</Label>
-                <div className="rounded-lg border border-dashed bg-muted/30 p-6">
-                  <WalletConnectionUI
-                    connectButtonProps={{
-                      size: buttonSize,
-                      variant: buttonVariant,
-                      fullWidth: fullWidth,
-                    }}
-                    accountDisplayProps={{
-                      size: buttonSize,
-                      variant: buttonVariant,
-                    }}
-                    networkSwitcherProps={{
-                      size: buttonSize,
-                    }}
-                  />
-                </div>
-              </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="fullwidth-select">Full Width</Label>
+                      <Select
+                        value={fullWidth ? 'true' : 'false'}
+                        onValueChange={(v) => setFullWidth(v === 'true')}
+                      >
+                        <SelectTrigger id="fullwidth-select">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="false">No</SelectItem>
+                          <SelectItem value="true">Yes</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-              {/* Size Comparison */}
-              <div className="space-y-3">
-                <Label>Size Comparison</Label>
-                <div className="space-y-4 rounded-lg border border-dashed bg-muted/30 p-6">
-                  {(['sm', 'default', 'lg', 'xl'] as WalletComponentSize[]).map((size) => (
-                    <div key={size} className="flex items-center gap-4">
-                      <span className="w-20 text-xs font-medium text-muted-foreground">{size}</span>
+                  {/* Preview */}
+                  <div className="space-y-3">
+                    <Label>Preview</Label>
+                    <div className="rounded-lg border border-dashed bg-muted/30 p-6">
                       <WalletConnectionUI
-                        connectButtonProps={{ size, variant: 'outline' }}
-                        accountDisplayProps={{ size }}
-                        networkSwitcherProps={{ size }}
+                        connectButtonProps={{
+                          size: buttonSize,
+                          variant: buttonVariant,
+                          fullWidth: fullWidth,
+                        }}
+                        accountDisplayProps={{
+                          size: buttonSize,
+                          variant: buttonVariant,
+                        }}
+                        networkSwitcherProps={{
+                          size: buttonSize,
+                        }}
                       />
                     </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* API Reference */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Customization API Reference</CardTitle>
-              <CardDescription>
-                Two approaches for customizing wallet components: using{' '}
-                <code>WalletConnectionUI</code> props or the <code>useWalletComponents</code> hook.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-8">
-              {/* Approach 1: WalletConnectionUI */}
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold">Approach 1: WalletConnectionUI Props</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Use the pre-built component with prop forwarding. Best for standard layouts.
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>WalletConnectionUIProps</Label>
-                  <div className="overflow-x-auto rounded-lg bg-muted p-4">
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="py-2 text-left font-medium">Prop</th>
-                          <th className="py-2 text-left font-medium">Type</th>
-                          <th className="py-2 text-left font-medium">Description</th>
-                        </tr>
-                      </thead>
-                      <tbody className="font-mono">
-                        <tr className="border-b border-dashed">
-                          <td className="py-2 text-blue-600 dark:text-blue-400">className</td>
-                          <td className="py-2 text-muted-foreground">string</td>
-                          <td className="py-2 font-sans">Classes for the wrapper container</td>
-                        </tr>
-                        <tr className="border-b border-dashed">
-                          <td className="py-2 text-blue-600 dark:text-blue-400">
-                            connectButtonProps
-                          </td>
-                          <td className="py-2 text-muted-foreground">BaseComponentProps</td>
-                          <td className="py-2 font-sans">Props forwarded to ConnectButton</td>
-                        </tr>
-                        <tr className="border-b border-dashed">
-                          <td className="py-2 text-blue-600 dark:text-blue-400">
-                            accountDisplayProps
-                          </td>
-                          <td className="py-2 text-muted-foreground">BaseComponentProps</td>
-                          <td className="py-2 font-sans">Props forwarded to AccountDisplay</td>
-                        </tr>
-                        <tr>
-                          <td className="py-2 text-blue-600 dark:text-blue-400">
-                            networkSwitcherProps
-                          </td>
-                          <td className="py-2 text-muted-foreground">BaseComponentProps</td>
-                          <td className="py-2 font-sans">Props forwarded to NetworkSwitcher</td>
-                        </tr>
-                      </tbody>
-                    </table>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label>Example</Label>
-                  <CodeBlock language="tsx" code={WALLET_CONNECTION_UI_EXAMPLE} />
-                </div>
-              </div>
-
-              {/* Approach 2: useWalletComponents Hook */}
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold">Approach 2: useWalletComponents Hook</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Get direct access to individual components for full layout control.
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Hook Signature</Label>
-                  <CodeBlock language="typescript" code={USE_WALLET_COMPONENTS_SIGNATURE} />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Example: Custom Layout</Label>
-                  <CodeBlock language="tsx" code={USE_WALLET_COMPONENTS_EXAMPLE} />
-                </div>
-
-                {/* Live Demo of useWalletComponents */}
-                <div className="space-y-2">
-                  <Label>Live Demo: Custom Layout with Hook</Label>
-                  <div className="rounded-lg border border-dashed bg-muted/30 p-6">
-                    <CustomLayoutDemo />
+                  {/* Size Comparison */}
+                  <div className="space-y-3">
+                    <Label>Size Comparison</Label>
+                    <div className="space-y-4 rounded-lg border border-dashed bg-muted/30 p-6">
+                      {(['sm', 'default', 'lg', 'xl'] as WalletComponentSize[]).map((size) => (
+                        <div key={size} className="flex items-center gap-4">
+                          <span className="w-20 text-xs font-medium text-muted-foreground">
+                            {size}
+                          </span>
+                          <WalletConnectionUI
+                            connectButtonProps={{ size, variant: 'outline' }}
+                            accountDisplayProps={{ size }}
+                            networkSwitcherProps={{ size }}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              {/* BaseComponentProps Reference */}
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold">BaseComponentProps Reference</h4>
-                  <p className="text-sm text-muted-foreground">
-                    All wallet components accept these props for customization.
-                  </p>
-                </div>
+              {/* API Reference */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Customization API Reference</CardTitle>
+                  <CardDescription>
+                    Two approaches for customizing wallet components: using{' '}
+                    <code>WalletConnectionUI</code> props or the <code>useWalletComponents</code>{' '}
+                    hook.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-8">
+                  {/* Approach 1: WalletConnectionUI */}
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold">Approach 1: WalletConnectionUI Props</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Use the pre-built component with prop forwarding. Best for standard layouts.
+                      </p>
+                    </div>
 
-                <div className="overflow-x-auto rounded-lg bg-muted p-4">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="py-2 text-left font-medium">Prop</th>
-                        <th className="py-2 text-left font-medium">Type</th>
-                        <th className="py-2 text-left font-medium">Default</th>
-                        <th className="py-2 text-left font-medium">Description</th>
-                      </tr>
-                    </thead>
-                    <tbody className="font-mono">
-                      <tr className="border-b border-dashed">
-                        <td className="py-2 text-blue-600 dark:text-blue-400">className</td>
-                        <td className="py-2 text-muted-foreground">string</td>
-                        <td className="py-2 text-muted-foreground">-</td>
-                        <td className="py-2 font-sans">Additional CSS classes</td>
-                      </tr>
-                      <tr className="border-b border-dashed">
-                        <td className="py-2 text-blue-600 dark:text-blue-400">size</td>
-                        <td className="py-2 text-muted-foreground">
-                          {`'sm' | 'default' | 'lg' | 'xl'`}
-                        </td>
-                        <td className="py-2 text-muted-foreground">{`'default'`}</td>
-                        <td className="py-2 font-sans">Component size preset</td>
-                      </tr>
-                      <tr className="border-b border-dashed">
-                        <td className="py-2 text-blue-600 dark:text-blue-400">variant</td>
-                        <td className="py-2 text-muted-foreground">
-                          {`'outline' | 'default' | 'ghost' | 'secondary'`}
-                        </td>
-                        <td className="py-2 text-muted-foreground">{`'outline'`}</td>
-                        <td className="py-2 font-sans">Visual style variant</td>
-                      </tr>
-                      <tr>
-                        <td className="py-2 text-blue-600 dark:text-blue-400">fullWidth</td>
-                        <td className="py-2 text-muted-foreground">boolean</td>
-                        <td className="py-2 text-muted-foreground">false</td>
-                        <td className="py-2 font-sans">Expand to fill container width</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                    <div className="space-y-2">
+                      <Label>WalletConnectionUIProps</Label>
+                      <div className="overflow-x-auto rounded-lg bg-muted p-4">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="border-b">
+                              <th className="py-2 text-left font-medium">Prop</th>
+                              <th className="py-2 text-left font-medium">Type</th>
+                              <th className="py-2 text-left font-medium">Description</th>
+                            </tr>
+                          </thead>
+                          <tbody className="font-mono">
+                            <tr className="border-b border-dashed">
+                              <td className="py-2 text-blue-600 dark:text-blue-400">className</td>
+                              <td className="py-2 text-muted-foreground">string</td>
+                              <td className="py-2 font-sans">Classes for the wrapper container</td>
+                            </tr>
+                            <tr className="border-b border-dashed">
+                              <td className="py-2 text-blue-600 dark:text-blue-400">
+                                connectButtonProps
+                              </td>
+                              <td className="py-2 text-muted-foreground">BaseComponentProps</td>
+                              <td className="py-2 font-sans">Props forwarded to ConnectButton</td>
+                            </tr>
+                            <tr className="border-b border-dashed">
+                              <td className="py-2 text-blue-600 dark:text-blue-400">
+                                accountDisplayProps
+                              </td>
+                              <td className="py-2 text-muted-foreground">BaseComponentProps</td>
+                              <td className="py-2 font-sans">Props forwarded to AccountDisplay</td>
+                            </tr>
+                            <tr>
+                              <td className="py-2 text-blue-600 dark:text-blue-400">
+                                networkSwitcherProps
+                              </td>
+                              <td className="py-2 text-muted-foreground">BaseComponentProps</td>
+                              <td className="py-2 font-sans">Props forwarded to NetworkSwitcher</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
 
-              {/* Size Reference */}
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold">Size Reference</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Approximate dimensions for each size preset.
-                  </p>
-                </div>
+                    <div className="space-y-2">
+                      <Label>Example</Label>
+                      <CodeBlock language="tsx" code={WALLET_CONNECTION_UI_EXAMPLE} />
+                    </div>
+                  </div>
 
-                <div className="overflow-x-auto rounded-lg bg-muted p-4">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="py-2 text-left font-medium">Size</th>
-                        <th className="py-2 text-left font-medium">Height</th>
-                        <th className="py-2 text-left font-medium">Padding</th>
-                        <th className="py-2 text-left font-medium">Text</th>
-                        <th className="py-2 text-left font-medium">Use Case</th>
-                      </tr>
-                    </thead>
-                    <tbody className="font-mono">
-                      <tr className="border-b border-dashed">
-                        <td className="py-2 text-blue-600 dark:text-blue-400">sm</td>
-                        <td className="py-2">32px (h-8)</td>
-                        <td className="py-2">8px (px-2)</td>
-                        <td className="py-2">12px (text-xs)</td>
-                        <td className="py-2 font-sans">Compact headers, toolbars</td>
-                      </tr>
-                      <tr className="border-b border-dashed">
-                        <td className="py-2 text-blue-600 dark:text-blue-400">default</td>
-                        <td className="py-2">36px (h-9)</td>
-                        <td className="py-2">12px (px-3)</td>
-                        <td className="py-2">14px (text-sm)</td>
-                        <td className="py-2 font-sans">Standard UI elements</td>
-                      </tr>
-                      <tr className="border-b border-dashed">
-                        <td className="py-2 text-blue-600 dark:text-blue-400">lg</td>
-                        <td className="py-2">40px (h-10)</td>
-                        <td className="py-2">16px (px-4)</td>
-                        <td className="py-2">16px (text-base)</td>
-                        <td className="py-2 font-sans">Prominent actions</td>
-                      </tr>
-                      <tr>
-                        <td className="py-2 text-blue-600 dark:text-blue-400">xl</td>
-                        <td className="py-2">48px (h-12)</td>
-                        <td className="py-2">24px (px-6)</td>
-                        <td className="py-2">16px (text-base)</td>
-                        <td className="py-2 font-sans">Hero sections, landing pages</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                  {/* Approach 2: useWalletComponents Hook */}
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold">Approach 2: useWalletComponents Hook</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Get direct access to individual components for full layout control.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Hook Signature</Label>
+                      <CodeBlock language="typescript" code={USE_WALLET_COMPONENTS_SIGNATURE} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Example: Custom Layout</Label>
+                      <CodeBlock language="tsx" code={USE_WALLET_COMPONENTS_EXAMPLE} />
+                    </div>
+
+                    {/* Live Demo of useWalletComponents */}
+                    <div className="space-y-2">
+                      <Label>Live Demo: Custom Layout with Hook</Label>
+                      <div className="rounded-lg border border-dashed bg-muted/30 p-6">
+                        <CustomLayoutDemo />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* BaseComponentProps Reference */}
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold">BaseComponentProps Reference</h4>
+                      <p className="text-sm text-muted-foreground">
+                        All wallet components accept these props for customization.
+                      </p>
+                    </div>
+
+                    <div className="overflow-x-auto rounded-lg bg-muted p-4">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="py-2 text-left font-medium">Prop</th>
+                            <th className="py-2 text-left font-medium">Type</th>
+                            <th className="py-2 text-left font-medium">Default</th>
+                            <th className="py-2 text-left font-medium">Description</th>
+                          </tr>
+                        </thead>
+                        <tbody className="font-mono">
+                          <tr className="border-b border-dashed">
+                            <td className="py-2 text-blue-600 dark:text-blue-400">className</td>
+                            <td className="py-2 text-muted-foreground">string</td>
+                            <td className="py-2 text-muted-foreground">-</td>
+                            <td className="py-2 font-sans">Additional CSS classes</td>
+                          </tr>
+                          <tr className="border-b border-dashed">
+                            <td className="py-2 text-blue-600 dark:text-blue-400">size</td>
+                            <td className="py-2 text-muted-foreground">
+                              {`'sm' | 'default' | 'lg' | 'xl'`}
+                            </td>
+                            <td className="py-2 text-muted-foreground">{`'default'`}</td>
+                            <td className="py-2 font-sans">Component size preset</td>
+                          </tr>
+                          <tr className="border-b border-dashed">
+                            <td className="py-2 text-blue-600 dark:text-blue-400">variant</td>
+                            <td className="py-2 text-muted-foreground">
+                              {`'outline' | 'default' | 'ghost' | 'secondary'`}
+                            </td>
+                            <td className="py-2 text-muted-foreground">{`'outline'`}</td>
+                            <td className="py-2 font-sans">Visual style variant</td>
+                          </tr>
+                          <tr>
+                            <td className="py-2 text-blue-600 dark:text-blue-400">fullWidth</td>
+                            <td className="py-2 text-muted-foreground">boolean</td>
+                            <td className="py-2 text-muted-foreground">false</td>
+                            <td className="py-2 font-sans">Expand to fill container width</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Size Reference */}
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold">Size Reference</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Approximate dimensions for each size preset.
+                      </p>
+                    </div>
+
+                    <div className="overflow-x-auto rounded-lg bg-muted p-4">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="py-2 text-left font-medium">Size</th>
+                            <th className="py-2 text-left font-medium">Height</th>
+                            <th className="py-2 text-left font-medium">Padding</th>
+                            <th className="py-2 text-left font-medium">Text</th>
+                            <th className="py-2 text-left font-medium">Use Case</th>
+                          </tr>
+                        </thead>
+                        <tbody className="font-mono">
+                          <tr className="border-b border-dashed">
+                            <td className="py-2 text-blue-600 dark:text-blue-400">sm</td>
+                            <td className="py-2">32px (h-8)</td>
+                            <td className="py-2">8px (px-2)</td>
+                            <td className="py-2">12px (text-xs)</td>
+                            <td className="py-2 font-sans">Compact headers, toolbars</td>
+                          </tr>
+                          <tr className="border-b border-dashed">
+                            <td className="py-2 text-blue-600 dark:text-blue-400">default</td>
+                            <td className="py-2">36px (h-9)</td>
+                            <td className="py-2">12px (px-3)</td>
+                            <td className="py-2">14px (text-sm)</td>
+                            <td className="py-2 font-sans">Standard UI elements</td>
+                          </tr>
+                          <tr className="border-b border-dashed">
+                            <td className="py-2 text-blue-600 dark:text-blue-400">lg</td>
+                            <td className="py-2">40px (h-10)</td>
+                            <td className="py-2">16px (px-4)</td>
+                            <td className="py-2">16px (text-base)</td>
+                            <td className="py-2 font-sans">Prominent actions</td>
+                          </tr>
+                          <tr>
+                            <td className="py-2 text-blue-600 dark:text-blue-400">xl</td>
+                            <td className="py-2">48px (h-12)</td>
+                            <td className="py-2">24px (px-6)</td>
+                            <td className="py-2">16px (text-base)</td>
+                            <td className="py-2 font-sans">Hero sections, landing pages</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="config" className="mt-6 space-y-6">

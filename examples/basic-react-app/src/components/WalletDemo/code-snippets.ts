@@ -182,6 +182,56 @@ function CustomWalletUI() {
 }`;
 
 // ============================================================
+// Stellar Wallets Kit Code Snippets
+// ============================================================
+
+/**
+ * Code snippet explaining the Stellar Wallets Kit configuration.
+ */
+export const STELLAR_WALLETS_KIT_EXPLANATION_CODE = `// The Stellar Wallets Kit provides a built-in wallet selection modal
+// with support for multiple Stellar wallets out of the box.
+//
+// SUPPORTED WALLETS:
+// - Freighter (browser extension)
+// - xBull (browser extension)
+// - Lobstr (mobile via WalletConnect)
+// - Albedo (web-based)
+// - And more...
+//
+// CONFIGURATION:
+// Unlike RainbowKit, the Stellar Wallets Kit uses its own built-in UI
+// and does not require a separate config file. The adapter automatically
+// initializes it with the current network (testnet/mainnet).
+//
+// The kit's modal UI is opened automatically when clicking "Connect Wallet"
+// and handles the entire wallet selection and connection flow.`;
+
+/**
+ * Code snippet showing how the Stellar Wallets Kit works under the hood.
+ */
+export const STELLAR_WALLETS_KIT_USAGE_CODE = `// The adapter initializes the Stellar Wallets Kit internally:
+import { StellarWalletsKit, WalletNetwork, allowAllModules } from '@creit.tech/stellar-wallets-kit';
+
+// Kit is created with all wallet modules enabled
+const kit = new StellarWalletsKit({
+  network: WalletNetwork.TESTNET, // or WalletNetwork.PUBLIC for mainnet
+  modules: allowAllModules(),     // Enables all supported wallets
+});
+
+// When the user clicks "Connect Wallet", the kit opens its modal:
+await kit.openModal({
+  onWalletSelected: async (option) => {
+    // User selected a wallet - kit handles connection
+    kit.setWallet(option.id);
+    const { address } = await kit.getAddress();
+    console.log('Connected:', address);
+  },
+});
+
+// For transaction signing, the adapter uses the kit internally:
+const signedXdr = await kit.signTransaction(transactionXdr);`;
+
+// ============================================================
 // Customization API Code Snippets
 // ============================================================
 
