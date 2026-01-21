@@ -102,13 +102,27 @@ export interface AdapterConfig {
   overrides?: Record<string, string>;
 
   /**
+   * Patched dependencies that require fixes for browser compatibility or other issues.
+   * Each entry maps a package name with version to the relative path of the patch file
+   * within the adapter package's `patches/` directory.
+   *
+   * When an adapter specifies patches, the export system will:
+   * 1. Copy the patch files to the exported project's `patches/` directory
+   * 2. Add the corresponding `pnpm.patchedDependencies` entries to `package.json`
+   *
+   * @example
+   * ```typescript
+   * patchedDependencies: {
+   *   "@midnight-ntwrk/midnight-js-contracts@2.0.2": "@midnight-ntwrk__midnight-js-contracts@2.0.2.patch",
+   *   "@midnight-ntwrk/midnight-js-types@2.0.2": "@midnight-ntwrk__midnight-js-types@2.0.2.patch"
+   * }
+   * ```
+   */
+  patchedDependencies?: Record<string, string>;
+
+  /**
    * Optional UI kits that can be used with this adapter.
    * Each UI kit can specify its own set of dependencies and overrides.
-   *
-   * Note: Package patches are automatically applied when the adapter is installed.
-   * Adapters that require patches (e.g., Midnight SDK fixes) bundle them in their
-   * package and configure pnpm.patchedDependencies in their own package.json.
-   * No additional configuration is needed in exported apps.
    */
   uiKits?: Record<
     string,
