@@ -103,8 +103,8 @@ export interface AdapterConfig {
 
   /**
    * Patched dependencies that require fixes for browser compatibility or other issues.
-   * Each entry maps a package name with version to the relative path of the patch file
-   * within the adapter package's `patches/` directory.
+   * Each entry maps a package name with version to the patch filename
+   * (not including the adapter package's `patches/` directory prefix).
    *
    * When an adapter specifies patches, the export system will:
    * 1. Copy the patch files to the exported project's `patches/` directory
