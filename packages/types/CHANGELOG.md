@@ -1,5 +1,11 @@
 # @openzeppelin/ui-types
 
+## 1.3.0
+
+### Minor Changes
+
+- [#39](https://github.com/OpenZeppelin/openzeppelin-ui/pull/39) [`05084a4`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/05084a4608828c5cb926d8b92b5a32a879e29da1) Thanks [@pasevin](https://github.com/pasevin)! - Add `patchedDependencies` field to `AdapterConfig` interface to support adapter patch exports
+
 ## 1.2.0
 
 ### Minor Changes
