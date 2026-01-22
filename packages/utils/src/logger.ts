@@ -79,7 +79,7 @@ export const logger = Logger.getInstance();
  * Determine whether logging should be enabled by default.
  *
  * - In Vite/browser contexts, use `import.meta.env.DEV`.
- * - In Node/tsup contexts, use `process.env.NODE_ENV`.
+ * - In Node/tsdown contexts, use `process.env.NODE_ENV`.
  *
  * Defaults to disabled outside development to avoid runtime overhead and noise.
  */
@@ -107,7 +107,7 @@ function getDefaultLoggerEnabled(): boolean {
     // Ignore environments where import.meta is not available or lacks env
   }
 
-  // Node/tsup context: also honor VITE_EXPORT_ENV, then fall back to NODE_ENV
+  // Node/tsdown context: also honor VITE_EXPORT_ENV, then fall back to NODE_ENV
   if (typeof process !== 'undefined' && typeof process.env !== 'undefined') {
     const exportEnv = String(process.env.VITE_EXPORT_ENV || '').toLowerCase();
     if (exportEnv === 'staging' || exportEnv === 'production') {
