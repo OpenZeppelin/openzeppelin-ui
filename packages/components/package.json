@@ -5,17 +5,23 @@
   "description": "Shared React UI components for the OpenZeppelin UI ecosystem.",
   "type": "module",
   "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.mts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
+      "types": {
+        "import": "./dist/index.d.mts",
+        "require": "./dist/index.d.cts"
+      },
+      "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
     "./code-editor": {
-      "types": "./dist/code-editor.d.ts",
-      "import": "./dist/code-editor.js",
+      "types": {
+        "import": "./dist/code-editor.d.mts",
+        "require": "./dist/code-editor.d.cts"
+      },
+      "import": "./dist/code-editor.mjs",
       "require": "./dist/code-editor.cjs"
     }
   },
@@ -28,8 +34,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsdown && pnpm build:dts-fix",
-    "build:dts-fix": "bash scripts/fix-dts.sh",
+    "build": "tsdown",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "prepublishOnly": "[ \"$SKIP_PUBLISH_BUILD\" = \"true\" ] || pnpm run build",
     "typecheck": "tsc --noEmit",

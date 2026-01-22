@@ -44,8 +44,8 @@ jobs:
       - name: Test ES module imports
         run: |
           cat > test-es-modules.mjs << 'EOF'
-          import { logger } from './packages/utils/dist/index.js';
-          import { isEvmNetworkConfig } from './packages/types/dist/index.js';
+          import { logger } from './packages/utils/dist/index.mjs';
+          import { isEvmNetworkConfig } from './packages/types/dist/index.mjs';
           if (typeof logger === 'object' && typeof isEvmNetworkConfig === 'function') {
             console.log('✅ ES modules working correctly');
             process.exit(0);
