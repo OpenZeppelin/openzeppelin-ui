@@ -9,7 +9,7 @@
 /**
  * Supported blockchain ecosystems
  */
-export type Ecosystem = 'evm' | 'solana' | 'stellar' | 'midnight';
+export type Ecosystem = 'evm' | 'solana' | 'stellar' | 'midnight' | 'polkadot';
 
 /**
  * Network environment types
@@ -102,3 +102,6 @@ export const isStellarEcosystem = (ecosystem: Ecosystem): ecosystem is 'stellar'
 
 export const isMidnightEcosystem = (ecosystem: Ecosystem): ecosystem is 'midnight' =>
   ecosystem === 'midnight';
+
+export const isPolkadotEcosystem = (ecosystem: Ecosystem): ecosystem is 'polkadot' =>
+  ecosystem === 'polkadot';

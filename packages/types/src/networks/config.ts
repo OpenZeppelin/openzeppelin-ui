@@ -207,6 +207,52 @@ export interface MidnightNetworkConfig extends BaseNetworkConfig {
 }
 
 /**
+ * Polkadot execution type - currently supports EVM, with future Substrate support planned
+ */
+export type PolkadotExecutionType = 'evm' | 'substrate';
+
+/**
+ * Polkadot network category for UI grouping
+ */
+export type PolkadotNetworkCategory = 'hub' | 'parachain';
+
+/**
+ * Polkadot relay chain identifier
+ */
+export type PolkadotRelayChain = 'polkadot' | 'kusama';
+
+/**
+ * Polkadot-specific network configuration
+ * Extends EVM config since all current Polkadot networks are EVM-compatible.
+ * Adds Polkadot-specific fields for execution type routing and UI grouping.
+ */
+export interface PolkadotNetworkConfig extends Omit<EvmNetworkConfig, 'ecosystem'> {
+  ecosystem: 'polkadot';
+
+  /**
+   * Execution type for this network
+   * - 'evm': EVM-compatible (current support)
+   * - 'substrate': Native Substrate/Wasm (future support)
+   */
+  executionType: PolkadotExecutionType;
+
+  /**
+   * Network category for UI grouping
+   * - 'hub': Polkadot/Kusama Hub (Asset Hub) - prioritized in UI
+   * - 'parachain': Parachains like Moonbeam, Moonriver
+   */
+  networkCategory: PolkadotNetworkCategory;
+
+  /**
+   * Optional relay chain identifier
+   * - 'polkadot': Connected to Polkadot relay chain
+   * - 'kusama': Connected to Kusama relay chain
+   * - undefined: Testnet or standalone
+   */
+  relayChain?: PolkadotRelayChain;
+}
+
+/**
  * Union type for all network configurations
  * This allows us to handle network configurations in a type-safe manner
  */
@@ -214,7 +260,8 @@ export type NetworkConfig =
   | EvmNetworkConfig
   | SolanaNetworkConfig
   | StellarNetworkConfig
-  | MidnightNetworkConfig;
+  | MidnightNetworkConfig
+  | PolkadotNetworkConfig;
 
 /**
  * Type guard to check if a network config is for EVM
@@ -247,3 +294,11 @@ export const isStellarNetworkConfig = (config: NetworkConfig): config is Stellar
  */
 export const isMidnightNetworkConfig = (config: NetworkConfig): config is MidnightNetworkConfig =>
   config.ecosystem === 'midnight';
+
+/**
+ * Type guard to check if a network config is for Polkadot
+ * @param config The network configuration to check
+ * @returns True if the config is for Polkadot
+ */
+export const isPolkadotNetworkConfig = (config: NetworkConfig): config is PolkadotNetworkConfig =>
+  config.ecosystem === 'polkadot';
