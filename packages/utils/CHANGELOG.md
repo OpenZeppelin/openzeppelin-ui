@@ -1,5 +1,14 @@
 # @openzeppelin/ui-utils
 
+## 1.1.1
+
+### Patch Changes
+
+- [#43](https://github.com/OpenZeppelin/openzeppelin-ui/pull/43) [`2fece05`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/2fece05af7e8bb1fa6be12605b3c57e8b0bcf883) Thanks [@pasevin](https://github.com/pasevin)! - Update logger comments to reference tsdown instead of tsup after build tool migration
+
+- Updated dependencies [[`c7a6a61`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/c7a6a61af83cda327c6b655936907ac709c199f3)]:
+  - @openzeppelin/ui-types@1.4.0
+
 ## 1.1.0
 
 ### Minor Changes

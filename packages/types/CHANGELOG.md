@@ -1,5 +1,19 @@
 # @openzeppelin/ui-types
 
+## 1.4.0
+
+### Minor Changes
+
+- [#45](https://github.com/OpenZeppelin/openzeppelin-ui/pull/45) [`c7a6a61`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/c7a6a61af83cda327c6b655936907ac709c199f3) Thanks [@pasevin](https://github.com/pasevin)! - Add Polkadot ecosystem support
+  - Add 'polkadot' to Ecosystem union type
+  - Add `isPolkadotEcosystem` type guard
+  - Add `PolkadotNetworkConfig` interface extending EVM config with Polkadot-specific fields:
+    - `executionType`: 'evm' | 'substrate' for future extensibility
+    - `networkCategory`: 'hub' | 'parachain' for UI grouping
+    - `relayChain`: optional 'polkadot' | 'kusama' identifier
+  - Add `isPolkadotNetworkConfig` type guard
+  - Add helper types: `PolkadotExecutionType`, `PolkadotNetworkCategory`, `PolkadotRelayChain`
+
 ## 1.3.0
 
 ### Minor Changes
