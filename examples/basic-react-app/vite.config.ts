@@ -13,23 +13,51 @@ export default defineConfig({
     dedupe: [
       'react',
       'react-dom',
-      // Ensure @openzeppelin/ui-utils singleton is shared with adapter packages
-      // This is critical for appConfigService to work correctly
       '@openzeppelin/ui-utils',
       '@openzeppelin/ui-types',
-      // EVM adapter dependencies
       'viem',
       'wagmi',
       '@wagmi/core',
+      '@stellar/stellar-sdk',
+      '@creit.tech/stellar-wallets-kit',
     ],
   },
   optimizeDeps: {
-    // Force pre-bundling of adapter dependencies
-    include: ['wagmi', '@wagmi/core', 'viem', '@tanstack/react-query'],
+    esbuildOptions: {
+      define: {
+        global: 'globalThis',
+      },
+    },
+    // Pre-bundle heavy dependencies upfront for faster page loads
+    include: [
+      'react',
+      'react-dom',
+      'react-dom/client',
+      'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+      'lucide-react',
+      '@web3icons/react',
+      'react-hook-form',
+      'zustand',
+      'zustand/shallow',
+      'sonner',
+      'next-themes',
+      '@tanstack/react-query',
+      'react-syntax-highlighter',
+      'react-syntax-highlighter/dist/esm/styles/prism',
+      'viem',
+      'viem/chains',
+      'wagmi',
+      '@wagmi/core',
+      '@rainbow-me/rainbowkit',
+      '@stellar/stellar-sdk',
+      '@creit.tech/stellar-wallets-kit',
+    ],
   },
   build: {
     outDir: 'dist',
     sourcemap: true,
+    target: 'esnext',
   },
   server: {
     port: 3000,
