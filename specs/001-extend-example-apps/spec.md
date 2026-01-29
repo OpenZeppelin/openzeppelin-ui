@@ -9,7 +9,7 @@
 
 ### Session 2026-01-06
 
-- Q: Should React Integration (User Story 6) include working wallet connections or just code examples? → A: Live wallet integration using contracts-ui-builder with EVM adapter as reference implementation (reference: `packages/adapter-evm` from contracts-ui-builder main branch).
+- Q: Should React Integration (User Story 6) include working wallet connections or just code examples? → A: Live wallet integration using ui-builder with EVM adapter as reference implementation (reference: `packages/adapter-evm` from ui-builder main branch).
 - Q: Should wallet integration be added to existing basic-react-app or a new separate example app? → A: Extend existing basic-react-app with wallet integration section added to sidebar navigation.
 
 ## User Scenarios & Testing _(mandatory)_
@@ -102,14 +102,14 @@ A developer needs to integrate wallet connections and blockchain state managemen
 
 **Independent Test**: Can be fully tested by connecting a wallet, verifying connection state displays correctly, and testing disconnection flow.
 
-**Reference Implementation**: Use contracts-ui-builder with EVM adapter as the reference for wallet integration patterns.
+**Reference Implementation**: Use ui-builder with EVM adapter as the reference for wallet integration patterns.
 
 **Acceptance Scenarios**:
 
 1. **Given** a developer navigates to the React Integration section, **When** they view the section, **Then** they see a working wallet connection demo with AdapterProvider and WalletStateProvider configured.
 2. **Given** a developer clicks the connect wallet button, **When** a wallet is available, **Then** the connection flow initiates and wallet state updates reflect in the UI.
 3. **Given** a developer is connected, **When** they examine the demo, **Then** they see derived state hooks (useDerivedAccountStatus, useDerivedChainInfo, etc.) displaying real wallet data.
-4. **Given** a developer views code examples, **When** they examine provider setup, **Then** they find copy-ready configuration matching the contracts-ui-builder EVM adapter pattern.
+4. **Given** a developer views code examples, **When** they examine provider setup, **Then** they find copy-ready configuration matching the ui-builder EVM adapter pattern.
 
 ---
 
@@ -142,7 +142,7 @@ A developer needs to integrate wallet connections and blockchain state managemen
 - **FR-013**: Each component demo MUST show all supported variants and sizes as defined in the component's TypeScript props interface (source of truth: `@openzeppelin/ui-components` package exports).
 - **FR-014**: Each component demo MUST include at least one accessibility consideration (labels, ARIA attributes).
 - **FR-015**: Example app navigation MUST organize components into logical categories (Inputs, Feedback, Layout, Data Display, Forms).
-- **FR-016**: Example app MUST include a working wallet connection demo using the EVM adapter pattern from contracts-ui-builder.
+- **FR-016**: Example app MUST include a working wallet connection demo using the EVM adapter pattern from ui-builder.
 - **FR-017**: Example app MUST demonstrate WalletConnectionHeader and WalletConnectionUI components with live wallet state.
 - **FR-018**: Example app MUST show usage of derived state hooks (useDerivedAccountStatus, useDerivedChainInfo, useDerivedConnectStatus, useDerivedDisconnect).
 - **FR-019**: Example app MUST demonstrate loading states for asynchronous components (wallet connection, network selector) to show proper UX during pending operations. NetworkDemo MUST include explicit loading state demonstration for NetworkSelector.
@@ -184,4 +184,4 @@ A developer needs to integrate wallet connections and blockchain state managemen
 - The existing sidebar navigation pattern will be extended to accommodate additional demos.
 - Performance is not a primary concern for the example app as it's for demonstration purposes.
 - All component variants shown in demos should reflect the actual available variants from the components package.
-- Wallet integration will follow the EVM adapter pattern from contracts-ui-builder as reference.
+- Wallet integration will follow the EVM adapter pattern from ui-builder as reference.

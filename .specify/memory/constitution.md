@@ -29,7 +29,7 @@ Follow-up TODOs: none
 
 ### II. Chain-Agnostic Design (NON-NEGOTIABLE)
 
-- This library MUST remain entirely chain-agnostic; all blockchain-specific logic, dependencies, and polyfills belong exclusively in adapter packages (maintained in consuming repositories like `contracts-ui-builder`).
+- This library MUST remain entirely chain-agnostic; all blockchain-specific logic, dependencies, and polyfills belong exclusively in adapter packages (maintained in consuming repositories like `ui-builder`).
 - Packages MUST NOT import or reference any chain-specific SDKs (ethers, viem, web3.js, @stellar/sdk, etc.).
 - Type definitions in `@openzeppelin/ui-types` define adapter interfaces (`ContractAdapter`, `NetworkConfig`, etc.) that adapters implement; the library consumes these interfaces without implementing chain behavior.
 - Validation utilities MUST accept chain-agnostic callbacks or adapter methods; do not hardcode address formats or chain rules.
@@ -107,7 +107,7 @@ Follow-up TODOs: none
   - Chain-agnostic design (no blockchain SDK imports)
   - API stability (no unannounced breaking changes)
   - Documentation for new public APIs
-- **Local Consumer Testing**: Test changes against `contracts-ui-builder` and `role-manager` using the local dev workflow before merging significant changes.
+- **Local Consumer Testing**: Test changes against `ui-builder` and `role-manager` using the local dev workflow before merging significant changes.
 
 ## Governance
 

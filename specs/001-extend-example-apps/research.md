@@ -7,11 +7,11 @@
 
 ### 1. EVM Wallet Integration Pattern
 
-**Decision**: Use wagmi + RainbowKit + viem stack, following contracts-ui-builder adapter-evm pattern.
+**Decision**: Use wagmi + RainbowKit + viem stack, following ui-builder adapter-evm pattern.
 
 **Rationale**:
 
-- contracts-ui-builder already uses this stack successfully
+- ui-builder already uses this stack successfully
 - RainbowKit provides polished wallet connection UI out of the box
 - wagmi v2 + viem provides type-safe EVM interactions
 - Compatible with the AdapterProvider/WalletStateProvider architecture in @openzeppelin/ui-react
@@ -25,7 +25,7 @@
 **Implementation Pattern**:
 
 ```typescript
-// From contracts-ui-builder/packages/adapter-evm/src/wallet/
+// From ui-builder/packages/adapter-evm/src/wallet/
 // The adapter creates wagmi config and wraps with WagmiProvider + QueryClientProvider
 // The example app will follow this same pattern directly
 ```
@@ -194,7 +194,7 @@ const config = createConfig({
 
 ### Peer Dependency Alignment
 
-These packages are already used in contracts-ui-builder and role-manager, ensuring compatibility:
+These packages are already used in ui-builder and role-manager, ensuring compatibility:
 
 - React 19.x
 - TypeScript 5.8+

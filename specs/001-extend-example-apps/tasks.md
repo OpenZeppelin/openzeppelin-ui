@@ -147,6 +147,7 @@
 **Goal**: Live wallet connection demo using the **adapter-driven wallet management** system (same behavior as UI Builder).
 
 **Non-negotiables (scope guardrails)**:
+
 - **Fully interactive**: real wallet flows only (no mocks, no fake “connected” state).
 - **No custom wallet logic**: no bespoke connection code, no kit-specific wiring, no “demo-only” wallet components.
   - Wallet behavior must be controlled by **adapters**, `@openzeppelin/ui-react` hooks/providers, and existing shared components.
@@ -161,6 +162,7 @@
   - Phase 8 must explicitly mitigate/validate deduplication so there is a single instance of shared React contexts.
 
 **Independent Test**:
+
 - Switch ecosystems/adapters and verify the wallet UI stays “in-line” (no full page reload / no lost app state).
 - Switch UI kits within the same adapter and verify wallet UI updates without losing connection state.
 - Validate config previews reflect the actual config modules and current selection.
@@ -342,4 +344,4 @@ T028 ToastDemo.tsx
 - Commit after each task or logical group
 - Stop at any checkpoint to validate story independently
 - All demo files follow `*Demo.tsx` naming convention
-- Reference contracts-ui-builder/packages/adapter-evm for wallet integration patterns
+- Reference ui-builder/packages/adapter-evm for wallet integration patterns
