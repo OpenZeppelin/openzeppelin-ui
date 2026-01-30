@@ -1,5 +1,16 @@
 # @openzeppelin/ui-utils
 
+## 1.2.0
+
+### Minor Changes
+
+- [#48](https://github.com/OpenZeppelin/openzeppelin-ui/pull/48) [`0cb85e7`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/0cb85e720dbd8bbac660227d1213acad4247ff92) Thanks [@pasevin](https://github.com/pasevin)! - Added service error detection utilities for identifying and categorizing network service connection errors (RPC, Explorer, Indexer, etc.)
+
+### Patch Changes
+
+- Updated dependencies [[`0cb85e7`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/0cb85e720dbd8bbac660227d1213acad4247ff92)]:
+  - @openzeppelin/ui-types@1.5.0
+
 ## 1.1.1
 
 ### Patch Changes
