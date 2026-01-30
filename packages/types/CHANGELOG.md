@@ -1,5 +1,21 @@
 # @openzeppelin/ui-types
 
+## 1.5.0
+
+### Minor Changes
+
+- [#48](https://github.com/OpenZeppelin/openzeppelin-ui/pull/48) [`0cb85e7`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/0cb85e720dbd8bbac660227d1213acad4247ff92) Thanks [@pasevin](https://github.com/pasevin)! - Add `getDefaultServiceConfig` method to `ContractAdapter` interface
+
+  This new required method enables adapters to provide default service configuration values for proactive network service health checks. The method returns the default endpoint values for a given service (e.g., RPC URL, indexer URLs) extracted from the network configuration.
+
+  **New interface method:**
+
+  ```typescript
+  getDefaultServiceConfig(serviceId: string): Record<string, unknown> | null;
+  ```
+
+  This method is used by the UI Builder to test network service connectivity when a network is selected, displaying user-friendly error banners before users attempt operations that would fail due to service outages.
+
 ## 1.4.0
 
 ### Minor Changes
