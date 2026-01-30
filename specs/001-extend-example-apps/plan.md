@@ -5,7 +5,7 @@
 
 ## Summary
 
-Extend the existing `examples/basic-react-app` to provide comprehensive demonstrations of all components exported from `@openzeppelin/ui-components`, `@openzeppelin/ui-react`, and related packages. The app will be organized into logical categories with live working examples, code snippets, and a fully functional wallet connection integration using the EVM adapter pattern from contracts-ui-builder.
+Extend the existing `examples/basic-react-app` to provide comprehensive demonstrations of all components exported from `@openzeppelin/ui-components`, `@openzeppelin/ui-react`, and related packages. The app will be organized into logical categories with live working examples, code snippets, and a fully functional wallet connection integration using the EVM adapter pattern from ui-builder.
 
 ## Technical Context
 
@@ -33,7 +33,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 | VI. Packaging & Release          | ✅ PASS      | Example app is private; no npm publishing                                  |
 | VII. Consumer-First Development  | ✅ PASS      | Validates library usability from consumer perspective                      |
 
-**Exception Justification**: The EVM wallet integration (FR-016/17/18) is explicitly required per clarification. This is contained within the example app only and does not affect the core library's chain-agnostic design. The adapter pattern from contracts-ui-builder is referenced as the implementation model.
+**Exception Justification**: The EVM wallet integration (FR-016/17/18) is explicitly required per clarification. This is contained within the example app only and does not affect the core library's chain-agnostic design. The adapter pattern from ui-builder is referenced as the implementation model.
 
 ## Project Structure
 

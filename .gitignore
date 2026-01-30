@@ -5,6 +5,11 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# Foundry (Solidity) artifacts
+**/contracts/**/out/
+**/contracts/**/cache/
+**/contracts/**/lib/
+
 # Coverage
 coverage/
 

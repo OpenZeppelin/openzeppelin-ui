@@ -57,8 +57,8 @@
 - [x] CHK013 - Are requirements defined for when network icons are unavailable for a chain? [Edge Case, Spec §Edge Cases]
   - ✅ Edge Cases specify "placeholder or fallback states" for unsupported network icons
 
-- [x] CHK014 - Is the dependency on contracts-ui-builder EVM adapter pattern documented with version or commit reference? [Dependency, Spec §Clarifications]
-  - ✅ **RESOLVED**: Updated clarification to reference "packages/adapter-evm from contracts-ui-builder main branch"
+- [x] CHK014 - Is the dependency on ui-builder EVM adapter pattern documented with version or commit reference? [Dependency, Spec §Clarifications]
+  - ✅ **RESOLVED**: Updated clarification to reference "packages/adapter-evm from ui-builder main branch"
 
 ## Consistency
 

@@ -13,6 +13,9 @@
   "scripts": {
     "install-pnpm": "npm install -g pnpm@10.22.0",
     "install-deps": "pnpm install --frozen-lockfile --ignore-scripts --prefer-offline",
+    "dev": "pnpm build && pnpm --filter=@openzeppelin/ui-example-basic-react-app dev",
+    "dev:local": "LOCAL_ADAPTERS_PATH=${LOCAL_ADAPTERS_PATH:-../ui-builder} && echo '🔨 Building local ui-builder adapter packages...' && (cd \"$LOCAL_ADAPTERS_PATH\" && pnpm --filter='./packages/adapter-*' build) && LOCAL_ADAPTERS=true pnpm install --force && echo \"✅ Using local @openzeppelin/ui-builder-adapter-* packages from $LOCAL_ADAPTERS_PATH\"",
+    "dev:npm": "pnpm install --force && echo '✅ Using npm @openzeppelin/ui-builder-adapter-* packages'",
     "clean": "pnpm -r clean",
     "build": "pnpm -r build",
     "test": "pnpm -r test",

@@ -790,6 +790,27 @@ export interface ContractAdapter {
   }>;
 
   /**
+   * Returns the default configuration values for a network service.
+   * Used for proactive health checks when no user overrides are configured.
+   *
+   * Each adapter MUST implement this method to provide default endpoint values
+   * for the services it supports. This enables the UI to perform health checks
+   * on network services when a network is selected.
+   *
+   * @param serviceId - The service identifier (e.g., 'rpc', 'indexer', 'explorer')
+   * @returns The default configuration values matching the service's form fields,
+   *          or null if the service is not supported or has no defaults
+   *
+   * @example
+   * // Midnight adapter returning indexer defaults
+   * getDefaultServiceConfig('indexer') // { httpUrl: 'https://...', wsUrl: 'wss://...' }
+   *
+   * // EVM adapter returning RPC defaults
+   * getDefaultServiceConfig('rpc') // { rpcUrl: 'https://...' }
+   */
+  getDefaultServiceConfig(serviceId: string): Record<string, unknown> | null;
+
+  /**
    * Optional accessor for the Access Control service.
    * Returns an AccessControlService instance if the adapter supports access control operations.
    *
