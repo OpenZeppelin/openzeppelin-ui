@@ -48,6 +48,7 @@ export default {
         'release',
         'examples',
         'common',
+        'spec',
       ],
     ],
     'scope-empty': [2, 'never'],
