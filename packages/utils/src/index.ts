@@ -25,3 +25,4 @@ export * from './sanitize';
 export * from './access/snapshot';
 export * from './access/errors';
 export * from './walletComponentSizing';
+export * from './serviceErrorDetection';
