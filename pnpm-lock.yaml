@@ -140,8 +140,8 @@ importers:
         specifier: ^19.2.1
         version: 19.2.3(react@19.2.3)
       react-hook-form:
-        specifier: ^7.62.0
-        version: 7.69.0(react@19.2.3)
+        specifier: ^7.71.1
+        version: 7.71.1(react@19.2.3)
       react-syntax-highlighter:
         specifier: ^15.6.1
         version: 15.6.6(react@19.2.3)
@@ -261,8 +261,8 @@ importers:
         specifier: ^9.12.0
         version: 9.13.0(react@19.2.3)
       react-hook-form:
-        specifier: ^7.62.0
-        version: 7.69.0(react@19.2.3)
+        specifier: ^7.71.1
+        version: 7.71.1(react@19.2.3)
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -357,7 +357,7 @@ importers:
     dependencies:
       '@hookform/resolvers':
         specifier: ^4.1.3
-        version: 4.1.3(react-hook-form@7.69.0(react@19.2.3))
+        version: 4.1.3(react-hook-form@7.71.1(react@19.2.3))
       '@openzeppelin/ui-components':
         specifier: workspace:^
         version: link:../components
@@ -398,8 +398,8 @@ importers:
         specifier: ^19.2.1
         version: 19.2.3(react@19.2.3)
       react-hook-form:
-        specifier: ^7.62.0
-        version: 7.69.0(react@19.2.3)
+        specifier: ^7.71.1
+        version: 7.71.1(react@19.2.3)
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.4.0
@@ -6740,8 +6740,8 @@ packages:
     peerDependencies:
       react: ^19.2.3
 
-  react-hook-form@7.69.0:
-    resolution: {integrity: sha512-yt6ZGME9f4F6WHwevrvpAjh42HMvocuSnSIHUGycBqXIJdhqGSPQzTpGF+1NLREk/58IdPxEMfPcFCjlMhclGw==}
+  react-hook-form@7.71.1:
+    resolution: {integrity: sha512-9SUJKCGKo8HUSsCO+y0CtqkqI5nNuaDqTxyqPsZPqIwudpj4rCrAz/jZV+jn57bx5gtZKOh3neQu94DXMc+w5w==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18 || ^19
@@ -9019,10 +9019,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@hookform/resolvers@4.1.3(react-hook-form@7.69.0(react@19.2.3))':
+  '@hookform/resolvers@4.1.3(react-hook-form@7.71.1(react@19.2.3))':
     dependencies:
       '@standard-schema/utils': 0.3.0
-      react-hook-form: 7.69.0(react@19.2.3)
+      react-hook-form: 7.71.1(react@19.2.3)
 
   '@hot-wallet/sdk@1.0.11(bufferutil@4.1.0)(near-api-js@5.1.1)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
@@ -9645,7 +9645,7 @@ snapshots:
       lodash: 4.17.23
       lucide-react: 0.510.0(react@19.2.3)
       react: 19.2.3
-      react-hook-form: 7.69.0(react@19.2.3)
+      react-hook-form: 7.71.1(react@19.2.3)
       viem: 2.43.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.76)
       wagmi: 2.19.5(@tanstack/query-core@5.90.16)(@tanstack/react-query@5.90.16(react@19.2.3))(@types/react@19.2.8)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(react@19.2.3)(typescript@5.9.3)(utf-8-validate@5.0.10)(viem@2.43.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.76))(ws@8.18.3(bufferutil@4.1.0)(utf-8-validate@5.0.10))(zod@3.25.76)
     transitivePeerDependencies:
@@ -9699,7 +9699,7 @@ snapshots:
       lossless-json: 4.3.0
       lucide-react: 0.510.0(react@19.2.3)
       react: 19.2.3
-      react-hook-form: 7.69.0(react@19.2.3)
+      react-hook-form: 7.71.1(react@19.2.3)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -9772,7 +9772,7 @@ snapshots:
       react: 19.2.3
       react-day-picker: 9.13.0(react@19.2.3)
       react-dom: 19.2.3(react@19.2.3)
-      react-hook-form: 7.69.0(react@19.2.3)
+      react-hook-form: 7.71.1(react@19.2.3)
       sonner: 2.0.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       tailwind-merge: 3.4.0
       tailwindcss-animate: 1.0.7(tailwindcss@4.1.18)
@@ -16640,7 +16640,7 @@ snapshots:
       react: 19.2.3
       scheduler: 0.27.0
 
-  react-hook-form@7.69.0(react@19.2.3):
+  react-hook-form@7.71.1(react@19.2.3):
     dependencies:
       react: 19.2.3
 
