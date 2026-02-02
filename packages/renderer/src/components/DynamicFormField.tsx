@@ -365,6 +365,12 @@ function getFieldSpecificProps(
     case 'blockchain-address':
       // Add address-specific props
       return {};
+    case 'bytes':
+      // Extract bytes-specific props from field metadata
+      return {
+        exactBytes: (field.metadata as Record<string, unknown> | undefined)?.exactBytes,
+        maxBytes: (field.metadata as Record<string, unknown> | undefined)?.maxBytes,
+      };
     case 'checkbox':
       // Add checkbox-specific props
       return {};
