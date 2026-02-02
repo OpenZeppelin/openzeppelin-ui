@@ -29,6 +29,13 @@ export interface BytesFieldProps<TFieldValues extends FieldValues = FieldValues>
   maxBytes?: number;
 
   /**
+   * Exact length in bytes required (for fixed-size types like bytes32)
+   * When set, the value must be exactly this many bytes.
+   * Takes precedence over maxBytes.
+   */
+  exactBytes?: number;
+
+  /**
    * Whether to accept hex, base64, or both formats
    */
   acceptedFormats?: 'hex' | 'base64' | 'both';
@@ -77,6 +84,7 @@ export function BytesField<TFieldValues extends FieldValues = FieldValues>({
   placeholder = 'Enter hex or base64 encoded bytes',
   rows = 3,
   maxBytes,
+  exactBytes,
   acceptedFormats = 'both',
   autoPrefix = false,
   allowHexPrefix = true,
@@ -93,6 +101,7 @@ export function BytesField<TFieldValues extends FieldValues = FieldValues>({
     return validateBytesSimple(value, {
       acceptedFormats,
       maxBytes,
+      exactBytes,
       allowHexPrefix, // Allow prefix based on explicit prop (defaults to true)
     });
   };
@@ -189,7 +198,8 @@ export function BytesField<TFieldValues extends FieldValues = FieldValues>({
                     {acceptedFormats === 'base64' && 'Base64 format (e.g., SGVsbG8=)'}
                     {acceptedFormats === 'both' &&
                       'Hex (e.g., 48656c6c6f) or Base64 (e.g., SGVsbG8=) format'}
-                    {maxBytes && ` • Max ${maxBytes} bytes`}
+                    {exactBytes && ` • Exactly ${exactBytes} bytes (${exactBytes * 2} hex chars)`}
+                    {!exactBytes && maxBytes && ` • Max ${maxBytes} bytes`}
                   </div>
                 </div>
               )}

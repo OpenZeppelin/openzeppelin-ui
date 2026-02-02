@@ -15,6 +15,12 @@ export interface BytesValidationOptions {
   maxBytes?: number;
 
   /**
+   * Exact length in bytes required (for fixed-size types like bytes32)
+   * When set, the value must be exactly this many bytes.
+   */
+  exactBytes?: number;
+
+  /**
    * Whether to allow 0x prefix for hex values
    */
   allowHexPrefix?: boolean;
@@ -74,7 +80,7 @@ export function validateBytes(
   value: string,
   options: BytesValidationOptions = {}
 ): BytesValidationResult {
-  const { acceptedFormats = 'both', maxBytes, allowHexPrefix = true } = options;
+  const { acceptedFormats = 'both', maxBytes, exactBytes, allowHexPrefix = true } = options;
 
   // Handle empty values
   if (!value || value.trim() === '') {
@@ -177,7 +183,21 @@ export function validateBytes(
     };
   }
 
-  // Check byte length limits
+  // Check exact byte length (for fixed-size types like bytes32)
+  if (exactBytes && byteSize !== exactBytes) {
+    const formatInfo =
+      detectedFormat === 'hex' ? `${exactBytes * 2} hex characters` : `${exactBytes} bytes`;
+
+    return {
+      isValid: false,
+      error: `Exactly ${exactBytes} bytes required (${formatInfo}), got ${byteSize} bytes`,
+      cleanedValue: cleanValue,
+      detectedFormat,
+      byteSize,
+    };
+  }
+
+  // Check maximum byte length limits
   if (maxBytes && byteSize > maxBytes) {
     const formatInfo =
       detectedFormat === 'hex' ? `${maxBytes * 2} hex characters` : `${maxBytes} bytes`;

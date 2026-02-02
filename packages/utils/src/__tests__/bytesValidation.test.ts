@@ -188,6 +188,55 @@ describe('bytesValidation', () => {
       });
     });
 
+    describe('exact byte length (for fixed-size types like bytes32)', () => {
+      it('should reject hex shorter than exactBytes', () => {
+        // 0x00 is 1 byte, bytes32 requires exactly 32 bytes
+        const result = validateBytes('0x00', { exactBytes: 32 });
+        expect(result.isValid).toBe(false);
+        expect(result.error).toBe('Exactly 32 bytes required (64 hex characters), got 1 bytes');
+      });
+
+      it('should reject hex longer than exactBytes', () => {
+        // 34 bytes hex (68 chars), bytes32 requires exactly 32 bytes
+        const result = validateBytes(
+          '0x0000000000000000000000000000000000000000000000000000000000000000AABB',
+          { exactBytes: 32 }
+        );
+        expect(result.isValid).toBe(false);
+        expect(result.error).toBe('Exactly 32 bytes required (64 hex characters), got 34 bytes');
+      });
+
+      it('should accept hex with exact byte length', () => {
+        // 32 bytes hex (64 chars without prefix)
+        const result = validateBytes(
+          '0x0000000000000000000000000000000000000000000000000000000000000000',
+          { exactBytes: 32 }
+        );
+        expect(result.isValid).toBe(true);
+        expect(result.byteSize).toBe(32);
+      });
+
+      it('should work with bytes4 type', () => {
+        // bytes4 = 4 bytes = 8 hex characters
+        const validResult = validateBytes('0x12345678', { exactBytes: 4 });
+        expect(validResult.isValid).toBe(true);
+        expect(validResult.byteSize).toBe(4);
+
+        const invalidResult = validateBytes('0x1234', { exactBytes: 4 });
+        expect(invalidResult.isValid).toBe(false);
+        expect(invalidResult.error).toBe(
+          'Exactly 4 bytes required (8 hex characters), got 2 bytes'
+        );
+      });
+
+      it('should enforce exactBytes over maxBytes', () => {
+        // If both are set, exactBytes takes precedence
+        const result = validateBytes('0x12345678', { exactBytes: 4, maxBytes: 32 });
+        expect(result.isValid).toBe(true);
+        expect(result.byteSize).toBe(4);
+      });
+    });
+
     describe('edge cases', () => {
       it('should handle single character hex', () => {
         const result = validateBytes('a');
