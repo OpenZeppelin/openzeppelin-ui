@@ -1,5 +1,15 @@
 # @openzeppelin/ui-renderer
 
+## 1.0.3
+
+### Patch Changes
+
+- [#57](https://github.com/OpenZeppelin/openzeppelin-ui/pull/57) [`b62aab7`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/b62aab793843d25797717feba6b9a0630df9ebac) Thanks [@pasevin](https://github.com/pasevin)! - Add exactBytes validation for fixed-size bytes types (bytes32, bytes4, etc.) to properly validate exact byte length requirements
+
+- Updated dependencies [[`b62aab7`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/b62aab793843d25797717feba6b9a0630df9ebac)]:
+  - @openzeppelin/ui-utils@1.2.1
+  - @openzeppelin/ui-components@1.2.1
+
 ## 1.0.2
 
 ### Patch Changes
