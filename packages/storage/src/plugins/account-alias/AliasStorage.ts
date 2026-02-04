@@ -16,6 +16,7 @@ import {
   duplicateAliasError,
   invalidAddressError,
   invalidAliasError,
+  invalidImportFormatError,
   storageQuotaExceededError,
 } from './errors';
 import type {
@@ -481,15 +482,25 @@ export class AliasStorage {
    *
    * @param json - JSON string in AliasExport format
    * @returns Import result with counts and IDs
-   * @throws {AliasStorageError} INVALID_IMPORT_FORMAT when JSON is malformed
+   * @throws {AliasStorageError} INVALID_IMPORT_FORMAT when JSON is malformed or invalid schema
    */
   async importJson(json: string): Promise<ImportResult> {
-    // Implementation will be completed in Phase 6
-    const data = JSON.parse(json) as AliasExport;
+    // Parse JSON with error handling
+    let data: unknown;
+    try {
+      data = JSON.parse(json);
+    } catch {
+      throw invalidImportFormatError('Invalid JSON syntax');
+    }
+
+    // Validate schema structure
+    this.validateImportSchema(data);
+
+    const exportData = data as AliasExport;
     const ids: string[] = [];
     let skipped = 0;
 
-    for (const alias of data.aliases) {
+    for (const alias of exportData.aliases) {
       try {
         const id = await this.save({
           address: alias.address,
@@ -498,16 +509,98 @@ export class AliasStorage {
           metadata: alias.metadata,
         });
         ids.push(id);
-      } catch {
+      } catch (err) {
+        this.log('debug', 'Skipped import entry', {
+          address: alias.address,
+          alias: alias.alias,
+          error: err instanceof Error ? err.message : 'Unknown error',
+        });
         skipped++;
       }
     }
+
+    this.log('info', 'Import completed', { imported: ids.length, skipped });
 
     return {
       imported: ids.length,
       skipped,
       ids,
     };
+  }
+
+  /**
+   * Validates the import data schema.
+   *
+   * @param data - Parsed JSON data to validate
+   * @throws {AliasStorageError} INVALID_IMPORT_FORMAT when schema is invalid
+   */
+  private validateImportSchema(data: unknown): asserts data is AliasExport {
+    // Must be an object
+    if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+      throw invalidImportFormatError('Import data must be an object');
+    }
+
+    const obj = data as Record<string, unknown>;
+
+    // Must have version field (number)
+    if (typeof obj.version !== 'number') {
+      throw invalidImportFormatError('Missing or invalid "version" field');
+    }
+
+    // Version must be 1 (only supported version)
+    if (obj.version !== 1) {
+      throw invalidImportFormatError(
+        `Unsupported version: ${obj.version}. Only version 1 is supported`
+      );
+    }
+
+    // Must have aliases array
+    if (!Array.isArray(obj.aliases)) {
+      throw invalidImportFormatError('Missing or invalid "aliases" array');
+    }
+
+    // Validate each alias entry
+    for (let i = 0; i < obj.aliases.length; i++) {
+      const entry = obj.aliases[i];
+      if (typeof entry !== 'object' || entry === null) {
+        throw invalidImportFormatError(`Invalid alias entry at index ${i}: must be an object`);
+      }
+
+      const aliasEntry = entry as Record<string, unknown>;
+
+      // Must have address (non-empty string)
+      if (typeof aliasEntry.address !== 'string' || aliasEntry.address.trim() === '') {
+        throw invalidImportFormatError(
+          `Invalid alias entry at index ${i}: missing or invalid "address" field`
+        );
+      }
+
+      // Must have alias (non-empty string)
+      if (typeof aliasEntry.alias !== 'string' || aliasEntry.alias.trim() === '') {
+        throw invalidImportFormatError(
+          `Invalid alias entry at index ${i}: missing or invalid "alias" field`
+        );
+      }
+
+      // networkId is optional but must be string if present
+      if (aliasEntry.networkId !== undefined && typeof aliasEntry.networkId !== 'string') {
+        throw invalidImportFormatError(
+          `Invalid alias entry at index ${i}: "networkId" must be a string`
+        );
+      }
+
+      // metadata is optional but must be object if present
+      if (
+        aliasEntry.metadata !== undefined &&
+        (typeof aliasEntry.metadata !== 'object' ||
+          aliasEntry.metadata === null ||
+          Array.isArray(aliasEntry.metadata))
+      ) {
+        throw invalidImportFormatError(
+          `Invalid alias entry at index ${i}: "metadata" must be an object`
+        );
+      }
+    }
   }
 
   // ==========================================================================

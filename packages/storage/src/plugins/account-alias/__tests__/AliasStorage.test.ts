@@ -998,6 +998,449 @@ describe('AliasStorage', () => {
   });
 
   // ==========================================================================
+  // T048: exportJson Operations
+  // ==========================================================================
+  describe('exportJson operations', () => {
+    it('should export all aliases to JSON format', async () => {
+      const storage = createAliasStorage(db);
+      await storage.save({ address: '0x111', alias: 'Treasury' });
+      await storage.save({ address: '0x222', alias: 'Vault' });
+      await storage.save({ address: '0x333', networkId: 'ethereum-mainnet', alias: 'ETH Wallet' });
+
+      const json = await storage.exportJson();
+      const data = JSON.parse(json);
+
+      expect(data.version).toBe(1);
+      expect(data.exportedAt).toBeDefined();
+      expect(data.aliases).toHaveLength(3);
+
+      const aliases = data.aliases.map((a: { alias: string }) => a.alias);
+      expect(aliases).toContain('Treasury');
+      expect(aliases).toContain('Vault');
+      expect(aliases).toContain('ETH Wallet');
+    });
+
+    it('should export specific aliases by IDs', async () => {
+      const storage = createAliasStorage(db);
+      const id1 = await storage.save({ address: '0x111', alias: 'Treasury' });
+      await storage.save({ address: '0x222', alias: 'Vault' });
+      const id3 = await storage.save({ address: '0x333', alias: 'Wallet' });
+
+      const json = await storage.exportJson([id1, id3]);
+      const data = JSON.parse(json);
+
+      expect(data.aliases).toHaveLength(2);
+      const aliases = data.aliases.map((a: { alias: string }) => a.alias);
+      expect(aliases).toContain('Treasury');
+      expect(aliases).toContain('Wallet');
+      expect(aliases).not.toContain('Vault');
+    });
+
+    it('should export empty array when no aliases exist', async () => {
+      const storage = createAliasStorage(db);
+
+      const json = await storage.exportJson();
+      const data = JSON.parse(json);
+
+      expect(data.version).toBe(1);
+      expect(data.aliases).toEqual([]);
+    });
+
+    it('should include networkId and metadata in export', async () => {
+      const storage = createAliasStorage(db);
+      await storage.save({
+        address: '0x123',
+        networkId: 'polygon-mainnet',
+        alias: 'MATIC Wallet',
+        metadata: { category: 'treasury', verified: true },
+      });
+
+      const json = await storage.exportJson();
+      const data = JSON.parse(json);
+
+      expect(data.aliases[0]).toEqual({
+        address: '0x123',
+        networkId: 'polygon-mainnet',
+        alias: 'MATIC Wallet',
+        metadata: { category: 'treasury', verified: true },
+      });
+    });
+
+    it('should not include internal fields (id, createdAt, updatedAt) in export', async () => {
+      const storage = createAliasStorage(db);
+      await storage.save({ address: '0x123', alias: 'Treasury' });
+
+      const json = await storage.exportJson();
+      const data = JSON.parse(json);
+
+      expect(data.aliases[0].id).toBeUndefined();
+      expect(data.aliases[0].createdAt).toBeUndefined();
+      expect(data.aliases[0].updatedAt).toBeUndefined();
+    });
+
+    it('should skip non-existent IDs silently', async () => {
+      const storage = createAliasStorage(db);
+      const id = await storage.save({ address: '0x123', alias: 'Treasury' });
+
+      const json = await storage.exportJson([id, 'non-existent-id']);
+      const data = JSON.parse(json);
+
+      expect(data.aliases).toHaveLength(1);
+      expect(data.aliases[0].alias).toBe('Treasury');
+    });
+
+    it('should produce valid JSON that can be parsed', async () => {
+      const storage = createAliasStorage(db);
+      await storage.save({ address: '0x123', alias: 'Treasury' });
+
+      const json = await storage.exportJson();
+
+      expect(() => JSON.parse(json)).not.toThrow();
+    });
+  });
+
+  // ==========================================================================
+  // T049: importJson Operations
+  // ==========================================================================
+  describe('importJson operations', () => {
+    it('should import aliases from valid JSON', async () => {
+      const storage = createAliasStorage(db);
+      const importData = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        aliases: [
+          { address: '0x111', alias: 'Treasury' },
+          { address: '0x222', alias: 'Vault' },
+        ],
+      };
+
+      const result = await storage.importJson(JSON.stringify(importData));
+
+      expect(result.imported).toBe(2);
+      expect(result.skipped).toBe(0);
+      expect(result.ids).toHaveLength(2);
+
+      const all = await storage.getAll();
+      expect(all).toHaveLength(2);
+    });
+
+    it('should import aliases with networkId and metadata', async () => {
+      const storage = createAliasStorage(db);
+      const importData = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        aliases: [
+          {
+            address: '0x123',
+            networkId: 'ethereum-mainnet',
+            alias: 'ETH Wallet',
+            metadata: { verified: true },
+          },
+        ],
+      };
+
+      await storage.importJson(JSON.stringify(importData));
+
+      const record = await storage.getByAddressAndNetwork('0x123', 'ethereum-mainnet');
+      expect(record?.alias).toBe('ETH Wallet');
+      expect(record?.metadata).toEqual({ verified: true });
+    });
+
+    it('should skip duplicates in strict mode and count as skipped', async () => {
+      const storage = createAliasStorage(db, { duplicateMode: 'strict' });
+      await storage.save({ address: '0x111', alias: 'Treasury' });
+
+      const importData = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        aliases: [
+          { address: '0x222', alias: 'Treasury' }, // Duplicate alias name
+          { address: '0x333', alias: 'Vault' }, // New alias
+        ],
+      };
+
+      const result = await storage.importJson(JSON.stringify(importData));
+
+      expect(result.imported).toBe(1);
+      expect(result.skipped).toBe(1);
+      expect(result.ids).toHaveLength(1);
+    });
+
+    it('should allow duplicates in allow mode', async () => {
+      const storage = createAliasStorage(db, { duplicateMode: 'allow' });
+      await storage.save({ address: '0x111', alias: 'Treasury' });
+
+      const importData = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        aliases: [
+          { address: '0x222', alias: 'Treasury' }, // Duplicate but allowed
+          { address: '0x333', alias: 'Vault' },
+        ],
+      };
+
+      const result = await storage.importJson(JSON.stringify(importData));
+
+      expect(result.imported).toBe(2);
+      expect(result.skipped).toBe(0);
+
+      const matches = await storage.findByAlias('Treasury');
+      expect(matches).toHaveLength(2);
+    });
+
+    it('should regenerate timestamps on import', async () => {
+      const storage = createAliasStorage(db);
+      const importData = {
+        version: 1,
+        exportedAt: '2020-01-01T00:00:00.000Z', // Old date
+        aliases: [{ address: '0x123', alias: 'Treasury' }],
+      };
+
+      const beforeImport = new Date();
+      await storage.importJson(JSON.stringify(importData));
+      const afterImport = new Date();
+
+      const record = await storage.getByAddress('0x123');
+      expect(record?.createdAt.getTime()).toBeGreaterThanOrEqual(beforeImport.getTime());
+      expect(record?.createdAt.getTime()).toBeLessThanOrEqual(afterImport.getTime());
+    });
+
+    it('should throw INVALID_IMPORT_FORMAT for malformed JSON', async () => {
+      const storage = createAliasStorage(db);
+
+      await expect(storage.importJson('not valid json')).rejects.toThrow();
+    });
+
+    it('should throw INVALID_IMPORT_FORMAT for missing version', async () => {
+      const storage = createAliasStorage(db);
+      const importData = {
+        exportedAt: new Date().toISOString(),
+        aliases: [{ address: '0x123', alias: 'Treasury' }],
+      };
+
+      await expect(storage.importJson(JSON.stringify(importData))).rejects.toThrow(
+        AliasStorageError
+      );
+
+      try {
+        await storage.importJson(JSON.stringify(importData));
+      } catch (err) {
+        expect(err).toBeInstanceOf(AliasStorageError);
+        expect((err as AliasStorageError).code).toBe('INVALID_IMPORT_FORMAT');
+      }
+    });
+
+    it('should throw INVALID_IMPORT_FORMAT for missing aliases array', async () => {
+      const storage = createAliasStorage(db);
+      const importData = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+      };
+
+      await expect(storage.importJson(JSON.stringify(importData))).rejects.toThrow(
+        AliasStorageError
+      );
+    });
+
+    it('should throw INVALID_IMPORT_FORMAT for invalid alias entry', async () => {
+      const storage = createAliasStorage(db);
+      const importData = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        aliases: [{ address: '0x123' }], // Missing alias field
+      };
+
+      await expect(storage.importJson(JSON.stringify(importData))).rejects.toThrow(
+        AliasStorageError
+      );
+    });
+
+    it('should handle import with last-occurrence-wins for duplicate addresses', async () => {
+      const storage = createAliasStorage(db, { duplicateMode: 'allow' });
+      const importData = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        aliases: [
+          { address: '0x123', alias: 'First' },
+          { address: '0x123', alias: 'Second' }, // Same address, later alias wins
+        ],
+      };
+
+      await storage.importJson(JSON.stringify(importData));
+
+      const record = await storage.getByAddress('0x123');
+      expect(record?.alias).toBe('Second');
+    });
+
+    it('should return empty result for empty aliases array', async () => {
+      const storage = createAliasStorage(db);
+      const importData = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        aliases: [],
+      };
+
+      const result = await storage.importJson(JSON.stringify(importData));
+
+      expect(result.imported).toBe(0);
+      expect(result.skipped).toBe(0);
+      expect(result.ids).toHaveLength(0);
+    });
+
+    it('should validate alias length during import', async () => {
+      const storage = createAliasStorage(db, { maxAliasLength: 10 });
+      const importData = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        aliases: [
+          { address: '0x111', alias: 'Short' },
+          { address: '0x222', alias: 'This is way too long' },
+        ],
+      };
+
+      const result = await storage.importJson(JSON.stringify(importData));
+
+      expect(result.imported).toBe(1);
+      expect(result.skipped).toBe(1);
+    });
+  });
+
+  // ==========================================================================
+  // T050: bulkSave and bulkDelete Operations
+  // ==========================================================================
+  describe('bulk operations', () => {
+    describe('bulkSave', () => {
+      it('should save multiple aliases and return their IDs', async () => {
+        const storage = createAliasStorage(db, { duplicateMode: 'allow' });
+        const inputs = [
+          { address: '0x111', alias: 'Treasury' },
+          { address: '0x222', alias: 'Vault' },
+          { address: '0x333', alias: 'Wallet' },
+        ];
+
+        const ids = await storage.bulkSave(inputs);
+
+        expect(ids).toHaveLength(3);
+        ids.forEach((id) => expect(typeof id).toBe('string'));
+
+        const all = await storage.getAll();
+        expect(all).toHaveLength(3);
+      });
+
+      it('should apply upsert behavior for same address', async () => {
+        const storage = createAliasStorage(db, { duplicateMode: 'allow' });
+        const inputs = [
+          { address: '0x111', alias: 'First' },
+          { address: '0x111', alias: 'Second' }, // Same address, should update
+        ];
+
+        const ids = await storage.bulkSave(inputs);
+
+        // Both should return same ID (upsert)
+        expect(ids[0]).toBe(ids[1]);
+
+        const record = await storage.getByAddress('0x111');
+        expect(record?.alias).toBe('Second');
+      });
+
+      it('should handle empty input array', async () => {
+        const storage = createAliasStorage(db);
+
+        const ids = await storage.bulkSave([]);
+
+        expect(ids).toEqual([]);
+        expect(await storage.count()).toBe(0);
+      });
+
+      it('should validate all inputs', async () => {
+        const storage = createAliasStorage(db);
+        const inputs = [
+          { address: '0x111', alias: 'Valid' },
+          { address: '', alias: 'Invalid' }, // Invalid address
+        ];
+
+        await expect(storage.bulkSave(inputs)).rejects.toThrow(AliasStorageError);
+
+        // First should have been saved before error
+        const count = await storage.count();
+        expect(count).toBe(1);
+      });
+
+      it('should respect duplicateMode in bulk operations', async () => {
+        const storage = createAliasStorage(db, { duplicateMode: 'strict' });
+        await storage.save({ address: '0x000', alias: 'Existing' });
+
+        const inputs = [
+          { address: '0x111', alias: 'New' },
+          { address: '0x222', alias: 'Existing' }, // Duplicate alias
+        ];
+
+        await expect(storage.bulkSave(inputs)).rejects.toThrow(AliasStorageError);
+      });
+
+      it('should save aliases with different networkIds', async () => {
+        const storage = createAliasStorage(db);
+        const inputs = [
+          { address: '0x111', alias: 'Global' },
+          { address: '0x111', networkId: 'ethereum-mainnet', alias: 'ETH' },
+          { address: '0x111', networkId: 'polygon-mainnet', alias: 'MATIC' },
+        ];
+
+        const ids = await storage.bulkSave(inputs);
+
+        expect(ids).toHaveLength(3);
+        // All should be different IDs (different compound keys)
+        expect(new Set(ids).size).toBe(3);
+      });
+    });
+
+    describe('bulkDelete', () => {
+      it('should delete multiple aliases by IDs', async () => {
+        const storage = createAliasStorage(db);
+        const id1 = await storage.save({ address: '0x111', alias: 'Treasury' });
+        const id2 = await storage.save({ address: '0x222', alias: 'Vault' });
+        const id3 = await storage.save({ address: '0x333', alias: 'Wallet' });
+
+        await storage.bulkDelete([id1, id3]);
+
+        expect(await storage.get(id1)).toBeUndefined();
+        expect(await storage.get(id2)).toBeDefined();
+        expect(await storage.get(id3)).toBeUndefined();
+      });
+
+      it('should handle empty input array', async () => {
+        const storage = createAliasStorage(db);
+        await storage.save({ address: '0x111', alias: 'Treasury' });
+
+        await storage.bulkDelete([]);
+
+        expect(await storage.count()).toBe(1);
+      });
+
+      it('should not throw for non-existent IDs', async () => {
+        const storage = createAliasStorage(db);
+        const id = await storage.save({ address: '0x111', alias: 'Treasury' });
+
+        await expect(
+          storage.bulkDelete([id, 'non-existent-1', 'non-existent-2'])
+        ).resolves.not.toThrow();
+
+        expect(await storage.get(id)).toBeUndefined();
+      });
+
+      it('should delete all records when all IDs provided', async () => {
+        const storage = createAliasStorage(db);
+        const id1 = await storage.save({ address: '0x111', alias: 'Treasury' });
+        const id2 = await storage.save({ address: '0x222', alias: 'Vault' });
+
+        await storage.bulkDelete([id1, id2]);
+
+        expect(await storage.count()).toBe(0);
+      });
+    });
+  });
+
+  // ==========================================================================
   // Factory Function
   // ==========================================================================
   describe('createAliasStorage factory', () => {

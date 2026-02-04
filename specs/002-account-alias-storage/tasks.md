@@ -162,20 +162,20 @@ packages/storage/src/
 
 ### Tests for Import/Export
 
-- [ ] T048 [P] [US10] Add test cases for `exportJson()` in `AliasStorage.test.ts`
-- [ ] T049 [P] [US10] Add test cases for `importJson()` with various duplicate modes in `AliasStorage.test.ts`
-- [ ] T050 [P] [US10] Add test cases for `bulkSave()` and `bulkDelete()` in `AliasStorage.test.ts`
+- [x] T048 [P] [US10] Add test cases for `exportJson()` in `AliasStorage.test.ts`
+- [x] T049 [P] [US10] Add test cases for `importJson()` with various duplicate modes in `AliasStorage.test.ts`
+- [x] T050 [P] [US10] Add test cases for `bulkSave()` and `bulkDelete()` in `AliasStorage.test.ts`
 
 ### Implementation for Import/Export
 
-- [ ] T051 [US10] Implement `bulkSave(inputs: AliasInput[]): Promise<string[]>` method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T052 [US10] Implement `bulkDelete(ids: string[]): Promise<void>` method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T053 [US10] Implement `exportJson(ids?: string[]): Promise<string>` method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T054 [US10] Implement `importJson(json: string): Promise<ImportResult>` method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T055 [US10] Add JSON schema validation for import in `plugins/account-alias/AliasStorage.ts`
-- [ ] T056 [US10] Add `exportAsFile` and `importFromFile` to React hook in `plugins/account-alias/react.ts`
+- [x] T051 [US10] Implement `bulkSave(inputs: AliasInput[]): Promise<string[]>` method in `plugins/account-alias/AliasStorage.ts`
+- [x] T052 [US10] Implement `bulkDelete(ids: string[]): Promise<void>` method in `plugins/account-alias/AliasStorage.ts`
+- [x] T053 [US10] Implement `exportJson(ids?: string[]): Promise<string>` method in `plugins/account-alias/AliasStorage.ts`
+- [x] T054 [US10] Implement `importJson(json: string): Promise<ImportResult>` method in `plugins/account-alias/AliasStorage.ts`
+- [x] T055 [US10] Add JSON schema validation for import in `plugins/account-alias/AliasStorage.ts`
+- [x] T056 [US10] Add `exportAsFile` and `importFromFile` to React hook in `plugins/account-alias/react.ts`
 
-**Checkpoint**: Full import/export functionality working
+**Checkpoint**: Full import/export functionality working ✅
 
 ---
 
