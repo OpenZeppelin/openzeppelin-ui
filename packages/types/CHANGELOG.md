@@ -1,5 +1,14 @@
 # @openzeppelin/ui-types
 
+## 1.6.0
+
+### Minor Changes
+
+- [#60](https://github.com/OpenZeppelin/openzeppelin-ui/pull/60) [`c3750e6`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/c3750e6ea248959f29ae45fd20b1dfb76497d33f) Thanks [@pasevin](https://github.com/pasevin)! - Add new HistoryChangeType values for additional access control events
+  - `ROLE_ADMIN_CHANGED`: Role's admin role was changed
+  - `OWNERSHIP_RENOUNCED`: Ownership was renounced
+  - `ADMIN_RENOUNCED`: Admin role was renounced (Stellar only)
+
 ## 1.5.0
 
 ### Minor Changes
