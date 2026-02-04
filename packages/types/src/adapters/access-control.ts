@@ -221,19 +221,25 @@ export interface AccessSnapshot {
  *
  * - GRANTED: Role was granted to an account
  * - REVOKED: Role was revoked from an account
+ * - ROLE_ADMIN_CHANGED: Role's admin role was changed
  * - OWNERSHIP_TRANSFER_STARTED: Two-step ownership transfer initiated
  * - OWNERSHIP_TRANSFER_COMPLETED: Two-step ownership transfer accepted
+ * - OWNERSHIP_RENOUNCED: Ownership was renounced (owner set to null/zero)
  * - ADMIN_TRANSFER_INITIATED: Two-step admin transfer initiated
  * - ADMIN_TRANSFER_COMPLETED: Two-step admin transfer accepted
+ * - ADMIN_RENOUNCED: Admin role was renounced (Stellar only)
  * - UNKNOWN: Unrecognized event type from indexer (indicates schema mismatch)
  */
 export type HistoryChangeType =
   | 'GRANTED'
   | 'REVOKED'
+  | 'ROLE_ADMIN_CHANGED'
   | 'OWNERSHIP_TRANSFER_STARTED'
   | 'OWNERSHIP_TRANSFER_COMPLETED'
+  | 'OWNERSHIP_RENOUNCED'
   | 'ADMIN_TRANSFER_INITIATED'
   | 'ADMIN_TRANSFER_COMPLETED'
+  | 'ADMIN_RENOUNCED'
   | 'UNKNOWN';
 
 /**
