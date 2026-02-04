@@ -75,33 +75,33 @@ packages/storage/src/
 
 ### Tests for Core Storage
 
-- [ ] T012 [P] [US1] Create test file `plugins/account-alias/__tests__/AliasStorage.test.ts` with describe block for save operations
-- [ ] T013 [P] [US2] Add test cases for configuration options (duplicateMode, maxAliasLength) in `AliasStorage.test.ts`
-- [ ] T014 [P] [US3] Add test cases for `getByAlias()` and `findByAlias()` in `AliasStorage.test.ts`
-- [ ] T015 [P] [US4] Add test cases for `getByAddress()`, `getByAddressAndNetwork()`, `findByAddress()` in `AliasStorage.test.ts`
-- [ ] T015a [P] [US4] Add test cases for multi-network scenarios (same address, different networks) in `AliasStorage.test.ts`
+- [x] T012 [P] [US1] Create test file `plugins/account-alias/__tests__/AliasStorage.test.ts` with describe block for save operations
+- [x] T013 [P] [US2] Add test cases for configuration options (duplicateMode, maxAliasLength) in `AliasStorage.test.ts`
+- [x] T014 [P] [US3] Add test cases for `getByAlias()` and `findByAlias()` in `AliasStorage.test.ts`
+- [x] T015 [P] [US4] Add test cases for `getByAddress()`, `getByAddressAndNetwork()`, `findByAddress()` in `AliasStorage.test.ts`
+- [x] T015a [P] [US4] Add test cases for multi-network scenarios (same address, different networks) in `AliasStorage.test.ts`
 
 ### Implementation for Core Storage
 
-- [ ] T016 [US1] Create `AliasStorage` class skeleton extending no base class in `plugins/account-alias/AliasStorage.ts`
-- [ ] T017 [US2] Implement constructor with options merging and defaults in `plugins/account-alias/AliasStorage.ts`
-- [ ] T018 [US2] Implement `validateAlias()` private method for length/empty checks in `plugins/account-alias/AliasStorage.ts`
-- [ ] T019 [US2] Implement `validateAddress()` private method for empty check in `plugins/account-alias/AliasStorage.ts`
-- [ ] T020 [US2] Implement `checkDuplicate()` private method for duplicate handling modes in `plugins/account-alias/AliasStorage.ts`
-- [ ] T021 [US1] Implement `save(input: AliasInput): Promise<string>` method with `withQuotaHandling` wrapper in `plugins/account-alias/AliasStorage.ts`
-- [ ] T022 [US1] Implement `update(id: string, updates: Partial<AliasInput>): Promise<void>` method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T023 [US1] Implement `get(id: string): Promise<AliasRecord | undefined>` method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T024 [US4] Implement `getByAddress(address: string): Promise<AliasRecord | undefined>` method (global alias) in `plugins/account-alias/AliasStorage.ts`
-- [ ] T024a [US4] Implement `getByAddressAndNetwork(address: string, networkId?: string): Promise<AliasRecord | undefined>` method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T024b [US4] Implement `findByAddress(address: string): Promise<AliasRecord[]>` method (all networks) in `plugins/account-alias/AliasStorage.ts`
-- [ ] T025 [US3] Implement `getByAlias(alias: string): Promise<AliasRecord | undefined>` method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T026 [US3] Implement `findByAlias(alias: string): Promise<AliasRecord[]>` method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T027 [US3] Implement `resolveAlias(alias: string): Promise<string | undefined>` convenience method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T028 [US4] Implement `resolveAddress(address: string, networkId?: string): Promise<string | undefined>` convenience method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T029 [US5] Implement `createAliasStorage(db: Dexie, options?: AliasStorageOptions)` factory function in `plugins/account-alias/AliasStorage.ts`
-- [ ] T030 [US2] Add logging calls using `logger` from `@openzeppelin/ui-utils` throughout AliasStorage in `plugins/account-alias/AliasStorage.ts`
+- [x] T016 [US1] Create `AliasStorage` class skeleton extending no base class in `plugins/account-alias/AliasStorage.ts`
+- [x] T017 [US2] Implement constructor with options merging and defaults in `plugins/account-alias/AliasStorage.ts`
+- [x] T018 [US2] Implement `validateAlias()` private method for length/empty checks in `plugins/account-alias/AliasStorage.ts`
+- [x] T019 [US2] Implement `validateAddress()` private method for empty check in `plugins/account-alias/AliasStorage.ts`
+- [x] T020 [US2] Implement `checkDuplicate()` private method for duplicate handling modes in `plugins/account-alias/AliasStorage.ts`
+- [x] T021 [US1] Implement `save(input: AliasInput): Promise<string>` method with `withQuotaHandling` wrapper in `plugins/account-alias/AliasStorage.ts`
+- [x] T022 [US1] Implement `update(id: string, updates: Partial<AliasInput>): Promise<void>` method in `plugins/account-alias/AliasStorage.ts`
+- [x] T023 [US1] Implement `get(id: string): Promise<AliasRecord | undefined>` method in `plugins/account-alias/AliasStorage.ts`
+- [x] T024 [US4] Implement `getByAddress(address: string): Promise<AliasRecord | undefined>` method (global alias) in `plugins/account-alias/AliasStorage.ts`
+- [x] T024a [US4] Implement `getByAddressAndNetwork(address: string, networkId?: string): Promise<AliasRecord | undefined>` method in `plugins/account-alias/AliasStorage.ts`
+- [x] T024b [US4] Implement `findByAddress(address: string): Promise<AliasRecord[]>` method (all networks) in `plugins/account-alias/AliasStorage.ts`
+- [x] T025 [US3] Implement `getByAlias(alias: string): Promise<AliasRecord | undefined>` method in `plugins/account-alias/AliasStorage.ts`
+- [x] T026 [US3] Implement `findByAlias(alias: string): Promise<AliasRecord[]>` method in `plugins/account-alias/AliasStorage.ts`
+- [x] T027 [US3] Implement `resolveAlias(alias: string): Promise<string | undefined>` convenience method in `plugins/account-alias/AliasStorage.ts`
+- [x] T028 [US4] Implement `resolveAddress(address: string, networkId?: string): Promise<string | undefined>` convenience method in `plugins/account-alias/AliasStorage.ts`
+- [x] T029 [US5] Implement `createAliasStorage(db: Dexie, options?: AliasStorageOptions)` factory function in `plugins/account-alias/AliasStorage.ts`
+- [x] T030 [US2] Add logging calls using `logger` from `@openzeppelin/ui-utils` throughout AliasStorage in `plugins/account-alias/AliasStorage.ts`
 
-**Checkpoint**: Core CRUD operations working - can create, read, update aliases with configurable behavior
+**Checkpoint**: Core CRUD operations working - can create, read, update aliases with configurable behavior ✅
 
 ---
 
