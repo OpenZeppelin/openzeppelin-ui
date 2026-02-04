@@ -38,11 +38,11 @@ packages/storage/src/
 
 **Purpose**: Create plugin directory structure and base files
 
-- [ ] T001 Create plugin directory structure at `packages/storage/src/plugins/account-alias/`
-- [ ] T002 [P] Create placeholder `index.ts` with empty exports in `plugins/account-alias/index.ts`
-- [ ] T003 [P] Create `__tests__/` directory with test setup in `plugins/account-alias/__tests__/setup.ts`
+- [x] T001 Create plugin directory structure at `packages/storage/src/plugins/account-alias/`
+- [x] T002 [P] Create placeholder `index.ts` with empty exports in `plugins/account-alias/index.ts`
+- [x] T003 [P] Create `__tests__/` directory with test setup in `plugins/account-alias/__tests__/setup.ts`
 
-**Checkpoint**: Plugin directory structure ready
+**Checkpoint**: Plugin directory structure ready ✅
 
 ---
 
@@ -52,16 +52,16 @@ packages/storage/src/
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 [P] Create `AliasRecord` interface (with `networkId` field matching `NetworkConfig.id`), `AliasInput` type, and `AliasUpdate` type in `plugins/account-alias/types.ts`
-- [ ] T005 [P] Create `AliasStorageOptions` interface with all config options in `plugins/account-alias/types.ts`
-- [ ] T006 [P] Create `DuplicateMode` type (`'strict' | 'warn' | 'allow'`) and `LogLevel` type (`'debug' | 'info' | 'warn' | 'error'`) in `plugins/account-alias/types.ts`
-- [ ] T007 [P] Create `ImportResult` and `AliasExport` interfaces in `plugins/account-alias/types.ts`
-- [ ] T008 [P] Create `AliasStorageErrorCode` type with all error codes in `plugins/account-alias/errors.ts`
-- [ ] T009 [P] Create `AliasStorageError` class extending Error with code property in `plugins/account-alias/errors.ts`
-- [ ] T010 [P] Create `ALIAS_SCHEMA` constant with compound `[address+networkId]` index in `plugins/account-alias/schema.ts`
-- [ ] T011 [P] Create `DEFAULT_OPTIONS` constant with sensible defaults in `plugins/account-alias/types.ts`
+- [x] T004 [P] Create `AliasRecord` interface (with `networkId` field matching `NetworkConfig.id`), `AliasInput` type, and `AliasUpdate` type in `plugins/account-alias/types.ts`
+- [x] T005 [P] Create `AliasStorageOptions` interface with all config options in `plugins/account-alias/types.ts`
+- [x] T006 [P] Create `DuplicateMode` type (`'strict' | 'warn' | 'allow'`) and `LogLevel` type (`'debug' | 'info' | 'warn' | 'error'`) in `plugins/account-alias/types.ts`
+- [x] T007 [P] Create `ImportResult` and `AliasExport` interfaces in `plugins/account-alias/types.ts`
+- [x] T008 [P] Create `AliasStorageErrorCode` type with all error codes in `plugins/account-alias/errors.ts`
+- [x] T009 [P] Create `AliasStorageError` class extending Error with code property in `plugins/account-alias/errors.ts`
+- [x] T010 [P] Create `ALIAS_SCHEMA` constant with compound `[address+networkId]` index in `plugins/account-alias/schema.ts`
+- [x] T011 [P] Create `DEFAULT_OPTIONS` constant with sensible defaults in `plugins/account-alias/types.ts`
 
-**Checkpoint**: Foundation ready - all types, errors, and schema defined
+**Checkpoint**: Foundation ready - all types, errors, and schema defined ✅
 
 ---
 
