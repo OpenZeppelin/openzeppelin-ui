@@ -139,18 +139,18 @@ packages/storage/src/
 
 ### Tests for React Hooks
 
-- [ ] T041 [P] [US9] Create test file `plugins/account-alias/__tests__/react.test.tsx` with hook tests
-- [ ] T042 [P] [US9] Add test cases for live query updates when aliases change in `react.test.tsx`
+- [x] T041 [P] [US9] Create test file `plugins/account-alias/__tests__/react.test.tsx` with hook tests
+- [x] T042 [P] [US9] Add test cases for live query updates when aliases change in `react.test.tsx`
 
 ### Implementation for React Hooks
 
-- [ ] T043 [US9] Create `createUseAliasStorage` hook factory in `plugins/account-alias/react.ts`
-- [ ] T044 [US9] Implement `useAliasStorage` hook return type matching `createRepositoryHook` pattern in `plugins/account-alias/react.ts`
-- [ ] T045 [US9] Integrate `useLiveQuery` from dexie-react-hooks for reactive updates in `plugins/account-alias/react.ts`
-- [ ] T046 [US9] Add error handling with `onError` callback support in `plugins/account-alias/react.ts`
-- [ ] T047 [US9] Expose `getByAddress`, `getByAddressAndNetwork`, `findByAddress`, `getByAlias`, `resolveAlias`, `resolveAddress` in hook return in `plugins/account-alias/react.ts`
+- [x] T043 [US9] Create `createUseAliasStorage` hook factory in `plugins/account-alias/react.ts`
+- [x] T044 [US9] Implement `useAliasStorage` hook return type matching `createRepositoryHook` pattern in `plugins/account-alias/react.ts`
+- [x] T045 [US9] Integrate `useLiveQuery` from dexie-react-hooks for reactive updates in `plugins/account-alias/react.ts`
+- [x] T046 [US9] Add error handling with `onError` callback support in `plugins/account-alias/react.ts`
+- [x] T047 [US9] Expose `getByAddress`, `getByAddressAndNetwork`, `findByAddress`, `getByAlias`, `resolveAlias`, `resolveAddress` in hook return in `plugins/account-alias/react.ts`
 
-**Checkpoint**: React integration complete with live updates
+**Checkpoint**: React integration complete with live updates ✅
 
 ---
 

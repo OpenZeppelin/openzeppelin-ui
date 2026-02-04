@@ -60,5 +60,10 @@ export { ALIAS_SCHEMA, createAliasSchema, getAliasSchema } from './schema';
 // Storage class and factory
 export { AliasStorage, createAliasStorage } from './AliasStorage';
 
-// TODO: Export React hooks (Phase 5)
-// export { createUseAliasStorage } from './react';
+// React hooks
+export {
+  createUseAliasStorage,
+  getAliasStorageInstance,
+  type UseAliasStorageOptions,
+  type UseAliasStorageReturn,
+} from './react';
