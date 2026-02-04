@@ -176,6 +176,5 @@ export interface AliasExport {
 | Find all for address    | `findByAddress(address)`                      | `address`             |
 | Get by alias name       | `getByAlias(alias)`                           | `alias`               |
 | Find all with alias     | `findByAlias(alias)`                          | `alias`               |
-| Find all for network    | `findByNetwork(networkId)`                    | `networkId`           |
 | List all                | `getAll()`                                    | `updatedAt` (sorted)  |
 | Check duplicate         | `where('alias').equals(name)`                 | `alias`               |
