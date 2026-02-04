@@ -319,11 +319,13 @@ When logging is enabled, the plugin logs the following events:
 
 ### Bulk Operations
 
-- **`bulkSave(inputs: AliasInput[])`**: Saves multiple aliases in a single transaction
+- **`bulkSave(inputs: AliasInput[])`**: Saves multiple aliases with per-record processing
   - Returns array of created/updated record IDs
   - Respects `duplicateMode` for each record
-  - On partial failure in "strict" mode: entire transaction rolls back, no records saved
-  - Performance: O(n) with single IndexedDB transaction
+  - Individual records may fail while others succeed (partial success semantics)
+  - In "strict" mode: invalid or duplicate records are rejected, but valid records are still persisted
+  - Already-saved records are not rolled back when subsequent records fail
+  - Performance: O(n) with per-record saves
 
 - **`bulkDelete(ids: string[])`**: Deletes multiple aliases by ID
   - Idempotent: non-existent IDs are silently skipped
@@ -361,7 +363,7 @@ When logging is enabled, the plugin logs the following events:
   remove: (id: string) => Promise<void>;
   clear: () => Promise<void>;
   exportAsFile: () => Promise<void>;
-  importFromFile: () => Promise<string[]>;
+  importFromFile: (file: File) => Promise<string[]>;
   getByAddress: (address: string) => Promise<AliasRecord | undefined>;
   getByAddressAndNetwork: (address: string, networkId?: string) => Promise<AliasRecord | undefined>;
   findByAddress: (address: string) => Promise<AliasRecord[]>;
@@ -421,7 +423,10 @@ Note: Records without `networkId` are global aliases. The same address can appea
 - Timestamps (`createdAt`, `updatedAt`) are regenerated on import (not preserved)
 - Duplicate (address, networkId) pairs in import JSON: last occurrence wins (upsert semantics)
 - Duplicate alias names: handled according to `duplicateMode`
-- Partial failure: in "strict" mode with duplicates, entire import fails; in "warn"/"allow", continues with remaining records
+- Partial failure: individual records may fail while others succeed (partial success semantics)
+  - In "strict" mode: invalid or duplicate records are rejected, but valid records are still persisted
+  - In "warn"/"allow" modes: continues with remaining records, skipping duplicates
+  - Already-saved records are not rolled back when subsequent records fail
 
 **Import Result**:
 

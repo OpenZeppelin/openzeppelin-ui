@@ -428,12 +428,14 @@ export class AliasStorage {
    * @returns Array of created/updated record IDs
    */
   async bulkSave(inputs: AliasInput[]): Promise<string[]> {
-    const ids: string[] = [];
-    for (const input of inputs) {
-      const id = await this.save(input);
-      ids.push(id);
-    }
-    return ids;
+    return this.table.db.transaction('rw', this.table, async () => {
+      const ids: string[] = [];
+      for (const input of inputs) {
+        const id = await this.save(input);
+        ids.push(id);
+      }
+      return ids;
+    });
   }
 
   /**

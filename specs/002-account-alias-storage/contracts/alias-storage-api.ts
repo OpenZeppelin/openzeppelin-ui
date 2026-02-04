@@ -278,7 +278,7 @@ export interface UseAliasStorageReturn {
   exportAsFile: () => Promise<void>;
 
   /** Import aliases from file */
-  importFromFile: () => Promise<string[]>;
+  importFromFile: (file: File) => Promise<string[]>;
 
   /** Get global alias by address */
   getByAddress: (address: string) => Promise<AliasRecord | undefined>;

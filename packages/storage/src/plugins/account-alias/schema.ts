@@ -13,7 +13,7 @@ import { DEFAULT_OPTIONS } from './types';
  *
  * Index explanation:
  * - `++id`: Auto-increment primary key (overridden by `generateId()` for UUID)
- * - `[address+networkId]`: Compound unique index ensuring one alias per (address, networkId) pair
+ * - `[address+networkId]`: Compound index for efficient lookup by (address, networkId) pair. Uniqueness is enforced at the application layer in `AliasStorage.save`.
  * - `address`: Non-unique index for lookup by address across all networks
  * - `networkId`: Non-unique index for lookup by network
  * - `alias`: Non-unique index for lookup by alias name

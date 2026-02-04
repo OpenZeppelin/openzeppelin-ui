@@ -17,7 +17,6 @@ export type AliasStorageErrorCode =
   | 'INVALID_ALIAS'
   | 'INVALID_ADDRESS'
   | 'ALIAS_NOT_FOUND'
-  | 'ADDRESS_NOT_FOUND'
   | 'INVALID_IMPORT_FORMAT'
   | 'STORAGE_QUOTA_EXCEEDED';
 
@@ -30,7 +29,6 @@ export const ERROR_MESSAGES: Record<AliasStorageErrorCode, string> = {
   INVALID_ALIAS: 'Alias name must be a non-empty string',
   INVALID_ADDRESS: 'Address must be a non-empty string',
   ALIAS_NOT_FOUND: 'No alias found with the specified ID',
-  ADDRESS_NOT_FOUND: 'No alias found for the specified address',
   INVALID_IMPORT_FORMAT: 'Import data is not in the expected format',
   STORAGE_QUOTA_EXCEEDED: 'Storage quota exceeded',
 };

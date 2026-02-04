@@ -1361,9 +1361,9 @@ describe('AliasStorage', () => {
 
         await expect(storage.bulkSave(inputs)).rejects.toThrow(AliasStorageError);
 
-        // First should have been saved before error
+        // Transaction rolls back on error, so nothing should be saved
         const count = await storage.count();
-        expect(count).toBe(1);
+        expect(count).toBe(0);
       });
 
       it('should respect duplicateMode in bulk operations', async () => {
