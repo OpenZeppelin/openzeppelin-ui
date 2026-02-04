@@ -52,13 +52,13 @@ packages/storage/src/
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 [P] Create `AliasRecord` interface, `AliasInput` type, and `AliasUpdate` type in `plugins/account-alias/types.ts`
+- [ ] T004 [P] Create `AliasRecord` interface (with `networkId` field matching `NetworkConfig.id`), `AliasInput` type, and `AliasUpdate` type in `plugins/account-alias/types.ts`
 - [ ] T005 [P] Create `AliasStorageOptions` interface with all config options in `plugins/account-alias/types.ts`
 - [ ] T006 [P] Create `DuplicateMode` type (`'strict' | 'warn' | 'allow'`) and `LogLevel` type (`'debug' | 'info' | 'warn' | 'error'`) in `plugins/account-alias/types.ts`
 - [ ] T007 [P] Create `ImportResult` and `AliasExport` interfaces in `plugins/account-alias/types.ts`
 - [ ] T008 [P] Create `AliasStorageErrorCode` type with all error codes in `plugins/account-alias/errors.ts`
 - [ ] T009 [P] Create `AliasStorageError` class extending Error with code property in `plugins/account-alias/errors.ts`
-- [ ] T010 [P] Create `ALIAS_SCHEMA` constant with Dexie schema definition in `plugins/account-alias/schema.ts`
+- [ ] T010 [P] Create `ALIAS_SCHEMA` constant with compound `[address+networkId]` index in `plugins/account-alias/schema.ts`
 - [ ] T011 [P] Create `DEFAULT_OPTIONS` constant with sensible defaults in `plugins/account-alias/types.ts`
 
 **Checkpoint**: Foundation ready - all types, errors, and schema defined
@@ -78,7 +78,8 @@ packages/storage/src/
 - [ ] T012 [P] [US1] Create test file `plugins/account-alias/__tests__/AliasStorage.test.ts` with describe block for save operations
 - [ ] T013 [P] [US2] Add test cases for configuration options (duplicateMode, maxAliasLength) in `AliasStorage.test.ts`
 - [ ] T014 [P] [US3] Add test cases for `getByAlias()` and `findByAlias()` in `AliasStorage.test.ts`
-- [ ] T015 [P] [US4] Add test cases for `getByAddress()` in `AliasStorage.test.ts`
+- [ ] T015 [P] [US4] Add test cases for `getByAddress()`, `getByAddressAndNetwork()`, `findByAddress()` in `AliasStorage.test.ts`
+- [ ] T015a [P] [US4] Add test cases for multi-network scenarios (same address, different networks) in `AliasStorage.test.ts`
 
 ### Implementation for Core Storage
 
@@ -90,11 +91,13 @@ packages/storage/src/
 - [ ] T021 [US1] Implement `save(input: AliasInput): Promise<string>` method with `withQuotaHandling` wrapper in `plugins/account-alias/AliasStorage.ts`
 - [ ] T022 [US1] Implement `update(id: string, updates: Partial<AliasInput>): Promise<void>` method in `plugins/account-alias/AliasStorage.ts`
 - [ ] T023 [US1] Implement `get(id: string): Promise<AliasRecord | undefined>` method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T024 [US4] Implement `getByAddress(address: string): Promise<AliasRecord | undefined>` method in `plugins/account-alias/AliasStorage.ts`
+- [ ] T024 [US4] Implement `getByAddress(address: string): Promise<AliasRecord | undefined>` method (global alias) in `plugins/account-alias/AliasStorage.ts`
+- [ ] T024a [US4] Implement `getByAddressAndNetwork(address: string, networkId?: string): Promise<AliasRecord | undefined>` method in `plugins/account-alias/AliasStorage.ts`
+- [ ] T024b [US4] Implement `findByAddress(address: string): Promise<AliasRecord[]>` method (all networks) in `plugins/account-alias/AliasStorage.ts`
 - [ ] T025 [US3] Implement `getByAlias(alias: string): Promise<AliasRecord | undefined>` method in `plugins/account-alias/AliasStorage.ts`
 - [ ] T026 [US3] Implement `findByAlias(alias: string): Promise<AliasRecord[]>` method in `plugins/account-alias/AliasStorage.ts`
 - [ ] T027 [US3] Implement `resolveAlias(alias: string): Promise<string | undefined>` convenience method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T028 [US4] Implement `resolveAddress(address: string): Promise<string | undefined>` convenience method in `plugins/account-alias/AliasStorage.ts`
+- [ ] T028 [US4] Implement `resolveAddress(address: string, networkId?: string): Promise<string | undefined>` convenience method in `plugins/account-alias/AliasStorage.ts`
 - [ ] T029 [US5] Implement `createAliasStorage(db: Dexie, options?: AliasStorageOptions)` factory function in `plugins/account-alias/AliasStorage.ts`
 - [ ] T030 [US2] Add logging calls using `logger` from `@openzeppelin/ui-utils` throughout AliasStorage in `plugins/account-alias/AliasStorage.ts`
 
@@ -121,7 +124,7 @@ packages/storage/src/
 - [ ] T036 [US7] Implement `clear(): Promise<void>` method in `plugins/account-alias/AliasStorage.ts`
 - [ ] T037 [US8] Implement `getAll(): Promise<AliasRecord[]>` method in `plugins/account-alias/AliasStorage.ts`
 - [ ] T038 [US8] Implement `count(): Promise<number>` method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T039 [US8] Implement `hasAlias(address: string): Promise<boolean>` method in `plugins/account-alias/AliasStorage.ts`
+- [ ] T039 [US8] Implement `hasAlias(address: string, networkId?: string): Promise<boolean>` method in `plugins/account-alias/AliasStorage.ts`
 - [ ] T040 [US8] Implement `aliasExists(alias: string): Promise<boolean>` method in `plugins/account-alias/AliasStorage.ts`
 
 **Checkpoint**: Full CRUD + list operations working
@@ -145,7 +148,7 @@ packages/storage/src/
 - [ ] T044 [US9] Implement `useAliasStorage` hook return type matching `createRepositoryHook` pattern in `plugins/account-alias/react.ts`
 - [ ] T045 [US9] Integrate `useLiveQuery` from dexie-react-hooks for reactive updates in `plugins/account-alias/react.ts`
 - [ ] T046 [US9] Add error handling with `onError` callback support in `plugins/account-alias/react.ts`
-- [ ] T047 [US9] Expose `getByAddress`, `getByAlias`, `resolveAlias`, `resolveAddress` in hook return in `plugins/account-alias/react.ts`
+- [ ] T047 [US9] Expose `getByAddress`, `getByAddressAndNetwork`, `findByAddress`, `getByAlias`, `resolveAlias`, `resolveAddress` in hook return in `plugins/account-alias/react.ts`
 
 **Checkpoint**: React integration complete with live updates
 
@@ -285,12 +288,12 @@ Task: T011 - Create DEFAULT_OPTIONS constant
 | ---------------------- | ------ | -------------- |
 | Phase 1: Setup         | 3      | 2              |
 | Phase 2: Foundational  | 8      | 8              |
-| Phase 3: Core Storage  | 19     | 4              |
+| Phase 3: Core Storage  | 23     | 5              |
 | Phase 4: Delete & List | 10     | 2              |
 | Phase 5: React Hooks   | 7      | 2              |
 | Phase 6: Import/Export | 9      | 3              |
 | Phase 7: Polish        | 13     | 5              |
-| **Total**              | **69** | **26**         |
+| **Total**              | **73** | **27**         |
 
 ---
 

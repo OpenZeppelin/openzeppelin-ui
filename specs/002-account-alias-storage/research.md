@@ -46,20 +46,50 @@ This document records design decisions and research findings for the Account Ali
 
 ---
 
-## Decision 3: Address Uniqueness Enforcement
+## Decision 3: Composite Key for Multi-Network Support
 
-**Decision**: Use Dexie index on `address` field with upsert semantics via `table.put()`.
+**Decision**: Use Dexie compound index on `[address+networkId]` for uniqueness, with upsert semantics via `table.put()`.
 
 **Rationale**:
 
-- Spec requires exactly one alias per address with update-replaces behavior
-- `put()` naturally handles upsert: inserts if new, updates if exists
-- Index on address enables efficient lookup by address
+- Products support multiple ecosystems and networks; same address may exist on different networks
+- Users may want different aliases per network (e.g., "Treasury Mainnet" vs "Treasury Polygon")
+- ENS supports chain-specific resolutions; an address may have different ENS names per chain
+- Compound key `[address+networkId]` allows one alias per (address, network) pair
+- `undefined` networkId represents a "global" alias (not network-specific)
+
+**NetworkId Format**: Matches `NetworkConfig.id` pattern from `@openzeppelin/ui-types`:
+
+- EVM: `ethereum-mainnet`, `polygon-mainnet`, `arbitrum-mainnet`
+- Stellar: `stellar-mainnet`, `stellar-testnet`
+- Solana: `solana-mainnet-beta`, `solana-devnet`
+- Midnight: `midnight-testnet`
+- Polkadot: `polkadot-hub`, `polkadot-moonbeam-mainnet`
 
 **Alternatives Considered**:
 
-- **Check-then-insert**: Rejected because it requires two operations and has race condition potential
-- **Unique index with error handling**: Works but more complex than upsert semantics
+- **Address-only uniqueness**: Rejected because it doesn't support multi-network scenarios where users need different aliases per network
+- **NetworkId in metadata**: Rejected because it would require complex filtering and wouldn't enforce uniqueness properly
+- **Separate tables per network**: Rejected because it complicates queries and import/export
+- **Numeric chainId for EVM**: Rejected because it's not ecosystem-agnostic; `NetworkConfig.id` provides consistent string-based identification across all ecosystems
+
+---
+
+## Decision 3a: NetworkId as Optional Field
+
+**Decision**: Make `networkId` optional (undefined = global alias).
+
+**Rationale**:
+
+- Backward compatibility: existing code without networkId continues to work
+- Simpler API for single-network applications
+- Global aliases are useful when users want the same alias across all networks
+- Empty string networkId is normalized to `undefined` for consistency
+
+**Alternatives Considered**:
+
+- **Required networkId**: Rejected because it breaks simplicity for single-network use cases
+- **Default networkId value**: Rejected because there's no sensible default across all ecosystems
 
 ---
 
@@ -144,17 +174,44 @@ This document records design decisions and research findings for the Account Ali
 **Schema Definition**:
 
 ```typescript
-export const aliasStorageSchema = {
-  aliases: '++id, &address, alias, createdAt, updatedAt',
+export const ALIAS_SCHEMA = {
+  aliases: '++id, [address+networkId], address, networkId, alias, createdAt, updatedAt',
 };
 ```
 
 **Index Strategy**:
 
 - `++id`: Auto-increment primary key
-- `&address`: Unique index on address (enforces one alias per address)
+- `[address+networkId]`: Compound unique index (enforces one alias per address+network pair)
+- `address`: Non-unique index (for finding all aliases for an address)
+- `networkId`: Non-unique index (for filtering by network)
 - `alias`: Non-unique index (allows duplicate alias names in "allow" mode)
 - `createdAt`, `updatedAt`: Indexed for sorting/filtering
+
+---
+
+## Decision 9: ENS and Network-Specific Features
+
+**Decision**: ENS resolution, smart account detection, and other network-specific features are explicitly out of scope.
+
+**Rationale**:
+
+- Constitution requires chain-agnostic design (no blockchain SDK dependencies)
+- ENS names can change over time; storing them would require sync logic
+- Smart account detection requires network-specific RPC calls
+- These features belong in the adapter layer (ui-builder) where chain SDKs are available
+
+**What Plugin Provides**:
+
+- Storage for `networkId` as a plain string matching `NetworkConfig.id` pattern
+- `metadata` field for implementer-defined context (e.g., `isSmartAccount`, `accountType`)
+
+**What Implementer Does**:
+
+- Resolve ENS at display time using adapters
+- Detect smart accounts using adapters
+- Store network-specific context in `metadata` if needed
+- Obtain `networkId` from `NetworkConfig.id` via the adapter layer
 
 ---
 

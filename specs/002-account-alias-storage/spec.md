@@ -11,7 +11,8 @@
 
 - Q: Should AliasRecord support custom metadata beyond the fixed fields? → A: Allow optional `metadata` field that stores arbitrary JSON
 - Q: How should the plugin support debugging/observability? → A: Use existing logger utility from `@openzeppelin/ui-utils`, configurable via options
-- Q: Can an address have multiple aliases? → A: One alias per address - update always replaces existing alias
+- Q: Can an address have multiple aliases? → A: One alias per (address, networkId) pair - update always replaces existing alias for that combination
+- Q: How should multi-chain scenarios be handled? → A: Add optional `networkId` field matching `NetworkConfig.id` pattern (e.g., `ethereum-mainnet`, `stellar-testnet`). Uniqueness is on `(address, networkId)` composite key. Same address on different networks can have different aliases. If `networkId` is undefined, it acts as a "global" alias fallback.
 
 ## User Scenarios & Testing _(mandatory)_
 
@@ -29,7 +30,8 @@ A developer integrating the storage package wants to assign a human-readable nam
 2. **Given** an alias name that already exists and duplicate mode is "strict", **When** the developer attempts to create another alias with the same name, **Then** the system rejects the operation with a clear error.
 3. **Given** an alias name that already exists and duplicate mode is "warn", **When** the developer attempts to create another alias with the same name, **Then** the system allows the operation and invokes the configured warning callback.
 4. **Given** an alias name that already exists and duplicate mode is "allow", **When** the developer attempts to create another alias with the same name, **Then** the system allows the operation without any warnings.
-5. **Given** an address that already has an alias, **When** the developer creates a new alias for the same address, **Then** the system updates the existing alias with the new name.
+5. **Given** an address that already has an alias for a specific network, **When** the developer creates a new alias for the same address and network, **Then** the system updates the existing alias with the new name.
+6. **Given** the same address on different networks, **When** the developer creates aliases for each network, **Then** each (address, networkId) pair can have its own independent alias.
 
 ---
 
@@ -79,6 +81,8 @@ A developer receiving an account address from a blockchain event or transaction 
 
 1. **Given** an address with an associated alias, **When** the developer looks up the address, **Then** the system returns the alias name.
 2. **Given** an address without an alias, **When** the developer looks up the address, **Then** the system returns undefined/null without throwing an error.
+3. **Given** an address with aliases on multiple networks, **When** the developer looks up by address and networkId, **Then** the system returns the alias for that specific network.
+4. **Given** an address with aliases on multiple networks, **When** the developer looks up by address only, **Then** the system returns all aliases for that address across all networks.
 
 ---
 
@@ -180,15 +184,19 @@ A developer needs to import aliases from an external source or export them for b
 
 - **Empty string address**: Plugin rejects with `INVALID_ADDRESS` error; addresses must be non-empty strings
 - **Empty string alias**: Plugin rejects with `INVALID_ALIAS` error; aliases must be non-empty strings
+- **Empty string networkId**: Treated as `undefined` (global alias); empty strings are normalized to undefined
+- **Undefined networkId**: Acts as a "global" alias, not network-specific; can coexist with network-specific aliases for the same address
 - **Special characters (emojis, unicode)**: System accepts any non-empty string; validation is the implementer's responsibility
 - **Unicode normalization**: Plugin stores strings as-is without normalization (no NFC/NFD conversion); implementers should normalize before storage if needed
 - **Very long alias names**: Configurable via `maxAliasLength`; when set, plugin rejects with `ALIAS_TOO_LONG` error
 - **Very long addresses (>10KB)**: Plugin accepts addresses up to IndexedDB's practical limits (~10MB); no explicit length limit enforced
 - **Invalid address format**: Plugin stores addresses as-is; format validation is the implementer's responsibility
+- **Invalid networkId format**: Plugin stores networkId as-is; format validation is the implementer's responsibility
 - **Storage quota exceeded**: Utilizes existing `withQuotaHandling` utility; throws `STORAGE_QUOTA_EXCEEDED` error
 - **Concurrent alias operations**: Leverages Dexie's transaction support for consistency; last-write-wins semantics
 - **Database corrupted/inaccessible**: Plugin propagates Dexie errors; implementers should handle `DatabaseClosedError` and similar
 - **Maximum alias count**: No explicit limit; bounded only by IndexedDB storage quota (typically 50% of available disk space)
+- **Same address, different networks**: Each (address, networkId) pair is a separate record; no limit on aliases per address across networks
 
 ## Requirements _(mandatory)_
 
@@ -196,14 +204,24 @@ A developer needs to import aliases from an external source or export them for b
 
 #### Core Operations
 
-- **FR-001**: Plugin MUST allow storing a mapping between an account address and a custom alias name
+- **FR-001**: Plugin MUST allow storing a mapping between an account address (optionally with networkId) and a custom alias name
 - **FR-002**: Plugin MUST support lookup of address by alias name
-- **FR-003**: Plugin MUST support lookup of alias name by address
-- **FR-004**: Plugin MUST allow updating an existing alias (changing the name for an address)
-- **FR-005**: Plugin MUST allow deleting an alias by either alias name or address
+- **FR-003**: Plugin MUST support lookup of alias name by address (optionally filtered by networkId)
+- **FR-004**: Plugin MUST allow updating an existing alias (changing the name for an address/networkId pair)
+- **FR-005**: Plugin MUST allow deleting an alias by either alias name, address, or address+networkId
 - **FR-006**: Plugin MUST support retrieving all stored aliases
 - **FR-007**: Plugin MUST manage timestamps (createdAt, updatedAt) for each alias record
 - **FR-008**: Plugin MUST persist aliases using IndexedDB via the existing Dexie infrastructure
+
+#### Multi-Network Support
+
+- **FR-032**: Plugin MUST support an optional `networkId` field in alias records, matching the `NetworkConfig.id` pattern (e.g., `ethereum-mainnet`, `stellar-testnet`)
+- **FR-033**: Plugin MUST enforce uniqueness on the composite key `(address, networkId)`, not just address
+- **FR-034**: Plugin MUST treat `undefined` networkId as a "global" alias that is network-agnostic
+- **FR-035**: Plugin MUST allow the same address to have different aliases on different networks
+- **FR-036**: Plugin MUST provide lookup methods that can filter by networkId
+- **FR-037**: Plugin MUST provide lookup methods that return all aliases for an address across all networks
+- **FR-038**: Plugin MUST NOT validate networkId format; this is the implementer's responsibility (adapters provide the value from `NetworkConfig.id`)
 
 #### Configuration & Extensibility
 
@@ -245,8 +263,9 @@ A developer needs to import aliases from an external source or export them for b
 - **AliasRecord**: Represents a mapping between an account address and an alias name
   - `id`: Auto-generated unique identifier
   - `address`: The account address (stored as-is, no normalization)
+  - `networkId`: Optional network identifier matching `NetworkConfig.id` pattern (e.g., `ethereum-mainnet`, `stellar-testnet`); undefined means "global" alias
   - `alias`: The human-readable alias name
-  - `metadata`: Optional arbitrary JSON for implementer-defined context (e.g., category, source, notes, chain ID)
+  - `metadata`: Optional arbitrary JSON for implementer-defined context (e.g., category, source, notes, isSmartAccount)
   - `createdAt`: Timestamp when the alias was created
   - `updatedAt`: Timestamp when the alias was last modified
 
@@ -313,18 +332,21 @@ When logging is enabled, the plugin logs the following events:
 ### Convenience Methods
 
 - **`count()`**: Returns the number of stored aliases; O(1) operation
-- **`hasAlias(address: string)`**: Returns `true` if address has an alias; O(log n) lookup
+- **`hasAlias(address: string, networkId?: string)`**: Returns `true` if address has an alias (optionally for specific network); O(log n) lookup
 - **`aliasExists(alias: string)`**: Returns `true` if alias name is in use; O(log n) lookup
 - **`resolveAlias(alias: string)`**: Shorthand for `getByAlias(alias)?.address`
-- **`resolveAddress(address: string)`**: Shorthand for `getByAddress(address)?.alias`
+- **`resolveAddress(address: string, networkId?: string)`**: Shorthand for `getByAddressAndNetwork(address, networkId)?.alias`
+- **`findByAddress(address: string)`**: Returns all aliases for an address across all networks
 
 ### Lookup Method Semantics
 
-| Method                  | Returns                    | When Duplicates Allowed                    |
-| ----------------------- | -------------------------- | ------------------------------------------ |
-| `getByAlias(alias)`     | `AliasRecord \| undefined` | Returns first match (oldest by createdAt)  |
-| `findByAlias(alias)`    | `AliasRecord[]`            | Returns all matches (ordered by createdAt) |
-| `getByAddress(address)` | `AliasRecord \| undefined` | N/A (one alias per address)                |
+| Method                                        | Returns                    | Description                                            |
+| --------------------------------------------- | -------------------------- | ------------------------------------------------------ |
+| `getByAlias(alias)`                           | `AliasRecord \| undefined` | Returns first match (oldest by createdAt)              |
+| `findByAlias(alias)`                          | `AliasRecord[]`            | Returns all matches (ordered by createdAt)             |
+| `getByAddress(address)`                       | `AliasRecord \| undefined` | Returns global alias (networkId undefined) for address |
+| `getByAddressAndNetwork(address, networkId?)` | `AliasRecord \| undefined` | Returns alias for specific (address, networkId) pair   |
+| `findByAddress(address)`                      | `AliasRecord[]`            | Returns all aliases for address across all networks    |
 
 ### React Hook Behavior
 
@@ -341,9 +363,11 @@ When logging is enabled, the plugin logs the following events:
   exportAsFile: () => Promise<void>;
   importFromFile: () => Promise<string[]>;
   getByAddress: (address: string) => Promise<AliasRecord | undefined>;
+  getByAddressAndNetwork: (address: string, networkId?: string) => Promise<AliasRecord | undefined>;
+  findByAddress: (address: string) => Promise<AliasRecord[]>;
   getByAlias: (alias: string) => Promise<AliasRecord | undefined>;
   resolveAlias: (alias: string) => Promise<string | undefined>;
-  resolveAddress: (address: string) => Promise<string | undefined>;
+  resolveAddress: (address: string, networkId?: string) => Promise<string | undefined>;
 }
 ```
 
@@ -371,6 +395,18 @@ When logging is enabled, the plugin logs the following events:
   "aliases": [
     {
       "address": "0x742d35Cc...",
+      "networkId": "ethereum-mainnet",
+      "alias": "Treasury Mainnet",
+      "metadata": { "category": "main" }
+    },
+    {
+      "address": "0x742d35Cc...",
+      "networkId": "polygon-mainnet",
+      "alias": "Treasury Polygon",
+      "metadata": { "category": "main" }
+    },
+    {
+      "address": "0x742d35Cc...",
       "alias": "Treasury",
       "metadata": { "category": "main" }
     }
@@ -378,10 +414,12 @@ When logging is enabled, the plugin logs the following events:
 }
 ```
 
+Note: Records without `networkId` are global aliases. The same address can appear multiple times with different networkId values.
+
 **Import Behavior**:
 
 - Timestamps (`createdAt`, `updatedAt`) are regenerated on import (not preserved)
-- Duplicate addresses in import JSON: last occurrence wins (upsert semantics)
+- Duplicate (address, networkId) pairs in import JSON: last occurrence wins (upsert semantics)
 - Duplicate alias names: handled according to `duplicateMode`
 - Partial failure: in "strict" mode with duplicates, entire import fails; in "warn"/"allow", continues with remaining records
 
@@ -521,18 +559,33 @@ The plugin integrates seamlessly with existing storage infrastructure:
 - New projects: zero-config sensible defaults
 - Existing projects: additive-only, no breaking changes
 
+### 5. Network-Agnostic Multi-Network Support
+
+The plugin supports multi-network scenarios without violating ecosystem-agnostic principles:
+
+- `networkId` is stored as a plain string matching `NetworkConfig.id` pattern (e.g., `ethereum-mainnet`, `stellar-testnet`)
+- No blockchain SDK dependencies or network-specific logic
+- ENS resolution is explicitly out of scope (implementer responsibility via adapters)
+- Smart account detection is explicitly out of scope (implementer responsibility via adapters)
+- Same address can have different aliases per network, matching real-world usage patterns
+- Works across all supported ecosystems: EVM, Stellar, Solana, Midnight, Polkadot
+
 ## Assumptions
 
-1. **No Built-in Validation**: The plugin does not validate addresses or alias content. Implementers are responsible for validating data before storing.
+1. **No Built-in Validation**: The plugin does not validate addresses, networkIds, or alias content. Implementers are responsible for validating data before storing.
 
 2. **Case Sensitivity**: Alias names are stored and compared as-is (case-sensitive). Implementers may normalize case before storage if needed.
 
 3. **Configurable Alias Name Uniqueness**: Alias name uniqueness is configurable via `duplicateMode`. In "strict" mode, duplicate names are rejected; in "warn" and "allow" modes, multiple addresses may share the same alias name.
 
-4. **One Alias Per Address**: Each address can have exactly one alias. Creating an alias for an address that already has one will replace the existing alias. This is not configurable—use the `metadata` field for additional context if needed.
+4. **One Alias Per (Address, NetworkId) Pair**: Each (address, networkId) combination can have exactly one alias. Creating an alias for an (address, networkId) pair that already has one will replace the existing alias. The same address can have different aliases on different networks.
 
 5. **Storage Backend**: The plugin uses IndexedDB via Dexie, consistent with the existing storage package architecture.
 
 6. **No Cross-Device Sync**: The alias storage is local to the application/device. Synchronization, if needed, is the implementer's responsibility.
 
 7. **Schema Composition**: Implementers compose the plugin's schema with their existing database schema, maintaining full control over database structure.
+
+8. **Network-Agnostic Design**: The plugin stores networkId as a string without any validation or interpretation. It does not depend on any blockchain SDK or network-specific logic. ENS resolution, smart account detection, and other network-specific features are the implementer's responsibility. The `networkId` value should match the `NetworkConfig.id` pattern from `@openzeppelin/ui-types` (e.g., `ethereum-mainnet`, `stellar-testnet`).
+
+9. **Global Aliases**: When `networkId` is undefined, the alias is considered "global" and not tied to any specific network. This is useful for addresses that should have the same alias across all networks.

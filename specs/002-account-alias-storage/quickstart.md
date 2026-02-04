@@ -30,19 +30,33 @@ await aliasStorage.save({ address: '0x742d35Cc...', alias: 'Treasury' });
 ### Create an Alias
 
 ```typescript
-// Simple alias
+// Simple global alias (no networkId = applies across all networks)
 await aliasStorage.save({
   address: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
   alias: 'Treasury',
 });
 
+// Network-specific alias (using NetworkConfig.id format)
+await aliasStorage.save({
+  address: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
+  networkId: 'ethereum-mainnet', // Matches NetworkConfig.id
+  alias: 'Treasury Mainnet',
+});
+
+await aliasStorage.save({
+  address: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
+  networkId: 'polygon-mainnet', // Matches NetworkConfig.id
+  alias: 'Treasury Polygon',
+});
+
 // With metadata
 await aliasStorage.save({
   address: '0x1234...',
+  networkId: 'ethereum-mainnet',
   alias: 'Dev Wallet',
   metadata: {
     category: 'development',
-    chainId: 1,
+    isSmartAccount: true,
     notes: 'Main development wallet',
   },
 });
@@ -63,13 +77,24 @@ console.log(address); // '0x742d35Cc...'
 ### Lookup by Address
 
 ```typescript
-// Get full record
-const record = await aliasStorage.getByAddress('0x742d35Cc...');
-console.log(record?.alias); // 'Treasury'
+// Get global alias (no networkId)
+const globalRecord = await aliasStorage.getByAddress('0x742d35Cc...');
+console.log(globalRecord?.alias); // 'Treasury'
+
+// Get network-specific alias
+const mainnetRecord = await aliasStorage.getByAddressAndNetwork(
+  '0x742d35Cc...',
+  'ethereum-mainnet'
+);
+console.log(mainnetRecord?.alias); // 'Treasury Mainnet'
+
+// Get all aliases for an address across all networks
+const allAliases = await aliasStorage.findByAddress('0x742d35Cc...');
+console.log(allAliases.length); // 3 (global + mainnet + polygon)
 
 // Quick resolve to alias
-const alias = await aliasStorage.resolveAddress('0x742d35Cc...');
-console.log(alias); // 'Treasury'
+const alias = await aliasStorage.resolveAddress('0x742d35Cc...', 'polygon-mainnet');
+console.log(alias); // 'Treasury Polygon'
 ```
 
 ### Update an Alias
@@ -90,14 +115,14 @@ await aliasStorage.update(record.id, {
 ### Delete an Alias
 
 ```typescript
-// By address
+// By record ID (specific record)
+await aliasStorage.delete(record.id);
+
+// By address (deletes global alias only)
 await aliasStorage.deleteByAddress('0x742d35Cc...');
 
-// By alias name
+// By alias name (deletes all records with this alias)
 await aliasStorage.deleteByAlias('Treasury');
-
-// By record ID
-await aliasStorage.delete(record.id);
 ```
 
 ### List All Aliases
@@ -270,6 +295,49 @@ try {
 }
 ```
 
+## Multi-Network Usage
+
+The plugin supports multi-network scenarios where the same address may have different aliases on different networks. The `networkId` field uses the same format as `NetworkConfig.id` from `@openzeppelin/ui-types`.
+
+```typescript
+// Same address, different aliases per network
+await aliasStorage.save({ address: '0x123...', alias: 'Treasury Global' }); // Global
+await aliasStorage.save({
+  address: '0x123...',
+  networkId: 'ethereum-mainnet',
+  alias: 'Treasury ETH',
+});
+await aliasStorage.save({
+  address: '0x123...',
+  networkId: 'polygon-mainnet',
+  alias: 'Treasury MATIC',
+});
+await aliasStorage.save({
+  address: '0x123...',
+  networkId: 'stellar-mainnet',
+  alias: 'Treasury Stellar',
+});
+
+// Lookup for specific network
+const ethAlias = await aliasStorage.getByAddressAndNetwork('0x123...', 'ethereum-mainnet');
+console.log(ethAlias?.alias); // 'Treasury ETH'
+
+// Get all aliases for an address
+const allAliases = await aliasStorage.findByAddress('0x123...');
+allAliases.forEach((record) => {
+  console.log(`${record.networkId ?? 'global'}: ${record.alias}`);
+});
+// Output:
+// global: Treasury Global
+// ethereum-mainnet: Treasury ETH
+// polygon-mainnet: Treasury MATIC
+// stellar-mainnet: Treasury Stellar
+```
+
+**NetworkId Format**: Use `NetworkConfig.id` values (e.g., `ethereum-mainnet`, `stellar-testnet`, `solana-devnet`). The plugin stores this as a string and does NOT validate it.
+
+**Note**: ENS resolution, smart account detection, and other network-specific features are the implementer's responsibility (handled via adapters).
+
 ## TypeScript Support
 
 Full type safety is included:
@@ -282,17 +350,22 @@ import type {
   ImportResult,
 } from '@openzeppelin/ui-storage';
 
-// Type-safe input
+// Type-safe input with optional networkId
 const input: AliasInput = {
   address: '0x...',
+  networkId: 'ethereum-mainnet', // Optional, matches NetworkConfig.id
   alias: 'Treasury',
-  metadata: { category: 'main' },
+  metadata: { category: 'main', isSmartAccount: true },
 };
 
 // Type-safe record access
-const record: AliasRecord | undefined = await aliasStorage.getByAlias('Treasury');
+const record: AliasRecord | undefined = await aliasStorage.getByAddressAndNetwork(
+  '0x...',
+  'ethereum-mainnet'
+);
 if (record) {
   console.log(record.createdAt); // Date
+  console.log(record.networkId); // 'ethereum-mainnet' | undefined
   console.log(record.metadata?.category); // unknown
 }
 ```

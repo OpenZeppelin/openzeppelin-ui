@@ -7,16 +7,19 @@
 
 ### AliasRecord
 
-Represents a mapping between an account address and a human-readable alias name.
+Represents a mapping between an account address (optionally network-specific) and a human-readable alias name.
 
-| Field       | Type                                   | Constraints                 | Description                                        |
-| ----------- | -------------------------------------- | --------------------------- | -------------------------------------------------- |
-| `id`        | `string`                               | Primary Key, Auto-generated | Unique identifier (UUID format via `generateId()`) |
-| `address`   | `string`                               | Unique, Indexed, Required   | Account address (stored as-is, no normalization)   |
-| `alias`     | `string`                               | Indexed, Required           | Human-readable alias name                          |
-| `metadata`  | `Record<string, unknown> \| undefined` | Optional                    | Arbitrary JSON for implementer-defined context     |
-| `createdAt` | `Date`                                 | Auto-managed, Indexed       | Timestamp when record was created                  |
-| `updatedAt` | `Date`                                 | Auto-managed, Indexed       | Timestamp when record was last modified            |
+| Field       | Type                                   | Constraints                      | Description                                                                                         |
+| ----------- | -------------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `id`        | `string`                               | Primary Key, Auto-generated      | Unique identifier (UUID format via `generateId()`)                                                  |
+| `address`   | `string`                               | Composite Key, Indexed, Required | Account address (stored as-is, no normalization)                                                    |
+| `networkId` | `string \| undefined`                  | Composite Key, Indexed, Optional | Network identifier matching `NetworkConfig.id` (e.g., `ethereum-mainnet`); undefined = global alias |
+| `alias`     | `string`                               | Indexed, Required                | Human-readable alias name                                                                           |
+| `metadata`  | `Record<string, unknown> \| undefined` | Optional                         | Arbitrary JSON for implementer-defined context                                                      |
+| `createdAt` | `Date`                                 | Auto-managed, Indexed            | Timestamp when record was created                                                                   |
+| `updatedAt` | `Date`                                 | Auto-managed, Indexed            | Timestamp when record was last modified                                                             |
+
+**Composite Uniqueness**: The combination of `(address, networkId)` must be unique. The same address can have different aliases for different networks.
 
 **Relationships**: None (self-contained entity)
 
@@ -44,29 +47,35 @@ Configuration object for plugin behavior.
 ```typescript
 // Schema definition for database version configuration
 export const ALIAS_SCHEMA = {
-  aliases: '++id, &address, alias, createdAt, updatedAt',
+  aliases: '++id, [address+networkId], address, networkId, alias, createdAt, updatedAt',
 };
 ```
 
 **Index Explanation**:
 
 - `++id`: Auto-increment primary key (overridden by `generateId()` for UUID)
-- `&address`: **Unique** index ensuring one alias per address
+- `[address+networkId]`: **Compound unique** index ensuring one alias per (address, networkId) pair
+- `address`: Non-unique index for lookup by address across all networks
+- `networkId`: Non-unique index for lookup by network
 - `alias`: Non-unique index for lookup by alias name
 - `createdAt`, `updatedAt`: Indexed for chronological queries
 
+**Note on Compound Index**: Dexie compound indexes use the `[field1+field2]` syntax. This allows `undefined` networkId values (treated as `null` in IndexedDB) to be part of the unique constraint.
+
 ## Validation Rules
 
-| Rule                  | Enforcement      | Error Code        | Source                                                          |
-| --------------------- | ---------------- | ----------------- | --------------------------------------------------------------- |
-| Address non-empty     | **Enforced**     | `INVALID_ADDRESS` | Plugin rejects empty strings                                    |
-| Alias non-empty       | **Enforced**     | `INVALID_ALIAS`   | Plugin rejects empty strings                                    |
-| Address format        | **Not enforced** | —                 | Implementer responsibility (FR-013)                             |
-| Alias content         | **Not enforced** | —                 | Implementer responsibility (FR-014)                             |
-| Alias length          | **Configurable** | `ALIAS_TOO_LONG`  | Enforced if `maxAliasLength` set; set to `undefined` to disable |
-| One alias per address | **Enforced**     | —                 | Unique index on `address` field (upsert semantics)              |
-| Duplicate alias names | **Configurable** | `DUPLICATE_ALIAS` | `duplicateMode` option: strict/warn/allow                       |
-| Unicode normalization | **Not enforced** | —                 | Stored as-is; implementer responsibility                        |
+| Rule                            | Enforcement      | Error Code        | Source                                                               |
+| ------------------------------- | ---------------- | ----------------- | -------------------------------------------------------------------- |
+| Address non-empty               | **Enforced**     | `INVALID_ADDRESS` | Plugin rejects empty strings                                         |
+| Alias non-empty                 | **Enforced**     | `INVALID_ALIAS`   | Plugin rejects empty strings                                         |
+| NetworkId format                | **Not enforced** | —                 | Implementer responsibility (FR-038); should match `NetworkConfig.id` |
+| NetworkId empty string          | **Normalized**   | —                 | Empty string networkId normalized to `undefined`                     |
+| Address format                  | **Not enforced** | —                 | Implementer responsibility (FR-013)                                  |
+| Alias content                   | **Not enforced** | —                 | Implementer responsibility (FR-014)                                  |
+| Alias length                    | **Configurable** | `ALIAS_TOO_LONG`  | Enforced if `maxAliasLength` set; set to `undefined` to disable      |
+| One alias per (address,network) | **Enforced**     | —                 | Compound unique index on `[address+networkId]` (upsert semantics)    |
+| Duplicate alias names           | **Configurable** | `DUPLICATE_ALIAS` | `duplicateMode` option: strict/warn/allow                            |
+| Unicode normalization           | **Not enforced** | —                 | Stored as-is; implementer responsibility                             |
 
 ## Error Codes
 
@@ -91,6 +100,8 @@ import type { BaseRecord } from '../base/EntityStorage';
 export interface AliasRecord extends BaseRecord {
   /** Account address (stored as-is, no normalization) */
   address: string;
+  /** Network identifier matching NetworkConfig.id (undefined = global alias) */
+  networkId?: string;
   /** Human-readable alias name */
   alias: string;
   /** Optional arbitrary JSON metadata */
@@ -148,6 +159,7 @@ export interface AliasExport {
   /** Alias records */
   aliases: Array<{
     address: string;
+    networkId?: string;
     alias: string;
     metadata?: Record<string, unknown>;
   }>;
@@ -156,11 +168,14 @@ export interface AliasExport {
 
 ## Query Patterns
 
-| Operation           | Method                        | Index Used           |
-| ------------------- | ----------------------------- | -------------------- |
-| Get by ID           | `get(id)`                     | Primary key          |
-| Get by address      | `getByAddress(address)`       | `&address` (unique)  |
-| Get by alias name   | `getByAlias(alias)`           | `alias`              |
-| Find all with alias | `findByAlias(alias)`          | `alias`              |
-| List all            | `getAll()`                    | `updatedAt` (sorted) |
-| Check duplicate     | `where('alias').equals(name)` | `alias`              |
+| Operation               | Method                                        | Index Used            |
+| ----------------------- | --------------------------------------------- | --------------------- |
+| Get by ID               | `get(id)`                                     | Primary key           |
+| Get by address (global) | `getByAddress(address)`                       | `[address+networkId]` |
+| Get by address+network  | `getByAddressAndNetwork(address, networkId?)` | `[address+networkId]` |
+| Find all for address    | `findByAddress(address)`                      | `address`             |
+| Get by alias name       | `getByAlias(alias)`                           | `alias`               |
+| Find all with alias     | `findByAlias(alias)`                          | `alias`               |
+| Find all for network    | `findByNetwork(networkId)`                    | `networkId`           |
+| List all                | `getAll()`                                    | `updatedAt` (sorted)  |
+| Check duplicate         | `where('alias').equals(name)`                 | `alias`               |

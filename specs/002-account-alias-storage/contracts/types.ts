@@ -19,6 +19,13 @@ export interface AliasRecord extends BaseRecord {
   /** Account address (stored as-is, no normalization) */
   address: string;
 
+  /**
+   * Network identifier matching NetworkConfig.id pattern (e.g., 'ethereum-mainnet', 'stellar-testnet').
+   * undefined = global alias (not network-specific).
+   * Same address can have different aliases for different networks.
+   */
+  networkId?: string;
+
   /** Human-readable alias name */
   alias: string;
 
@@ -129,6 +136,7 @@ export interface AliasExport {
   /** Array of alias records (without internal IDs/timestamps) */
   aliases: Array<{
     address: string;
+    networkId?: string;
     alias: string;
     metadata?: Record<string, unknown>;
   }>;
@@ -144,6 +152,8 @@ export interface AliasExport {
 export type AliasStorageErrorCode =
   | 'DUPLICATE_ALIAS'
   | 'ALIAS_TOO_LONG'
+  | 'INVALID_ALIAS'
+  | 'INVALID_ADDRESS'
   | 'ALIAS_NOT_FOUND'
   | 'ADDRESS_NOT_FOUND'
   | 'INVALID_IMPORT_FORMAT'

@@ -98,12 +98,29 @@ export interface IAliasStorage {
   get(id: string): Promise<AliasRecord | undefined>;
 
   /**
-   * Get an alias record by address.
+   * Get a global alias record by address (networkId undefined).
    *
    * @param address - Account address
-   * @returns The record, or undefined if address has no alias
+   * @returns The global alias record, or undefined if address has no global alias
    */
   getByAddress(address: string): Promise<AliasRecord | undefined>;
+
+  /**
+   * Get an alias record by address and optional networkId.
+   *
+   * @param address - Account address
+   * @param networkId - Network identifier matching NetworkConfig.id (undefined for global alias)
+   * @returns The record, or undefined if (address, networkId) has no alias
+   */
+  getByAddressAndNetwork(address: string, networkId?: string): Promise<AliasRecord | undefined>;
+
+  /**
+   * Find all alias records for an address across all networks.
+   *
+   * @param address - Account address
+   * @returns Array of all alias records for this address (may include global and network-specific)
+   */
+  findByAddress(address: string): Promise<AliasRecord[]>;
 
   /**
    * Get an alias record by alias name.
@@ -141,9 +158,10 @@ export interface IAliasStorage {
    * Check if an address has an alias.
    *
    * @param address - Address to check
-   * @returns true if alias exists
+   * @param networkId - Optional network identifier (undefined checks global alias)
+   * @returns true if alias exists for the (address, networkId) pair
    */
-  hasAlias(address: string): Promise<boolean>;
+  hasAlias(address: string, networkId?: string): Promise<boolean>;
 
   /**
    * Check if an alias name is in use.
@@ -168,12 +186,13 @@ export interface IAliasStorage {
 
   /**
    * Resolve an address to an alias name.
-   * Shorthand for getByAddress(address)?.alias.
+   * Shorthand for getByAddressAndNetwork(address, networkId)?.alias.
    *
    * @param address - Account address
-   * @returns The alias, or undefined if address has no alias
+   * @param networkId - Optional network identifier (undefined for global alias)
+   * @returns The alias, or undefined if address has no alias for this network
    */
-  resolveAddress(address: string): Promise<string | undefined>;
+  resolveAddress(address: string, networkId?: string): Promise<string | undefined>;
 
   // ==========================================================================
   // Bulk Operations
@@ -261,8 +280,14 @@ export interface UseAliasStorageReturn {
   /** Import aliases from file */
   importFromFile: () => Promise<string[]>;
 
-  /** Get alias by address */
+  /** Get global alias by address */
   getByAddress: (address: string) => Promise<AliasRecord | undefined>;
+
+  /** Get alias by address and optional networkId */
+  getByAddressAndNetwork: (address: string, networkId?: string) => Promise<AliasRecord | undefined>;
+
+  /** Find all aliases for an address across all networks */
+  findByAddress: (address: string) => Promise<AliasRecord[]>;
 
   /** Get alias by name */
   getByAlias: (alias: string) => Promise<AliasRecord | undefined>;
@@ -270,8 +295,8 @@ export interface UseAliasStorageReturn {
   /** Resolve alias to address */
   resolveAlias: (alias: string) => Promise<string | undefined>;
 
-  /** Resolve address to alias */
-  resolveAddress: (address: string) => Promise<string | undefined>;
+  /** Resolve address to alias for specific network */
+  resolveAddress: (address: string, networkId?: string) => Promise<string | undefined>;
 }
 
 /**
