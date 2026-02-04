@@ -183,21 +183,21 @@ packages/storage/src/
 
 **Purpose**: Package exports, documentation, final integration
 
-- [ ] T057 Export all public APIs from `plugins/account-alias/index.ts`
-- [ ] T058 Add plugin exports to main `packages/storage/src/index.ts`
-- [ ] T059 [P] Add JSDoc comments to all public methods in `AliasStorage.ts`
-- [ ] T060 [P] Add JSDoc comments to all public types in `types.ts`
-- [ ] T061 [P] Add JSDoc comments to React hooks in `react.ts`
-- [ ] T062 Update `packages/storage/README.md` with Account Alias plugin section
-- [ ] T063 Run all tests and verify passing: `pnpm test --filter @openzeppelin/ui-storage`
-- [ ] T064 Run linter and fix issues: `pnpm lint --filter @openzeppelin/ui-storage`
-- [ ] T065 Run typecheck: `pnpm typecheck --filter @openzeppelin/ui-storage`
-- [ ] T066 Create changeset file for the new plugin feature
-- [ ] T067 Validate quickstart.md examples work in example app
-- [ ] T068 [P] Verify bundle size <5KB minified+gzipped: `pnpm build && du -h dist/`
-- [ ] T069 [P] Run performance sanity check: lookup latency with 1000 aliases (manual or script)
+- [x] T057 Export all public APIs from `plugins/account-alias/index.ts`
+- [x] T058 Add plugin exports to main `packages/storage/src/index.ts`
+- [x] T059 [P] Add JSDoc comments to all public methods in `AliasStorage.ts`
+- [x] T060 [P] Add JSDoc comments to all public types in `types.ts`
+- [x] T061 [P] Add JSDoc comments to React hooks in `react.ts`
+- [x] T062 Update `packages/storage/README.md` with Account Alias plugin section
+- [x] T063 Run all tests and verify passing: `pnpm test --filter @openzeppelin/ui-storage`
+- [x] T064 Run linter and fix issues: `pnpm lint --filter @openzeppelin/ui-storage`
+- [x] T065 Run typecheck: `pnpm typecheck --filter @openzeppelin/ui-storage`
+- [x] T066 Create changeset file for the new plugin feature
+- [x] T067 Validate quickstart.md examples work in example app
+- [x] T068 [P] Verify bundle size <5KB minified+gzipped: `pnpm build && du -h dist/`
+- [x] T069 [P] Run performance sanity check: lookup latency with 1000 aliases (manual or script)
 
-**Checkpoint**: Plugin complete, tested, documented, ready for PR
+**Checkpoint**: Plugin complete, tested, documented, ready for PR ✅
 
 ---
 
