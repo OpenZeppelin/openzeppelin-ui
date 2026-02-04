@@ -435,7 +435,7 @@ Note: Records without `networkId` are global aliases. The same address can appea
 ```typescript
 interface ImportResult {
   imported: number; // Successfully imported count
-  skipped: number; // Skipped due to duplicates (strict mode)
+  skipped: number; // Records that were not imported (validation failures, quota errors, or duplicates, depending on duplicateMode)
   ids: string[]; // IDs of imported records
 }
 ```
