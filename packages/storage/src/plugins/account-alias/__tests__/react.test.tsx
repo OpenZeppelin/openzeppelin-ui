@@ -376,7 +376,7 @@ describe('createUseAliasStorage', () => {
         }
       });
 
-      expect(onError).toHaveBeenCalledWith('Failed to save alias', expect.any(Error));
+      expect(onError).toHaveBeenCalledWith('Failed to save', expect.any(Error));
     });
 
     it('should call onError when update fails', async () => {
@@ -397,7 +397,7 @@ describe('createUseAliasStorage', () => {
         }
       });
 
-      expect(onError).toHaveBeenCalledWith('Failed to update alias', expect.any(Error));
+      expect(onError).toHaveBeenCalledWith('Failed to update', expect.any(Error));
     });
 
     it('should re-throw errors after calling onError', async () => {

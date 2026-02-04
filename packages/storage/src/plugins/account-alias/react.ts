@@ -2,12 +2,12 @@
  * React Hook Integration for Account Alias Storage
  *
  * Provides React hooks for live reactive queries and CRUD operations
- * following the existing storage package patterns (createRepositoryHook, createCrudHook).
+ * using the existing storage package patterns (createRepositoryHook, createJsonFileIO).
  */
 import type Dexie from 'dexie';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 
+import { createRepositoryHook } from '../../react/createRepositoryHook';
 import type { AliasStorage } from './AliasStorage';
 import { createAliasStorage } from './AliasStorage';
 import type { AliasInput, AliasRecord, AliasStorageOptions, AliasUpdate } from './types';
@@ -93,6 +93,9 @@ export interface UseAliasStorageReturn {
  * - File import/export functionality
  * - Convenience lookup methods
  *
+ * This hook uses the shared createRepositoryHook pattern from the storage package
+ * to ensure consistency with other storage hooks.
+ *
  * @param db - Dexie database instance with alias schema
  * @param options - Configuration options including error handler
  * @returns A React hook for alias storage
@@ -132,100 +135,47 @@ export function createUseAliasStorage(
   // Create storage instance once (shared across all hook instances)
   const storage = createAliasStorage(db, storageOptions);
 
+  // Create the base hook using createRepositoryHook
+  const useBaseHook = createRepositoryHook<AliasRecord, AliasStorage>({
+    db,
+    tableName: storageOptions.tableName ?? 'aliases',
+    query: (table) => table.orderBy('updatedAt').reverse().toArray(),
+    repo: storage,
+    onError,
+    fileIO: {
+      exportJson: (ids) => storage.exportJson(ids),
+      // Adapter: importJson returns ImportResult, but createJsonFileIO expects string[]
+      importJson: async (json) => {
+        const result = await storage.importJson(json);
+        return result.ids;
+      },
+      filePrefix: 'aliases',
+    },
+    // Expose alias-specific lookup methods
+    expose: (repo) => ({
+      getByAddress: repo.getByAddress.bind(repo),
+      getByAddressAndNetwork: repo.getByAddressAndNetwork.bind(repo),
+      findByAddress: repo.findByAddress.bind(repo),
+      getByAlias: repo.getByAlias.bind(repo),
+      resolveAlias: repo.resolveAlias.bind(repo),
+      resolveAddress: repo.resolveAddress.bind(repo),
+    }),
+  });
+
+  // Return wrapper hook that adds error handling to lookup methods
   return function useAliasStorage(): UseAliasStorageReturn {
-    // Live query for all records - auto-updates when data changes
-    const records = useLiveQuery(
-      () => storage.getAll(),
-      [] // Dependencies - empty since storage is stable
-    );
+    const baseResult = useBaseHook();
 
-    const isLoading = records === undefined;
+    // Wrap lookup operations with error handling
+    const wrap = useCallback(async <T>(title: string, operation: () => Promise<T>): Promise<T> => {
+      try {
+        return await operation();
+      } catch (error) {
+        onError?.(title, error);
+        throw error;
+      }
+    }, []);
 
-    // Wrap async operations with error handling
-    const wrap = useCallback(
-      async <T>(title: string, operation: () => Promise<T>): Promise<T> => {
-        try {
-          return await operation();
-        } catch (error) {
-          onError?.(title, error);
-          throw error;
-        }
-      },
-      [onError]
-    );
-
-    // CRUD Operations with error handling
-    const save = useCallback(
-      (input: AliasInput) => wrap('Failed to save alias', () => storage.save(input)),
-      [wrap]
-    );
-
-    const update = useCallback(
-      (id: string, updates: AliasUpdate) =>
-        wrap('Failed to update alias', () => storage.update(id, updates)),
-      [wrap]
-    );
-
-    const remove = useCallback(
-      (id: string) => wrap('Failed to delete alias', () => storage.delete(id)),
-      [wrap]
-    );
-
-    const clear = useCallback(() => wrap('Failed to clear aliases', () => storage.clear()), [wrap]);
-
-    // File I/O operations
-    const exportAsFile = useCallback(
-      async (ids?: string[]) => {
-        try {
-          const jsonData = await storage.exportJson(ids);
-          const blob = new Blob([jsonData], { type: 'application/json' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `aliases-${new Date().toISOString().split('T')[0]}.json`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        } catch (error) {
-          onError?.('Failed to export aliases', error);
-          throw error;
-        }
-      },
-      [onError]
-    );
-
-    const importFromFile = useCallback(
-      async (file: File): Promise<string[]> => {
-        try {
-          const text = await file.text();
-
-          // Validate JSON format
-          try {
-            JSON.parse(text);
-          } catch {
-            throw new Error('Invalid JSON format');
-          }
-
-          const result = await storage.importJson(text);
-          return result.ids;
-        } catch (error) {
-          let errorMessage = 'Failed to import aliases';
-          if (error instanceof Error) {
-            if (error.message.includes('memory') || error.message.includes('quota')) {
-              errorMessage = 'File too large - insufficient memory';
-            } else if (error.message.includes('Invalid JSON')) {
-              errorMessage = 'Invalid JSON format';
-            }
-          }
-          onError?.(errorMessage, error);
-          throw error;
-        }
-      },
-      [onError]
-    );
-
-    // Lookup operations (wrapped with error handling)
     const getByAddress = useCallback(
       (address: string) =>
         wrap('Failed to get alias by address', () => storage.getByAddress(address)),
@@ -260,41 +210,22 @@ export function createUseAliasStorage(
       [wrap]
     );
 
-    // Memoize the return object to prevent unnecessary re-renders
-    return useMemo(
-      () => ({
-        records,
-        isLoading,
-        save,
-        update,
-        remove,
-        clear,
-        exportAsFile,
-        importFromFile,
-        getByAddress,
-        getByAddressAndNetwork,
-        findByAddress,
-        getByAlias,
-        resolveAlias,
-        resolveAddress,
-      }),
-      [
-        records,
-        isLoading,
-        save,
-        update,
-        remove,
-        clear,
-        exportAsFile,
-        importFromFile,
-        getByAddress,
-        getByAddressAndNetwork,
-        findByAddress,
-        getByAlias,
-        resolveAlias,
-        resolveAddress,
-      ]
-    );
+    return {
+      records: baseResult.records,
+      isLoading: baseResult.isLoading,
+      save: baseResult.save as (input: AliasInput) => Promise<string>,
+      update: baseResult.update as (id: string, updates: AliasUpdate) => Promise<void>,
+      remove: baseResult.remove,
+      clear: baseResult.clear,
+      exportAsFile: baseResult.exportAsFile as (ids?: string[]) => Promise<void>,
+      importFromFile: baseResult.importFromFile as (file: File) => Promise<string[]>,
+      getByAddress,
+      getByAddressAndNetwork,
+      findByAddress,
+      getByAlias,
+      resolveAlias,
+      resolveAddress,
+    };
   };
 }
 

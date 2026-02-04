@@ -301,6 +301,9 @@ export interface UseAliasStorageReturn {
 
 /**
  * Hook factory for creating alias storage hooks.
+ *
+ * Implementation uses `createRepositoryHook` and `createJsonFileIO` internally
+ * to ensure consistency with other storage hooks in the package.
  */
 export type CreateUseAliasStorage = (
   db: import('dexie').default,

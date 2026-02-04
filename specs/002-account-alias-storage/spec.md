@@ -352,7 +352,9 @@ When logging is enabled, the plugin logs the following events:
 
 ### React Hook Behavior
 
-**Hook Return Type** (matches `createRepositoryHook` pattern):
+**Implementation**: The `createUseAliasStorage` hook factory uses the shared `createRepositoryHook` utility internally, ensuring consistency with other storage hooks in the package. File I/O is provided by `createJsonFileIO`.
+
+**Hook Return Type** (uses `createRepositoryHook` pattern):
 
 ```typescript
 {
