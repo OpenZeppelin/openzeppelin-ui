@@ -682,6 +682,322 @@ describe('AliasStorage', () => {
   });
 
   // ==========================================================================
+  // T031: Delete Operations
+  // ==========================================================================
+  describe('delete operations', () => {
+    describe('delete', () => {
+      it('should delete an alias by ID', async () => {
+        const storage = createAliasStorage(db);
+        const id = await storage.save({ address: '0x123', alias: 'Treasury' });
+
+        await storage.delete(id);
+
+        const record = await storage.get(id);
+        expect(record).toBeUndefined();
+      });
+
+      it('should not throw when deleting non-existent ID', async () => {
+        const storage = createAliasStorage(db);
+
+        // Should not throw
+        await expect(storage.delete('non-existent-id')).resolves.not.toThrow();
+      });
+
+      it('should only delete specified record', async () => {
+        const storage = createAliasStorage(db);
+        const id1 = await storage.save({ address: '0x111', alias: 'Treasury1' });
+        const id2 = await storage.save({ address: '0x222', alias: 'Treasury2' });
+
+        await storage.delete(id1);
+
+        expect(await storage.get(id1)).toBeUndefined();
+        expect(await storage.get(id2)).toBeDefined();
+      });
+    });
+
+    describe('deleteByAddress', () => {
+      it('should delete global alias for address', async () => {
+        const storage = createAliasStorage(db);
+        await storage.save({ address: '0x123', alias: 'Treasury' });
+
+        await storage.deleteByAddress('0x123');
+
+        const record = await storage.getByAddress('0x123');
+        expect(record).toBeUndefined();
+      });
+
+      it('should not throw when address has no alias', async () => {
+        const storage = createAliasStorage(db);
+
+        await expect(storage.deleteByAddress('0xNonExistent')).resolves.not.toThrow();
+      });
+
+      it('should only delete global alias, not network-specific', async () => {
+        const storage = createAliasStorage(db);
+        await storage.save({ address: '0x123', alias: 'Global' });
+        await storage.save({
+          address: '0x123',
+          networkId: 'ethereum-mainnet',
+          alias: 'ETH',
+        });
+
+        await storage.deleteByAddress('0x123');
+
+        expect(await storage.getByAddress('0x123')).toBeUndefined();
+        expect(await storage.getByAddressAndNetwork('0x123', 'ethereum-mainnet')).toBeDefined();
+      });
+    });
+
+    describe('deleteByAlias', () => {
+      it('should delete alias by name', async () => {
+        const storage = createAliasStorage(db);
+        await storage.save({ address: '0x123', alias: 'Treasury' });
+
+        await storage.deleteByAlias('Treasury');
+
+        const record = await storage.getByAlias('Treasury');
+        expect(record).toBeUndefined();
+      });
+
+      it('should not throw when alias does not exist', async () => {
+        const storage = createAliasStorage(db);
+
+        await expect(storage.deleteByAlias('NonExistent')).resolves.not.toThrow();
+      });
+
+      it('should delete all records with duplicate alias name', async () => {
+        const storage = createAliasStorage(db, { duplicateMode: 'allow' });
+        await storage.save({ address: '0x111', alias: 'Treasury' });
+        await storage.save({ address: '0x222', alias: 'Treasury' });
+        await storage.save({ address: '0x333', alias: 'Other' });
+
+        await storage.deleteByAlias('Treasury');
+
+        const treasuryRecords = await storage.findByAlias('Treasury');
+        expect(treasuryRecords).toHaveLength(0);
+
+        // Other should remain
+        const otherRecords = await storage.findByAlias('Other');
+        expect(otherRecords).toHaveLength(1);
+      });
+    });
+
+    describe('clear', () => {
+      it('should delete all aliases', async () => {
+        const storage = createAliasStorage(db);
+        await storage.save({ address: '0x111', alias: 'Treasury1' });
+        await storage.save({ address: '0x222', alias: 'Treasury2' });
+        await storage.save({ address: '0x333', alias: 'Treasury3' });
+
+        await storage.clear();
+
+        const count = await storage.count();
+        expect(count).toBe(0);
+      });
+
+      it('should not throw when storage is already empty', async () => {
+        const storage = createAliasStorage(db);
+
+        await expect(storage.clear()).resolves.not.toThrow();
+      });
+    });
+  });
+
+  // ==========================================================================
+  // T032: List and Count Operations
+  // ==========================================================================
+  describe('list and count operations', () => {
+    describe('getAll', () => {
+      it('should return all alias records', async () => {
+        const storage = createAliasStorage(db);
+        await storage.save({ address: '0x111', alias: 'Treasury1' });
+        await storage.save({ address: '0x222', alias: 'Treasury2' });
+        await storage.save({ address: '0x333', alias: 'Treasury3' });
+
+        const all = await storage.getAll();
+
+        expect(all).toHaveLength(3);
+        const aliases = all.map((r) => r.alias);
+        expect(aliases).toContain('Treasury1');
+        expect(aliases).toContain('Treasury2');
+        expect(aliases).toContain('Treasury3');
+      });
+
+      it('should return empty array when no aliases exist', async () => {
+        const storage = createAliasStorage(db);
+
+        const all = await storage.getAll();
+
+        expect(all).toEqual([]);
+      });
+
+      it('should return records ordered by updatedAt descending', async () => {
+        const storage = createAliasStorage(db);
+        const id1 = await storage.save({ address: '0x111', alias: 'First' });
+        await storage.save({ address: '0x222', alias: 'Second' });
+        await storage.save({ address: '0x333', alias: 'Third' });
+
+        // Wait and update first record to make it most recent
+        await new Promise((r) => setTimeout(r, 10));
+        await storage.update(id1, { metadata: { updated: true } });
+
+        const all = await storage.getAll();
+
+        // First record should be first (most recently updated)
+        expect(all[0].alias).toBe('First');
+      });
+
+      it('should include records with networkId', async () => {
+        const storage = createAliasStorage(db);
+        await storage.save({ address: '0x111', alias: 'Global' });
+        await storage.save({
+          address: '0x111',
+          networkId: 'ethereum-mainnet',
+          alias: 'ETH',
+        });
+
+        const all = await storage.getAll();
+
+        expect(all).toHaveLength(2);
+        expect(all.find((r) => r.networkId === 'ethereum-mainnet')).toBeDefined();
+        expect(all.find((r) => r.networkId === undefined)).toBeDefined();
+      });
+    });
+
+    describe('count', () => {
+      it('should return the number of stored aliases', async () => {
+        const storage = createAliasStorage(db);
+        await storage.save({ address: '0x111', alias: 'Treasury1' });
+        await storage.save({ address: '0x222', alias: 'Treasury2' });
+        await storage.save({ address: '0x333', alias: 'Treasury3' });
+
+        const count = await storage.count();
+
+        expect(count).toBe(3);
+      });
+
+      it('should return 0 when no aliases exist', async () => {
+        const storage = createAliasStorage(db);
+
+        const count = await storage.count();
+
+        expect(count).toBe(0);
+      });
+
+      it('should count network-specific aliases separately', async () => {
+        const storage = createAliasStorage(db);
+        await storage.save({ address: '0x111', alias: 'Global' });
+        await storage.save({
+          address: '0x111',
+          networkId: 'ethereum-mainnet',
+          alias: 'ETH',
+        });
+        await storage.save({
+          address: '0x111',
+          networkId: 'polygon-mainnet',
+          alias: 'MATIC',
+        });
+
+        const count = await storage.count();
+
+        expect(count).toBe(3);
+      });
+    });
+
+    describe('hasAlias', () => {
+      it('should return true when address has global alias', async () => {
+        const storage = createAliasStorage(db);
+        await storage.save({ address: '0x123', alias: 'Treasury' });
+
+        const has = await storage.hasAlias('0x123');
+
+        expect(has).toBe(true);
+      });
+
+      it('should return false when address has no alias', async () => {
+        const storage = createAliasStorage(db);
+
+        const has = await storage.hasAlias('0x123');
+
+        expect(has).toBe(false);
+      });
+
+      it('should return true when address has network-specific alias', async () => {
+        const storage = createAliasStorage(db);
+        await storage.save({
+          address: '0x123',
+          networkId: 'ethereum-mainnet',
+          alias: 'ETH Treasury',
+        });
+
+        const has = await storage.hasAlias('0x123', 'ethereum-mainnet');
+
+        expect(has).toBe(true);
+      });
+
+      it('should return false when address has alias on different network', async () => {
+        const storage = createAliasStorage(db);
+        await storage.save({
+          address: '0x123',
+          networkId: 'ethereum-mainnet',
+          alias: 'ETH Treasury',
+        });
+
+        const has = await storage.hasAlias('0x123', 'polygon-mainnet');
+
+        expect(has).toBe(false);
+      });
+
+      it('should distinguish between global and network-specific aliases', async () => {
+        const storage = createAliasStorage(db);
+        await storage.save({ address: '0x123', alias: 'Global' });
+
+        expect(await storage.hasAlias('0x123')).toBe(true);
+        expect(await storage.hasAlias('0x123', undefined)).toBe(true);
+        expect(await storage.hasAlias('0x123', 'ethereum-mainnet')).toBe(false);
+      });
+    });
+
+    describe('aliasExists', () => {
+      it('should return true when alias name is in use', async () => {
+        const storage = createAliasStorage(db);
+        await storage.save({ address: '0x123', alias: 'Treasury' });
+
+        const exists = await storage.aliasExists('Treasury');
+
+        expect(exists).toBe(true);
+      });
+
+      it('should return false when alias name is not in use', async () => {
+        const storage = createAliasStorage(db);
+
+        const exists = await storage.aliasExists('Treasury');
+
+        expect(exists).toBe(false);
+      });
+
+      it('should return true when duplicate aliases exist', async () => {
+        const storage = createAliasStorage(db, { duplicateMode: 'allow' });
+        await storage.save({ address: '0x111', alias: 'Treasury' });
+        await storage.save({ address: '0x222', alias: 'Treasury' });
+
+        const exists = await storage.aliasExists('Treasury');
+
+        expect(exists).toBe(true);
+      });
+
+      it('should be case-sensitive', async () => {
+        const storage = createAliasStorage(db);
+        await storage.save({ address: '0x123', alias: 'Treasury' });
+
+        expect(await storage.aliasExists('Treasury')).toBe(true);
+        expect(await storage.aliasExists('treasury')).toBe(false);
+        expect(await storage.aliasExists('TREASURY')).toBe(false);
+      });
+    });
+  });
+
+  // ==========================================================================
   // Factory Function
   // ==========================================================================
   describe('createAliasStorage factory', () => {

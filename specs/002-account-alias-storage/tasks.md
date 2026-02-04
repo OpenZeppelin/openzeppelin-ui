@@ -113,21 +113,21 @@ packages/storage/src/
 
 ### Tests for Delete & List
 
-- [ ] T031 [P] [US7] Add test cases for `delete()`, `deleteByAddress()`, `deleteByAlias()` in `AliasStorage.test.ts`
-- [ ] T032 [P] [US8] Add test cases for `getAll()`, `count()`, `hasAlias()`, `aliasExists()` in `AliasStorage.test.ts`
+- [x] T031 [P] [US7] Add test cases for `delete()`, `deleteByAddress()`, `deleteByAlias()` in `AliasStorage.test.ts`
+- [x] T032 [P] [US8] Add test cases for `getAll()`, `count()`, `hasAlias()`, `aliasExists()` in `AliasStorage.test.ts`
 
 ### Implementation for Delete & List
 
-- [ ] T033 [US7] Implement `delete(id: string): Promise<void>` method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T034 [US7] Implement `deleteByAddress(address: string): Promise<void>` method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T035 [US7] Implement `deleteByAlias(alias: string): Promise<void>` method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T036 [US7] Implement `clear(): Promise<void>` method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T037 [US8] Implement `getAll(): Promise<AliasRecord[]>` method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T038 [US8] Implement `count(): Promise<number>` method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T039 [US8] Implement `hasAlias(address: string, networkId?: string): Promise<boolean>` method in `plugins/account-alias/AliasStorage.ts`
-- [ ] T040 [US8] Implement `aliasExists(alias: string): Promise<boolean>` method in `plugins/account-alias/AliasStorage.ts`
+- [x] T033 [US7] Implement `delete(id: string): Promise<void>` method in `plugins/account-alias/AliasStorage.ts`
+- [x] T034 [US7] Implement `deleteByAddress(address: string): Promise<void>` method in `plugins/account-alias/AliasStorage.ts`
+- [x] T035 [US7] Implement `deleteByAlias(alias: string): Promise<void>` method in `plugins/account-alias/AliasStorage.ts`
+- [x] T036 [US7] Implement `clear(): Promise<void>` method in `plugins/account-alias/AliasStorage.ts`
+- [x] T037 [US8] Implement `getAll(): Promise<AliasRecord[]>` method in `plugins/account-alias/AliasStorage.ts`
+- [x] T038 [US8] Implement `count(): Promise<number>` method in `plugins/account-alias/AliasStorage.ts`
+- [x] T039 [US8] Implement `hasAlias(address: string, networkId?: string): Promise<boolean>` method in `plugins/account-alias/AliasStorage.ts`
+- [x] T040 [US8] Implement `aliasExists(alias: string): Promise<boolean>` method in `plugins/account-alias/AliasStorage.ts`
 
-**Checkpoint**: Full CRUD + list operations working
+**Checkpoint**: Full CRUD + list operations working ✅
 
 ---
 
