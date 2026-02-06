@@ -33,6 +33,13 @@ jobs:
   release:
     needs: [provenance]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      attestations: write
+      actions: write
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
@@ -69,30 +76,33 @@ jobs:
           echo "path=${temp_dir}" >>"${GITHUB_OUTPUT}"
 
       - name: Upload tarball artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: ${{ github.ref_name }}
           path: ${{ needs.provenance.outputs.package-name }}
 
       - name: Download tarball
-        uses: slsa-framework/slsa-github-generator/.github/actions/secure-download-artifact@a09dd8c05eda63cace134cb7dccd7e019f25e6f3 # main
+        uses: slsa-framework/slsa-github-generator/.github/actions/secure-download-artifact@a09dd8c05eda63cace134cb7dccd7e019f25e6f3 # untagged main commit
         with:
           name: ${{ needs.provenance.outputs.package-download-name }}
           path: "${{ steps.temp-dir.outputs.path }}/${{ needs.provenance.outputs.package-name }}"
           sha256: ${{ needs.provenance.outputs.package-download-sha256 }}
 
       - name: Download provenance
-        uses: slsa-framework/slsa-github-generator/actions/nodejs/secure-attestations-download@a09dd8c05eda63cace134cb7dccd7e019f25e6f3 # v1.6.0
+        uses: slsa-framework/slsa-github-generator/actions/nodejs/secure-attestations-download@a09dd8c05eda63cace134cb7dccd7e019f25e6f3 # untagged main commit
         with:
           name: ${{ needs.provenance.outputs.provenance-download-name }}
           path: "${{ steps.temp-dir.outputs.path }}"
           sha256: ${{ needs.provenance.outputs.provenance-download-sha256 }}
 
       - name: Unpack the zipped artifact
+        env:
+          TEMP_DIR: ${{ steps.temp-dir.outputs.path }}
+          PACKAGE_NAME: ${{ needs.provenance.outputs.package-name }}
         run: |
           set -euo pipefail
-          cd "${{ steps.temp-dir.outputs.path }}"
-          tar -xzvf "${{ needs.provenance.outputs.package-name }}" -C $GITHUB_WORKSPACE --strip-components=1
+          cd "$TEMP_DIR"
+          tar -xzvf "$PACKAGE_NAME" -C "$GITHUB_WORKSPACE" --strip-components=1
           cd "$GITHUB_WORKSPACE"
           pnpm install
 
@@ -131,10 +141,10 @@ jobs:
         id: extract_version
         run: |
           version=$(jq -r '.version' package.json)
-          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Generate SBOM
-        uses: anchore/sbom-action@deef08a0db64bfad603422135db61477b16cef56
+        uses: anchore/sbom-action@28d71544de8eaf1b958d335707167c5f783590ad # v0.22.2
         with:
           artifact-name: sbom-${{ github.event.repository.name }}-${{ steps.extract_version.outputs.version }}.spdx.json
           output-file: /${{ steps.temp-dir.outputs.path }}/sbom-${{ github.event.repository.name }}-${{ steps.extract_version.outputs.version }}.spdx.json
@@ -142,15 +152,15 @@ jobs:
           upload-release-assets: false
 
       - name: Download Artifacts
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
 
       - name: Upload attestations SLSA
-        uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f
+        uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f # v3.2.0
         with:
           subject-path: ${{ needs.provenance.outputs.provenance-download-name }}
           subject-name: ${{ github.event.repository.name }}-${{ steps.extract_version.outputs.version }}
 
       - name: Upload attestations SBOM
-        uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f
+        uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f # v3.2.0
         with:
           subject-path: /${{ steps.temp-dir.outputs.path }}/sbom-${{ github.event.repository.name }}-${{ steps.extract_version.outputs.version }}.spdx.json
