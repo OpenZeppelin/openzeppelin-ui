@@ -86,6 +86,14 @@ export interface BaseNetworkConfig {
    * Used for real-time blockchain data subscriptions
    */
   indexerWsUri?: string;
+
+  /**
+   * Optional GraphQL endpoint for the access control indexer.
+   * Used by the access control module for historical queries and role discovery.
+   * Feature-specific field — distinct from the general-purpose `indexerUri` which
+   * may serve different purposes per ecosystem (e.g., Midnight chain indexer).
+   */
+  accessControlIndexerUrl?: string;
 }
 
 /**

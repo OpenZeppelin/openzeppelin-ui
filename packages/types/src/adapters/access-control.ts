@@ -48,8 +48,12 @@ export type OwnershipState = 'owned' | 'pending' | 'expired' | 'renounced';
 export interface PendingOwnershipTransfer {
   /** Address designated to receive ownership */
   pendingOwner: string;
-  /** Block/ledger number by which transfer must be accepted */
-  expirationBlock: number;
+  /**
+   * Block/ledger number by which transfer must be accepted.
+   * Required for chains with expiration (e.g., Stellar).
+   * Omitted for chains without expiration (e.g., EVM Ownable2Step).
+   */
+  expirationBlock?: number;
   /** ISO8601 timestamp of transfer initiation (from indexer) */
   initiatedAt?: string;
   /** Transaction ID of the initiation (from indexer) */
@@ -113,8 +117,14 @@ export type AdminState = 'active' | 'pending' | 'expired' | 'renounced';
 export interface PendingAdminTransfer {
   /** Address designated to receive admin role */
   pendingAdmin: string;
-  /** Block/ledger number by which transfer must be accepted */
-  expirationBlock: number;
+  /**
+   * Block/ledger number by which transfer must be accepted.
+   * Required for chains with expiration (e.g., Stellar).
+   * Omitted for chains without expiration (e.g., EVM Ownable2Step).
+   * For EVM AccessControlDefaultAdminRules, stores the accept schedule
+   * (UNIX timestamp in seconds) from `pendingDefaultAdmin()`.
+   */
+  expirationBlock?: number;
   /** ISO8601 timestamp of transfer initiation (from indexer) */
   initiatedAt?: string;
   /** Transaction ID of the initiation (from indexer) */
@@ -227,7 +237,10 @@ export interface AccessSnapshot {
  * - OWNERSHIP_RENOUNCED: Ownership was renounced (owner set to null/zero)
  * - ADMIN_TRANSFER_INITIATED: Two-step admin transfer initiated
  * - ADMIN_TRANSFER_COMPLETED: Two-step admin transfer accepted
- * - ADMIN_RENOUNCED: Admin role was renounced (Stellar only)
+ * - ADMIN_RENOUNCED: Admin role was renounced
+ * - ADMIN_TRANSFER_CANCELED: Pending admin transfer was canceled (EVM AccessControlDefaultAdminRules)
+ * - ADMIN_DELAY_CHANGE_SCHEDULED: Admin transfer delay change was scheduled (EVM AccessControlDefaultAdminRules)
+ * - ADMIN_DELAY_CHANGE_CANCELED: Pending admin delay change was canceled (EVM AccessControlDefaultAdminRules)
  * - UNKNOWN: Unrecognized event type from indexer (indicates schema mismatch)
  */
 export type HistoryChangeType =
@@ -239,7 +252,10 @@ export type HistoryChangeType =
   | 'OWNERSHIP_RENOUNCED'
   | 'ADMIN_TRANSFER_INITIATED'
   | 'ADMIN_TRANSFER_COMPLETED'
+  | 'ADMIN_TRANSFER_CANCELED'
   | 'ADMIN_RENOUNCED'
+  | 'ADMIN_DELAY_CHANGE_SCHEDULED'
+  | 'ADMIN_DELAY_CHANGE_CANCELED'
   | 'UNKNOWN';
 
 /**
@@ -398,6 +414,7 @@ export interface AccessControlService {
    * @param newOwner The new owner address
    * @param expirationBlock For two-step transfers: the block/ledger number by which the transfer
    *   must be accepted. Required for chains with two-step Ownable (e.g., Stellar).
+   *   Optional for EVM (no expiration mechanism).
    * @param executionConfig Execution configuration specifying method (eoa, relayer, etc.)
    * @param onStatusChange Optional callback for status updates
    * @param runtimeApiKey Optional session-only API key for methods like Relayer
@@ -406,7 +423,7 @@ export interface AccessControlService {
   transferOwnership(
     contractAddress: string,
     newOwner: string,
-    expirationBlock: number,
+    expirationBlock: number | undefined,
     executionConfig: ExecutionConfig,
     onStatusChange?: (status: TxStatus, details: TransactionStatusUpdate) => void,
     runtimeApiKey?: string
@@ -457,7 +474,9 @@ export interface AccessControlService {
    *
    * @param contractAddress The contract address
    * @param newAdmin The new admin address
-   * @param expirationBlock The block/ledger number by which the transfer must be accepted
+   * @param expirationBlock The block/ledger number by which the transfer must be accepted.
+   *   Required for chains with expiration (e.g., Stellar). Optional for EVM
+   *   (the contract's built-in delay determines the accept schedule).
    * @param executionConfig Execution configuration specifying method (eoa, relayer, etc.)
    * @param onStatusChange Optional callback for status updates
    * @param runtimeApiKey Optional session-only API key for methods like Relayer
@@ -466,7 +485,7 @@ export interface AccessControlService {
   transferAdminRole?(
     contractAddress: string,
     newAdmin: string,
-    expirationBlock: number,
+    expirationBlock: number | undefined,
     executionConfig: ExecutionConfig,
     onStatusChange?: (status: TxStatus, details: TransactionStatusUpdate) => void,
     runtimeApiKey?: string
