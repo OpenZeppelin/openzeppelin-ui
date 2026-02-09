@@ -1,5 +1,15 @@
 # @openzeppelin/ui-types
 
+## 1.7.0
+
+### Minor Changes
+
+- [#64](https://github.com/OpenZeppelin/openzeppelin-ui/pull/64) [`b09ca9c`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/b09ca9c8607e3c6f89ee7927a8419c8321c2db58) Thanks [@pasevin](https://github.com/pasevin)! - Add EVM access control support to unified types
+  - Make `expirationBlock` optional in `PendingOwnershipTransfer` and `PendingAdminTransfer` (EVM has no expiration)
+  - Make `expirationBlock` parameter `number | undefined` in `transferOwnership()` and `transferAdminRole()` signatures
+  - Add `ADMIN_TRANSFER_CANCELED`, `ADMIN_DELAY_CHANGE_SCHEDULED`, `ADMIN_DELAY_CHANGE_CANCELED` to `HistoryChangeType`
+  - Add `accessControlIndexerUrl` to `BaseNetworkConfig` for feature-specific indexer endpoints across all ecosystems
+
 ## 1.6.0
 
 ### Minor Changes
