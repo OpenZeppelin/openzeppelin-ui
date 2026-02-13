@@ -28,6 +28,20 @@ export interface AccessControlCapabilities {
   verifiedAgainstOZInterfaces: boolean;
   /** Optional notes about capabilities or limitations */
   notes?: string[];
+
+  // === Chain-agnostic operation capability flags (default false when omitted) ===
+
+  /** Contract supports renouncing ownership (e.g., EVM Ownable.renounceOwnership) */
+  hasRenounceOwnership?: boolean;
+
+  /** Contract supports self-revocation of roles (e.g., EVM AccessControl.renounceRole) */
+  hasRenounceRole?: boolean;
+
+  /** Contract supports canceling pending admin transfers (e.g., EVM AccessControlDefaultAdminRules) */
+  hasCancelAdminTransfer?: boolean;
+
+  /** Contract supports changing/rolling back admin transfer delay (e.g., EVM AccessControlDefaultAdminRules) */
+  hasAdminDelayManagement?: boolean;
 }
 
 /**
@@ -168,6 +182,58 @@ export interface AdminInfo {
   state?: AdminState;
   /** Pending transfer details (present when state is 'pending') */
   pendingTransfer?: PendingAdminTransfer;
+
+  /**
+   * Admin transfer delay information (populated by EVM adapter from on-chain defaultAdminDelay).
+   * Omitted by adapters that don't support delay management (e.g., Stellar).
+   */
+  delayInfo?: AdminDelayInfo;
+}
+
+/**
+ * Admin transfer delay information for AccessControlDefaultAdminRules contracts.
+ *
+ * Provides current delay value and any pending delay change.
+ * Populated by the EVM adapter from on-chain `defaultAdminDelay()` and
+ * `pendingDefaultAdminDelay()` reads.
+ */
+export interface AdminDelayInfo {
+  /** Current admin transfer delay in seconds */
+  currentDelay: number;
+  /** Pending delay change, if any */
+  pendingDelay?: {
+    /** New delay value in seconds */
+    newDelay: number;
+    /** When the new delay takes effect (UNIX timestamp in seconds) */
+    effectAt: number;
+  };
+}
+
+/**
+ * Chain-agnostic expiration metadata provided by the adapter.
+ * Tells the UI whether expiration is needed, its format, and display labels.
+ *
+ * Used by transfer dialogs to conditionally show/hide expiration input
+ * and by pending transfer displays to show adapter-driven labels.
+ */
+export interface ExpirationMetadata {
+  /**
+   * Whether the UI needs to show expiration for this transfer type.
+   * - 'required': User must provide expiration (e.g., Stellar ledger number)
+   * - 'none': No expiration concept (e.g., EVM Ownable2Step)
+   * - 'contract-managed': Expiration is managed by the contract, displayed for info only
+   *   (e.g., EVM AccessControlDefaultAdminRules accept schedule)
+   */
+  mode: 'required' | 'none' | 'contract-managed';
+
+  /** Display label for the expiration field (e.g., "Expiration Ledger", "Accept Schedule") */
+  label?: string;
+
+  /** Unit description (e.g., "ledger number", "UNIX timestamp") */
+  unit?: string;
+
+  /** Current value for 'contract-managed' mode (e.g., the accept schedule timestamp) */
+  currentValue?: number;
 }
 
 /**
@@ -514,6 +580,126 @@ export interface AccessControlService {
     onStatusChange?: (status: TxStatus, details: TransactionStatusUpdate) => void,
     runtimeApiKey?: string
   ): Promise<OperationResult>;
+
+  // === New optional methods for chain-agnostic operations ===
+
+  /**
+   * Renounce ownership of the contract. Irreversible.
+   *
+   * Only available when `hasRenounceOwnership` capability is true.
+   * After execution, `owner()` returns the zero address and ownership state becomes 'renounced'.
+   *
+   * @param contractAddress The contract address
+   * @param executionConfig Execution configuration specifying method (eoa, relayer, etc.)
+   * @param onStatusChange Optional callback for status updates
+   * @param runtimeApiKey Optional session-only API key for methods like Relayer
+   * @returns Promise resolving to operation result
+   */
+  renounceOwnership?(
+    contractAddress: string,
+    executionConfig: ExecutionConfig,
+    onStatusChange?: (status: TxStatus, details: TransactionStatusUpdate) => void,
+    runtimeApiKey?: string
+  ): Promise<OperationResult>;
+
+  /**
+   * Renounce a role held by the connected account. Self-revocation only.
+   *
+   * Only available when `hasRenounceRole` capability is true.
+   * The `account` parameter must match the connected wallet address (the contract
+   * verifies caller === account on-chain to prevent accidental renouncement).
+   *
+   * @param contractAddress The contract address
+   * @param roleId The role identifier to renounce
+   * @param account The caller's address for confirmation (must match msg.sender on-chain)
+   * @param executionConfig Execution configuration specifying method (eoa, relayer, etc.)
+   * @param onStatusChange Optional callback for status updates
+   * @param runtimeApiKey Optional session-only API key for methods like Relayer
+   * @returns Promise resolving to operation result
+   */
+  renounceRole?(
+    contractAddress: string,
+    roleId: string,
+    account: string,
+    executionConfig: ExecutionConfig,
+    onStatusChange?: (status: TxStatus, details: TransactionStatusUpdate) => void,
+    runtimeApiKey?: string
+  ): Promise<OperationResult>;
+
+  /**
+   * Cancel a pending admin transfer.
+   *
+   * Only available when `hasCancelAdminTransfer` capability is true.
+   * Must be called by the current default admin.
+   *
+   * @param contractAddress The contract address
+   * @param executionConfig Execution configuration specifying method (eoa, relayer, etc.)
+   * @param onStatusChange Optional callback for status updates
+   * @param runtimeApiKey Optional session-only API key for methods like Relayer
+   * @returns Promise resolving to operation result
+   */
+  cancelAdminTransfer?(
+    contractAddress: string,
+    executionConfig: ExecutionConfig,
+    onStatusChange?: (status: TxStatus, details: TransactionStatusUpdate) => void,
+    runtimeApiKey?: string
+  ): Promise<OperationResult>;
+
+  /**
+   * Change the admin transfer delay. The change is itself delayed.
+   *
+   * Only available when `hasAdminDelayManagement` capability is true.
+   * Schedules a new delay value; the change takes effect after the current delay period.
+   *
+   * @param contractAddress The contract address
+   * @param newDelay The new delay in seconds
+   * @param executionConfig Execution configuration specifying method (eoa, relayer, etc.)
+   * @param onStatusChange Optional callback for status updates
+   * @param runtimeApiKey Optional session-only API key for methods like Relayer
+   * @returns Promise resolving to operation result
+   */
+  changeAdminDelay?(
+    contractAddress: string,
+    newDelay: number,
+    executionConfig: ExecutionConfig,
+    onStatusChange?: (status: TxStatus, details: TransactionStatusUpdate) => void,
+    runtimeApiKey?: string
+  ): Promise<OperationResult>;
+
+  /**
+   * Rollback a pending admin delay change.
+   *
+   * Only available when `hasAdminDelayManagement` capability is true.
+   * Cancels a scheduled delay change, keeping the original delay in effect.
+   *
+   * @param contractAddress The contract address
+   * @param executionConfig Execution configuration specifying method (eoa, relayer, etc.)
+   * @param onStatusChange Optional callback for status updates
+   * @param runtimeApiKey Optional session-only API key for methods like Relayer
+   * @returns Promise resolving to operation result
+   */
+  rollbackAdminDelay?(
+    contractAddress: string,
+    executionConfig: ExecutionConfig,
+    onStatusChange?: (status: TxStatus, details: TransactionStatusUpdate) => void,
+    runtimeApiKey?: string
+  ): Promise<OperationResult>;
+
+  /**
+   * Get expiration metadata for a transfer type.
+   *
+   * Returns adapter-driven expiration semantics telling the UI whether to show
+   * an expiration input, what label to use, and whether expiration is managed
+   * by the contract itself.
+   *
+   * @param contractAddress The contract address
+   * @param transferType Whether this is an 'ownership' or 'admin' transfer
+   * @returns Promise resolving to expiration metadata
+   */
+  getExpirationMetadata?(
+    contractAddress: string,
+    transferType: 'ownership' | 'admin'
+  ): Promise<ExpirationMetadata>;
 
   /**
    * Export a snapshot of current access control state
