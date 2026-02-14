@@ -1,5 +1,15 @@
 # @openzeppelin/ui-types
 
+## 1.8.0
+
+### Minor Changes
+
+- [#66](https://github.com/OpenZeppelin/openzeppelin-ui/pull/66) [`8cf2a51`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/8cf2a5197679a0fd4cd1899b0304525b7f8433ec) Thanks [@pasevin](https://github.com/pasevin)! - Add chain-agnostic capability flags, expiration metadata, and new service methods
+  - Add optional capability flags to `AccessControlCapabilities`: `hasRenounceOwnership`, `hasRenounceRole`, `hasCancelAdminTransfer`, `hasAdminDelayManagement`
+  - Add `ExpirationMetadata` interface with `mode` ('required' | 'none' | 'contract-managed'), `label`, `unit`, and `currentValue`
+  - Add `AdminDelayInfo` interface and optional `delayInfo` field to `AdminInfo`
+  - Add optional methods to `AccessControlService`: `renounceOwnership`, `renounceRole`, `cancelAdminTransfer`, `changeAdminDelay`, `rollbackAdminDelay`, `getExpirationMetadata`
+
 ## 1.7.0
 
 ### Minor Changes
