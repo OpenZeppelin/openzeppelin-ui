@@ -38,6 +38,30 @@ export function formatTimestamp(date: Date): string {
 }
 
 /**
+ * Formats seconds into a human-readable duration string (e.g. "1 day", "24 hours", "30 minutes").
+ * @param seconds Duration in seconds
+ * @returns Human-readable string with correct singular/plural
+ */
+export function formatSecondsToReadable(seconds: number): string {
+  if (seconds <= 0 || !Number.isFinite(seconds)) {
+    return '0 seconds';
+  }
+  if (seconds < 60) {
+    return seconds === 1 ? '1 second' : `${seconds} seconds`;
+  }
+  if (seconds < 3600) {
+    const mins = Math.floor(seconds / 60);
+    return mins === 1 ? '1 minute' : `${mins} minutes`;
+  }
+  if (seconds < 86400) {
+    const hours = Math.floor(seconds / 3600);
+    return hours === 1 ? '1 hour' : `${hours} hours`;
+  }
+  const days = Math.floor(seconds / 86400);
+  return days === 1 ? '1 day' : `${days} days`;
+}
+
+/**
  * Detects whether a string contains hex-encoded or base64-encoded binary data.
  * Useful for auto-detecting the encoding format of user inputs across blockchain adapters.
  *
