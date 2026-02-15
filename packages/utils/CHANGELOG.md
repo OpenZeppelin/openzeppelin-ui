@@ -1,5 +1,11 @@
 # @openzeppelin/ui-utils
 
+## 1.2.2
+
+### Patch Changes
+
+- [#68](https://github.com/OpenZeppelin/openzeppelin-ui/pull/68) [`5bd3406`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/5bd3406e1c6a766bb95ca2b3571ff6e2c9066d01) Thanks [@pasevin](https://github.com/pasevin)! - Add `formatSecondsToReadable` to format a duration in seconds as a human-readable string (e.g. "1 day", "24 hours", "30 minutes").
+
 ## 1.2.1
 
 ### Patch Changes
