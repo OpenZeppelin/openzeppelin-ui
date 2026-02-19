@@ -1,13 +1,20 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
 
 import type { NetworkServiceForm } from '@openzeppelin/ui-types';
 
 import { appConfigService } from '../AppConfigService';
 import { filterEnabledServiceForms } from '../networkServiceFilter';
 
-vi.spyOn(appConfigService, 'isFeatureEnabled');
+let mockIsFeatureEnabled: MockInstance<(flagName: string) => boolean>;
 
-const mockIsFeatureEnabled = vi.mocked(appConfigService.isFeatureEnabled);
+beforeEach(() => {
+  mockIsFeatureEnabled = vi.spyOn(appConfigService, 'isFeatureEnabled');
+  mockIsFeatureEnabled.mockReturnValue(false);
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 function makeForm(overrides: Partial<NetworkServiceForm> = {}): NetworkServiceForm {
   return {
