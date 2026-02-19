@@ -7,6 +7,8 @@ import { MidnightIcon } from '../icons/MidnightIcon';
 
 export interface EcosystemIconProps {
   ecosystem: Pick<EcosystemMetadata, 'id' | 'iconComponent'>;
+  /** Text used to derive the initial letter when no icon is available */
+  fallbackLabel?: string;
   className?: string;
   size?: number;
   variant?: 'mono' | 'branded';
@@ -15,6 +17,7 @@ export interface EcosystemIconProps {
 /** Displays the appropriate icon for a blockchain ecosystem. */
 export function EcosystemIcon({
   ecosystem,
+  fallbackLabel,
   className,
   size = 16,
   variant = 'branded',
@@ -33,11 +36,19 @@ export function EcosystemIcon({
     );
   }
 
+  const initial = (fallbackLabel ?? ecosystem.id).charAt(0).toUpperCase();
+
   return (
     <div
-      className={cn('bg-muted shrink-0 rounded-full', className)}
-      style={{ width: size, height: size }}
-      aria-hidden="true"
-    />
+      className={cn(
+        'bg-muted text-muted-foreground shrink-0 rounded-full flex items-center justify-center font-medium',
+        className
+      )}
+      style={{ width: size, height: size, fontSize: size * 0.5 }}
+      role="img"
+      aria-label={fallbackLabel ?? ecosystem.id}
+    >
+      {initial}
+    </div>
   );
 }

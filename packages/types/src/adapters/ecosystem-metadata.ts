@@ -7,6 +7,8 @@
  * runtime (wallet SDKs, chain clients, etc.).
  */
 
+import type React from 'react';
+
 import type { Ecosystem, EcosystemFeatureConfig } from '../common/ecosystem';
 
 export interface EcosystemMetadata {

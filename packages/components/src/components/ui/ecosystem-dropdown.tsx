@@ -2,6 +2,7 @@ import { Check, ChevronDown } from 'lucide-react';
 import * as React from 'react';
 
 import type { Ecosystem } from '@openzeppelin/ui-types';
+import { cn } from '@openzeppelin/ui-utils';
 
 import {
   Button,
@@ -52,7 +53,7 @@ export function EcosystemDropdown({
           aria-expanded={open}
           aria-labelledby={ariaLabelledby}
           disabled={disabled}
-          className={className ?? 'w-full justify-between'}
+          className={cn('w-full justify-between', className)}
         >
           <span className="flex items-center gap-2 truncate">
             {selectedOption ? (
