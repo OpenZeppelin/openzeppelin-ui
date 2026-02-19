@@ -2,22 +2,18 @@
  * Ecosystem Manager for the Demo App
  *
  * Centralized module for ecosystem/network/adapter management.
- * Adapter-intrinsic metadata (name, description, networks, createAdapter) is
- * loaded from the adapter's `ecosystemDefinition` export. Demo-specific data
- * (sample addresses, demo contract addresses) is kept here.
+ * When adapter packages ship the self-describing `ecosystemDefinition` and
+ * `/metadata` entry points, this file can be simplified. Until then, it
+ * bridges the published (legacy) exports to the new EcosystemExport shape.
  */
 
 import type {
+  EcosystemMetadata as BaseEcosystemMetadata,
   ContractAdapter,
   Ecosystem,
   EcosystemExport,
-  EcosystemMetadata as EcosystemMetadataBase,
   NetworkConfig,
 } from '@openzeppelin/ui-types';
-
-// Static metadata imports — tiny, available synchronously
-import { ecosystemMetadata as evmMetadataBase } from '@openzeppelin/ui-builder-adapter-evm/metadata';
-import { ecosystemMetadata as stellarMetadataBase } from '@openzeppelin/ui-builder-adapter-stellar/metadata';
 
 // ============================================================================
 // Types
@@ -78,12 +74,40 @@ const demoRegistry: Record<DemoEcosystem, DemoEcosystemData> = {
 };
 
 // ============================================================================
-// Metadata Registry (synchronous — available from first render)
+// Inline Metadata (until adapters publish /metadata entry points)
 // ============================================================================
 
-const metadataRegistry: Record<DemoEcosystem, EcosystemMetadataBase> = {
-  evm: evmMetadataBase,
-  stellar: stellarMetadataBase,
+const ECOSYSTEM_METADATA: Record<DemoEcosystem, BaseEcosystemMetadata> = {
+  evm: {
+    id: 'evm',
+    name: 'Ethereum (EVM)',
+    description: 'Ethereum Virtual Machine compatible chains',
+    explorerGuidance: 'Etherscan verified contracts',
+    addressExample: '0x...',
+    defaultFeatureConfig: { enabled: true, showInUI: true },
+  },
+  stellar: {
+    id: 'stellar',
+    name: 'Stellar',
+    description: 'Stellar network with Soroban smart contracts',
+    explorerGuidance: 'Stellar Expert verified contracts',
+    addressExample: 'C...',
+    defaultFeatureConfig: { enabled: true, showInUI: true },
+  },
+};
+
+// ============================================================================
+// Legacy Adapter Shape Mapping
+// ============================================================================
+
+interface LegacyAdapterMapping {
+  networksExportName: string;
+  adapterExportName: string;
+}
+
+const LEGACY_ADAPTER_MAP: Record<DemoEcosystem, LegacyAdapterMapping> = {
+  evm: { networksExportName: 'evmNetworks', adapterExportName: 'EvmAdapter' },
+  stellar: { networksExportName: 'stellarNetworks', adapterExportName: 'StellarAdapter' },
 };
 
 // ============================================================================
@@ -97,17 +121,24 @@ const adapterCache = new Map<string, ContractAdapter>();
 // Full Adapter Module Loading
 // ============================================================================
 
+/**
+ * Load an adapter module and normalise it to an EcosystemExport.
+ *
+ * If the adapter already ships `ecosystemDefinition` (self-describing pattern)
+ * we use it directly. Otherwise we construct an EcosystemExport from the
+ * legacy exported constructor + networks array.
+ */
 async function loadAdapterModule(ecosystem: DemoEcosystem): Promise<EcosystemExport> {
   const cached = ecosystemDefCache.get(ecosystem);
   if (cached) return cached;
 
-  let mod: { ecosystemDefinition: EcosystemExport };
+  let mod: Record<string, unknown>;
   switch (ecosystem) {
     case 'evm':
-      mod = await import('@openzeppelin/ui-builder-adapter-evm');
+      mod = (await import('@openzeppelin/ui-builder-adapter-evm')) as Record<string, unknown>;
       break;
     case 'stellar':
-      mod = await import('@openzeppelin/ui-builder-adapter-stellar');
+      mod = (await import('@openzeppelin/ui-builder-adapter-stellar')) as Record<string, unknown>;
       break;
     default: {
       const _exhaustiveCheck: never = ecosystem;
@@ -115,9 +146,29 @@ async function loadAdapterModule(ecosystem: DemoEcosystem): Promise<EcosystemExp
     }
   }
 
-  const def = mod.ecosystemDefinition;
+  const def =
+    'ecosystemDefinition' in mod && mod.ecosystemDefinition
+      ? (mod.ecosystemDefinition as EcosystemExport)
+      : buildFromLegacy(ecosystem, mod);
+
   ecosystemDefCache.set(ecosystem, def);
   return def;
+}
+
+function buildFromLegacy(ecosystem: DemoEcosystem, mod: Record<string, unknown>): EcosystemExport {
+  const mapping = LEGACY_ADAPTER_MAP[ecosystem];
+  const metadata: BaseEcosystemMetadata = ECOSYSTEM_METADATA[ecosystem];
+  const networks = (mod[mapping.networksExportName] as NetworkConfig[]) ?? [];
+
+  const AdapterClass = mod[mapping.adapterExportName] as new (
+    config: NetworkConfig
+  ) => ContractAdapter;
+
+  return {
+    ...metadata,
+    networks,
+    createAdapter: (config: NetworkConfig) => new AdapterClass(config),
+  };
 }
 
 // ============================================================================
@@ -130,10 +181,10 @@ export function getSupportedEcosystems(): DemoEcosystem[] {
 
 export function getEcosystemStaticMetadata(ecosystem: DemoEcosystem): EcosystemStaticMetadata {
   const demo = demoRegistry[ecosystem];
-  const meta = metadataRegistry[ecosystem];
+  const meta = ECOSYSTEM_METADATA[ecosystem];
   return {
-    name: meta?.name ?? ecosystem,
-    description: meta?.description ?? '',
+    name: meta.name,
+    description: meta.description,
     sampleAddresses: demo.sampleAddresses,
     addressFormat: demo.addressFormat,
     iconName: demo.iconName,
