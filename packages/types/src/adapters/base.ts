@@ -127,6 +127,8 @@ export interface NetworkServiceForm {
   supportsConnectionTest?: boolean;
   /** Form schema fields using the standard FormFieldType */
   fields: FormFieldType[];
+  /** When set, this form is only visible if the named feature flag is enabled via AppConfigService. */
+  requiredFeature?: string;
 }
 
 /**
