@@ -12,7 +12,7 @@ import {
   TabsTrigger,
 } from '@openzeppelin/ui-components';
 import type { ContractAdapter, UiKitConfiguration } from '@openzeppelin/ui-types';
-import { appConfigService } from '@openzeppelin/ui-utils';
+import { appConfigService, filterEnabledServiceForms } from '@openzeppelin/ui-utils';
 
 import { NetworkServiceSettingsPanel } from './NetworkServiceSettingsPanel';
 
@@ -29,7 +29,7 @@ export const NetworkSettingsDialog: React.FC<Props> = ({
   networkConfig,
   adapter,
 }) => {
-  const services = adapter?.getNetworkServiceForms?.() ?? [];
+  const services = filterEnabledServiceForms(adapter?.getNetworkServiceForms?.() ?? []);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
