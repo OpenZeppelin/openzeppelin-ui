@@ -1,5 +1,14 @@
 # @openzeppelin/ui-types
 
+## 1.9.0
+
+### Minor Changes
+
+- [#70](https://github.com/OpenZeppelin/openzeppelin-ui/pull/70) [`fb781d4`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/fb781d4df95365b2ef184c893d6b39b38a2bc20e) Thanks [@pasevin](https://github.com/pasevin)! - Add EcosystemMetadata and EcosystemExport interfaces for self-describing adapters
+  - `EcosystemMetadata`: display-oriented metadata (id, name, description, icon, styling, feature defaults)
+  - `EcosystemExport`: full adapter definition (metadata, networks, adapter factory)
+  - Remove unused `EcosystemInfo` and `EcosystemDefinition` types
+
 ## 1.8.0
 
 ### Minor Changes
