@@ -9,6 +9,8 @@ export * from './checkbox';
 export * from './date-range-picker';
 export * from './dialog';
 export * from './dropdown-menu';
+export * from './ecosystem-dropdown';
+export * from './ecosystem-icon';
 export * from './empty-state';
 export * from './external-link';
 export * from './footer';

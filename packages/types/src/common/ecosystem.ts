@@ -31,64 +31,6 @@ export interface EcosystemFeatureConfig {
 }
 
 /**
- * Interface for ecosystem-specific data in the registry
- */
-export interface EcosystemInfo {
-  /** Display name (e.g., 'Ethereum (EVM)') */
-  name: string;
-
-  /** Detailed description of the blockchain */
-  description: string;
-
-  /** Explorer/verification platform guidance */
-  explorerGuidance: string;
-
-  /** Address format example (if applicable) */
-  addressExample?: string;
-
-  /** Icon path for the ecosystem (if available) */
-  iconPath?: string;
-
-  /** Network icon name for @web3icons/react NetworkIcon component */
-  networkIconName?: string;
-
-  /** Background color class for UI elements */
-  bgColorClass?: string;
-
-  /** Text color class for UI elements */
-  textColorClass?: string;
-
-  /** Default feature flag configuration */
-  defaultFeatureConfig: EcosystemFeatureConfig;
-}
-
-/**
- * Blockchain ecosystem metadata for UI display and configuration
- */
-export interface EcosystemDefinition {
-  /**
-   * Unique identifier for the ecosystem
-   */
-  id: Ecosystem;
-
-  /**
-   * Human-readable name of the ecosystem
-   */
-  name: string;
-
-  /**
-   * Description of the ecosystem's purpose or characteristics
-   */
-  description: string;
-
-  /**
-   * Optional icon for UI display
-   * Note: This uses a generic type as we don't want to introduce React dependencies
-   */
-  icon?: unknown;
-}
-
-/**
  * Type guards for ecosystem types
  */
 
