@@ -1,5 +1,19 @@
 # @openzeppelin/ui-utils
 
+## 1.3.0
+
+### Minor Changes
+
+- [#72](https://github.com/OpenZeppelin/openzeppelin-ui/pull/72) [`78c3ae9`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/78c3ae9247b743a6a6fa0805e5a6db2d99de411e) Thanks [@pasevin](https://github.com/pasevin)! - Add network service feature gate mechanism
+  - Add optional `requiredFeature` property to `NetworkServiceForm` interface
+  - Add `filterEnabledServiceForms()` utility that gates forms behind `AppConfigService` feature flags
+  - Apply filtering in `NetworkSettingsDialog` to hide service tabs when the feature flag is not enabled
+
+### Patch Changes
+
+- Updated dependencies [[`78c3ae9`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/78c3ae9247b743a6a6fa0805e5a6db2d99de411e)]:
+  - @openzeppelin/ui-types@1.10.0
+
 ## 1.2.2
 
 ### Patch Changes
