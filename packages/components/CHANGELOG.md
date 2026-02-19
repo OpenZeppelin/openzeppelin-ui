@@ -1,5 +1,18 @@
 # @openzeppelin/ui-components
 
+## 1.3.0
+
+### Minor Changes
+
+- [#70](https://github.com/OpenZeppelin/openzeppelin-ui/pull/70) [`fb078c4`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/fb078c4e213d903249c91bcd4918f26b6b91d3cf) Thanks [@pasevin](https://github.com/pasevin)! - Add EcosystemDropdown and EcosystemIcon components
+  - `EcosystemDropdown`: reusable dropdown for ecosystem selection with icon render prop
+  - `EcosystemIcon`: renders adapter-provided icon component with fallback
+
+### Patch Changes
+
+- Updated dependencies [[`fb781d4`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/fb781d4df95365b2ef184c893d6b39b38a2bc20e)]:
+  - @openzeppelin/ui-types@1.9.0
+
 ## 1.2.1
 
 ### Patch Changes
