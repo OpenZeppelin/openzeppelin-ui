@@ -21,6 +21,12 @@ export * from './ui-enhancements';
 // Re-export export bootstrapping types
 export * from './export';
 
+// Re-export ecosystem metadata (lightweight display-only subset)
+export * from './ecosystem-metadata';
+
+// Re-export ecosystem export types (full adapter interface, extends EcosystemMetadata)
+export * from './ecosystem-export';
+
 // Re-export access control types
 export * from './access-control';
 
