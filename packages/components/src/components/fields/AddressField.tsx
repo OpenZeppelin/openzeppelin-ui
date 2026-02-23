@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { Controller, FieldValues } from 'react-hook-form';
+import { Controller, FieldValues, useWatch } from 'react-hook-form';
 
 import type { AddressSuggestion, ContractAdapter } from '@openzeppelin/ui-types';
 import { cn } from '@openzeppelin/ui-utils';
@@ -97,6 +97,16 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
+  const watchedFieldValue = useWatch({ control, name }) as string | undefined;
+
+  useEffect(() => {
+    const currentFieldValue = watchedFieldValue ?? '';
+    if (currentFieldValue !== lastSetValueRef.current) {
+      lastSetValueRef.current = currentFieldValue;
+      setInputValue(currentFieldValue);
+    }
+  }, [watchedFieldValue]);
+
   useEffect(() => {
     if (!inputValue.trim()) {
       setDebouncedQuery('');
@@ -186,13 +196,6 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
         }}
         disabled={readOnly}
         render={({ fieldState: { error, isTouched }, field }) => {
-          // Sync inputValue when field value changes externally (e.g. form.setValue)
-          const currentFieldValue = field.value ?? '';
-          if (currentFieldValue !== lastSetValueRef.current && currentFieldValue !== inputValue) {
-            lastSetValueRef.current = currentFieldValue;
-            setInputValue(currentFieldValue);
-          }
-
           const hasError = !!error;
           const shouldShowError = hasError && isTouched;
           const validationClasses = getValidationStateClasses(error, isTouched);
@@ -211,8 +214,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
           const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
             const value = e.target.value;
             field.onChange(value);
-            // Note: Validation happens naturally when user leaves the field
-            // No need to trigger it programmatically on every change
+            lastSetValueRef.current = value;
             setInputValue(value);
             setShowSuggestions(value.length > 0);
             setHighlightedIndex(-1);
