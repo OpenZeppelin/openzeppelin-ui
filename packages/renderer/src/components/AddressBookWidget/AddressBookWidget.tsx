@@ -106,7 +106,7 @@ export function AddressBookWidget({
             <ImportExportBar
               onExport={onExport}
               onImport={onImport}
-              disabled={aliases.length === 0}
+              exportDisabled={aliases.length === 0}
             />
           </div>
         </div>

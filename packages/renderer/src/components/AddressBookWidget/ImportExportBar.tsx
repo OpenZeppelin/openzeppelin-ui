@@ -6,11 +6,11 @@ import { OverflowMenu, type OverflowMenuItem } from '@openzeppelin/ui-components
 interface ImportExportBarProps {
   onExport: (ids?: string[]) => Promise<void>;
   onImport: (file: File) => Promise<string[]>;
-  disabled?: boolean;
+  exportDisabled?: boolean;
 }
 
 /** Bar for importing and exporting address book aliases. */
-export function ImportExportBar({ onExport, onImport, disabled }: ImportExportBarProps) {
+export function ImportExportBar({ onExport, onImport, exportDisabled }: ImportExportBarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImportClick = useCallback(() => {
@@ -37,18 +37,17 @@ export function ImportExportBar({ onExport, onImport, disabled }: ImportExportBa
         id: 'export',
         label: 'Export',
         icon: <Download className="mr-2 h-4 w-4" />,
-        disabled,
+        disabled: exportDisabled,
         onSelect: handleExport,
       },
       {
         id: 'import',
         label: 'Import',
         icon: <Upload className="mr-2 h-4 w-4" />,
-        disabled,
         onSelect: handleImportClick,
       },
     ],
-    [disabled, handleExport, handleImportClick]
+    [exportDisabled, handleExport, handleImportClick]
   );
 
   return (
