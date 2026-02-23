@@ -38,7 +38,7 @@ interface SingleSelectProps<T> {
   renderTrigger?: never;
 }
 
-interface MultiSelectProps<T> {
+interface MultiSelectProps<_T> {
   multiple: true;
   selectedNetworkIds: string[];
   onSelectionChange: (ids: string[]) => void;
