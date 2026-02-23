@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, FieldValues } from 'react-hook-form';
 
-import type { ContractAdapter } from '@openzeppelin/ui-types';
+import type { AddressSuggestion, ContractAdapter } from '@openzeppelin/ui-types';
+import { cn } from '@openzeppelin/ui-utils';
+
+import { AddressSuggestionContext } from './address-suggestion/context';
 
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -14,9 +17,24 @@ import {
   validateField,
 } from './utils';
 
+const DEBOUNCE_MS = 200;
+const MAX_SUGGESTIONS = 5;
+
 interface AddressFieldProps<TFieldValues extends FieldValues = FieldValues>
   extends BaseFieldProps<TFieldValues> {
   adapter?: ContractAdapter;
+
+  /**
+   * Explicit suggestion list. When provided, overrides context-based resolution.
+   * Pass `false` to disable suggestions entirely (even when a context provider is mounted).
+   */
+  suggestions?: AddressSuggestion[] | false;
+
+  /**
+   * Called when the user selects a suggestion. Receives the selected suggestion
+   * so callers can perform additional side-effects beyond filling the field value.
+   */
+  onSuggestionSelect?: (suggestion: AddressSuggestion) => void;
 }
 
 /**
@@ -36,6 +54,17 @@ interface AddressFieldProps<TFieldValues extends FieldValues = FieldValues>
  * - Chain-agnostic design (validation handled by adapters)
  * - Full accessibility support with ARIA attributes
  * - Keyboard navigation
+ *
+ * Autocomplete suggestions can be provided in two ways:
+ *
+ * 1. **Context-based (zero-config)**: Mount an `AddressSuggestionProvider` in the
+ *    component tree. Every `AddressField` below it automatically resolves suggestions.
+ *
+ * 2. **Prop-based (explicit)**: Pass `suggestions` directly. This overrides context.
+ *    Pass `suggestions={false}` to opt out when a provider is mounted.
+ *
+ * The suggestion dropdown includes built-in debouncing, keyboard navigation (Arrow keys,
+ * Enter, Escape), click-outside dismissal, and ARIA listbox semantics.
  */
 export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   id,
@@ -48,10 +77,65 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   validation,
   adapter,
   readOnly,
+  suggestions: suggestionsProp,
+  onSuggestionSelect,
 }: AddressFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
+
+  const contextResolver = useContext(AddressSuggestionContext);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const [inputValue, setInputValue] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+
+  useEffect(() => {
+    if (!inputValue.trim()) {
+      setDebouncedQuery('');
+      return;
+    }
+    const timer = setTimeout(() => setDebouncedQuery(inputValue), DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [inputValue]);
+
+  const suggestionsDisabled = suggestionsProp === false;
+
+  const resolvedSuggestions = useMemo<AddressSuggestion[]>(() => {
+    if (suggestionsDisabled) return [];
+    if (Array.isArray(suggestionsProp)) return suggestionsProp;
+    if (!contextResolver || !debouncedQuery.trim()) return [];
+    return contextResolver.resolveSuggestions(debouncedQuery).slice(0, MAX_SUGGESTIONS);
+  }, [suggestionsDisabled, suggestionsProp, contextResolver, debouncedQuery]);
+
+  const hasSuggestions = showSuggestions && resolvedSuggestions.length > 0;
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSuggestionKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!hasSuggestions) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setHighlightedIndex((prev) => (prev < resolvedSuggestions.length - 1 ? prev + 1 : 0));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : resolvedSuggestions.length - 1));
+      }
+    },
+    [hasSuggestions, resolvedSuggestions.length]
+  );
 
   return (
     <div
@@ -113,15 +197,39 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
             field.onChange(value);
             // Note: Validation happens naturally when user leaves the field
             // No need to trigger it programmatically on every change
+            setInputValue(value);
+            setShowSuggestions(value.length > 0);
+            setHighlightedIndex(-1);
           };
 
           // Add keyboard accessibility for clearing the field with Escape
           const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-            if (e.key === 'Escape') {
-              handleEscapeKey(field.onChange, field.value)(e);
-              // Note: Validation happens naturally when user leaves the field
-              // No need to trigger it programmatically
+            if (hasSuggestions && e.key === 'Enter' && highlightedIndex >= 0) {
+              e.preventDefault();
+              const selected = resolvedSuggestions[highlightedIndex];
+              field.onChange(selected.value);
+              onSuggestionSelect?.(selected);
+              setInputValue('');
+              setShowSuggestions(false);
+              setHighlightedIndex(-1);
+              return;
             }
+
+            if (e.key === 'Escape') {
+              if (hasSuggestions) {
+                setShowSuggestions(false);
+                return;
+              }
+              handleEscapeKey(field.onChange, field.value)(e);
+            }
+          };
+
+          const handleSelectSuggestion = (suggestion: AddressSuggestion): void => {
+            field.onChange(suggestion.value);
+            onSuggestionSelect?.(suggestion);
+            setInputValue('');
+            setShowSuggestions(false);
+            setHighlightedIndex(-1);
           };
 
           // Get accessibility attributes
@@ -134,19 +242,65 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
 
           return (
             <>
-              <Input
-                {...field}
-                id={id}
-                placeholder={placeholder || '0x...'}
-                className={validationClasses}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                data-slot="input"
-                value={field.value ?? ''}
-                {...accessibilityProps}
-                aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
-                disabled={readOnly}
-              />
+              <div ref={containerRef} className="relative" onKeyDown={handleSuggestionKeyDown}>
+                <Input
+                  {...field}
+                  id={id}
+                  placeholder={placeholder || '0x...'}
+                  className={validationClasses}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                  data-slot="input"
+                  value={field.value ?? ''}
+                  {...accessibilityProps}
+                  aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
+                  aria-expanded={hasSuggestions}
+                  aria-autocomplete={suggestionsDisabled ? undefined : 'list'}
+                  aria-controls={hasSuggestions ? `${id}-suggestions` : undefined}
+                  aria-activedescendant={
+                    hasSuggestions && highlightedIndex >= 0
+                      ? `${id}-suggestion-${highlightedIndex}`
+                      : undefined
+                  }
+                  disabled={readOnly}
+                />
+
+                {hasSuggestions && (
+                  <div
+                    id={`${id}-suggestions`}
+                    className={cn(
+                      'absolute z-50 mt-1 w-full rounded-md border border-border bg-popover shadow-md',
+                      'max-h-48 overflow-auto'
+                    )}
+                    role="listbox"
+                  >
+                    {resolvedSuggestions.map((s, i) => (
+                      <button
+                        key={`${s.value}-${s.description ?? i}`}
+                        id={`${id}-suggestion-${i}`}
+                        type="button"
+                        role="option"
+                        aria-selected={i === highlightedIndex}
+                        className={cn(
+                          'flex w-full flex-col px-3 py-2 text-left text-sm',
+                          'hover:bg-accent',
+                          i === highlightedIndex && 'bg-accent'
+                        )}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          handleSelectSuggestion(s);
+                        }}
+                        onMouseEnter={() => setHighlightedIndex(i)}
+                      >
+                        <span className="font-medium">{s.label}</span>
+                        <span className="truncate font-mono text-xs text-muted-foreground">
+                          {s.value}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* Display helper text */}
               {helperText && (

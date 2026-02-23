@@ -6,6 +6,7 @@
  */
 
 export * from './AddressField';
+export * from './address-suggestion';
 export * from './AmountField';
 export * from './ArrayField';
 export * from './ArrayObjectField';
