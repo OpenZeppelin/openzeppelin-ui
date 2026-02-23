@@ -19,7 +19,7 @@
  * ```
  */
 import type Dexie from 'dexie';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 
 import type { AddressBookAlias, AddressBookWidgetProps } from '@openzeppelin/ui-types';
 
@@ -62,10 +62,38 @@ export function useAddressBookWidgetProps(
   const { duplicateMode, maxAliasLength, onDuplicate, enableLogging, logLevel } = storageOptions;
   const tableName = storageOptions.tableName ?? 'aliases';
 
+  // Ref-stabilize the onDuplicate callback so storage isn't recreated when
+  // callers pass an un-memoized function.
+  const onDuplicateRef = useRef(onDuplicate);
+  onDuplicateRef.current = onDuplicate;
+
+  const stableOnDuplicate = useCallback<NonNullable<AliasStorageOptions['onDuplicate']>>(
+    (alias, existingAddress) => onDuplicateRef.current?.(alias, existingAddress),
+    []
+  );
+
+  const hasOnDuplicate = !!onDuplicate;
+
   const storage = useMemo(
-    () => createAliasStorage(db, storageOptions),
-    // Individual primitive deps — storageOptions is a new object each render
-    [db, tableName, duplicateMode, maxAliasLength, onDuplicate, enableLogging, logLevel]
+    () =>
+      createAliasStorage(db, {
+        tableName,
+        duplicateMode,
+        maxAliasLength,
+        onDuplicate: hasOnDuplicate ? stableOnDuplicate : undefined,
+        enableLogging,
+        logLevel,
+      }),
+    [
+      db,
+      tableName,
+      duplicateMode,
+      maxAliasLength,
+      enableLogging,
+      logLevel,
+      stableOnDuplicate,
+      hasOnDuplicate,
+    ]
   );
 
   const fileIO = useMemo(

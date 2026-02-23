@@ -60,6 +60,13 @@ interface AddressDisplayProps extends React.HTMLAttributes<HTMLDivElement> {
   onLabelEdit?: () => void;
 
   /**
+   * Optional network identifier used when resolving labels and triggering
+   * edits via `AddressLabelContext`. Important for multi-network scenarios
+   * where the same address may have different aliases per network.
+   */
+  networkId?: string;
+
+  /**
    * When `true`, skip label resolution from `AddressLabelContext`.
    * Useful for rendering an address without alias decoration (e.g. in
    * a contract selector where the contract name is already shown).
@@ -112,6 +119,7 @@ export function AddressDisplay({
   explorerUrl,
   label: labelProp,
   onLabelEdit: onLabelEditProp,
+  networkId,
   disableLabel = false,
   className,
   ...props
@@ -121,11 +129,17 @@ export function AddressDisplay({
 
   const resolver = React.useContext(AddressLabelContext);
 
-  const resolvedLabel = disableLabel ? undefined : (labelProp ?? resolver?.resolveLabel(address));
+  const resolvedLabel = disableLabel
+    ? undefined
+    : (labelProp ?? resolver?.resolveLabel(address, networkId));
+
+  const contextEditHandler = React.useCallback(() => {
+    resolver?.onEditLabel?.(address, networkId);
+  }, [resolver, address, networkId]);
+
   const editHandler = disableLabel
     ? undefined
-    : (onLabelEditProp ??
-      (resolver?.onEditLabel ? () => resolver.onEditLabel!(address) : undefined));
+    : (onLabelEditProp ?? (resolver?.onEditLabel ? contextEditHandler : undefined));
 
   const displayAddress = truncate ? truncateMiddle(address, startChars, endChars) : address;
 

@@ -70,6 +70,11 @@ export function NetworkSelector<T>({
 
   const isMultiple = modeProps.multiple === true;
 
+  const selectedNetworkIds = isMultiple ? modeProps.selectedNetworkIds : undefined;
+  const onSelectionChange = isMultiple ? modeProps.onSelectionChange : undefined;
+  const selectedNetwork = !isMultiple ? modeProps.selectedNetwork : undefined;
+  const onSelectNetwork = !isMultiple ? modeProps.onSelectNetwork : undefined;
+
   const filteredNetworks = React.useMemo(() => {
     if (!searchQuery) return networks;
     if (filterNetwork) return networks.filter((n) => filterNetwork(n, searchQuery));
@@ -97,43 +102,42 @@ export function NetworkSelector<T>({
 
   const isSelected = React.useCallback(
     (network: T): boolean => {
-      if (isMultiple) {
-        return modeProps.selectedNetworkIds.includes(getNetworkId(network));
+      if (isMultiple && selectedNetworkIds) {
+        return selectedNetworkIds.includes(getNetworkId(network));
       }
-      return modeProps.selectedNetwork
-        ? getNetworkId(modeProps.selectedNetwork) === getNetworkId(network)
-        : false;
+      return selectedNetwork ? getNetworkId(selectedNetwork) === getNetworkId(network) : false;
     },
-    [isMultiple, modeProps, getNetworkId]
+    [isMultiple, selectedNetworkIds, selectedNetwork, getNetworkId]
   );
 
   const handleSelect = React.useCallback(
     (network: T) => {
-      if (isMultiple) {
+      if (isMultiple && selectedNetworkIds && onSelectionChange) {
         const id = getNetworkId(network);
-        const next = modeProps.selectedNetworkIds.includes(id)
-          ? modeProps.selectedNetworkIds.filter((x) => x !== id)
-          : [...modeProps.selectedNetworkIds, id];
-        modeProps.onSelectionChange(next);
-      } else {
-        modeProps.onSelectNetwork(network);
+        const next = selectedNetworkIds.includes(id)
+          ? selectedNetworkIds.filter((x) => x !== id)
+          : [...selectedNetworkIds, id];
+        onSelectionChange(next);
+      } else if (onSelectNetwork) {
+        onSelectNetwork(network);
         setOpen(false);
       }
     },
-    [isMultiple, modeProps, getNetworkId]
+    [isMultiple, selectedNetworkIds, onSelectionChange, onSelectNetwork, getNetworkId]
   );
 
   const handleClearAll = React.useCallback(() => {
-    if (isMultiple) {
-      modeProps.onSelectionChange([]);
+    if (isMultiple && onSelectionChange) {
+      onSelectionChange([]);
     }
-  }, [isMultiple, modeProps]);
+  }, [isMultiple, onSelectionChange]);
 
-  const selectedCount = isMultiple ? modeProps.selectedNetworkIds.length : 0;
+  const selectedCount = selectedNetworkIds?.length ?? 0;
+  const renderTrigger = isMultiple ? modeProps.renderTrigger : undefined;
 
   const triggerContent = (() => {
-    if (isMultiple && modeProps.renderTrigger) {
-      return modeProps.renderTrigger({ selectedCount, open });
+    if (isMultiple && renderTrigger) {
+      return renderTrigger({ selectedCount, open });
     }
 
     if (isMultiple) {
@@ -162,13 +166,13 @@ export function NetworkSelector<T>({
         className={cn('w-full justify-between', className)}
       >
         <span className="flex items-center gap-2 truncate">
-          {modeProps.selectedNetwork ? (
+          {selectedNetwork ? (
             <>
-              {getNetworkIcon?.(modeProps.selectedNetwork)}
-              <span className="truncate">{getNetworkLabel(modeProps.selectedNetwork)}</span>
+              {getNetworkIcon?.(selectedNetwork)}
+              <span className="truncate">{getNetworkLabel(selectedNetwork)}</span>
               {getNetworkType && (
                 <span className="shrink-0 rounded-sm bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase text-muted-foreground">
-                  {getNetworkType(modeProps.selectedNetwork)}
+                  {getNetworkType(selectedNetwork)}
                 </span>
               )}
             </>

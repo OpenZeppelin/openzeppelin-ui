@@ -98,12 +98,13 @@ export function AddAliasDialog({
 
   const onSubmit = useCallback(
     async (data: AddAliasFormData) => {
+      const networkId = selectedNetwork?.id;
       setSaving(true);
       try {
         await onSave({
           address: data.address.trim(),
           alias: data.alias.trim(),
-          networkId: selectedNetwork?.id,
+          networkId,
         });
         reset();
         onOpenChange(false);

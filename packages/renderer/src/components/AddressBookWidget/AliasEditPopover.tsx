@@ -47,14 +47,18 @@ export function AliasEditPopover({
 
   useEffect(() => {
     let cancelled = false;
-    onLookup(address, networkId).then((record) => {
-      if (cancelled) return;
-      if (record) {
-        setAlias(record.alias);
-        setExistingId(record.id);
-      }
-      setLoaded(true);
-    });
+    onLookup(address, networkId)
+      .then((record) => {
+        if (cancelled) return;
+        if (record) {
+          setAlias(record.alias);
+          setExistingId(record.id);
+        }
+        setLoaded(true);
+      })
+      .catch(() => {
+        if (!cancelled) setLoaded(true);
+      });
     return () => {
       cancelled = true;
     };

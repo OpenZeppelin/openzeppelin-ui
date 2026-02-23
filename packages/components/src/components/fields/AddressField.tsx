@@ -27,6 +27,10 @@ interface AddressFieldProps<TFieldValues extends FieldValues = FieldValues>
   /**
    * Explicit suggestion list. When provided, overrides context-based resolution.
    * Pass `false` to disable suggestions entirely (even when a context provider is mounted).
+   *
+   * Note: context-resolved suggestions are automatically capped at
+   * `MAX_SUGGESTIONS` (5) entries, while explicitly passed arrays are
+   * rendered as-is — callers should pre-slice if needed.
    */
   suggestions?: AddressSuggestion[] | false;
 
@@ -86,6 +90,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
 
   const contextResolver = useContext(AddressSuggestionContext);
   const containerRef = useRef<HTMLDivElement>(null);
+  const lastSetValueRef = useRef<string>('');
 
   const [inputValue, setInputValue] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -113,13 +118,17 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   const hasSuggestions = showSuggestions && resolvedSuggestions.length > 0;
 
   useEffect(() => {
+    let active = true;
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (active && containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setShowSuggestions(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      active = false;
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const handleSuggestionKeyDown = useCallback(
@@ -177,6 +186,13 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
         }}
         disabled={readOnly}
         render={({ fieldState: { error, isTouched }, field }) => {
+          // Sync inputValue when field value changes externally (e.g. form.setValue)
+          const currentFieldValue = field.value ?? '';
+          if (currentFieldValue !== lastSetValueRef.current && currentFieldValue !== inputValue) {
+            lastSetValueRef.current = currentFieldValue;
+            setInputValue(currentFieldValue);
+          }
+
           const hasError = !!error;
           const shouldShowError = hasError && isTouched;
           const validationClasses = getValidationStateClasses(error, isTouched);
@@ -202,16 +218,19 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
             setHighlightedIndex(-1);
           };
 
-          // Add keyboard accessibility for clearing the field with Escape
+          const applySuggestion = (suggestion: AddressSuggestion): void => {
+            field.onChange(suggestion.value);
+            onSuggestionSelect?.(suggestion);
+            lastSetValueRef.current = suggestion.value;
+            setInputValue(suggestion.value);
+            setShowSuggestions(false);
+            setHighlightedIndex(-1);
+          };
+
           const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
             if (hasSuggestions && e.key === 'Enter' && highlightedIndex >= 0) {
               e.preventDefault();
-              const selected = resolvedSuggestions[highlightedIndex];
-              field.onChange(selected.value);
-              onSuggestionSelect?.(selected);
-              setInputValue('');
-              setShowSuggestions(false);
-              setHighlightedIndex(-1);
+              applySuggestion(resolvedSuggestions[highlightedIndex]);
               return;
             }
 
@@ -222,14 +241,6 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
               }
               handleEscapeKey(field.onChange, field.value)(e);
             }
-          };
-
-          const handleSelectSuggestion = (suggestion: AddressSuggestion): void => {
-            field.onChange(suggestion.value);
-            onSuggestionSelect?.(suggestion);
-            setInputValue('');
-            setShowSuggestions(false);
-            setHighlightedIndex(-1);
           };
 
           // Get accessibility attributes
@@ -288,7 +299,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
                         )}
                         onMouseDown={(e) => {
                           e.preventDefault();
-                          handleSelectSuggestion(s);
+                          applySuggestion(s);
                         }}
                         onMouseEnter={() => setHighlightedIndex(i)}
                       >

@@ -40,9 +40,10 @@ export function useAddressLabel(address: string, networkId?: string): UseAddress
   const resolver = React.useContext(AddressLabelContext);
 
   const label = resolver?.resolveLabel(address, networkId);
-  const onEdit = resolver?.onEditLabel
-    ? () => resolver.onEditLabel!(address, networkId)
-    : undefined;
 
-  return { label, onEdit };
+  const onEdit = React.useCallback(() => {
+    resolver?.onEditLabel?.(address, networkId);
+  }, [resolver, address, networkId]);
+
+  return { label, onEdit: resolver?.onEditLabel ? onEdit : undefined };
 }
