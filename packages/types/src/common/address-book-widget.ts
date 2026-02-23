@@ -92,6 +92,9 @@ export interface AddressBookWidgetProps {
   /** Callback when the user changes the network filter selection */
   onFilterNetworkIdsChange?: (networkIds: string[]) => void;
 
+  /** Custom title displayed in the card header (defaults to "Address Book") */
+  title?: string;
+
   /** Additional CSS classes */
   className?: string;
 }

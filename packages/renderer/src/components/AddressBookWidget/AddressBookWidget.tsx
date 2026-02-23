@@ -38,6 +38,7 @@ export function AddressBookWidget({
   networks,
   filterNetworkIds,
   onFilterNetworkIdsChange,
+  title = 'Address Book',
   className,
 }: AddressBookWidgetProps) {
   const [search, setSearch] = useState('');
@@ -77,7 +78,7 @@ export function AddressBookWidget({
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <BookUser className="h-5 w-5" />
-            Address Book
+            {title}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-12">
@@ -93,7 +94,7 @@ export function AddressBookWidget({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
             <BookUser className="h-5 w-5" />
-            Address Book
+            {title}
             {aliases.length > 0 && (
               <span className="text-sm font-normal text-muted-foreground">({aliases.length})</span>
             )}
