@@ -16,10 +16,8 @@ import {
   Input,
 } from '.';
 
-export interface NetworkSelectorProps<T> {
+interface NetworkSelectorBaseProps<T> {
   networks: T[];
-  selectedNetwork: T | null;
-  onSelectNetwork: (network: T) => void;
   getNetworkLabel: (network: T) => string;
   getNetworkIcon?: (network: T) => React.ReactNode;
   getNetworkType?: (network: T) => NetworkType | undefined;
@@ -31,11 +29,31 @@ export interface NetworkSelectorProps<T> {
   placeholder?: string;
 }
 
-/** Searchable dropdown selector for blockchain networks with optional grouping. */
+interface SingleSelectProps<T> {
+  multiple?: false;
+  selectedNetwork: T | null;
+  onSelectNetwork: (network: T) => void;
+  selectedNetworkIds?: never;
+  onSelectionChange?: never;
+  renderTrigger?: never;
+}
+
+interface MultiSelectProps<T> {
+  multiple: true;
+  selectedNetworkIds: string[];
+  onSelectionChange: (ids: string[]) => void;
+  /** Override the default trigger button with a custom element. */
+  renderTrigger?: (props: { selectedCount: number; open: boolean }) => React.ReactNode;
+  selectedNetwork?: never;
+  onSelectNetwork?: never;
+}
+
+export type NetworkSelectorProps<T> = NetworkSelectorBaseProps<T> &
+  (SingleSelectProps<T> | MultiSelectProps<T>);
+
+/** Searchable dropdown selector for blockchain networks with optional grouping and multi-select. */
 export function NetworkSelector<T>({
   networks,
-  selectedNetwork,
-  onSelectNetwork,
   getNetworkLabel,
   getNetworkIcon,
   getNetworkType,
@@ -45,9 +63,12 @@ export function NetworkSelector<T>({
   filterNetwork,
   className,
   placeholder = 'Select Network',
+  ...modeProps
 }: NetworkSelectorProps<T>): React.ReactElement {
   const [open, setOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
+
+  const isMultiple = modeProps.multiple === true;
 
   const filteredNetworks = React.useMemo(() => {
     if (!searchQuery) return networks;
@@ -74,33 +95,95 @@ export function NetworkSelector<T>({
     );
   }, [filteredNetworks, groupByEcosystem, getEcosystem]);
 
-  return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
+  const isSelected = React.useCallback(
+    (network: T): boolean => {
+      if (isMultiple) {
+        return modeProps.selectedNetworkIds.includes(getNetworkId(network));
+      }
+      return modeProps.selectedNetwork
+        ? getNetworkId(modeProps.selectedNetwork) === getNetworkId(network)
+        : false;
+    },
+    [isMultiple, modeProps, getNetworkId]
+  );
+
+  const handleSelect = React.useCallback(
+    (network: T) => {
+      if (isMultiple) {
+        const id = getNetworkId(network);
+        const next = modeProps.selectedNetworkIds.includes(id)
+          ? modeProps.selectedNetworkIds.filter((x) => x !== id)
+          : [...modeProps.selectedNetworkIds, id];
+        modeProps.onSelectionChange(next);
+      } else {
+        modeProps.onSelectNetwork(network);
+        setOpen(false);
+      }
+    },
+    [isMultiple, modeProps, getNetworkId]
+  );
+
+  const handleClearAll = React.useCallback(() => {
+    if (isMultiple) {
+      modeProps.onSelectionChange([]);
+    }
+  }, [isMultiple, modeProps]);
+
+  const selectedCount = isMultiple ? modeProps.selectedNetworkIds.length : 0;
+
+  const triggerContent = (() => {
+    if (isMultiple && modeProps.renderTrigger) {
+      return modeProps.renderTrigger({ selectedCount, open });
+    }
+
+    if (isMultiple) {
+      return (
         <Button
           variant="outline"
           role="combobox"
           aria-expanded={open}
           className={cn('w-full justify-between', className)}
         >
-          <span className="flex items-center gap-2 truncate">
-            {selectedNetwork ? (
-              <>
-                {getNetworkIcon?.(selectedNetwork)}
-                <span className="truncate">{getNetworkLabel(selectedNetwork)}</span>
-                {getNetworkType && (
-                  <span className="shrink-0 rounded-sm bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase text-muted-foreground">
-                    {getNetworkType(selectedNetwork)}
-                  </span>
-                )}
-              </>
-            ) : (
-              <span className="text-muted-foreground">{placeholder}</span>
-            )}
+          <span className="truncate text-muted-foreground">
+            {selectedCount > 0
+              ? `${selectedCount} network${selectedCount > 1 ? 's' : ''} selected`
+              : placeholder}
           </span>
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
-      </DropdownMenuTrigger>
+      );
+    }
+
+    return (
+      <Button
+        variant="outline"
+        role="combobox"
+        aria-expanded={open}
+        className={cn('w-full justify-between', className)}
+      >
+        <span className="flex items-center gap-2 truncate">
+          {modeProps.selectedNetwork ? (
+            <>
+              {getNetworkIcon?.(modeProps.selectedNetwork)}
+              <span className="truncate">{getNetworkLabel(modeProps.selectedNetwork)}</span>
+              {getNetworkType && (
+                <span className="shrink-0 rounded-sm bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase text-muted-foreground">
+                  {getNetworkType(modeProps.selectedNetwork)}
+                </span>
+              )}
+            </>
+          ) : (
+            <span className="text-muted-foreground">{placeholder}</span>
+          )}
+        </span>
+        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+      </Button>
+    );
+  })();
+
+  return (
+    <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger asChild>{triggerContent}</DropdownMenuTrigger>
       <DropdownMenuContent
         className="w-[--radix-dropdown-menu-trigger-width] min-w-[240px] p-0"
         align="start"
@@ -121,6 +204,23 @@ export function NetworkSelector<T>({
           />
         </div>
         <div className="max-h-[300px] overflow-y-auto p-1">
+          {isMultiple && selectedCount > 0 && (
+            <>
+              <div className="flex items-center justify-between px-2 py-1.5">
+                <span className="text-xs font-medium text-muted-foreground">
+                  {selectedCount} selected
+                </span>
+                <button
+                  onClick={handleClearAll}
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Clear all
+                </button>
+              </div>
+              <DropdownMenuSeparator />
+            </>
+          )}
+
           {Object.entries(groupedNetworks).length === 0 ? (
             <div className="py-6 text-center text-sm text-muted-foreground">No network found.</div>
           ) : (
@@ -135,12 +235,17 @@ export function NetworkSelector<T>({
                   {groupNetworks.map((network) => (
                     <DropdownMenuItem
                       key={getNetworkId(network)}
-                      onSelect={() => {
-                        onSelectNetwork(network);
-                        setOpen(false);
+                      onSelect={(e) => {
+                        if (isMultiple) e.preventDefault();
+                        handleSelect(network);
                       }}
                       className="gap-2"
                     >
+                      {isMultiple ? (
+                        <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border border-primary">
+                          {isSelected(network) && <Check className="h-3 w-3" />}
+                        </div>
+                      ) : null}
                       {getNetworkIcon?.(network)}
                       <div className="flex flex-1 items-center gap-2 min-w-0">
                         <span className="truncate">{getNetworkLabel(network)}</span>
@@ -150,10 +255,9 @@ export function NetworkSelector<T>({
                           </span>
                         )}
                       </div>
-                      {selectedNetwork &&
-                        getNetworkId(selectedNetwork) === getNetworkId(network) && (
-                          <Check className="h-4 w-4 opacity-100" />
-                        )}
+                      {!isMultiple && isSelected(network) && (
+                        <Check className="h-4 w-4 opacity-100" />
+                      )}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuGroup>
