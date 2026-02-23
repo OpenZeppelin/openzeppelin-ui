@@ -102,8 +102,10 @@ export function AliasRow({
         ) : (
           <h3 className="mb-2.5 truncate text-base font-semibold text-foreground">{alias.alias}</h3>
         )}
-        <div className="flex items-center gap-3">
-          {alias.networkId && <NetworkStatusBadge network={network ?? null} className="shrink-0" />}
+        <div className="flex items-center gap-2">
+          {alias.networkId && (
+            <NetworkStatusBadge network={network ?? null} className="shrink-0 gap-1.5 px-2 py-1" />
+          )}
           <div className="min-w-0 flex-1">
             <AddressLabelProvider resolveLabel={() => undefined}>
               <AddressDisplay
