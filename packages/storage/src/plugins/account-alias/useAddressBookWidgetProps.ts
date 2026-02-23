@@ -59,9 +59,14 @@ export function useAddressBookWidgetProps(
   options?: UseAddressBookWidgetPropsOptions
 ): AddressBookWidgetProps {
   const { networkId, filterNetworkIds, onError, ...storageOptions } = options ?? {};
+  const { duplicateMode, maxAliasLength, onDuplicate, enableLogging, logLevel } = storageOptions;
   const tableName = storageOptions.tableName ?? 'aliases';
 
-  const storage = useMemo(() => createAliasStorage(db, storageOptions), [db, tableName]);
+  const storage = useMemo(
+    () => createAliasStorage(db, storageOptions),
+    // Individual primitive deps — storageOptions is a new object each render
+    [db, tableName, duplicateMode, maxAliasLength, onDuplicate, enableLogging, logLevel]
+  );
 
   const fileIO = useMemo(
     () =>
