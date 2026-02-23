@@ -1,5 +1,11 @@
 # @openzeppelin/ui-types
 
+## 1.11.1
+
+### Patch Changes
+
+- [#78](https://github.com/OpenZeppelin/openzeppelin-ui/pull/78) [`8c646a8`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/8c646a8859ffa8d37cb59499fb5695abd6cb2cb2) Thanks [@pasevin](https://github.com/pasevin)! - Add optional `title` prop to AddressBookWidget for customizable card header
+
 ## 1.11.0
 
 ### Minor Changes
