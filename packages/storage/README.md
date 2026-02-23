@@ -39,7 +39,7 @@ This package provides a generic storage infrastructure built on top of IndexedDB
 - **Bulk Operations**: Efficient bulk add/put/delete
 - **Index Queries**: Query by indexed fields
 - **Quota Handling**: Cross-browser quota exceeded error detection
-- **Account Alias Plugin**: Map blockchain addresses to human-readable names
+- **[Account Alias Plugin](./src/plugins/account-alias/README.md)**: Map blockchain addresses to human-readable names
 
 ## Quick Start
 
@@ -236,149 +236,15 @@ await settingsStorage.set('language', 'en');
 const theme = await settingsStorage.get<string>('theme'); // 'dark'
 ```
 
-## Account Alias Plugin
+## Plugins
 
-The Account Alias plugin provides address-to-alias mapping for blockchain addresses. It enables developers to map addresses to human-readable names with configurable duplicate handling, optional metadata, and React hook integration.
+The storage package ships with domain-specific plugins that build on top of the core infrastructure. Each plugin has its own documentation.
 
-### Basic Usage
+| Plugin            | Description                                                                                                                            | Docs                                            |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| **Account Alias** | Map blockchain addresses to human-readable names with multi-network support, React hooks, import/export, and ui-components integration | [README](./src/plugins/account-alias/README.md) |
 
-```typescript
-import { ALIAS_SCHEMA, createAliasStorage, createDexieDatabase } from '@openzeppelin/ui-storage';
-
-// Create database with alias schema
-const db = createDexieDatabase('MyApp', [{ version: 1, stores: ALIAS_SCHEMA }]);
-
-// Create alias storage
-const aliasStorage = createAliasStorage(db);
-
-// Save an alias
-await aliasStorage.save({ address: '0x742d35Cc...', alias: 'Treasury' });
-
-// Lookup by address
-const record = await aliasStorage.getByAddress('0x742d35Cc...');
-console.log(record?.alias); // 'Treasury'
-
-// Resolve alias to address
-const address = await aliasStorage.resolveAlias('Treasury');
-console.log(address); // '0x742d35Cc...'
-```
-
-### Multi-Network Support
-
-The plugin supports network-specific aliases where the same address can have different aliases on different networks:
-
-```typescript
-// Global alias (no networkId)
-await aliasStorage.save({ address: '0x123...', alias: 'Treasury' });
-
-// Network-specific aliases
-await aliasStorage.save({
-  address: '0x123...',
-  networkId: 'ethereum-mainnet',
-  alias: 'ETH Treasury',
-});
-await aliasStorage.save({
-  address: '0x123...',
-  networkId: 'polygon-mainnet',
-  alias: 'Polygon Treasury',
-});
-
-// Lookup by address and network
-const ethRecord = await aliasStorage.getByAddressAndNetwork('0x123...', 'ethereum-mainnet');
-console.log(ethRecord?.alias); // 'ETH Treasury'
-
-// Get all aliases for an address
-const allAliases = await aliasStorage.findByAddress('0x123...');
-console.log(allAliases.length); // 3
-```
-
-### Configuration Options
-
-```typescript
-const aliasStorage = createAliasStorage(db, {
-  duplicateMode: 'strict', // 'strict' | 'warn' | 'allow'
-  maxAliasLength: 64, // Max alias length (undefined to disable)
-  enableLogging: true, // Enable/disable logging
-  logLevel: 'info', // 'debug' | 'info' | 'warn' | 'error'
-  onDuplicate: (alias, existingAddr) => {
-    console.warn(`Duplicate alias: ${alias}`);
-  },
-});
-```
-
-### React Hook Integration
-
-```tsx
-import { createUseAliasStorage } from '@openzeppelin/ui-storage';
-
-const useAliasStorage = createUseAliasStorage(db, {
-  onError: (title, error) => toast.error(title),
-});
-
-function AddressBook() {
-  const { records, isLoading, save, remove } = useAliasStorage();
-
-  if (isLoading) return <div>Loading...</div>;
-
-  return (
-    <ul>
-      {records?.map((r) => (
-        <li key={r.id}>
-          {r.alias}: {r.address}
-        </li>
-      ))}
-    </ul>
-  );
-}
-```
-
-### Import/Export
-
-```typescript
-// Export all aliases to JSON
-const json = await aliasStorage.exportJson();
-
-// Import aliases from JSON
-const result = await aliasStorage.importJson(json);
-console.log(`Imported: ${result.imported}, Skipped: ${result.skipped}`);
-```
-
-### Error Handling
-
-```typescript
-import { AliasStorageError } from '@openzeppelin/ui-storage';
-
-try {
-  await aliasStorage.save({ address: '0x...', alias: 'Treasury' });
-} catch (error) {
-  if (error instanceof AliasStorageError) {
-    switch (error.code) {
-      case 'DUPLICATE_ALIAS':
-        console.error('Alias already in use');
-        break;
-      case 'ALIAS_TOO_LONG':
-        console.error('Alias exceeds max length');
-        break;
-      case 'STORAGE_QUOTA_EXCEEDED':
-        console.error('Storage quota exceeded');
-        break;
-    }
-  }
-}
-```
-
-### Adding to Existing Projects
-
-Add the alias schema in a new database version:
-
-```typescript
-import { ALIAS_SCHEMA, createDexieDatabase } from '@openzeppelin/ui-storage';
-
-const db = createDexieDatabase('MyApp', [
-  { version: 1, stores: { users: '++id, email' } },
-  { version: 2, stores: { users: '++id, email', ...ALIAS_SCHEMA } },
-]);
-```
+See the [plugins directory](./src/plugins/README.md) for an overview.
 
 ## Development
 

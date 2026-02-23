@@ -22,6 +22,7 @@ export * from './loading-button';
 export * from './network-icon';
 export * from './network-selector';
 export * from './network-status-badge';
+export * from './overflow-menu';
 export * from './popover';
 export * from './progress';
 export * from './radio-group';

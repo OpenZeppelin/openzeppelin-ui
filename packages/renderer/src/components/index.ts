@@ -11,6 +11,15 @@ export { DynamicFormField } from './DynamicFormField';
 // Transaction components
 export { TransactionExecuteButton } from './transaction/TransactionExecuteButton';
 
+// Address Book
+export { AddressBookWidget } from './AddressBookWidget';
+export {
+  AliasEditPopover,
+  type AliasEditPopoverProps,
+  type AliasEditLookupResult,
+} from './AddressBookWidget';
+export { useAliasEditState, type UseAliasEditStateReturn } from './AddressBookWidget';
+
 // Contract components
 export { ContractStateWidget } from './ContractStateWidget';
 export { ContractActionBar } from './ContractActionBar';

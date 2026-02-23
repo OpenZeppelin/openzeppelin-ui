@@ -57,4 +57,16 @@ export {
   aliasNotFoundError,
   invalidImportFormatError,
   storageQuotaExceededError,
+  // Label resolver hook
+  useAliasLabelResolver,
+  type UseAliasLabelResolverOptions,
+  // Suggestion resolver hook
+  useAliasSuggestionResolver,
+  type UseAliasSuggestionResolverOptions,
+  // Widget bridge hook
+  useAddressBookWidgetProps,
+  type UseAddressBookWidgetPropsOptions,
+  // Edit popover bridge hook
+  useAliasEditCallbacks,
+  type UseAliasEditCallbacksReturn,
 } from './plugins/account-alias';

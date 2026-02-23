@@ -1,11 +1,13 @@
 import {
   AlertTriangle,
   ArrowLeftRight,
+  BookUser,
   Calendar,
   CalendarRange,
   CheckSquare,
   CircleDot,
   CreditCard,
+  Database,
   ExternalLink as ExternalLinkIcon,
   FileCode2,
   FileText,
@@ -43,6 +45,7 @@ import { EcosystemSwitcher } from './components/EcosystemSwitcher';
 
 import {
   AccordionDemo,
+  AccountAliasDemo,
   AddressDisplayDemo,
   AlertDemo,
   ArchitectureDemo,
@@ -94,6 +97,8 @@ type DemoKey =
   | 'renderer'
   | 'network'
   | 'contract-interactions'
+  // Storage Plugins
+  | 'account-alias'
   // Component Gallery - Inputs
   | 'button'
   | 'input'
@@ -163,6 +168,13 @@ const integrationItems: NavItem[] = [
     label: 'Contract Interactions',
     icon: <FileText className="size-4" />,
   },
+];
+
+/**
+ * Storage section - plugin demos
+ */
+const storagePluginItems: NavItem[] = [
+  { key: 'account-alias', label: 'Account Alias', icon: <BookUser className="size-4" /> },
 ];
 
 /**
@@ -254,6 +266,8 @@ const demoComponents: Record<
   renderer: RendererDemo,
   network: NetworkDemo,
   'contract-interactions': ContractInteractionsDemo,
+  // Storage Plugins
+  'account-alias': AccountAliasDemo,
   // Component Gallery - Inputs
   button: ButtonDemo,
   input: InputDemo,
@@ -415,6 +429,33 @@ function App(): React.ReactElement {
               </SidebarButton>
             ))}
           </nav>
+        </SidebarSection>
+
+        {/* Storage Section */}
+        <SidebarSection title="Storage" className="mt-8">
+          <SidebarGroup
+            title="Plugins"
+            open={true}
+            onOpenChange={() => {}}
+            icon={<Database className="size-4" />}
+          >
+            <div className="flex flex-col gap-0.5">
+              {storagePluginItems.map((item) => (
+                <SidebarButton
+                  key={item.key}
+                  icon={item.icon}
+                  size="small"
+                  isSelected={activeDemo === item.key}
+                  onClick={() => {
+                    setActiveDemo(item.key);
+                    setMobileOpen(false);
+                  }}
+                >
+                  {item.label}
+                </SidebarButton>
+              ))}
+            </div>
+          </SidebarGroup>
         </SidebarSection>
 
         {/* Component Gallery Section */}

@@ -66,6 +66,20 @@ Specialized components designed for use within `react-hook-form`:
 
 Helper functions for validation, accessibility, and layout within field components.
 
+### Address Label & Suggestion Contexts
+
+Context providers for automatic address label resolution and autocomplete suggestions:
+
+- `AddressLabelProvider` / `AddressLabelContext` — When mounted, all `AddressDisplay` instances in the subtree auto-resolve human-readable labels via a `resolveLabel` function
+- `AddressSuggestionProvider` / `AddressSuggestionContext` — When mounted, all `AddressField` instances in the subtree show autocomplete suggestions via a `resolveSuggestions` function
+- `useAddressLabel(address, networkId?)` — Convenience hook to resolve a label from the nearest `AddressLabelProvider`
+
+### Additional UI Components
+
+- `OverflowMenu` — Compact "..." dropdown for secondary actions with support for icons, destructive styling, and disabled state
+- `NetworkSelector` — Searchable network dropdown with optional multi-select mode (`multiple={true}`)
+- `AddressDisplay` — Enhanced with optional `label`, `onLabelEdit`, and `disableLabel` props for context-driven alias display
+
 ### Styling Utilities
 
 Such as `buttonVariants` for `class-variance-authority`.

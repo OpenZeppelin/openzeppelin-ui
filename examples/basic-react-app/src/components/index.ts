@@ -39,6 +39,9 @@ export { FormFieldsDemo } from './FormFieldsDemo';
 export { CalendarDemo } from './CalendarDemo';
 export { DateRangePickerDemo } from './DateRangePickerDemo';
 
+// Storage Plugin Demos
+export { AccountAliasDemo } from './AccountAliasDemo';
+
 // Integration Demos
 export { ArchitectureDemo } from './ArchitectureDemo';
 export { ContractInteractionsDemo } from './ContractInteractionsDemo';

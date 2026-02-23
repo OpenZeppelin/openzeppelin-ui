@@ -53,6 +53,7 @@
     "directory": "packages/storage"
   },
   "dependencies": {
+    "@openzeppelin/ui-types": "workspace:^",
     "@openzeppelin/ui-utils": "workspace:^",
     "dexie": "^4.0.11",
     "dexie-react-hooks": "^1.1.7"
