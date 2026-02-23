@@ -1,5 +1,17 @@
 # @openzeppelin/ui-renderer
 
+## 1.1.0
+
+### Minor Changes
+
+- [#76](https://github.com/OpenZeppelin/openzeppelin-ui/pull/76) [`a25f306`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/a25f306ac50c5dfb9dffb23aea6a023b9eaa9e06) Thanks [@pasevin](https://github.com/pasevin)! - Add AddressBookWidget component for managing address aliases with search, inline edit, import/export, and clear-all support
+
+### Patch Changes
+
+- Updated dependencies [[`c3cc7d1`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/c3cc7d1f5fa2a2c1663f0c54449f51f321d78919), [`0c32886`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/0c328867950dc15282e31ed59c9fb0e1ad886ff9), [`0c32886`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/0c328867950dc15282e31ed59c9fb0e1ad886ff9), [`c3cc7d1`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/c3cc7d1f5fa2a2c1663f0c54449f51f321d78919), [`4a2ba22`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/4a2ba22b7df523c6ef7de52786ae0c1656da4746), [`c3cc7d1`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/c3cc7d1f5fa2a2c1663f0c54449f51f321d78919), [`58a7136`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/58a7136dfee6f7b0a3d201a4b4c216ef08c2d7f0), [`58a7136`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/58a7136dfee6f7b0a3d201a4b4c216ef08c2d7f0)]:
+  - @openzeppelin/ui-types@1.11.0
+  - @openzeppelin/ui-components@1.4.0
+
 ## 1.0.4
 
 ### Patch Changes

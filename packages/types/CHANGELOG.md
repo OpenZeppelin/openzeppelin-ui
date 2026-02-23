@@ -1,5 +1,15 @@
 # @openzeppelin/ui-types
 
+## 1.11.0
+
+### Minor Changes
+
+- [#76](https://github.com/OpenZeppelin/openzeppelin-ui/pull/76) [`c3cc7d1`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/c3cc7d1f5fa2a2c1663f0c54449f51f321d78919) Thanks [@pasevin](https://github.com/pasevin)! - Add `AddressBookAlias` and `AddressBookWidgetProps` types for the address book widget interface. Includes props for network resolution, explorer URL generation, adapter-based validation, network filtering, and import/export support.
+
+- [#76](https://github.com/OpenZeppelin/openzeppelin-ui/pull/76) [`c3cc7d1`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/c3cc7d1f5fa2a2c1663f0c54449f51f321d78919) Thanks [@pasevin](https://github.com/pasevin)! - Add `AddressLabelResolver` interface for generic address-to-label resolution. This type defines the contract consumed by `AddressLabelContext` in ui-components, enabling any address label source (alias storage, ENS, REST API) to integrate with `AddressDisplay`.
+
+- [#76](https://github.com/OpenZeppelin/openzeppelin-ui/pull/76) [`c3cc7d1`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/c3cc7d1f5fa2a2c1663f0c54449f51f321d78919) Thanks [@pasevin](https://github.com/pasevin)! - Add `AddressSuggestion` and `AddressSuggestionResolver` interfaces for generic address autocomplete. Storage-agnostic types consumed by `AddressField` via `AddressSuggestionContext` in ui-components.
+
 ## 1.10.0
 
 ### Minor Changes
