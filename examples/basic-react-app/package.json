@@ -21,6 +21,7 @@
     "@openzeppelin/ui-components": "workspace:^",
     "@openzeppelin/ui-react": "workspace:^",
     "@openzeppelin/ui-renderer": "workspace:^",
+    "@openzeppelin/ui-storage": "workspace:^",
     "@openzeppelin/ui-styles": "workspace:^",
     "@openzeppelin/ui-types": "workspace:^",
     "@openzeppelin/ui-utils": "workspace:^",

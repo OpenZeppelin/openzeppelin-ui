@@ -13,11 +13,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { AddressLabelProvider, AddressSuggestionProvider } from '@openzeppelin/ui-components';
 import { AdapterProvider, useWalletState, WalletStateProvider } from '@openzeppelin/ui-react';
-import type { ContractAdapter, NativeConfigLoader, NetworkConfig } from '@openzeppelin/ui-types';
+import { useAliasLabelResolver, useAliasSuggestionResolver } from '@openzeppelin/ui-storage';
+import type { NativeConfigLoader } from '@openzeppelin/ui-types';
 
 import { EcosystemContext, type EcosystemContextValue } from '../context/ecosystemContextDef';
-import { createAdapter, getNetworkById, type DemoEcosystem } from '../core/ecosystemManager';
+import { demoDb } from '../core/demoDb';
+import { getNetworkById, type DemoEcosystem } from '../core/ecosystemManager';
+import { resolveAdapter } from '../core/networkUtils';
 import { useEcosystemStore } from '../stores';
 
 // ============================================================================
@@ -73,18 +77,6 @@ interface AppProvidersProps {
   children: React.ReactNode;
   /** Initial ecosystem (defaults to 'evm') */
   initialEcosystem?: DemoEcosystem;
-}
-
-// ============================================================================
-// Adapter Resolution (uses lazy loading from ecosystemManager)
-// ============================================================================
-
-/**
- * Resolves an adapter instance for a given network configuration.
- * Uses ecosystemManager.createAdapter which lazy-loads the adapter class.
- */
-async function resolveAdapter(networkConfig: NetworkConfig): Promise<ContractAdapter> {
-  return createAdapter(networkConfig);
 }
 
 // ============================================================================
@@ -169,7 +161,35 @@ function EcosystemProviderInner({ children }: EcosystemProviderInnerProps): Reac
   );
 
   return (
-    <EcosystemContext.Provider value={ecosystemContextValue}>{children}</EcosystemContext.Provider>
+    <EcosystemContext.Provider value={ecosystemContextValue}>
+      <AliasProviderBridge networkId={network?.id}>{children}</AliasProviderBridge>
+    </EcosystemContext.Provider>
+  );
+}
+
+// ============================================================================
+// Alias Provider Bridge (bridges alias storage into ui-components contexts)
+// ============================================================================
+
+/**
+ * Wraps children with AddressLabelProvider and AddressSuggestionProvider
+ * so that all AddressDisplay and AddressField instances across the app
+ * automatically resolve aliases from the shared demo database.
+ */
+function AliasProviderBridge({
+  children,
+  networkId,
+}: {
+  children: React.ReactNode;
+  networkId?: string;
+}): React.ReactElement {
+  const labelResolver = useAliasLabelResolver(demoDb, { networkId });
+  const suggestionResolver = useAliasSuggestionResolver(demoDb);
+
+  return (
+    <AddressLabelProvider {...labelResolver}>
+      <AddressSuggestionProvider {...suggestionResolver}>{children}</AddressSuggestionProvider>
+    </AddressLabelProvider>
   );
 }
 

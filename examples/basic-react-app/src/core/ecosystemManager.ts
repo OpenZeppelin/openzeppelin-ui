@@ -77,7 +77,7 @@ const demoRegistry: Record<DemoEcosystem, DemoEcosystemData> = {
 // Inline Metadata (until adapters publish /metadata entry points)
 // ============================================================================
 
-const ECOSYSTEM_METADATA: Record<DemoEcosystem, BaseEcosystemMetadata> = {
+export const ECOSYSTEM_METADATA: Record<DemoEcosystem, BaseEcosystemMetadata> = {
   evm: {
     id: 'evm',
     name: 'Ethereum (EVM)',
