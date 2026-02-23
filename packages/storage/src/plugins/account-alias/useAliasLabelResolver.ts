@@ -62,8 +62,17 @@ export function useAliasLabelResolver(
   const { networkId: defaultNetworkId, ...storageOptions } = options ?? {};
   const tableName = storageOptions.tableName ?? 'aliases';
 
-  // Stable storage instance (options don't change across renders)
-  const storage = useMemo(() => createAliasStorage(db, storageOptions), [db, tableName]);
+  const storage = useMemo(
+    () => createAliasStorage(db, storageOptions),
+    [
+      db,
+      tableName,
+      storageOptions.duplicateMode,
+      storageOptions.maxAliasLength,
+      storageOptions.enableLogging,
+      storageOptions.logLevel,
+    ]
+  );
 
   const records: AliasRecord[] | undefined = useLiveQuery(() => storage.getAll(), [storage]);
 

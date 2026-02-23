@@ -64,7 +64,17 @@ export function useAliasEditCallbacks(
   options?: AliasStorageOptions
 ): UseAliasEditCallbacksReturn {
   const tableName = options?.tableName ?? 'aliases';
-  const storage = useMemo(() => createAliasStorage(db, options), [db, tableName]);
+  const storage = useMemo(
+    () => createAliasStorage(db, options),
+    [
+      db,
+      tableName,
+      options?.duplicateMode,
+      options?.maxAliasLength,
+      options?.enableLogging,
+      options?.logLevel,
+    ]
+  );
 
   const onLookup = useCallback(
     async (address: string, networkId?: string): Promise<AliasEditLookupResult | undefined> => {
