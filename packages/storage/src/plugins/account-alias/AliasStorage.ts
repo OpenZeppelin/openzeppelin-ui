@@ -386,6 +386,23 @@ export class AliasStorage {
   }
 
   /**
+   * Get alias records filtered by one or more network IDs, ordered by updatedAt descending.
+   * Uses the indexed `networkId` column for efficient querying.
+   *
+   * @param networkIds - Network IDs to include
+   * @returns Matching records sorted by updatedAt descending
+   */
+  async getByNetworkIds(networkIds: string[]): Promise<AliasRecord[]> {
+    const storageIds = networkIds.map(toStorageNetworkId);
+    const records = await this.table
+      .where('networkId')
+      .anyOf(storageIds)
+      .reverse()
+      .sortBy('updatedAt');
+    return records.map(fromStorageRecord);
+  }
+
+  /**
    * Get the count of stored aliases.
    *
    * @returns Number of records

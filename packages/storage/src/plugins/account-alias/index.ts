@@ -67,3 +67,21 @@ export {
   type UseAliasStorageOptions,
   type UseAliasStorageReturn,
 } from './react';
+
+// Label resolver hook (for AddressLabelProvider integration)
+export { useAliasLabelResolver, type UseAliasLabelResolverOptions } from './useAliasLabelResolver';
+
+// Suggestion resolver hook (for AddressSuggestionProvider integration)
+export {
+  useAliasSuggestionResolver,
+  type UseAliasSuggestionResolverOptions,
+} from './useAliasSuggestionResolver';
+
+// Widget bridge hook (for AddressBookWidget integration)
+export {
+  useAddressBookWidgetProps,
+  type UseAddressBookWidgetPropsOptions,
+} from './useAddressBookWidgetProps';
+
+// Edit popover bridge hook (for AliasEditPopover integration)
+export { useAliasEditCallbacks, type UseAliasEditCallbacksReturn } from './useAliasEditCallbacks';
