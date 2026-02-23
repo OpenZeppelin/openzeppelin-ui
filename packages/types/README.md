@@ -33,16 +33,19 @@ The package is organized into namespaces for better organization and to prevent 
 
 ```typescript
 // Import everything
-import { adapters, contracts, forms } from '@openzeppelin/ui-types';
-
+// Import specific types from their respective namespaces
+import {
+  adapters,
+  ContractAdapter,
+  contracts,
+  FieldType,
+  FormFieldType,
+  forms,
+} from '@openzeppelin/ui-types';
 // Import specific namespaces
 import * as contracts from '@openzeppelin/ui-types';
 import * as adapters from '@openzeppelin/ui-types';
 import * as forms from '@openzeppelin/ui-types';
-
-// Import specific types from their respective namespaces
-import { ContractAdapter } from '@openzeppelin/ui-types';
-import { FieldType, FormFieldType } from '@openzeppelin/ui-types';
 
 // Example usage in a function
 function validateField(field: forms.FormFieldType): boolean {
@@ -108,6 +111,11 @@ Interfaces for blockchain-specific adapters:
 ### Common Types (`./src/common`)
 
 - `NetworkEcosystem`: Enum or type defining supported blockchain ecosystems (e.g., 'evm', 'solana').
+- `AddressLabelResolver`: Interface for synchronous address-to-label resolution. Consumed by `AddressLabelContext` in `@openzeppelin/ui-components`.
+- `AddressSuggestion`: A single autocomplete suggestion (label, value, optional description).
+- `AddressSuggestionResolver`: Interface for resolving address suggestions from a query string. Consumed by `AddressSuggestionContext` in `@openzeppelin/ui-components`.
+- `AddressBookAlias`: Plain data shape for an alias record as consumed by the Address Book widget.
+- `AddressBookWidgetProps`: Props contract shared between `AddressBookWidget` (ui-renderer) and `useAddressBookWidgetProps` (ui-storage).
 
 ### Contract Types (`./src/contracts`)
 

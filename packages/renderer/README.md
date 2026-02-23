@@ -63,6 +63,18 @@ Dialog for configuring network-specific settings like RPC endpoints and indexer 
 
 Composed wallet connection component with integrated settings controls.
 
+### AddressBookWidget
+
+Full-featured widget for managing a personal address book with aliases, search, network filtering, import/export, and CRUD operations. Designed to receive all data and mutations via props (dependency injection) from `useAddressBookWidgetProps` in `@openzeppelin/ui-storage`.
+
+### AliasEditPopover
+
+Floating popover for inline alias editing. Positioned near the edit trigger via an anchor rect. Includes address lookup and save/create functionality.
+
+### useAliasEditState
+
+Pure UI state hook for managing the inline alias edit popover. Returns `editing`, `onEditLabel`, `handleClose`, and `lastClickRef` for coordinating popover display with `AddressLabelProvider`.
+
 ### DynamicFormField
 
 Renders form fields dynamically based on field type configuration.
@@ -189,12 +201,39 @@ function FormHeader() {
 | `onToggleContractState` | `() => void`    | (Optional) Toggle contract state widget  |
 | `isWidgetExpanded`      | `boolean`       | (Optional) Current widget expanded state |
 
+### Address Book Usage
+
+```tsx
+import { AddressBookWidget, AliasEditPopover, useAliasEditState } from '@openzeppelin/ui-renderer';
+import { useAddressBookWidgetProps, useAliasEditCallbacks } from '@openzeppelin/ui-storage';
+
+function Settings() {
+  const widgetProps = useAddressBookWidgetProps(db, { networkId: selectedNetwork?.id });
+  const editCallbacks = useAliasEditCallbacks(db);
+  const { editing, onEditLabel, handleClose, lastClickRef } = useAliasEditState(
+    selectedNetwork?.id
+  );
+
+  return (
+    <div
+      onPointerDown={(e) => {
+        lastClickRef.current = { x: e.clientX, y: e.clientY };
+      }}
+    >
+      <AddressBookWidget {...widgetProps} />
+      {editing && <AliasEditPopover {...editing} onClose={handleClose} {...editCallbacks} />}
+    </div>
+  );
+}
+```
+
 ## Package Structure
 
 ```text
 renderer/
 ├── src/
 │   ├── components/
+│   │   ├── AddressBookWidget/       # Address book management widget
 │   │   ├── ContractActionBar/       # Network status and actions
 │   │   ├── ContractStateWidget/     # View function queries
 │   │   ├── ExecutionConfigDisplay/  # EOA/Relayer configuration
