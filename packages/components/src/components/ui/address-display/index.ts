@@ -1,7 +1,3 @@
 export { AddressDisplay } from './address-display';
-export {
-  AddressLabelProvider,
-  useAddressLabel,
-  type AddressLabelProviderProps,
-  type UseAddressLabelResult,
-} from './address-label-context';
+export { AddressLabelProvider, type AddressLabelProviderProps } from './address-label-context';
+export { useAddressLabel, type UseAddressLabelResult } from './use-address-label';
