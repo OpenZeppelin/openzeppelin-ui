@@ -394,12 +394,8 @@ export class AliasStorage {
    */
   async getByNetworkIds(networkIds: string[]): Promise<AliasRecord[]> {
     const storageIds = networkIds.map(toStorageNetworkId);
-    const records = await this.table
-      .where('networkId')
-      .anyOf(storageIds)
-      .reverse()
-      .sortBy('updatedAt');
-    return records.map(fromStorageRecord);
+    const records = await this.table.where('networkId').anyOf(storageIds).sortBy('updatedAt');
+    return records.reverse().map(fromStorageRecord);
   }
 
   /**
