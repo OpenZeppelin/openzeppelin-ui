@@ -63,7 +63,7 @@
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.1",
-    "@types/react": "^19.2.8",
+    "@types/react": "^19.2.14",
     "fake-indexeddb": "^6.0.1",
     "jsdom": "^26.1.0",
     "typescript": "^5.8.3",

@@ -52,8 +52,8 @@
     "directory": "packages/types"
   },
   "devDependencies": {
-    "@types/react": "^19.2.8",
-    "react": "^19.2.1",
+    "@types/react": "^19.2.14",
+    "react": "^19.2.4",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   }
