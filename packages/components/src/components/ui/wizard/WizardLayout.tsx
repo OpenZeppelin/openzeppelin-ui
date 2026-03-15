@@ -162,8 +162,8 @@ function ScrollableLayout({
     if (!container) return;
 
     const handleScroll = () => {
-      const containerRect = container.getBoundingClientRect();
-      const threshold = containerRect.top + 150;
+      const containerTop = container.getBoundingClientRect().top;
+      const threshold = containerTop + 150;
 
       let newActive = 0;
       for (let i = 0; i < steps.length; i++) {
@@ -193,18 +193,19 @@ function ScrollableLayout({
   const stepDefs = toStepDefs(steps, activeIndex);
 
   return (
-    <div className={cn('flex gap-6 py-6', className)}>
-      <div className="sticky top-0 w-[220px] shrink-0 self-start">
+    <div className={cn('flex h-full gap-6', className)}>
+      <div className="h-full w-[220px] shrink-0 py-6 pl-6">
         <WizardStepper
           variant="vertical"
           steps={stepDefs}
           currentStepIndex={activeIndex}
           onStepClick={scrollToSection}
           freeNavigation
+          className="h-full"
         />
       </div>
 
-      <div ref={scrollRef} className="flex min-w-0 flex-1 flex-col overflow-y-auto">
+      <div ref={scrollRef} className="flex min-w-0 flex-1 flex-col overflow-y-auto p-8">
         {header}
         <div className="space-y-12">
           {steps.map((step) => (
