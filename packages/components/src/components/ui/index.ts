@@ -32,3 +32,4 @@ export * from './tabs';
 export * from './textarea';
 export * from './tooltip';
 export * from './view-contract-state-button';
+export * from './wizard';

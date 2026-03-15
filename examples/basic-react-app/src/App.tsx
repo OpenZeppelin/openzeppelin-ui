@@ -78,6 +78,7 @@ import {
   TooltipDemo,
   TypeMappingDemo,
   WalletDemo,
+  WizardDemo,
 } from './components';
 import { useUiStore } from './stores';
 
@@ -114,6 +115,7 @@ type DemoKey =
   | 'toast'
   // Component Gallery - Layout
   | 'sidebar-layout'
+  | 'wizard'
   | 'card'
   | 'tabs'
   | 'accordion'
@@ -209,6 +211,7 @@ const galleryCategories: GalleryCategory[] = [
     title: 'Layout',
     items: [
       { key: 'sidebar-layout', label: 'Scaffold', icon: <PanelLeft className="size-4" /> },
+      { key: 'wizard', label: 'Wizard', icon: <Wand2 className="size-4" /> },
       { key: 'card', label: 'Card', icon: <CreditCard className="size-4" /> },
       { key: 'tabs', label: 'Tabs', icon: <LayoutGrid className="size-4" /> },
       { key: 'accordion', label: 'Accordion', icon: <ListCollapse className="size-4" /> },
@@ -283,6 +286,7 @@ const demoComponents: Record<
   toast: ToastDemo,
   // Component Gallery - Layout
   'sidebar-layout': SidebarLayoutDemo,
+  wizard: WizardDemo,
   card: CardDemo,
   tabs: TabsDemo,
   accordion: AccordionDemo,

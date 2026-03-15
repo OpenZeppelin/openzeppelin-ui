@@ -19,6 +19,7 @@ export { ToastDemo } from './ToastDemo';
 
 // Layout Demos
 export { SidebarLayoutDemo } from './SidebarLayoutDemo';
+export { WizardDemo } from './WizardDemo';
 export { CardDemo } from './CardDemo';
 export { TabsDemo } from './TabsDemo';
 export { AccordionDemo } from './AccordionDemo';
