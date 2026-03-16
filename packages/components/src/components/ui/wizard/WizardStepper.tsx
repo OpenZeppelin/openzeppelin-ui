@@ -118,6 +118,7 @@ function VerticalStepper({
           return (
             <button
               key={step.id}
+              type="button"
               onClick={() => clickable && onStepClick?.(index)}
               disabled={!clickable}
               className={cn(
@@ -166,6 +167,7 @@ function HorizontalStepper({
           return (
             <React.Fragment key={step.id}>
               <button
+                type="button"
                 onClick={() => clickable && onStepClick?.(index)}
                 disabled={!clickable}
                 className={cn(
@@ -180,13 +182,13 @@ function HorizontalStepper({
                 aria-label={`Step ${index + 1}: ${step.title}`}
               >
                 <StepCircle state={state} index={index} />
-                <span className="hidden sm:block">
+                <div className="hidden sm:block">
                   <StepLabel
                     title={step.title}
                     state={state}
                     isSkipped={step.status === 'skipped'}
                   />
-                </span>
+                </div>
               </button>
 
               {!isLast && (

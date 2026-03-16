@@ -41,13 +41,13 @@ export function WizardNavigation({
     <div className={cn('flex items-center justify-between', className)}>
       <div className="flex gap-2">
         {onCancel && (
-          <Button variant="outline" onClick={onCancel} className="gap-2">
+          <Button type="button" variant="outline" onClick={onCancel} className="gap-2">
             <X className="size-4" />
             Cancel
           </Button>
         )}
         {!isFirstStep && (
-          <Button variant="outline" onClick={onPrevious} className="gap-2">
+          <Button type="button" variant="outline" onClick={onPrevious} className="gap-2">
             <ChevronLeft className="size-4" />
             Previous
           </Button>
@@ -56,7 +56,7 @@ export function WizardNavigation({
 
       <div className="flex gap-2">
         {extraActions}
-        <Button onClick={onNext} disabled={!canProceed} className="gap-2">
+        <Button type="button" onClick={onNext} disabled={!canProceed} className="gap-2">
           {isLastStep ? lastStepLabel : nextLabel}
           {!isLastStep && <ChevronRight className="size-4" />}
         </Button>

@@ -358,12 +358,12 @@ function App(): React.ReactElement {
   // Track which sidebar groups are open (by category key)
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
 
-  // Ref for the main content column (scrollable container)
-  const contentColumnRef = useRef<HTMLDivElement>(null);
+  // Ref for the main scroll container
+  const mainContentRef = useRef<HTMLElement>(null);
 
   // Scroll to top when navigating to a different demo
   useEffect(() => {
-    contentColumnRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+    mainContentRef.current?.scrollTo({ top: 0, behavior: 'instant' });
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [activeDemo]);
 
@@ -508,7 +508,7 @@ function App(): React.ReactElement {
       </SidebarLayout>
 
       {/* Main Content Area */}
-      <div ref={contentColumnRef} className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
         {/* Header */}
         <Header
           title="OpenZeppelin UI"
@@ -529,7 +529,7 @@ function App(): React.ReactElement {
         />
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8">
+        <main ref={mainContentRef} className="flex-1 overflow-y-auto p-6 lg:p-8">
           <div className="mx-auto max-w-4xl">
             <ActiveComponent onNavigate={handleNavigate} />
           </div>

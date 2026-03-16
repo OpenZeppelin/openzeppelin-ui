@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 
 import { cn } from '@openzeppelin/ui-utils';
 
+import { Button } from '../button';
 import { WizardNavigation } from './WizardNavigation';
 import type { StepStatus, WizardStepDef } from './WizardStepper';
 import { WizardStepper } from './WizardStepper';
@@ -25,14 +26,17 @@ export interface WizardLayoutProps {
    * - `'scrollable'` — Vertical sidebar stepper, all steps on a single scrollable page.
    */
   variant?: 'vertical' | 'horizontal' | 'scrollable';
+  /**
+   * Optional override for the highest step index reached in paged variants.
+   * When omitted, the layout tracks this internally.
+   */
+  furthestStepIndex?: number;
   /** Extra actions for the bottom navigation bar (paged variants only). */
   navActions?: ReactNode;
   /** Header content rendered above the step content (e.g. title, breadcrumbs). */
   header?: ReactNode;
   className?: string;
 }
-
-const SECTION_ID_PREFIX = 'wizard-section-';
 
 // ---------------------------------------------------------------------------
 // Paged layout (vertical & horizontal stepper)
@@ -41,6 +45,7 @@ const SECTION_ID_PREFIX = 'wizard-section-';
 function PagedLayout({
   steps,
   currentStepIndex,
+  furthestStepIndex: furthestStepIndexProp,
   onStepChange,
   onComplete,
   onCancel,
@@ -49,15 +54,21 @@ function PagedLayout({
   variant,
   className,
 }: WizardLayoutProps & { variant: 'vertical' | 'horizontal' }) {
-  const [furthestStepIndex, setFurthestStepIndex] = useState(currentStepIndex);
+  const safeIndex =
+    steps.length === 0 ? 0 : Math.max(0, Math.min(currentStepIndex, steps.length - 1));
+  const [furthestStepIndex, setFurthestStepIndex] = useState(safeIndex);
 
   useEffect(() => {
-    setFurthestStepIndex((prev) => Math.max(prev, currentStepIndex));
-  }, [currentStepIndex]);
+    setFurthestStepIndex((prev) => Math.max(prev, safeIndex));
+  }, [safeIndex]);
 
-  const isFirstStep = currentStepIndex === 0;
-  const isLastStep = currentStepIndex === steps.length - 1;
-  const currentStep = steps[currentStepIndex];
+  if (steps.length === 0) return null;
+
+  const resolvedFurthestStepIndex = furthestStepIndexProp ?? furthestStepIndex;
+
+  const isFirstStep = safeIndex === 0;
+  const isLastStep = safeIndex === steps.length - 1;
+  const currentStep = steps[safeIndex];
   const canProceed = currentStep?.isValid !== false;
 
   const handleNext = () => {
@@ -65,14 +76,14 @@ function PagedLayout({
       onComplete?.();
       return;
     }
-    onStepChange(currentStepIndex + 1);
+    onStepChange(safeIndex + 1);
   };
 
   const handlePrevious = () => {
-    if (!isFirstStep) onStepChange(currentStepIndex - 1);
+    if (!isFirstStep) onStepChange(safeIndex - 1);
   };
 
-  const stepDefs = toStepDefs(steps, currentStepIndex);
+  const stepDefs = toStepDefs(steps, safeIndex);
 
   const navigation = (
     <WizardNavigation
@@ -99,8 +110,8 @@ function PagedLayout({
           <WizardStepper
             variant="vertical"
             steps={stepDefs}
-            currentStepIndex={currentStepIndex}
-            furthestStepIndex={furthestStepIndex}
+            currentStepIndex={safeIndex}
+            furthestStepIndex={resolvedFurthestStepIndex}
             onStepClick={onStepChange}
             className="h-full"
           />
@@ -125,8 +136,8 @@ function PagedLayout({
         <WizardStepper
           variant="horizontal"
           steps={stepDefs}
-          currentStepIndex={currentStepIndex}
-          furthestStepIndex={furthestStepIndex}
+          currentStepIndex={safeIndex}
+          furthestStepIndex={resolvedFurthestStepIndex}
           onStepClick={onStepChange}
         />
       </div>
@@ -150,45 +161,79 @@ function PagedLayout({
 
 function ScrollableLayout({
   steps,
+  currentStepIndex,
+  onStepChange,
   header,
   onComplete,
   className,
-}: Pick<WizardLayoutProps, 'steps' | 'header' | 'onComplete' | 'className'>) {
+}: Pick<
+  WizardLayoutProps,
+  'steps' | 'currentStepIndex' | 'onStepChange' | 'header' | 'onComplete' | 'className'
+>) {
+  const instanceId = useId();
+  const safeIndex =
+    steps.length === 0 ? 0 : Math.max(0, Math.min(currentStepIndex, steps.length - 1));
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const rafRef = useRef<number | null>(null);
+  const [activeIndex, setActiveIndex] = useState(safeIndex);
+  const sectionId = useCallback(
+    (stepId: string) => `wizard-section-${instanceId}-${stepId}`,
+    [instanceId]
+  );
+
+  useEffect(() => {
+    setActiveIndex(safeIndex);
+  }, [safeIndex]);
 
   useEffect(() => {
     const container = scrollRef.current;
-    if (!container) return;
+    if (!container || steps.length === 0) return;
 
     const handleScroll = () => {
-      const containerTop = container.getBoundingClientRect().top;
-      const threshold = containerTop + 150;
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
 
-      let newActive = 0;
-      for (let i = 0; i < steps.length; i++) {
-        const el = document.getElementById(`${SECTION_ID_PREFIX}${steps[i].id}`);
-        if (el && el.getBoundingClientRect().top <= threshold) {
-          newActive = i;
+      rafRef.current = requestAnimationFrame(() => {
+        const containerTop = container.getBoundingClientRect().top;
+        const threshold = containerTop + 150;
+
+        let newActive = 0;
+        for (let i = 0; i < steps.length; i++) {
+          const el = container.querySelector<HTMLElement>(`#${CSS.escape(sectionId(steps[i].id))}`);
+          if (el && el.getBoundingClientRect().top <= threshold) {
+            newActive = i;
+          }
         }
-      }
-      setActiveIndex(newActive);
+
+        setActiveIndex((prev) => {
+          if (prev !== newActive) onStepChange(newActive);
+          return newActive;
+        });
+        rafRef.current = null;
+      });
     };
 
     container.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [steps]);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, [onStepChange, sectionId, steps]);
 
   const scrollToSection = useCallback(
     (index: number) => {
       const step = steps[index];
       if (!step) return;
-      const el = document.getElementById(`${SECTION_ID_PREFIX}${step.id}`);
+      onStepChange(index);
+      const el = scrollRef.current?.querySelector<HTMLElement>(
+        `#${CSS.escape(sectionId(step.id))}`
+      );
       el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     },
-    [steps]
+    [onStepChange, sectionId, steps]
   );
+
+  if (steps.length === 0) return null;
 
   const stepDefs = toStepDefs(steps, activeIndex);
 
@@ -209,7 +254,7 @@ function ScrollableLayout({
         {header}
         <div className="space-y-12">
           {steps.map((step) => (
-            <section key={step.id} id={`${SECTION_ID_PREFIX}${step.id}`}>
+            <section key={step.id} id={sectionId(step.id)}>
               {step.component}
             </section>
           ))}
@@ -217,13 +262,9 @@ function ScrollableLayout({
 
         {onComplete && (
           <div className="flex justify-end pt-8">
-            <button
-              type="button"
-              onClick={onComplete}
-              className="rounded-md bg-primary px-6 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-            >
+            <Button type="button" onClick={onComplete}>
               Finish
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -260,6 +301,8 @@ export function WizardLayout(props: WizardLayoutProps) {
     return (
       <ScrollableLayout
         steps={rest.steps}
+        currentStepIndex={rest.currentStepIndex}
+        onStepChange={rest.onStepChange}
         header={rest.header}
         onComplete={rest.onComplete}
         className={rest.className}
