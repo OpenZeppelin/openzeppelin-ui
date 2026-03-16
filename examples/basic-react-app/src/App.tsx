@@ -406,7 +406,7 @@ function App(): React.ReactElement {
   const ActiveComponent = demoComponents[activeDemo] ?? demoComponents.overview;
 
   return (
-    <div className="bg-background text-foreground flex min-h-screen">
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
       <SidebarLayout
         header={<SidebarHeader />}
         footer={<SidebarFooter />}
@@ -508,7 +508,7 @@ function App(): React.ReactElement {
       </SidebarLayout>
 
       {/* Main Content Area */}
-      <div ref={contentColumnRef} className="flex min-h-screen flex-1 flex-col overflow-y-auto">
+      <div ref={contentColumnRef} className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
         {/* Header */}
         <Header
           title="OpenZeppelin UI"
@@ -529,7 +529,7 @@ function App(): React.ReactElement {
         />
 
         {/* Main Content */}
-        <main className="flex-1 p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-6 lg:p-8">
           <div className="mx-auto max-w-4xl">
             <ActiveComponent onNavigate={handleNavigate} />
           </div>

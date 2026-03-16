@@ -194,7 +194,7 @@ function ScrollableLayout({
 
   return (
     <div className={cn('flex h-full gap-6', className)}>
-      <div className="h-full w-[220px] shrink-0 py-6 pl-6">
+      <div className="w-[220px] shrink-0 py-6 pl-6">
         <WizardStepper
           variant="vertical"
           steps={stepDefs}
