@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useId, useRef, type ReactNode } from 'react';
 
 import { cn } from '@openzeppelin/ui-utils';
 
 import { Button } from '../button';
+import { getSafeStepIndex, useFurthestStepIndex, useScrollableWizardStepTracking } from './hooks';
 import { WizardNavigation } from './WizardNavigation';
 import type { StepStatus, WizardStepDef } from './WizardStepper';
 import { WizardStepper } from './WizardStepper';
@@ -54,17 +55,10 @@ function PagedLayout({
   variant,
   className,
 }: WizardLayoutProps & { variant: 'vertical' | 'horizontal' }) {
-  const safeIndex =
-    steps.length === 0 ? 0 : Math.max(0, Math.min(currentStepIndex, steps.length - 1));
-  const [furthestStepIndex, setFurthestStepIndex] = useState(safeIndex);
-
-  useEffect(() => {
-    setFurthestStepIndex((prev) => Math.max(prev, safeIndex));
-  }, [safeIndex]);
+  const safeIndex = getSafeStepIndex(steps.length, currentStepIndex);
+  const resolvedFurthestStepIndex = useFurthestStepIndex(safeIndex, furthestStepIndexProp);
 
   if (steps.length === 0) return null;
-
-  const resolvedFurthestStepIndex = furthestStepIndexProp ?? furthestStepIndex;
 
   const isFirstStep = safeIndex === 0;
   const isLastStep = safeIndex === steps.length - 1;
@@ -171,67 +165,18 @@ function ScrollableLayout({
   'steps' | 'currentStepIndex' | 'onStepChange' | 'header' | 'onComplete' | 'className'
 >) {
   const instanceId = useId();
-  const safeIndex =
-    steps.length === 0 ? 0 : Math.max(0, Math.min(currentStepIndex, steps.length - 1));
   const scrollRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef<number | null>(null);
-  const [activeIndex, setActiveIndex] = useState(safeIndex);
   const sectionId = useCallback(
     (stepId: string) => `wizard-section-${instanceId}-${stepId}`,
     [instanceId]
   );
-
-  useEffect(() => {
-    setActiveIndex(safeIndex);
-  }, [safeIndex]);
-
-  useEffect(() => {
-    const container = scrollRef.current;
-    if (!container || steps.length === 0) return;
-
-    const handleScroll = () => {
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-
-      rafRef.current = requestAnimationFrame(() => {
-        const containerTop = container.getBoundingClientRect().top;
-        const threshold = containerTop + 150;
-
-        let newActive = 0;
-        for (let i = 0; i < steps.length; i++) {
-          const el = container.querySelector<HTMLElement>(`#${CSS.escape(sectionId(steps[i].id))}`);
-          if (el && el.getBoundingClientRect().top <= threshold) {
-            newActive = i;
-          }
-        }
-
-        setActiveIndex((prev) => {
-          if (prev !== newActive) onStepChange(newActive);
-          return newActive;
-        });
-        rafRef.current = null;
-      });
-    };
-
-    container.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => {
-      container.removeEventListener('scroll', handleScroll);
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-    };
-  }, [onStepChange, sectionId, steps]);
-
-  const scrollToSection = useCallback(
-    (index: number) => {
-      const step = steps[index];
-      if (!step) return;
-      onStepChange(index);
-      const el = scrollRef.current?.querySelector<HTMLElement>(
-        `#${CSS.escape(sectionId(step.id))}`
-      );
-      el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    },
-    [onStepChange, sectionId, steps]
-  );
+  const { activeIndex, furthestStepIndex, scrollToSection } = useScrollableWizardStepTracking({
+    steps,
+    currentStepIndex,
+    onStepChange,
+    scrollRef,
+    sectionId,
+  });
 
   if (steps.length === 0) return null;
 
@@ -244,6 +189,7 @@ function ScrollableLayout({
           variant="vertical"
           steps={stepDefs}
           currentStepIndex={activeIndex}
+          furthestStepIndex={furthestStepIndex}
           onStepClick={scrollToSection}
           freeNavigation
           className="h-full"
