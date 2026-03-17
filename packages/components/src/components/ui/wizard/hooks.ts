@@ -287,8 +287,15 @@ function getSectionElement(
 }
 
 function scrollSectionIntoView(container: HTMLDivElement, sectionElement: HTMLElement) {
+  // Compute the element's current position relative to the container, then
+  // offset by the existing p-8 (32px) padding so the section title lands
+  // flush with the content column's top edge rather than flush with the
+  // container edge.
+  const elementTop = sectionElement.getBoundingClientRect().top;
+  const containerTop = container.getBoundingClientRect().top;
+  const targetScrollTop = container.scrollTop + (elementTop - containerTop) - SCROLL_PADDING_PX;
   container.scrollTo({
-    top: sectionElement.offsetTop - SCROLL_PADDING_PX,
+    top: targetScrollTop,
     behavior: 'smooth',
   });
 }
