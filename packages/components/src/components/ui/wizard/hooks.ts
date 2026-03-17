@@ -10,6 +10,11 @@ interface UseScrollableWizardStepTrackingOptions<TStep extends StepWithId> {
   onStepChange: (index: number) => void;
   scrollRef: RefObject<HTMLDivElement | null>;
   sectionId: (stepId: string) => string;
+  /**
+   * Pixels to keep between the container top and the scrolled-to section.
+   * Defaults to 32 (matches the `p-8` padding on the scroll column).
+   */
+  scrollPadding?: number;
 }
 
 /**
@@ -46,6 +51,7 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
   onStepChange,
   scrollRef,
   sectionId,
+  scrollPadding = SCROLL_PADDING_PX,
 }: UseScrollableWizardStepTrackingOptions<TStep>) {
   const safeIndex = getSafeStepIndex(steps.length, currentStepIndex);
   const initialIndexRef = useRef(safeIndex);
@@ -57,10 +63,12 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
   const stepsRef = useRef(steps);
   const sectionIdRef = useRef(sectionId);
   const onStepChangeRef = useRef(onStepChange);
+  const scrollPaddingRef = useRef(scrollPadding);
   useEffect(() => {
     stepsRef.current = steps;
     sectionIdRef.current = sectionId;
     onStepChangeRef.current = onStepChange;
+    scrollPaddingRef.current = scrollPadding;
   });
 
   const [activeIndex, setActiveIndex] = useState(initialIndexRef.current);
@@ -189,7 +197,7 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
       `#${CSS.escape(sectionIdRef.current(step.id))}`
     );
     if (scrollRef.current && sectionElement)
-      scrollSectionIntoView(scrollRef.current, sectionElement);
+      scrollSectionIntoView(scrollRef.current, sectionElement, scrollPaddingRef.current);
   }, [currentStepIndex, scrollRef]);
 
   const scrollToSection = useCallback(
@@ -208,7 +216,8 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
       const sectionElement = container?.querySelector<HTMLElement>(
         `#${CSS.escape(sectionIdRef.current(step.id))}`
       );
-      if (container && sectionElement) scrollSectionIntoView(container, sectionElement);
+      if (container && sectionElement)
+        scrollSectionIntoView(container, sectionElement, scrollPaddingRef.current);
     },
     [scrollRef]
   );
@@ -286,14 +295,14 @@ function getSectionElement(
   return container.querySelector<HTMLElement>(`#${CSS.escape(sectionId(stepId))}`);
 }
 
-function scrollSectionIntoView(container: HTMLDivElement, sectionElement: HTMLElement) {
-  // Compute the element's current position relative to the container, then
-  // offset by the existing p-8 (32px) padding so the section title lands
-  // flush with the content column's top edge rather than flush with the
-  // container edge.
+function scrollSectionIntoView(
+  container: HTMLDivElement,
+  sectionElement: HTMLElement,
+  padding: number
+) {
   const elementTop = sectionElement.getBoundingClientRect().top;
   const containerTop = container.getBoundingClientRect().top;
-  const targetScrollTop = container.scrollTop + (elementTop - containerTop) - SCROLL_PADDING_PX;
+  const targetScrollTop = container.scrollTop + (elementTop - containerTop) - padding;
   container.scrollTo({
     top: targetScrollTop,
     behavior: 'smooth',

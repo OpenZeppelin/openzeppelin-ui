@@ -36,6 +36,11 @@ export interface WizardLayoutProps {
   navActions?: ReactNode;
   /** Header content rendered above the step content (e.g. title, breadcrumbs). */
   header?: ReactNode;
+  /**
+   * Pixels of spacing preserved between the container top and an auto-scrolled
+   * section heading (`scrollable` variant only). Defaults to 32 (matches `p-8`).
+   */
+  scrollPadding?: number;
   className?: string;
 }
 
@@ -159,10 +164,17 @@ function ScrollableLayout({
   onStepChange,
   header,
   onComplete,
+  scrollPadding,
   className,
 }: Pick<
   WizardLayoutProps,
-  'steps' | 'currentStepIndex' | 'onStepChange' | 'header' | 'onComplete' | 'className'
+  | 'steps'
+  | 'currentStepIndex'
+  | 'onStepChange'
+  | 'header'
+  | 'onComplete'
+  | 'scrollPadding'
+  | 'className'
 >) {
   const instanceId = useId();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -176,6 +188,7 @@ function ScrollableLayout({
     onStepChange,
     scrollRef,
     sectionId,
+    scrollPadding,
   });
 
   if (steps.length === 0) return null;
@@ -251,6 +264,7 @@ export function WizardLayout(props: WizardLayoutProps) {
         onStepChange={rest.onStepChange}
         header={rest.header}
         onComplete={rest.onComplete}
+        scrollPadding={rest.scrollPadding}
         className={rest.className}
       />
     );
