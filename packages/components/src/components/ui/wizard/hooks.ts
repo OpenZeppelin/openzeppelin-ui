@@ -115,19 +115,9 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
           currentSectionId
         );
         const naturalActiveIndex = naturalState.activeIndex;
-
-        // Auto-release the manual selection lock once natural scroll has caught
-        // up to the intended step. This handles scroll mechanisms that don't
-        // fire wheel/touchmove events (e.g. scrollbar drag, programmatic
-        // scrollTop changes, assistive technology).
-        if (manualSelectionIndex !== null && naturalActiveIndex === manualSelectionIndex) {
-          manualSelectionIndexRef.current = null;
-        }
-
-        const resolvedManualIndex = manualSelectionIndexRef.current;
-        const newActiveIndex = resolvedManualIndex ?? naturalActiveIndex;
+        const newActiveIndex = manualSelectionIndex ?? naturalActiveIndex;
         const shouldCommitFurthestStepIndex =
-          resolvedManualIndex !== null ? true : naturalState.commitFurthestStepIndex;
+          manualSelectionIndex !== null ? true : naturalState.commitFurthestStepIndex;
 
         const prevActiveIndex = activeIndexRef.current;
         if (prevActiveIndex !== newActiveIndex) {
