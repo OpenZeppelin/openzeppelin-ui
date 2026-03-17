@@ -67,6 +67,14 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
   const activeIndexRef = useRef(initialIndexRef.current);
   const [furthestStepIndex, setFurthestStepIndex] = useState(initialIndexRef.current);
 
+  // Ref flag used to suppress the onStepChange call from the initial mount
+  // scroll evaluation, preventing a React render-order violation where an
+  // external store update fires during the commit phase of a sibling component.
+  // Using a ref (rather than a local variable) ensures the flag is reliably
+  // set before the RAF callback executes, even in environments where the RAF
+  // fires synchronously or immediately after scheduling.
+  const isMountedRef = useRef(false);
+
   const clearManualSelection = useCallback(() => {
     manualSelectionIndexRef.current = null;
   }, []);
@@ -79,6 +87,8 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
     if (!container) return;
     const ownerDocument = container.ownerDocument;
 
+    isMountedRef.current = false;
+
     const releaseManualSelectionOnUserScroll = () => {
       clearManualSelection();
     };
@@ -87,8 +97,6 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
         clearManualSelection();
       }
     };
-
-    let isMounted = false;
 
     const handleScroll = () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
@@ -107,9 +115,19 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
           currentSectionId
         );
         const naturalActiveIndex = naturalState.activeIndex;
-        const newActiveIndex = manualSelectionIndex ?? naturalActiveIndex;
+
+        // Auto-release the manual selection lock once natural scroll has caught
+        // up to the intended step. This handles scroll mechanisms that don't
+        // fire wheel/touchmove events (e.g. scrollbar drag, programmatic
+        // scrollTop changes, assistive technology).
+        if (manualSelectionIndex !== null && naturalActiveIndex === manualSelectionIndex) {
+          manualSelectionIndexRef.current = null;
+        }
+
+        const resolvedManualIndex = manualSelectionIndexRef.current;
+        const newActiveIndex = resolvedManualIndex ?? naturalActiveIndex;
         const shouldCommitFurthestStepIndex =
-          manualSelectionIndex !== null ? true : naturalState.commitFurthestStepIndex;
+          resolvedManualIndex !== null ? true : naturalState.commitFurthestStepIndex;
 
         const prevActiveIndex = activeIndexRef.current;
         if (prevActiveIndex !== newActiveIndex) {
@@ -117,7 +135,7 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
           setActiveIndex(newActiveIndex);
           // Only notify the parent after the initial mount scroll so we don't
           // call setState on a sibling component during the commit phase.
-          if (isMounted) currentOnStepChange(newActiveIndex);
+          if (isMountedRef.current) currentOnStepChange(newActiveIndex);
         } else {
           setActiveIndex(newActiveIndex);
         }
@@ -132,11 +150,13 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
     container.addEventListener('touchmove', releaseManualSelectionOnUserScroll, { passive: true });
     ownerDocument.addEventListener('keydown', handleKeyDown);
     container.addEventListener('scroll', handleScroll, { passive: true });
+    // Schedule the initial scroll evaluation, then immediately mark as mounted
+    // so the RAF callback (which runs later) will allow onStepChange calls.
     handleScroll();
-    isMounted = true;
+    isMountedRef.current = true;
 
     return () => {
-      isMounted = false;
+      isMountedRef.current = false;
       container.removeEventListener('wheel', releaseManualSelectionOnUserScroll);
       container.removeEventListener('touchmove', releaseManualSelectionOnUserScroll);
       ownerDocument.removeEventListener('keydown', handleKeyDown);
@@ -146,6 +166,29 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
     // Intentionally only re-run when the scroll container itself changes.
     // steps/sectionId/onStepChange are consumed via refs above.
   }, [clearManualSelection, scrollRef]);
+
+  // Sync activeIndex and scroll position when currentStepIndex changes
+  // programmatically after the initial mount (e.g. external navigation).
+  const prevCurrentStepIndexRef = useRef(safeIndex);
+  useEffect(() => {
+    const newSafeIndex = getSafeStepIndex(stepsRef.current.length, currentStepIndex);
+    if (newSafeIndex === prevCurrentStepIndexRef.current) return;
+    prevCurrentStepIndexRef.current = newSafeIndex;
+
+    // Only sync if not driven by an in-progress manual selection.
+    if (manualSelectionIndexRef.current !== null) return;
+
+    activeIndexRef.current = newSafeIndex;
+    setActiveIndex(newSafeIndex);
+    setFurthestStepIndex((prev) => Math.max(prev, newSafeIndex));
+
+    const step = stepsRef.current[newSafeIndex];
+    if (!step) return;
+    const sectionElement = scrollRef.current?.querySelector<HTMLElement>(
+      `#${CSS.escape(sectionIdRef.current(step.id))}`
+    );
+    sectionElement?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [currentStepIndex, scrollRef]);
 
   const scrollToSection = useCallback(
     (index: number) => {
