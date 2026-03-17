@@ -96,6 +96,10 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
     const ownerDocument = container.ownerDocument;
 
     isMountedRef.current = false;
+    // Gate used inside the first RAF callback to flip isMountedRef only after
+    // the initial scroll evaluation completes — ensuring onStepChange is never
+    // called during the React commit phase on mount.
+    let didCompleteInitialRaf = false;
 
     const releaseManualSelectionOnUserScroll = () => {
       clearManualSelection();
@@ -131,8 +135,9 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
         if (prevActiveIndex !== newActiveIndex) {
           activeIndexRef.current = newActiveIndex;
           setActiveIndex(newActiveIndex);
-          // Only notify the parent after the initial mount scroll so we don't
-          // call setState on a sibling component during the commit phase.
+          // Only notify the parent once the initial mount RAF has completed so
+          // we don't call setState on a sibling component during React's commit
+          // phase. isMountedRef is set to true at the end of the first RAF run.
           if (isMountedRef.current) {
             lastEmittedIndexRef.current = newActiveIndex;
             currentOnStepChange(newActiveIndex);
@@ -144,22 +149,30 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
           setFurthestStepIndex((prev) => Math.max(prev, newActiveIndex));
         }
         rafRef.current = null;
+
+        // Mark mounted at the very end of the first RAF so subsequent scroll
+        // events (and the RAF callbacks they schedule) can call onStepChange.
+        if (!didCompleteInitialRaf) {
+          didCompleteInitialRaf = true;
+          isMountedRef.current = true;
+        }
       });
     };
 
     container.addEventListener('wheel', releaseManualSelectionOnUserScroll, { passive: true });
     container.addEventListener('touchmove', releaseManualSelectionOnUserScroll, { passive: true });
+    // pointerdown covers scrollbar drag and other pointer-based scrolling that
+    // does not fire wheel or touchmove events.
+    container.addEventListener('pointerdown', releaseManualSelectionOnUserScroll);
     ownerDocument.addEventListener('keydown', handleKeyDown);
     container.addEventListener('scroll', handleScroll, { passive: true });
-    // Schedule the initial scroll evaluation, then immediately mark as mounted
-    // so the RAF callback (which runs later) will allow onStepChange calls.
     handleScroll();
-    isMountedRef.current = true;
 
     return () => {
       isMountedRef.current = false;
       container.removeEventListener('wheel', releaseManualSelectionOnUserScroll);
       container.removeEventListener('touchmove', releaseManualSelectionOnUserScroll);
+      container.removeEventListener('pointerdown', releaseManualSelectionOnUserScroll);
       ownerDocument.removeEventListener('keydown', handleKeyDown);
       container.removeEventListener('scroll', handleScroll);
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
