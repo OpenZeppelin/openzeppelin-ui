@@ -35,13 +35,8 @@ function resolveState(
   furthestStepIndex: number
 ): StepVisualState {
   if (step.status === 'completed' || step.status === 'skipped') return 'completed';
-  if (step.isInvalid) {
-    // Only show invalid on steps the user has already visited or is currently on.
-    if (index === currentStepIndex || index < currentStepIndex || index <= furthestStepIndex) {
-      return 'invalid';
-    }
-  }
   if (index === currentStepIndex) return 'current';
+  if (step.isInvalid && (index < currentStepIndex || index <= furthestStepIndex)) return 'invalid';
   if (index < currentStepIndex) return 'completed';
   if (index <= furthestStepIndex) return 'visited';
   return 'upcoming';
