@@ -188,7 +188,8 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
     const sectionElement = scrollRef.current?.querySelector<HTMLElement>(
       `#${CSS.escape(sectionIdRef.current(step.id))}`
     );
-    sectionElement?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (scrollRef.current && sectionElement)
+      scrollSectionIntoView(scrollRef.current, sectionElement);
   }, [currentStepIndex, scrollRef]);
 
   const scrollToSection = useCallback(
@@ -203,10 +204,11 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
       setFurthestStepIndex((prev) => Math.max(prev, index));
       onStepChangeRef.current(index);
 
-      const sectionElement = scrollRef.current?.querySelector<HTMLElement>(
+      const container = scrollRef.current;
+      const sectionElement = container?.querySelector<HTMLElement>(
         `#${CSS.escape(sectionIdRef.current(step.id))}`
       );
-      sectionElement?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (container && sectionElement) scrollSectionIntoView(container, sectionElement);
     },
     [scrollRef]
   );
@@ -272,12 +274,23 @@ function resolveScrollableActiveIndex<TStep extends StepWithId>(
   };
 }
 
+// Matches the p-8 (32px) padding on the scrollable content column so that
+// auto-scrolled sections align flush with the sidebar card's top border.
+const SCROLL_PADDING_PX = 32;
+
 function getSectionElement(
   container: HTMLDivElement,
   stepId: string,
   sectionId: (stepId: string) => string
 ) {
   return container.querySelector<HTMLElement>(`#${CSS.escape(sectionId(stepId))}`);
+}
+
+function scrollSectionIntoView(container: HTMLDivElement, sectionElement: HTMLElement) {
+  container.scrollTo({
+    top: sectionElement.offsetTop - SCROLL_PADDING_PX,
+    behavior: 'smooth',
+  });
 }
 
 function getSectionMetrics(

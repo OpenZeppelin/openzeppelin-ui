@@ -100,7 +100,7 @@ describe('useScrollableWizardStepTracking', () => {
   });
 
   it('keeps furthest visited step after jumping back via step click', async () => {
-    const { container, scrollRef, sectionId, scrollIntoViewSpy } = createScrollFixture([
+    const { container, scrollRef, sectionId, scrollToSpy } = createScrollFixture([
       -260, -120, 20, 100, 360,
     ]);
     const onStepChange = vi.fn();
@@ -125,7 +125,7 @@ describe('useScrollableWizardStepTracking', () => {
     expect(result.current.activeIndex).toBe(1);
     expect(result.current.furthestStepIndex).toBe(3);
     expect(onStepChange).toHaveBeenCalledWith(1);
-    expect(scrollIntoViewSpy).toHaveBeenCalled();
+    expect(scrollToSpy).toHaveBeenCalled();
 
     container.remove();
   });
@@ -250,7 +250,7 @@ describe('useScrollableWizardStepTracking', () => {
   });
 
   it('keeps an explicitly clicked last step active while its section is visible', async () => {
-    const { container, scrollRef, sectionId, scrollIntoViewSpy } = createScrollFixture(
+    const { container, scrollRef, sectionId, scrollToSpy } = createScrollFixture(
       [-180, -60, 20, 120, 360],
       {
         scrollTop: 496,
@@ -282,13 +282,13 @@ describe('useScrollableWizardStepTracking', () => {
     expect(result.current.activeIndex).toBe(4);
     expect(result.current.furthestStepIndex).toBe(4);
     expect(onStepChange).toHaveBeenCalledWith(4);
-    expect(scrollIntoViewSpy).toHaveBeenCalled();
+    expect(scrollToSpy).toHaveBeenCalled();
 
     container.remove();
   });
 
   it('preserves an explicitly clicked step while smooth scrolling toward an offscreen target', async () => {
-    const { container, scrollRef, sectionId, scrollIntoViewSpy } = createScrollFixture(
+    const { container, scrollRef, sectionId, scrollToSpy } = createScrollFixture(
       [-260, -120, 20, 120, 760],
       {
         scrollTop: 120,
@@ -319,7 +319,7 @@ describe('useScrollableWizardStepTracking', () => {
     expect(result.current.furthestStepIndex).toBe(4);
     expect(initialActiveIndex).not.toBe(4);
     expect(onStepChange).toHaveBeenCalledWith(4);
-    expect(scrollIntoViewSpy).toHaveBeenCalled();
+    expect(scrollToSpy).toHaveBeenCalled();
 
     container.remove();
   });
@@ -404,7 +404,12 @@ function createScrollFixture(
       height: clientHeight,
     });
 
-  const scrollIntoViewSpy = vi.fn();
+  const scrollToSpy = vi.fn();
+  Object.defineProperty(container, 'scrollTo', {
+    value: scrollToSpy,
+    configurable: true,
+  });
+
   const sectionId = (stepId: string) => `wizard-test-${stepId}`;
 
   sectionTops.forEach((top, index) => {
@@ -416,17 +421,13 @@ function createScrollFixture(
         bottom: top + 120,
         height: 120,
       });
-    Object.defineProperty(section, 'scrollIntoView', {
-      value: scrollIntoViewSpy,
-      configurable: true,
-    });
     container.appendChild(section);
   });
 
   return {
     container,
     scrollRef: { current: container } as React.RefObject<HTMLDivElement | null>,
-    scrollIntoViewSpy,
+    scrollToSpy,
     sectionId,
   };
 }
