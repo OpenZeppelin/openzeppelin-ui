@@ -135,7 +135,10 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
           setActiveIndex(newActiveIndex);
           // Only notify the parent after the initial mount scroll so we don't
           // call setState on a sibling component during the commit phase.
-          if (isMountedRef.current) currentOnStepChange(newActiveIndex);
+          if (isMountedRef.current) {
+            lastEmittedIndexRef.current = newActiveIndex;
+            currentOnStepChange(newActiveIndex);
+          }
         } else {
           setActiveIndex(newActiveIndex);
         }
@@ -167,17 +170,25 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
     // steps/sectionId/onStepChange are consumed via refs above.
   }, [clearManualSelection, scrollRef]);
 
-  // Sync activeIndex and scroll position when currentStepIndex changes
-  // programmatically after the initial mount (e.g. external navigation).
-  const prevCurrentStepIndexRef = useRef(safeIndex);
+  // Tracks the last index this hook reported to the parent via onStepChange.
+  // Used to distinguish external prop changes (true programmatic navigation)
+  // from echoes of our own scroll-driven updates flowing back as props.
+  const lastEmittedIndexRef = useRef(safeIndex);
+
+  // Sync activeIndex and scroll position when currentStepIndex is changed
+  // externally (e.g. programmatic navigation from outside the scrollable layout).
+  // We skip the sync when currentStepIndex simply echoes the value we last
+  // emitted ourselves — otherwise scroll-driven onStepChange calls would
+  // create a feedback loop that bounces the scroll position back to the
+  // previously active section.
   useEffect(() => {
     const newSafeIndex = getSafeStepIndex(stepsRef.current.length, currentStepIndex);
-    if (newSafeIndex === prevCurrentStepIndexRef.current) return;
-    prevCurrentStepIndexRef.current = newSafeIndex;
 
-    // Only sync if not driven by an in-progress manual selection.
-    if (manualSelectionIndexRef.current !== null) return;
+    // Echo of our own last emission — not an external command, ignore.
+    if (newSafeIndex === lastEmittedIndexRef.current) return;
 
+    // External navigation: adopt the new index and scroll to it.
+    lastEmittedIndexRef.current = newSafeIndex;
     activeIndexRef.current = newSafeIndex;
     setActiveIndex(newSafeIndex);
     setFurthestStepIndex((prev) => Math.max(prev, newSafeIndex));
@@ -197,6 +208,7 @@ export function useScrollableWizardStepTracking<TStep extends StepWithId>({
 
       manualSelectionIndexRef.current = index;
       activeIndexRef.current = index;
+      lastEmittedIndexRef.current = index;
       setActiveIndex(index);
       setFurthestStepIndex((prev) => Math.max(prev, index));
       onStepChangeRef.current(index);
