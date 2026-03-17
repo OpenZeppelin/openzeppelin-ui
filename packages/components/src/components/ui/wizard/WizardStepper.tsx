@@ -1,4 +1,4 @@
-import { Check, Pencil } from 'lucide-react';
+import { AlertCircle, Check, Pencil } from 'lucide-react';
 import type { ReactNode } from 'react';
 import React from 'react';
 
@@ -6,12 +6,14 @@ import { cn } from '@openzeppelin/ui-utils';
 
 export type StepStatus = 'pending' | 'completed' | 'skipped';
 
-export type StepVisualState = 'completed' | 'current' | 'visited' | 'upcoming';
+export type StepVisualState = 'completed' | 'current' | 'visited' | 'invalid' | 'upcoming';
 
 export interface WizardStepDef {
   id: string;
   title: string;
   status?: StepStatus;
+  /** When true the step is highlighted with an error indicator. */
+  isInvalid?: boolean;
 }
 
 export interface WizardStepperProps {
@@ -33,6 +35,12 @@ function resolveState(
   furthestStepIndex: number
 ): StepVisualState {
   if (step.status === 'completed' || step.status === 'skipped') return 'completed';
+  if (step.isInvalid) {
+    // Only show invalid on steps the user has already visited or is currently on.
+    if (index === currentStepIndex || index < currentStepIndex || index <= furthestStepIndex) {
+      return 'invalid';
+    }
+  }
   if (index === currentStepIndex) return 'current';
   if (index < currentStepIndex) return 'completed';
   if (index <= furthestStepIndex) return 'visited';
@@ -52,6 +60,7 @@ function StepCircle({ state, index }: { state: StepVisualState; index: number })
         state === 'completed' && 'bg-blue-600 text-white',
         state === 'current' && 'bg-blue-600 text-white ring-2 ring-blue-200',
         state === 'visited' && 'bg-blue-100 text-blue-600 ring-1 ring-blue-300',
+        state === 'invalid' && 'bg-red-100 text-red-600 ring-1 ring-red-300',
         state === 'upcoming' && 'bg-zinc-100 text-zinc-400'
       )}
     >
@@ -59,6 +68,8 @@ function StepCircle({ state, index }: { state: StepVisualState; index: number })
         <Check className="size-3.5" />
       ) : state === 'visited' ? (
         <Pencil className="size-3" />
+      ) : state === 'invalid' ? (
+        <AlertCircle className="size-3.5" />
       ) : (
         index + 1
       )}
@@ -83,6 +94,7 @@ function StepLabel({
           state === 'current' && 'text-blue-700',
           state === 'completed' && 'text-zinc-700',
           state === 'visited' && 'text-blue-600',
+          state === 'invalid' && 'text-red-600',
           state === 'upcoming' && 'text-zinc-400'
         )}
       >
@@ -127,6 +139,7 @@ function VerticalStepper({
                 state === 'current' && 'border-blue-200 bg-blue-50',
                 state === 'completed' && 'bg-white hover:bg-gray-50',
                 state === 'visited' && 'bg-white hover:bg-blue-50/50',
+                state === 'invalid' && 'border-red-200 bg-red-50 hover:bg-red-100/60',
                 state === 'upcoming' && 'bg-white'
               )}
               aria-current={state === 'current' ? 'step' : undefined}
@@ -176,6 +189,7 @@ function HorizontalStepper({
                   state === 'current' && 'border-blue-200 bg-blue-50',
                   state === 'completed' && 'bg-white hover:bg-gray-50',
                   state === 'visited' && 'bg-white hover:bg-blue-50/50',
+                  state === 'invalid' && 'border-red-200 bg-red-50 hover:bg-red-100/60',
                   state === 'upcoming' && 'bg-white'
                 )}
                 aria-current={state === 'current' ? 'step' : undefined}

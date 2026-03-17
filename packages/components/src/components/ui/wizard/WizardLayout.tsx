@@ -240,6 +240,7 @@ function toStepDefs(steps: WizardStepConfig[], currentStepIndex: number): Wizard
     id: s.id,
     title: s.title,
     status: s.status ?? (i < currentStepIndex ? 'completed' : 'pending'),
+    isInvalid: s.isValid === false,
   }));
 }
 
