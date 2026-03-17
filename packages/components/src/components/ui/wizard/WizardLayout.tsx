@@ -236,12 +236,13 @@ function ScrollableLayout({
 // ---------------------------------------------------------------------------
 
 function toStepDefs(steps: WizardStepConfig[], currentStepIndex: number): WizardStepDef[] {
-  return steps.map((s, i) => ({
-    id: s.id,
-    title: s.title,
-    status: s.status ?? (i < currentStepIndex ? 'completed' : 'pending'),
-    isInvalid: s.isValid === false,
-  }));
+  return steps.map((s, i) => {
+    const isInvalid = s.isValid === false;
+    // Don't auto-assign 'completed' for invalid past steps — resolveState
+    // needs to see isInvalid=true to render the error indicator instead.
+    const status = s.status ?? (i < currentStepIndex && !isInvalid ? 'completed' : 'pending');
+    return { id: s.id, title: s.title, status, isInvalid };
+  });
 }
 
 // ---------------------------------------------------------------------------
