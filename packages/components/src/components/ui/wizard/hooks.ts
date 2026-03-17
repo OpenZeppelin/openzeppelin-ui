@@ -272,7 +272,7 @@ function resolveScrollableActiveIndex<TStep extends StepWithId>(
   let activeIndex = 0;
   let highestScore = Number.NEGATIVE_INFINITY;
   for (let i = 0; i < steps.length; i++) {
-    const sectionMetrics = getSectionMetrics(container, steps[i].id, sectionId);
+    const sectionMetrics = getSectionMetrics(container, steps[i].id, sectionId, containerRect);
     if (!sectionMetrics) continue;
 
     const score = scoreScrollableStep({
@@ -325,13 +325,13 @@ function scrollSectionIntoView(
 function getSectionMetrics(
   container: HTMLDivElement,
   stepId: string,
-  sectionId: (stepId: string) => string
+  sectionId: (stepId: string) => string,
+  containerRect: DOMRect
 ) {
   const sectionElement = getSectionElement(container, stepId, sectionId);
   if (!sectionElement) return null;
 
   const sectionRect = sectionElement.getBoundingClientRect();
-  const containerRect = container.getBoundingClientRect();
 
   return {
     sectionRect,
