@@ -1,0 +1,403 @@
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+
+interface StepWithId {
+  id: string;
+}
+
+interface UseScrollableWizardStepTrackingOptions<TStep extends StepWithId> {
+  steps: TStep[];
+  currentStepIndex: number;
+  onStepChange: (index: number) => void;
+  scrollRef: RefObject<HTMLDivElement | null>;
+  sectionId: (stepId: string) => string;
+  /**
+   * Pixels to keep between the container top and the scrolled-to section.
+   * Defaults to 32 (matches the `p-8` padding on the scroll column).
+   */
+  scrollPadding?: number;
+}
+
+/**
+ * Clamp a step index into the valid range for the current wizard.
+ */
+export function getSafeStepIndex(stepCount: number, currentStepIndex: number) {
+  if (stepCount === 0) return 0;
+
+  return Math.max(0, Math.min(currentStepIndex, stepCount - 1));
+}
+
+/**
+ * Track the highest step reached unless a controlled value is provided.
+ */
+export function useFurthestStepIndex(
+  currentStepIndex: number,
+  controlledFurthestStepIndex?: number
+) {
+  const [internalFurthestStepIndex, setInternalFurthestStepIndex] = useState(currentStepIndex);
+
+  useEffect(() => {
+    setInternalFurthestStepIndex((prev) => Math.max(prev, currentStepIndex));
+  }, [currentStepIndex]);
+
+  return controlledFurthestStepIndex ?? internalFurthestStepIndex;
+}
+
+/**
+ * Keep the scrollable wizard's active and visited step state in sync with scrolling and clicks.
+ */
+export function useScrollableWizardStepTracking<TStep extends StepWithId>({
+  steps,
+  currentStepIndex,
+  onStepChange,
+  scrollRef,
+  sectionId,
+  scrollPadding = SCROLL_PADDING_PX,
+}: UseScrollableWizardStepTrackingOptions<TStep>) {
+  const safeIndex = getSafeStepIndex(steps.length, currentStepIndex);
+  const initialIndexRef = useRef(safeIndex);
+  const rafRef = useRef<number | null>(null);
+  const manualSelectionIndexRef = useRef<number | null>(null);
+
+  // Keep a ref to the latest steps/sectionId/onStepChange so the scroll
+  // handler always uses fresh values without being a dependency.
+  const stepsRef = useRef(steps);
+  const sectionIdRef = useRef(sectionId);
+  const onStepChangeRef = useRef(onStepChange);
+  const scrollPaddingRef = useRef(scrollPadding);
+  useEffect(() => {
+    stepsRef.current = steps;
+    sectionIdRef.current = sectionId;
+    onStepChangeRef.current = onStepChange;
+    scrollPaddingRef.current = scrollPadding;
+  });
+
+  const [activeIndex, setActiveIndex] = useState(initialIndexRef.current);
+  const activeIndexRef = useRef(initialIndexRef.current);
+  const [furthestStepIndex, setFurthestStepIndex] = useState(initialIndexRef.current);
+
+  // Ref flag used to suppress the onStepChange call from the initial mount
+  // scroll evaluation, preventing a React render-order violation where an
+  // external store update fires during the commit phase of a sibling component.
+  // Using a ref (rather than a local variable) ensures the flag is reliably
+  // set before the RAF callback executes, even in environments where the RAF
+  // fires synchronously or immediately after scheduling.
+  const isMountedRef = useRef(false);
+
+  const clearManualSelection = useCallback(() => {
+    manualSelectionIndexRef.current = null;
+  }, []);
+
+  // Wire up scroll tracking once, against the stable scrollRef.
+  // Steps/sectionId changes are consumed via refs so this effect never
+  // re-runs (and never inadvertently clears the manual selection lock).
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const ownerDocument = container.ownerDocument;
+
+    isMountedRef.current = false;
+    // Gate used inside the first RAF callback to flip isMountedRef only after
+    // the initial scroll evaluation completes — ensuring onStepChange is never
+    // called during the React commit phase on mount.
+    let didCompleteInitialRaf = false;
+
+    const releaseManualSelectionOnUserScroll = () => {
+      clearManualSelection();
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (isScrollableNavigationKey(event)) {
+        clearManualSelection();
+      }
+    };
+
+    const handleScroll = () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+
+      rafRef.current = requestAnimationFrame(() => {
+        const currentSteps = stepsRef.current;
+        const currentSectionId = sectionIdRef.current;
+        const currentOnStepChange = onStepChangeRef.current;
+
+        if (currentSteps.length === 0) return;
+
+        const manualSelectionIndex = manualSelectionIndexRef.current;
+        const naturalState = resolveScrollableActiveIndex(
+          container,
+          currentSteps,
+          currentSectionId
+        );
+        const naturalActiveIndex = naturalState.activeIndex;
+        const newActiveIndex = manualSelectionIndex ?? naturalActiveIndex;
+        const shouldCommitFurthestStepIndex =
+          manualSelectionIndex !== null ? true : naturalState.commitFurthestStepIndex;
+
+        const prevActiveIndex = activeIndexRef.current;
+        if (prevActiveIndex !== newActiveIndex) {
+          activeIndexRef.current = newActiveIndex;
+          setActiveIndex(newActiveIndex);
+          // Only notify the parent once the initial mount RAF has completed so
+          // we don't call setState on a sibling component during React's commit
+          // phase. isMountedRef is set to true at the end of the first RAF run.
+          if (isMountedRef.current) {
+            lastEmittedIndexRef.current = newActiveIndex;
+            currentOnStepChange(newActiveIndex);
+          }
+        } else {
+          setActiveIndex(newActiveIndex);
+        }
+        if (shouldCommitFurthestStepIndex) {
+          setFurthestStepIndex((prev) => Math.max(prev, newActiveIndex));
+        }
+        rafRef.current = null;
+
+        // Mark mounted at the very end of the first RAF so subsequent scroll
+        // events (and the RAF callbacks they schedule) can call onStepChange.
+        if (!didCompleteInitialRaf) {
+          didCompleteInitialRaf = true;
+          isMountedRef.current = true;
+        }
+      });
+    };
+
+    container.addEventListener('wheel', releaseManualSelectionOnUserScroll, { passive: true });
+    container.addEventListener('touchmove', releaseManualSelectionOnUserScroll, { passive: true });
+    // pointerdown covers scrollbar drag and other pointer-based scrolling that
+    // does not fire wheel or touchmove events.
+    container.addEventListener('pointerdown', releaseManualSelectionOnUserScroll);
+    ownerDocument.addEventListener('keydown', handleKeyDown);
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      isMountedRef.current = false;
+      container.removeEventListener('wheel', releaseManualSelectionOnUserScroll);
+      container.removeEventListener('touchmove', releaseManualSelectionOnUserScroll);
+      container.removeEventListener('pointerdown', releaseManualSelectionOnUserScroll);
+      ownerDocument.removeEventListener('keydown', handleKeyDown);
+      container.removeEventListener('scroll', handleScroll);
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+    // Intentionally only re-run when the scroll container itself changes.
+    // steps/sectionId/onStepChange are consumed via refs above.
+  }, [clearManualSelection, scrollRef]);
+
+  // Tracks the last index this hook reported to the parent via onStepChange.
+  // Used to distinguish external prop changes (true programmatic navigation)
+  // from echoes of our own scroll-driven updates flowing back as props.
+  const lastEmittedIndexRef = useRef(safeIndex);
+
+  // Sync activeIndex and scroll position when currentStepIndex is changed
+  // externally (e.g. programmatic navigation from outside the scrollable layout).
+  // We skip the sync when currentStepIndex simply echoes the value we last
+  // emitted ourselves — otherwise scroll-driven onStepChange calls would
+  // create a feedback loop that bounces the scroll position back to the
+  // previously active section.
+  useEffect(() => {
+    const newSafeIndex = getSafeStepIndex(stepsRef.current.length, currentStepIndex);
+
+    // Echo of our own last emission — not an external command, ignore.
+    if (newSafeIndex === lastEmittedIndexRef.current) return;
+
+    // External navigation: adopt the new index and scroll to it.
+    lastEmittedIndexRef.current = newSafeIndex;
+    activeIndexRef.current = newSafeIndex;
+    setActiveIndex(newSafeIndex);
+    setFurthestStepIndex((prev) => Math.max(prev, newSafeIndex));
+
+    const step = stepsRef.current[newSafeIndex];
+    if (!step) return;
+    const sectionElement = scrollRef.current?.querySelector<HTMLElement>(
+      `#${CSS.escape(sectionIdRef.current(step.id))}`
+    );
+    if (scrollRef.current && sectionElement)
+      scrollSectionIntoView(scrollRef.current, sectionElement, scrollPaddingRef.current);
+  }, [currentStepIndex, scrollRef]);
+
+  const scrollToSection = useCallback(
+    (index: number) => {
+      const step = stepsRef.current[index];
+      if (!step) return;
+
+      manualSelectionIndexRef.current = index;
+      activeIndexRef.current = index;
+      lastEmittedIndexRef.current = index;
+      setActiveIndex(index);
+      setFurthestStepIndex((prev) => Math.max(prev, index));
+      onStepChangeRef.current(index);
+
+      const container = scrollRef.current;
+      const sectionElement = container?.querySelector<HTMLElement>(
+        `#${CSS.escape(sectionIdRef.current(step.id))}`
+      );
+      if (container && sectionElement)
+        scrollSectionIntoView(container, sectionElement, scrollPaddingRef.current);
+    },
+    [scrollRef]
+  );
+
+  return {
+    activeIndex,
+    furthestStepIndex,
+    scrollToSection,
+  };
+}
+
+function resolveScrollableActiveIndex<TStep extends StepWithId>(
+  container: HTMLDivElement,
+  steps: TStep[],
+  sectionId: (stepId: string) => string
+) {
+  if (steps.length === 0) {
+    return {
+      activeIndex: 0,
+      commitFurthestStepIndex: false,
+    };
+  }
+
+  const containerRect = container.getBoundingClientRect();
+  const anchorY = containerRect.top + Math.min(containerRect.height * 0.35, 220);
+  const isScrollable = container.scrollHeight > container.clientHeight + 1;
+  const isAtBottom =
+    isScrollable && container.scrollTop + container.clientHeight >= container.scrollHeight - 1;
+  const isNearBottom =
+    isScrollable && container.scrollTop + container.clientHeight >= container.scrollHeight - 4;
+
+  if (isAtBottom) {
+    return {
+      activeIndex: steps.length - 1,
+      commitFurthestStepIndex: false,
+    };
+  }
+
+  let activeIndex = 0;
+  let highestScore = Number.NEGATIVE_INFINITY;
+  for (let i = 0; i < steps.length; i++) {
+    const sectionMetrics = getSectionMetrics(container, steps[i].id, sectionId, containerRect);
+    if (!sectionMetrics) continue;
+
+    const score = scoreScrollableStep({
+      stepIndex: i,
+      stepCount: steps.length,
+      containerRect,
+      anchorY,
+      isNearBottom,
+      ...sectionMetrics,
+    });
+
+    if (score >= highestScore) {
+      highestScore = score;
+      activeIndex = i;
+    }
+  }
+
+  return {
+    activeIndex,
+    commitFurthestStepIndex: true,
+  };
+}
+
+// Matches the p-8 (32px) padding on the scrollable content column so that
+// auto-scrolled sections align flush with the sidebar card's top border.
+const SCROLL_PADDING_PX = 32;
+
+function getSectionElement(
+  container: HTMLDivElement,
+  stepId: string,
+  sectionId: (stepId: string) => string
+) {
+  return container.querySelector<HTMLElement>(`#${CSS.escape(sectionId(stepId))}`);
+}
+
+function scrollSectionIntoView(
+  container: HTMLDivElement,
+  sectionElement: HTMLElement,
+  padding: number
+) {
+  const elementTop = sectionElement.getBoundingClientRect().top;
+  const containerTop = container.getBoundingClientRect().top;
+  const targetScrollTop = container.scrollTop + (elementTop - containerTop) - padding;
+  container.scrollTo({
+    top: targetScrollTop,
+    behavior: 'smooth',
+  });
+}
+
+function getSectionMetrics(
+  container: HTMLDivElement,
+  stepId: string,
+  sectionId: (stepId: string) => string,
+  containerRect: DOMRect
+) {
+  const sectionElement = getSectionElement(container, stepId, sectionId);
+  if (!sectionElement) return null;
+
+  const sectionRect = sectionElement.getBoundingClientRect();
+
+  return {
+    sectionRect,
+    visibleHeight: getVisibleHeight(containerRect, sectionRect),
+  };
+}
+
+function getVisibleHeight(containerRect: DOMRect, sectionRect: DOMRect) {
+  return Math.max(
+    0,
+    Math.min(sectionRect.bottom, containerRect.bottom) -
+      Math.max(sectionRect.top, containerRect.top)
+  );
+}
+
+function scoreScrollableStep({
+  stepIndex,
+  stepCount,
+  containerRect,
+  sectionRect,
+  visibleHeight,
+  anchorY,
+  isNearBottom,
+}: {
+  stepIndex: number;
+  stepCount: number;
+  containerRect: DOMRect;
+  sectionRect: DOMRect;
+  visibleHeight: number;
+  anchorY: number;
+  isNearBottom: boolean;
+}) {
+  const isVisible = visibleHeight > 0;
+  const focusBandTop = containerRect.top + Math.min(containerRect.height * 0.2, 140);
+  const focusBandBottom = containerRect.top + Math.min(containerRect.height * 0.55, 360);
+  const focusBandOverlap = getBandOverlapHeight(sectionRect, focusBandTop, focusBandBottom);
+  const distanceToFocusBand =
+    focusBandOverlap > 0
+      ? 0
+      : Math.min(
+          Math.abs(sectionRect.top - focusBandBottom),
+          Math.abs(sectionRect.bottom - focusBandTop)
+        );
+  const isLastStep = stepIndex === stepCount - 1;
+  const lastStepProminent =
+    isLastStep &&
+    visibleHeight >= Math.min(sectionRect.height, containerRect.height) * 0.25 &&
+    sectionRect.top <= containerRect.top + containerRect.height * 0.65;
+
+  let score = isVisible ? visibleHeight : Number.NEGATIVE_INFINITY;
+
+  if (focusBandOverlap > 0) score += 12_000 + focusBandOverlap * 25;
+  if (sectionRect.top <= anchorY) score += 250;
+  score += Math.max(0, 1_000 - distanceToFocusBand);
+
+  if (isNearBottom && lastStepProminent && isVisible) score += 15_000;
+
+  return score;
+}
+
+function getBandOverlapHeight(sectionRect: DOMRect, bandTop: number, bandBottom: number) {
+  return Math.max(0, Math.min(sectionRect.bottom, bandBottom) - Math.max(sectionRect.top, bandTop));
+}
+
+function isScrollableNavigationKey(event: KeyboardEvent) {
+  if (event.metaKey || event.ctrlKey || event.altKey) return false;
+
+  return ['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(event.key);
+}

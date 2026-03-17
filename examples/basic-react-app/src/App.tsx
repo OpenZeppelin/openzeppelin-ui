@@ -78,6 +78,7 @@ import {
   TooltipDemo,
   TypeMappingDemo,
   WalletDemo,
+  WizardDemo,
 } from './components';
 import { useUiStore } from './stores';
 
@@ -114,6 +115,7 @@ type DemoKey =
   | 'toast'
   // Component Gallery - Layout
   | 'sidebar-layout'
+  | 'wizard'
   | 'card'
   | 'tabs'
   | 'accordion'
@@ -209,6 +211,7 @@ const galleryCategories: GalleryCategory[] = [
     title: 'Layout',
     items: [
       { key: 'sidebar-layout', label: 'Scaffold', icon: <PanelLeft className="size-4" /> },
+      { key: 'wizard', label: 'Wizard', icon: <Wand2 className="size-4" /> },
       { key: 'card', label: 'Card', icon: <CreditCard className="size-4" /> },
       { key: 'tabs', label: 'Tabs', icon: <LayoutGrid className="size-4" /> },
       { key: 'accordion', label: 'Accordion', icon: <ListCollapse className="size-4" /> },
@@ -283,6 +286,7 @@ const demoComponents: Record<
   toast: ToastDemo,
   // Component Gallery - Layout
   'sidebar-layout': SidebarLayoutDemo,
+  wizard: WizardDemo,
   card: CardDemo,
   tabs: TabsDemo,
   accordion: AccordionDemo,
@@ -354,13 +358,13 @@ function App(): React.ReactElement {
   // Track which sidebar groups are open (by category key)
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
 
-  // Ref for the main content column (scrollable container)
-  const contentColumnRef = useRef<HTMLDivElement>(null);
+  // Ref for the main scroll container
+  const mainContentRef = useRef<HTMLElement>(null);
 
   // Scroll to top when navigating to a different demo
   useEffect(() => {
-    contentColumnRef.current?.scrollTo({ top: 0, behavior: 'instant' });
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    mainContentRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+    window.scrollTo({ top: 0, behavior: 'auto' });
   }, [activeDemo]);
 
   // Find which category contains the active demo
@@ -402,7 +406,7 @@ function App(): React.ReactElement {
   const ActiveComponent = demoComponents[activeDemo] ?? demoComponents.overview;
 
   return (
-    <div className="bg-background text-foreground flex min-h-screen">
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
       <SidebarLayout
         header={<SidebarHeader />}
         footer={<SidebarFooter />}
@@ -504,7 +508,7 @@ function App(): React.ReactElement {
       </SidebarLayout>
 
       {/* Main Content Area */}
-      <div ref={contentColumnRef} className="flex min-h-screen flex-1 flex-col overflow-y-auto">
+      <div className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
         {/* Header */}
         <Header
           title="OpenZeppelin UI"
@@ -525,7 +529,7 @@ function App(): React.ReactElement {
         />
 
         {/* Main Content */}
-        <main className="flex-1 p-6 lg:p-8">
+        <main ref={mainContentRef} className="flex-1 overflow-y-auto p-6 lg:p-8">
           <div className="mx-auto max-w-4xl">
             <ActiveComponent onNavigate={handleNavigate} />
           </div>
