@@ -10,4 +10,9 @@ describe('parseFamilyValues', () => {
   it('rejects unsupported family values', () => {
     expect(() => parseFamilyValues(['unknown'])).toThrow(/unsupported family/i);
   });
+
+  it('rejects inherited object keys that are not real family names', () => {
+    expect(() => parseFamilyValues(['toString'])).toThrow(/unsupported family/i);
+    expect(() => parseFamilyValues(['__proto__'])).toThrow(/unsupported family/i);
+  });
 });

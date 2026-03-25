@@ -33,5 +33,6 @@ export async function resolveSelectedFamilies(
     process.exit(0);
   }
 
-  return selected as FamilyKey[];
+  const selectedFamilies = selected as FamilyKey[];
+  return selectedFamilies.length > 0 ? selectedFamilies : supportedFamilies;
 }

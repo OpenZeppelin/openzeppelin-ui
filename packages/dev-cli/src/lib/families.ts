@@ -67,5 +67,5 @@ export function getFamilyKeys(): FamilyKey[] {
  * Checks whether a string matches a supported family key.
  */
 export function isFamilyKey(value: string): value is FamilyKey {
-  return value in STANDARD_FAMILIES;
+  return Object.prototype.hasOwnProperty.call(STANDARD_FAMILIES, value);
 }

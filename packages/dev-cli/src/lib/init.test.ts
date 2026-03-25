@@ -51,6 +51,10 @@ describe('initProject', () => {
     expect(config).toContain('"ui"');
     expect(config).toContain('"adapters"');
     expect(pnpmfile).toContain('.openzeppelin-dev.json');
+    expect(pnpmfile).toContain('const families = Object.create(null);');
+    expect(pnpmfile).toContain(
+      'Object.prototype.hasOwnProperty.call(STANDARD_FAMILIES, familyKey)'
+    );
     expect(packageJson.devDependencies['@openzeppelin/ui-dev-cli']).toBe('^0.1.0');
     expect(packageJson.scripts['dev:local']).toContain('oz-dev use local');
     expect(packageJson.scripts['dev:local']).toContain('--family ui --family adapters');

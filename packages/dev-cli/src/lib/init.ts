@@ -112,9 +112,9 @@ function readProjectConfig(workspaceRoot) {
     throw new Error(\`\${CONFIG_FILE} must declare "version": 1 and a "families" object.\`);
   }
 
-  const families = {};
+  const families = Object.create(null);
   for (const [familyKey, overrides] of Object.entries(parsed.families)) {
-    if (!STANDARD_FAMILIES[familyKey]) {
+    if (!Object.prototype.hasOwnProperty.call(STANDARD_FAMILIES, familyKey)) {
       throw new Error(\`Unsupported family "\${familyKey}" in \${CONFIG_FILE}.\`);
     }
 

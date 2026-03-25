@@ -246,3 +246,29 @@ test('resolves default family paths from the workspace root instead of context.d
     `file:${fs.realpathSync(path.join(adaptersRepo, 'packages', 'adapter-evm'))}`
   );
 });
+
+test('rejects inherited family keys from malformed config payloads', () => {
+  const workspaceRoot = createTemporaryDirectory('pnpmfile-prototype-');
+  const pnpmfilePath = path.join(workspaceRoot, '.pnpmfile.cjs');
+  const configPath = path.join(workspaceRoot, '.openzeppelin-dev.json');
+
+  fs.copyFileSync(path.join(__dirname, '.pnpmfile.cjs'), pnpmfilePath);
+  fs.writeFileSync(
+    configPath,
+    '{\n  "version": 1,\n  "families": {\n    "__proto__": {}\n  }\n}\n'
+  );
+
+  delete require.cache[pnpmfilePath];
+  const { hooks } = require(pnpmfilePath);
+
+  assert.throws(
+    () =>
+      withEnv(
+        {
+          LOCAL_ADAPTERS: 'true',
+        },
+        () => hooks.readPackage(createPackage(), { dir: workspaceRoot, log: () => {} })
+      ),
+    /Unsupported family "__proto__"/
+  );
+});
