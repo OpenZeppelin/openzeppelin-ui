@@ -142,22 +142,18 @@ pnpm typecheck
 
 ## Local Development (Consuming Projects)
 
-If you're developing a project that uses `@openzeppelin/ui-*` packages and want to test changes against a local checkout of this repo, run the setup script:
+This repo now ships the shared `oz-dev` local-development CLI for OpenZeppelin consumer apps.
+
+Existing first-party consumers such as `ui-builder`, `role-manager`, and `rwa-wizard` already check in the required `.openzeppelin-dev.json`, `.pnpmfile.cjs`, and `dev:local` / `dev:npm` scripts.
+
+For a new consumer project, install the CLI once like a normal dev tool and then bootstrap the repo:
 
 ```bash
-# From your project directory (with openzeppelin-ui as a sibling):
-node ../openzeppelin-ui/scripts/setup-local-dev.mjs
-
-# Or with a custom path:
-node /path/to/openzeppelin-ui/scripts/setup-local-dev.mjs --ui-path ../my-ui-fork
+pnpm add -D @openzeppelin/ui-dev-cli
+pnpm exec oz-dev init --project "$PWD" --family ui
 ```
 
-This creates a `.pnpmfile.cjs` hook and adds convenience scripts to your `package.json`:
-
-```bash
-pnpm dev:local   # Use local UI Kit packages
-pnpm dev:npm     # Switch back to npm packages
-```
+That creates a config-driven `.pnpmfile.cjs`, writes `.openzeppelin-dev.json`, records `@openzeppelin/ui-dev-cli` in `devDependencies`, and adds `dev:local` / `dev:npm` scripts that call `oz-dev` directly. Developers only need local `openzeppelin-ui` or `openzeppelin-adapters` checkouts when they want to test package changes from source.
 
 ## Contributing
 

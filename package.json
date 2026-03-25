@@ -14,11 +14,12 @@
     "install-pnpm": "npm install -g pnpm@10.22.0",
     "install-deps": "pnpm install --frozen-lockfile --ignore-scripts --prefer-offline",
     "dev": "pnpm build && pnpm --filter=@openzeppelin/ui-example-basic-react-app dev",
-    "dev:local": "LOCAL_ADAPTERS_PATH=${LOCAL_ADAPTERS_PATH:-../ui-builder} && echo '🔨 Building local ui-builder adapter packages...' && (cd \"$LOCAL_ADAPTERS_PATH\" && pnpm --filter='./packages/adapter-*' build) && LOCAL_ADAPTERS=true pnpm install --force && echo \"✅ Using local @openzeppelin/ui-builder-adapter-* packages from $LOCAL_ADAPTERS_PATH\"",
-    "dev:npm": "pnpm install --force && echo '✅ Using npm @openzeppelin/ui-builder-adapter-* packages'",
+    "build:cli": "pnpm --filter @openzeppelin/ui-dev-cli build",
+    "dev:adapters:local": "pnpm build:cli && LOCAL_ADAPTERS_PATH=${LOCAL_ADAPTERS_PATH:-../openzeppelin-adapters} && LOCAL_ADAPTERS_PATH=\"$LOCAL_ADAPTERS_PATH\" oz-dev use local --project \"$PWD\" --family adapters",
+    "dev:local": "pnpm build:cli && LOCAL_ADAPTERS_PATH=${LOCAL_ADAPTERS_PATH:-../openzeppelin-adapters} && LOCAL_ADAPTERS_PATH=\"$LOCAL_ADAPTERS_PATH\" oz-dev use local --project \"$PWD\" --family adapters",
     "clean": "pnpm -r clean",
     "build": "pnpm -r build",
-    "test": "pnpm -r test",
+    "test": "node --test .pnpmfile.test.cjs && pnpm -r test",
     "test:watch": "pnpm -r test:watch",
     "test:coverage": "pnpm -r test:coverage",
     "lint": "pnpm -r lint",
@@ -30,7 +31,8 @@
     "prepare": "husky",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "pnpm build && changeset publish"
+    "release": "pnpm build && changeset publish",
+    "dev:npm": "pnpm build:cli && oz-dev use remote --project \"$PWD\""
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",
@@ -38,6 +40,7 @@
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@ianvs/prettier-plugin-sort-imports": "4.7.0",
+    "@openzeppelin/ui-dev-cli": "workspace:*",
     "@typescript-eslint/eslint-plugin": "^8.47.0",
     "@typescript-eslint/parser": "^8.47.0",
     "@vitest/coverage-v8": "^3.2.4",
