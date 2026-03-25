@@ -120,6 +120,12 @@ function readProjectConfig(workspaceRoot) {
 
     const familyOverrides = isObject(overrides) ? overrides : {};
     const baseFamily = STANDARD_FAMILIES[familyKey];
+    const filteredEnvNames =
+      Array.isArray(familyOverrides.envNames) && familyOverrides.envNames.length > 0
+        ? familyOverrides.envNames.filter(
+            (value) => typeof value === 'string' && value.length > 0
+          )
+        : null;
     families[familyKey] = {
       ...baseFamily,
       defaultPath:
@@ -127,10 +133,8 @@ function readProjectConfig(workspaceRoot) {
           ? familyOverrides.defaultPath
           : baseFamily.defaultPath,
       envNames:
-        Array.isArray(familyOverrides.envNames) && familyOverrides.envNames.length > 0
-          ? familyOverrides.envNames.filter(
-              (value) => typeof value === 'string' && value.length > 0
-            )
+        filteredEnvNames && filteredEnvNames.length > 0
+          ? filteredEnvNames
           : [...baseFamily.envNames],
     };
   }
@@ -308,7 +312,11 @@ function shouldReplaceManagedScript(existingScript: string | undefined): boolean
     existingScript.includes('packages/dev-cli/dist/index.mjs') ||
     existingScript.includes('pnpm --filter @openzeppelin/ui-dev-cli build') ||
     existingScript.includes('pnpm dlx @openzeppelin/ui-dev-cli@') ||
-    existingScript.includes('oz-dev use ')
+    existingScript.includes('oz-dev use ') ||
+    existingScript.includes('LOCAL_UI=true pnpm install --force') ||
+    existingScript.includes('LOCAL_ADAPTERS=true pnpm install --force') ||
+    existingScript.includes('setup-local-dev.mjs') ||
+    existingScript === 'pnpm install --force'
   );
 }
 

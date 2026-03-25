@@ -24,14 +24,14 @@ export function registerDoctorCommand(program: Command): void {
         if (options.json) {
           printJson({ action: 'doctor', ...result });
           if (!result.ok) {
-            process.exit(1);
+            process.exitCode = 1;
           }
           return;
         }
 
         printDoctorResult(result);
         if (!result.ok) {
-          process.exit(1);
+          process.exitCode = 1;
         }
       } catch (error) {
         printError(error, Boolean(options.json));

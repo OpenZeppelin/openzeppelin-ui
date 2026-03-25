@@ -68,6 +68,10 @@ function readProjectConfig(workspaceRoot) {
 
     const familyOverrides = isObject(overrides) ? overrides : {};
     const baseFamily = STANDARD_FAMILIES[familyKey];
+    const filteredEnvNames =
+      Array.isArray(familyOverrides.envNames) && familyOverrides.envNames.length > 0
+        ? familyOverrides.envNames.filter((value) => typeof value === 'string' && value.length > 0)
+        : null;
     families[familyKey] = {
       ...baseFamily,
       defaultPath:
@@ -75,10 +79,8 @@ function readProjectConfig(workspaceRoot) {
           ? familyOverrides.defaultPath
           : baseFamily.defaultPath,
       envNames:
-        Array.isArray(familyOverrides.envNames) && familyOverrides.envNames.length > 0
-          ? familyOverrides.envNames.filter(
-              (value) => typeof value === 'string' && value.length > 0
-            )
+        filteredEnvNames && filteredEnvNames.length > 0
+          ? filteredEnvNames
           : [...baseFamily.envNames],
     };
   }

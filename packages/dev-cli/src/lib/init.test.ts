@@ -136,4 +136,40 @@ describe('initProject', () => {
       'module.exports = {};'
     );
   });
+
+  it('replaces legacy setup-local-dev scripts with oz-dev commands', () => {
+    const projectRoot = createProjectRoot();
+    const packageJsonPath = path.join(projectRoot, 'package.json');
+    fs.writeFileSync(
+      packageJsonPath,
+      JSON.stringify(
+        {
+          name: 'consumer-app',
+          private: true,
+          scripts: {
+            'dev:local': 'LOCAL_UI=true pnpm install --force',
+            'dev:npm': 'pnpm install --force',
+          },
+        },
+        null,
+        2
+      )
+    );
+
+    const result = initProject({
+      projectRoot,
+      families: ['ui'],
+      uiPath: '../openzeppelin-ui',
+      adaptersPath: '../openzeppelin-adapters',
+    });
+
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')) as {
+      scripts: Record<string, string>;
+    };
+
+    expect(result.updatedScripts).toContain('dev:local');
+    expect(result.updatedScripts).toContain('dev:npm');
+    expect(packageJson.scripts['dev:local']).toContain('oz-dev use local');
+    expect(packageJson.scripts['dev:npm']).toContain('oz-dev use remote');
+  });
 });

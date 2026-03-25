@@ -70,6 +70,12 @@ export function loadProjectConfig(projectRootInput: string): ResolvedProjectConf
     );
 
     const baseDefinition = STANDARD_FAMILIES[familyKey];
+    const filteredEnvNames =
+      Array.isArray(familyOverrides.envNames) && familyOverrides.envNames.length > 0
+        ? familyOverrides.envNames.filter(
+            (value): value is string => typeof value === 'string' && value.length > 0
+          )
+        : null;
     resolvedFamilies[familyKey] = {
       ...baseDefinition,
       defaultPath:
@@ -78,10 +84,8 @@ export function loadProjectConfig(projectRootInput: string): ResolvedProjectConf
           ? familyOverrides.defaultPath
           : baseDefinition.defaultPath,
       envNames:
-        Array.isArray(familyOverrides.envNames) && familyOverrides.envNames.length > 0
-          ? familyOverrides.envNames.filter(
-              (value): value is string => typeof value === 'string' && value.length > 0
-            )
+        filteredEnvNames && filteredEnvNames.length > 0
+          ? filteredEnvNames
           : [...baseDefinition.envNames],
     };
   }

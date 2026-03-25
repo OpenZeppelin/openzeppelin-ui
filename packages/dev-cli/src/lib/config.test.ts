@@ -56,4 +56,19 @@ describe('loadProjectConfig', () => {
 
     expect(() => loadProjectConfig(projectRoot)).toThrow(/supports only "pnpm"/i);
   });
+
+  it('falls back to default env names when configured envNames filter to empty', () => {
+    const projectRoot = createProject({
+      version: 1,
+      families: {
+        adapters: {
+          envNames: ['', 42, null],
+        },
+      },
+    });
+
+    const config = loadProjectConfig(projectRoot);
+
+    expect(config.families.adapters?.envNames).toEqual(['LOCAL_ADAPTERS_PATH']);
+  });
 });
