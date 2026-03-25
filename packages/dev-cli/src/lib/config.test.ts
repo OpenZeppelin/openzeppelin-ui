@@ -44,4 +44,16 @@ describe('loadProjectConfig', () => {
 
     expect(() => loadProjectConfig(projectRoot)).toThrow(/unsupported family/i);
   });
+
+  it('rejects unsupported package managers', () => {
+    const projectRoot = createProject({
+      version: 1,
+      packageManager: 'npm',
+      families: {
+        ui: {},
+      },
+    });
+
+    expect(() => loadProjectConfig(projectRoot)).toThrow(/supports only "pnpm"/i);
+  });
 });

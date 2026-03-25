@@ -12,6 +12,7 @@ import {
 export const PROJECT_CONFIG_FILE = '.openzeppelin-dev.json';
 const DEFAULT_CACHE_DIR = '.packed-packages/local-dev';
 const DEFAULT_INSTALL_ARGS = ['install', '--force'];
+const SUPPORTED_PACKAGE_MANAGER = 'pnpm';
 
 export interface ResolvedFamilyConfig extends FamilyDefinition {
   defaultPath: string;
@@ -92,7 +93,13 @@ export function loadProjectConfig(projectRootInput: string): ResolvedProjectConf
   const packageManager =
     typeof parsed.packageManager === 'string' && parsed.packageManager.trim().length > 0
       ? parsed.packageManager
-      : 'pnpm';
+      : SUPPORTED_PACKAGE_MANAGER;
+
+  if (packageManager !== SUPPORTED_PACKAGE_MANAGER) {
+    throw new Error(
+      `${PROJECT_CONFIG_FILE} currently supports only "${SUPPORTED_PACKAGE_MANAGER}" as "packageManager".`
+    );
+  }
 
   const installArgs =
     Array.isArray(parsed.installArgs) && parsed.installArgs.length > 0

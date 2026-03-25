@@ -93,4 +93,47 @@ describe('initProject', () => {
     expect(packageJson.scripts['dev:npm']).toContain('oz-dev use remote');
     expect(packageJson.scripts['dev:npm']).toContain('use remote');
   });
+
+  it('quotes generated local path defaults for shell-safe scripts', () => {
+    const projectRoot = createProjectRoot();
+
+    initProject({
+      projectRoot,
+      families: ['ui', 'adapters'],
+      uiPath: '../Open Zeppelin/openzeppelin-ui$dev',
+      adaptersPath: '../Open Zeppelin/openzeppelin-adapters`local`',
+    });
+
+    const packageJson = JSON.parse(
+      fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8')
+    ) as {
+      scripts: Record<string, string>;
+    };
+
+    expect(packageJson.scripts['dev:local']).toContain(
+      'LOCAL_UI_PATH="${LOCAL_UI_PATH:-../Open Zeppelin/openzeppelin-ui\\$dev}"'
+    );
+    expect(packageJson.scripts['dev:local']).toContain(
+      'LOCAL_ADAPTERS_PATH="${LOCAL_ADAPTERS_PATH:-../Open Zeppelin/openzeppelin-adapters\\`local\\`}"'
+    );
+  });
+
+  it('fails before writing files when an unmanaged pnpmfile already exists', () => {
+    const projectRoot = createProjectRoot();
+    fs.writeFileSync(path.join(projectRoot, '.pnpmfile.cjs'), 'module.exports = {};');
+
+    expect(() =>
+      initProject({
+        projectRoot,
+        families: ['ui'],
+        uiPath: '../openzeppelin-ui',
+        adaptersPath: '../openzeppelin-adapters',
+      })
+    ).toThrow(/not managed by the shared local-dev flow/i);
+
+    expect(fs.existsSync(path.join(projectRoot, '.openzeppelin-dev.json'))).toBe(false);
+    expect(fs.readFileSync(path.join(projectRoot, '.pnpmfile.cjs'), 'utf8')).toBe(
+      'module.exports = {};'
+    );
+  });
 });

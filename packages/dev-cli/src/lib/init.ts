@@ -250,9 +250,21 @@ module.exports = {
 `;
 }
 
+function escapeForDoubleQuotedShell(value: string): string {
+  return value.replace(/["\\$`]/g, '\\$&');
+}
+
+function createShellDefaultAssignment(envName: string, defaultValue: string): string {
+  const escapedDefaultValue = escapeForDoubleQuotedShell(defaultValue);
+  return `${envName}="\${${envName}:-${escapedDefaultValue}}"`;
+}
+
 function createManagedScripts(options: InitProjectOptions): Record<string, string> {
-  const localUiPrefix = `LOCAL_UI_PATH=\${LOCAL_UI_PATH:-${options.uiPath}}`;
-  const localAdaptersPrefix = `LOCAL_ADAPTERS_PATH=\${LOCAL_ADAPTERS_PATH:-${options.adaptersPath}}`;
+  const localUiPrefix = createShellDefaultAssignment('LOCAL_UI_PATH', options.uiPath);
+  const localAdaptersPrefix = createShellDefaultAssignment(
+    'LOCAL_ADAPTERS_PATH',
+    options.adaptersPath
+  );
   const scripts: Record<string, string> = {};
 
   if (options.families.includes('ui') && options.families.includes('adapters')) {
@@ -307,8 +319,6 @@ export function initProject(options: InitProjectOptions): InitProjectResult {
     throw new Error(`No package.json found in ${projectRoot}.`);
   }
 
-  fs.writeFileSync(configPath, createProjectConfig(options));
-
   if (fs.existsSync(pnpmfilePath)) {
     const existingContent = fs.readFileSync(pnpmfilePath, 'utf8');
     if (!existingContent.includes(PROJECT_CONFIG_FILE)) {
@@ -317,8 +327,6 @@ export function initProject(options: InitProjectOptions): InitProjectResult {
       );
     }
   }
-
-  fs.writeFileSync(pnpmfilePath, createPnpmfileContent());
 
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')) as {
     scripts?: Record<string, string>;
@@ -340,6 +348,8 @@ export function initProject(options: InitProjectOptions): InitProjectResult {
     }
   }
 
+  fs.writeFileSync(configPath, createProjectConfig(options));
+  fs.writeFileSync(pnpmfilePath, createPnpmfileContent());
   fs.writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`);
 
   return {

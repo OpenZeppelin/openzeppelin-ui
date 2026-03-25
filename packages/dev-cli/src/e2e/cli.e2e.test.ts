@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { afterAll, describe, expect, it } from 'vitest';
 
 import { STANDARD_FAMILIES } from '../lib/families';
+import { resolvePackedFilename } from '../lib/localDev';
 import { CLI_PACKAGE_NAME } from '../lib/packageInfo';
 
 interface CommandResult {
@@ -227,7 +228,7 @@ async function packCliTarball(destinationDir: string): Promise<string> {
     throw new Error(`Unexpected pack output: ${result.stdout}`);
   }
 
-  return payload.filename;
+  return resolvePackedFilename(destinationDir, payload.filename);
 }
 
 function readJsonFile<T>(filePath: string): T {
