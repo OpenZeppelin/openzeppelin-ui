@@ -120,9 +120,10 @@ test('rewrites adapter dependencies when LOCAL_ADAPTERS_PATH is set', () => {
       })
   );
 
+  const canonicalPackageRoot = fs.realpathSync(path.join(preferredRepo, 'packages', 'adapter-evm'));
   assert.equal(
     pkg.dependencies['@openzeppelin/adapter-evm'],
-    `file:${path.join(preferredRepo, 'packages', 'adapter-evm')}`
+    `file:${canonicalPackageRoot}`
   );
   assert.match(logs[0], /@openzeppelin\/adapter-evm/);
 });
@@ -271,4 +272,65 @@ test('rejects inherited family keys from malformed config payloads', () => {
       ),
     /Unsupported family "__proto__"/
   );
+});
+
+test('rejects cache directories that escape the workspace root', () => {
+  const workspaceRoot = createTemporaryDirectory('pnpmfile-cache-escape-');
+  const pnpmfilePath = path.join(workspaceRoot, '.pnpmfile.cjs');
+  const configPath = path.join(workspaceRoot, '.openzeppelin-dev.json');
+
+  fs.copyFileSync(path.join(__dirname, '.pnpmfile.cjs'), pnpmfilePath);
+  fs.writeFileSync(
+    configPath,
+    JSON.stringify(
+      {
+        version: 1,
+        cacheDir: '../outside-cache',
+        families: {
+          adapters: {},
+        },
+      },
+      null,
+      2
+    )
+  );
+
+  delete require.cache[pnpmfilePath];
+  const { hooks } = require(pnpmfilePath);
+
+  assert.throws(
+    () =>
+      withEnv(
+        {
+          LOCAL_ADAPTERS: 'true',
+        },
+        () => hooks.readPackage(createPackage(), { dir: workspaceRoot, log: () => {} })
+      ),
+    /cacheDir".*subdirectory of the workspace root/i
+  );
+});
+
+test('canonicalizes symlinked repository roots before rewriting file dependencies', () => {
+  const containerRoot = createTemporaryDirectory('pnpmfile-symlink-');
+  const actualRepo = createAdaptersRepo('adapters-realpath-target');
+  const symlinkRepo = path.join(containerRoot, 'adapters-link');
+  fs.symlinkSync(actualRepo, symlinkRepo);
+  const logs = [];
+  const { hooks } = loadHook();
+
+  const pkg = withEnv(
+    {
+      LOCAL_ADAPTERS: 'true',
+      LOCAL_ADAPTERS_PATH: symlinkRepo,
+    },
+    () =>
+      hooks.readPackage(createPackage(), {
+        dir: process.cwd(),
+        log: (message) => logs.push(message),
+      })
+  );
+
+  const canonicalPackageRoot = fs.realpathSync(path.join(actualRepo, 'packages', 'adapter-evm'));
+  assert.equal(pkg.dependencies['@openzeppelin/adapter-evm'], `file:${canonicalPackageRoot}`);
+  assert.match(logs[0], new RegExp(canonicalPackageRoot.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 });

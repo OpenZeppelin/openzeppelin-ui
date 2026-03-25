@@ -5,6 +5,8 @@ import path from 'node:path';
 import { loadProjectConfig, ResolvedFamilyConfig, ResolvedProjectConfig } from './config';
 import { FamilyKey } from './families';
 
+const MAX_COMMAND_BUFFER = 50 * 1024 * 1024;
+
 interface ResolvedPathInfo {
   envName: string | null;
   relativePath: string;
@@ -178,6 +180,7 @@ function runCommand(
     env: { ...process.env, ...extraEnv },
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
+    maxBuffer: MAX_COMMAND_BUFFER,
   });
 
   if (result.status !== 0) {

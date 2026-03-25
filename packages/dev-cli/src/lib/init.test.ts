@@ -55,6 +55,8 @@ describe('initProject', () => {
     expect(pnpmfile).toContain(
       'Object.prototype.hasOwnProperty.call(STANDARD_FAMILIES, familyKey)'
     );
+    expect(pnpmfile).toContain('function resolveCacheDir(workspaceRoot, cacheDir)');
+    expect(pnpmfile).toContain('function getRealPath(targetPath)');
     expect(packageJson.devDependencies['@openzeppelin/ui-dev-cli']).toBe('^0.1.0');
     expect(packageJson.scripts['dev:local']).toContain('oz-dev use local');
     expect(packageJson.scripts['dev:local']).toContain('--family ui --family adapters');

@@ -45,6 +45,28 @@ function isObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
+function getRealPath(targetPath) {
+  return typeof fs.realpathSync.native === 'function'
+    ? fs.realpathSync.native(targetPath)
+    : fs.realpathSync(targetPath);
+}
+
+function resolveCacheDir(workspaceRoot, cacheDir) {
+  const resolvedWorkspaceRoot = path.resolve(workspaceRoot);
+  const resolvedCacheDir = path.resolve(resolvedWorkspaceRoot, cacheDir);
+  const relativeCacheDir = path.relative(resolvedWorkspaceRoot, resolvedCacheDir);
+
+  if (
+    relativeCacheDir === '' ||
+    relativeCacheDir.startsWith('..') ||
+    path.isAbsolute(relativeCacheDir)
+  ) {
+    throw new Error(`${CONFIG_FILE} "cacheDir" must be a subdirectory of the workspace root.`);
+  }
+
+  return resolvedCacheDir;
+}
+
 function isAnyLocalFamilyEnabled() {
   return Object.values(STANDARD_FAMILIES).some((family) => process.env[family.envFlag] === 'true');
 }
@@ -91,7 +113,7 @@ function readProjectConfig(workspaceRoot) {
       : '.packed-packages/local-dev';
 
   return {
-    cacheDir: path.join(workspaceRoot, cacheDirFromConfig),
+    cacheDir: resolveCacheDir(workspaceRoot, cacheDirFromConfig),
     families,
   };
 }
@@ -114,25 +136,33 @@ function getConfiguredPath(envNames, defaultPath) {
 
 function resolveRepoRoot(baseDir, family) {
   const { envName, relativePath } = getConfiguredPath(family.envNames, family.defaultPath);
-  const absolutePath = path.resolve(baseDir, relativePath);
+  const resolvedPath = path.resolve(baseDir, relativePath);
 
-  if (!fs.existsSync(absolutePath)) {
+  if (!fs.existsSync(resolvedPath)) {
     const envHelp = family.envNames.join(' or ');
     const envSource = envName ? `${envName}=${relativePath}` : `default path ${family.defaultPath}`;
     throw new Error(
-      `[local-dev] ${family.repoName} checkout not found at ${absolutePath} (${envSource}). Set ${envHelp} to a valid ${family.repoName} checkout.`
+      `[local-dev] ${family.repoName} checkout not found at ${resolvedPath} (${envSource}). Set ${envHelp} to a valid ${family.repoName} checkout.`
     );
   }
 
-  return absolutePath;
+  return getRealPath(resolvedPath);
 }
 
 function resolvePackageDirectory(workspaceRoot, family, packageName, packagePath) {
   const repoRoot = resolveRepoRoot(workspaceRoot, family);
-  const absolutePath = path.resolve(repoRoot, packagePath);
-  const packageJsonPath = path.join(absolutePath, 'package.json');
+  const resolvedPath = path.resolve(repoRoot, packagePath);
+  const expectedPackageJsonPath = path.join(resolvedPath, 'package.json');
 
-  if (!fs.existsSync(absolutePath) || !fs.existsSync(packageJsonPath)) {
+  if (!fs.existsSync(resolvedPath)) {
+    throw new Error(
+      `[local-dev] Expected ${packageName} to have a package.json at ${expectedPackageJsonPath}, but it was not found. Check that ${family.repoName} matches a compatible checkout and contains this package.`
+    );
+  }
+
+  const absolutePath = getRealPath(resolvedPath);
+  const packageJsonPath = path.join(absolutePath, 'package.json');
+  if (!fs.existsSync(packageJsonPath)) {
     throw new Error(
       `[local-dev] Expected ${packageName} to have a package.json at ${packageJsonPath}, but it was not found. Check that ${family.repoName} matches a compatible checkout and contains this package.`
     );

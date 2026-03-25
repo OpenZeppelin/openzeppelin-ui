@@ -71,4 +71,32 @@ describe('loadProjectConfig', () => {
 
     expect(config.families.adapters?.envNames).toEqual(['LOCAL_ADAPTERS_PATH']);
   });
+
+  it('rejects cache directories that escape the project root', () => {
+    const projectRoot = createProject({
+      version: 1,
+      cacheDir: '../outside-cache',
+      families: {
+        ui: {},
+      },
+    });
+
+    expect(() => loadProjectConfig(projectRoot)).toThrow(
+      /cacheDir.*subdirectory of the project root/i
+    );
+  });
+
+  it('rejects cache directories that point at the project root itself', () => {
+    const projectRoot = createProject({
+      version: 1,
+      cacheDir: '.',
+      families: {
+        ui: {},
+      },
+    });
+
+    expect(() => loadProjectConfig(projectRoot)).toThrow(
+      /cacheDir.*subdirectory of the project root/i
+    );
+  });
 });

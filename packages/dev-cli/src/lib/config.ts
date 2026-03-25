@@ -34,6 +34,24 @@ function assertObject(value: unknown, message: string): asserts value is Record<
   }
 }
 
+function resolveCacheDir(projectRoot: string, cacheDir: string): string {
+  const resolvedProjectRoot = path.resolve(projectRoot);
+  const resolvedCacheDir = path.resolve(resolvedProjectRoot, cacheDir);
+  const relativeCacheDir = path.relative(resolvedProjectRoot, resolvedCacheDir);
+
+  if (
+    relativeCacheDir === '' ||
+    relativeCacheDir.startsWith('..') ||
+    path.isAbsolute(relativeCacheDir)
+  ) {
+    throw new Error(
+      `${PROJECT_CONFIG_FILE} "cacheDir" must be a subdirectory of the project root.`
+    );
+  }
+
+  return resolvedCacheDir;
+}
+
 /**
  * Loads and validates a consumer repository's `.openzeppelin-dev.json` file.
  */
@@ -119,7 +137,7 @@ export function loadProjectConfig(projectRootInput: string): ResolvedProjectConf
   return {
     projectRoot,
     configPath,
-    cacheDir: path.join(projectRoot, cacheDir),
+    cacheDir: resolveCacheDir(projectRoot, cacheDir),
     packageManager,
     installArgs,
     families: resolvedFamilies,
