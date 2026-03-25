@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseFamilyValues } from './use';
+import { parseFamilyValues } from '../lib/parseFamilyValues';
 
 describe('parseFamilyValues', () => {
   it('deduplicates repeated family flags while preserving order', () => {

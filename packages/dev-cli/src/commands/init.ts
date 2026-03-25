@@ -1,8 +1,8 @@
 import { Command } from 'commander';
 
 import { resolveSelectedFamilies } from '../interactive/familySelection';
-import { FamilyKey, isFamilyKey } from '../lib/families';
 import { initProject } from '../lib/init';
+import { parseFamilyValues } from '../lib/parseFamilyValues';
 import { printError, printJson } from '../utils/logger';
 
 interface InitCommandOptions {
@@ -11,16 +11,6 @@ interface InitCommandOptions {
   uiPath: string;
   adaptersPath: string;
   json?: boolean;
-}
-
-function parseFamilyValues(values: string[]): FamilyKey[] {
-  return values.map((value) => {
-    if (!isFamilyKey(value)) {
-      throw new Error(`Unsupported family "${value}".`);
-    }
-
-    return value;
-  });
 }
 
 /**
