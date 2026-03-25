@@ -45,7 +45,12 @@ function withEnv(overrides, fn) {
 
 function createAdaptersRepo(name) {
   const repoRoot = createTemporaryDirectory(`${name}-`);
-  fs.mkdirSync(path.join(repoRoot, 'packages', 'adapter-evm'), { recursive: true });
+  const packageRoot = path.join(repoRoot, 'packages', 'adapter-evm');
+  fs.mkdirSync(packageRoot, { recursive: true });
+  fs.writeFileSync(
+    path.join(packageRoot, 'package.json'),
+    JSON.stringify({ name: '@openzeppelin/adapter-evm', version: '1.0.0' }, null, 2)
+  );
   return repoRoot;
 }
 
@@ -170,13 +175,40 @@ test('prefers packed local tarballs when a manifest is present', () => {
   assert.equal(updated.dependencies['@openzeppelin/adapter-evm'], `file:${tarballPath}`);
 });
 
+test('throws a clear error when a configured package directory is missing package.json', () => {
+  const adaptersRepo = createTemporaryDirectory('adapters-without-package-json-');
+  fs.mkdirSync(path.join(adaptersRepo, 'packages', 'adapter-evm'), { recursive: true });
+  const { hooks } = loadHook();
+
+  assert.throws(
+    () =>
+      withEnv(
+        {
+          LOCAL_ADAPTERS: 'true',
+          LOCAL_ADAPTERS_PATH: adaptersRepo,
+        },
+        () => hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
+      ),
+    (error) => {
+      assert.match(error.message, /package\.json/);
+      assert.match(error.message, /@openzeppelin\/adapter-evm/);
+      return true;
+    }
+  );
+});
+
 test('resolves default family paths from the workspace root instead of context.dir', () => {
   const containerRoot = createTemporaryDirectory('pnpmfile-fixture-');
   const workspaceRoot = path.join(containerRoot, 'consumer-app');
   const adaptersRepo = path.join(containerRoot, 'openzeppelin-adapters');
   const nestedContextDir = path.join(workspaceRoot, 'packages', 'consumer-app');
   fs.mkdirSync(workspaceRoot, { recursive: true });
-  fs.mkdirSync(path.join(adaptersRepo, 'packages', 'adapter-evm'), { recursive: true });
+  const packageRoot = path.join(adaptersRepo, 'packages', 'adapter-evm');
+  fs.mkdirSync(packageRoot, { recursive: true });
+  fs.writeFileSync(
+    path.join(packageRoot, 'package.json'),
+    JSON.stringify({ name: '@openzeppelin/adapter-evm', version: '1.0.0' }, null, 2)
+  );
   fs.mkdirSync(nestedContextDir, { recursive: true });
 
   fs.copyFileSync(path.join(__dirname, '.pnpmfile.cjs'), path.join(workspaceRoot, '.pnpmfile.cjs'));

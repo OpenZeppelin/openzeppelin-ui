@@ -124,6 +124,33 @@ function getManifestPath(config: ResolvedProjectConfig, familyKey: FamilyKey): s
   return path.join(config.cacheDir, `${familyKey}.json`);
 }
 
+/**
+ * Extracts and validates package paths from a packed-manifest JSON string.
+ */
+export function extractManifestPackages(manifestContents: string): Record<string, string> | null {
+  const parsed = JSON.parse(manifestContents) as unknown;
+
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return null;
+  }
+
+  const packages = (parsed as { packages?: unknown }).packages;
+  if (!packages || typeof packages !== 'object' || Array.isArray(packages)) {
+    return null;
+  }
+
+  const validatedPackages: Record<string, string> = {};
+  for (const [packageName, packagePath] of Object.entries(packages)) {
+    if (typeof packagePath !== 'string') {
+      return null;
+    }
+
+    validatedPackages[packageName] = packagePath;
+  }
+
+  return validatedPackages;
+}
+
 function readManifest(
   config: ResolvedProjectConfig,
   familyKey: FamilyKey
@@ -134,10 +161,7 @@ function readManifest(
   }
 
   try {
-    const parsed = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as {
-      packages?: Record<string, string>;
-    };
-    return parsed.packages ?? null;
+    return extractManifestPackages(fs.readFileSync(manifestPath, 'utf8'));
   } catch {
     return null;
   }

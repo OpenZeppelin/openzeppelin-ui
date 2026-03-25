@@ -175,10 +175,11 @@ function resolveRepoRoot(baseDir, family) {
 function resolvePackageDirectory(workspaceRoot, family, packageName, packagePath) {
   const repoRoot = resolveRepoRoot(workspaceRoot, family);
   const absolutePath = path.resolve(repoRoot, packagePath);
+  const packageJsonPath = path.join(absolutePath, 'package.json');
 
-  if (!fs.existsSync(absolutePath)) {
+  if (!fs.existsSync(absolutePath) || !fs.existsSync(packageJsonPath)) {
     throw new Error(
-      \`[local-dev] Expected \${packageName} at \${absolutePath}, but it was not found. Check that \${family.repoName} matches a compatible checkout.\`
+      \`[local-dev] Expected \${packageName} to have a package.json at \${packageJsonPath}, but it was not found. Check that \${family.repoName} matches a compatible checkout and contains this package.\`
     );
   }
 

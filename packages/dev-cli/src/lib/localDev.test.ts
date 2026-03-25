@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { extractPackedFilename, resolvePackedFilename } from './localDev';
+import { extractManifestPackages, extractPackedFilename, resolvePackedFilename } from './localDev';
 
 describe('resolvePackedFilename', () => {
   it('keeps absolute pnpm pack filenames unchanged', () => {
@@ -34,5 +34,33 @@ describe('extractPackedFilename', () => {
 
   it('returns null when no filename is present', () => {
     expect(extractPackedFilename(JSON.stringify([{ path: 'package.tgz' }]))).toBeNull();
+  });
+});
+
+describe('extractManifestPackages', () => {
+  it('returns validated package paths from a well-formed manifest', () => {
+    expect(
+      extractManifestPackages(
+        JSON.stringify({
+          packages: {
+            '@openzeppelin/ui-components': '/tmp/ui-components.tgz',
+          },
+        })
+      )
+    ).toEqual({
+      '@openzeppelin/ui-components': '/tmp/ui-components.tgz',
+    });
+  });
+
+  it('returns null when manifest packages are malformed', () => {
+    expect(
+      extractManifestPackages(
+        JSON.stringify({
+          packages: {
+            '@openzeppelin/ui-components': 123,
+          },
+        })
+      )
+    ).toBeNull();
   });
 });

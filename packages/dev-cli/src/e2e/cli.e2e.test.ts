@@ -34,12 +34,15 @@ interface FamilyStatus {
   tarballCount: number;
 }
 
-interface StatusCommandResult {
+interface StatusCommandPayload {
   ok: boolean;
-  action: 'status';
   projectRoot: string;
   cacheDir: string;
   families: FamilyStatus[];
+}
+
+interface StatusCommandResult extends StatusCommandPayload {
+  action: 'status';
 }
 
 interface DoctorIssue {
@@ -48,7 +51,7 @@ interface DoctorIssue {
   message: string;
 }
 
-interface DoctorCommandResult extends StatusCommandResult {
+interface DoctorCommandResult extends StatusCommandPayload {
   action: 'doctor';
   issues: DoctorIssue[];
 }
@@ -78,6 +81,12 @@ interface ManifestFile {
   generatedAt: string;
   repoRoot: string;
   packages: Record<string, string>;
+}
+
+interface FixtureRepoRoots {
+  packageRoot: string;
+  uiRepoRoot: string;
+  adaptersRepoRoot: string;
 }
 
 const temporaryDirectories: string[] = [];
@@ -112,12 +121,24 @@ function findSiblingRepository(baseRepoRoot: string, siblingDirectoryName: strin
   return siblingPath;
 }
 
-const PACKAGE_ROOT = findPackageRoot(
-  path.dirname(fileURLToPath(import.meta.url)),
-  CLI_PACKAGE_NAME
-);
-const UI_REPO_ROOT = findPackageRoot(PACKAGE_ROOT, 'openzeppelin-ui');
-const ADAPTERS_REPO_ROOT = findSiblingRepository(UI_REPO_ROOT, 'openzeppelin-adapters');
+function resolveFixtureRepoRoots(): FixtureRepoRoots | null {
+  const packageRoot = findPackageRoot(
+    path.dirname(fileURLToPath(import.meta.url)),
+    CLI_PACKAGE_NAME
+  );
+  const uiRepoRoot = findPackageRoot(packageRoot, 'openzeppelin-ui');
+  const siblingRepoPath = path.resolve(uiRepoRoot, '..', 'openzeppelin-adapters');
+
+  if (!fs.existsSync(siblingRepoPath)) {
+    return null;
+  }
+
+  return {
+    packageRoot,
+    uiRepoRoot,
+    adaptersRepoRoot: findSiblingRepository(uiRepoRoot, 'openzeppelin-adapters'),
+  };
+}
 
 function createTemporaryDirectory(prefix: string): string {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -136,7 +157,6 @@ async function runCommand(
 ): Promise<CommandResult> {
   const child = spawn(command, args, {
     cwd,
-    encoding: 'utf8',
     env: {
       ...process.env,
       ...options?.env,
@@ -216,11 +236,11 @@ function writeSmokeAppPackageJson(projectRoot: string): void {
   );
 }
 
-async function packCliTarball(destinationDir: string): Promise<string> {
+async function packCliTarball(packageRoot: string, destinationDir: string): Promise<string> {
   const result = await runCommand(
     'pnpm',
     ['pack', '--pack-destination', destinationDir, '--json'],
-    PACKAGE_ROOT
+    packageRoot
   );
   const packedFilename = extractPackedFilename(result.stdout);
 
@@ -242,9 +262,12 @@ afterAll(() => {
 });
 
 describe('oz-dev CLI end-to-end', () => {
-  it('bootstraps a scratch app and runs the full local/remote workflow', async () => {
-    expect(fs.existsSync(UI_REPO_ROOT)).toBe(true);
-    expect(fs.existsSync(ADAPTERS_REPO_ROOT)).toBe(true);
+  it('bootstraps a scratch app and runs the full local/remote workflow', async ({ skip }) => {
+    const repoRoots = resolveFixtureRepoRoots();
+    if (!repoRoots) {
+      skip();
+      return;
+    }
 
     const workspaceRoot = createTemporaryDirectory('oz-dev-e2e-');
     const appRoot = path.join(workspaceRoot, 'app');
@@ -252,7 +275,7 @@ describe('oz-dev CLI end-to-end', () => {
 
     writeSmokeAppPackageJson(appRoot);
 
-    const tarballPath = await packCliTarball(workspaceRoot);
+    const tarballPath = await packCliTarball(repoRoots.packageRoot, workspaceRoot);
     await runCommand('pnpm', ['add', '-D', tarballPath], appRoot);
 
     const initResult = await runJsonCommand<InitCommandResult>(appRoot, [
@@ -264,9 +287,9 @@ describe('oz-dev CLI end-to-end', () => {
       '--family',
       'adapters',
       '--ui-path',
-      UI_REPO_ROOT,
+      repoRoots.uiRepoRoot,
       '--adapters-path',
-      ADAPTERS_REPO_ROOT,
+      repoRoots.adaptersRepoRoot,
       '--json',
     ]);
 
