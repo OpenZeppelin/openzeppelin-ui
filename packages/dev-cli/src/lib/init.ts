@@ -135,8 +135,13 @@ function readProjectConfig(workspaceRoot) {
     };
   }
 
+  const cacheDirFromConfig =
+    typeof parsed.cacheDir === 'string' && parsed.cacheDir.trim().length > 0
+      ? parsed.cacheDir
+      : '.packed-packages/local-dev';
+
   return {
-    cacheDir: path.join(workspaceRoot, parsed.cacheDir || '.packed-packages/local-dev'),
+    cacheDir: path.join(workspaceRoot, cacheDirFromConfig),
     families,
   };
 }

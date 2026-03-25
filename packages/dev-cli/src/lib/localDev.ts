@@ -181,9 +181,21 @@ function runCommand(
   });
 
   if (result.status !== 0) {
-    throw new Error(
-      result.stderr || result.stdout || `Command failed: ${command} ${args.join(' ')}`
-    );
+    const baseMessage =
+      result.stderr || result.stdout || `Command failed: ${command} ${args.join(' ')}`;
+    const extraDetails: string[] = [];
+
+    if (result.error?.message) {
+      extraDetails.push(`error: ${result.error.message}`);
+    }
+
+    if (result.signal) {
+      extraDetails.push(`signal: ${result.signal}`);
+    }
+
+    const message =
+      extraDetails.length > 0 ? `${baseMessage}\n${extraDetails.join(', ')}` : baseMessage;
+    throw new Error(message);
   }
 
   return result.stdout.trim();
