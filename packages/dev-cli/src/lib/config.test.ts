@@ -99,4 +99,31 @@ describe('loadProjectConfig', () => {
       /cacheDir.*subdirectory of the project root/i
     );
   });
+
+  it('falls back to default install args when installArgs is omitted', () => {
+    const projectRoot = createProject({
+      version: 1,
+      families: {
+        ui: {},
+      },
+    });
+
+    const config = loadProjectConfig(projectRoot);
+
+    expect(config.installArgs).toEqual(['install', '--force']);
+  });
+
+  it('rejects invalid install args entries', () => {
+    const projectRoot = createProject({
+      version: 1,
+      installArgs: [null],
+      families: {
+        ui: {},
+      },
+    });
+
+    expect(() => loadProjectConfig(projectRoot)).toThrow(
+      /installArgs.*must all be non-empty strings/i
+    );
+  });
 });

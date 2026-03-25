@@ -52,6 +52,18 @@ function resolveCacheDir(projectRoot: string, cacheDir: string): string {
   return resolvedCacheDir;
 }
 
+function resolveInstallArgs(installArgs: unknown): string[] {
+  if (!Array.isArray(installArgs) || installArgs.length === 0) {
+    return DEFAULT_INSTALL_ARGS;
+  }
+
+  if (installArgs.some((value) => typeof value !== 'string' || value.trim().length === 0)) {
+    throw new Error(`${PROJECT_CONFIG_FILE} "installArgs" entries must all be non-empty strings.`);
+  }
+
+  return installArgs;
+}
+
 /**
  * Loads and validates a consumer repository's `.openzeppelin-dev.json` file.
  */
@@ -123,12 +135,7 @@ export function loadProjectConfig(projectRootInput: string): ResolvedProjectConf
     );
   }
 
-  const installArgs =
-    Array.isArray(parsed.installArgs) && parsed.installArgs.length > 0
-      ? parsed.installArgs.filter(
-          (value): value is string => typeof value === 'string' && value.length > 0
-        )
-      : DEFAULT_INSTALL_ARGS;
+  const installArgs = resolveInstallArgs(parsed.installArgs);
   const cacheDir =
     typeof parsed.cacheDir === 'string' && parsed.cacheDir.trim().length > 0
       ? parsed.cacheDir
