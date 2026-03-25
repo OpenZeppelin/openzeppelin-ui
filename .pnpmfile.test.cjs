@@ -4,6 +4,20 @@ const os = require('os');
 const path = require('path');
 const test = require('node:test');
 
+const temporaryDirectories = [];
+
+function createTemporaryDirectory(prefix) {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  temporaryDirectories.push(directory);
+  return directory;
+}
+
+test.after(() => {
+  for (const directory of temporaryDirectories) {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
 function withEnv(overrides, fn) {
   const previous = new Map();
 
@@ -30,7 +44,7 @@ function withEnv(overrides, fn) {
 }
 
 function createAdaptersRepo(name) {
-  const repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), `${name}-`));
+  const repoRoot = createTemporaryDirectory(`${name}-`);
   fs.mkdirSync(path.join(repoRoot, 'packages', 'adapter-evm'), { recursive: true });
   return repoRoot;
 }
@@ -132,7 +146,7 @@ test('throws a clear error when the configured adapters path does not exist', ()
 
 test('prefers packed local tarballs when a manifest is present', () => {
   const adaptersRepo = createAdaptersRepo('adapters-packed');
-  const tarballDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openzeppelin-ui-packed-'));
+  const tarballDir = createTemporaryDirectory('openzeppelin-ui-packed-');
   const tarballPath = path.join(tarballDir, 'openzeppelin-adapter-evm-1.0.0.tgz');
   fs.writeFileSync(tarballPath, 'stub tarball');
 
@@ -154,4 +168,49 @@ test('prefers packed local tarballs when a manifest is present', () => {
   );
 
   assert.equal(updated.dependencies['@openzeppelin/adapter-evm'], `file:${tarballPath}`);
+});
+
+test('resolves default family paths from the workspace root instead of context.dir', () => {
+  const containerRoot = createTemporaryDirectory('pnpmfile-fixture-');
+  const workspaceRoot = path.join(containerRoot, 'consumer-app');
+  const adaptersRepo = path.join(containerRoot, 'openzeppelin-adapters');
+  const nestedContextDir = path.join(workspaceRoot, 'packages', 'consumer-app');
+  fs.mkdirSync(workspaceRoot, { recursive: true });
+  fs.mkdirSync(path.join(adaptersRepo, 'packages', 'adapter-evm'), { recursive: true });
+  fs.mkdirSync(nestedContextDir, { recursive: true });
+
+  fs.copyFileSync(path.join(__dirname, '.pnpmfile.cjs'), path.join(workspaceRoot, '.pnpmfile.cjs'));
+  fs.writeFileSync(
+    path.join(workspaceRoot, '.openzeppelin-dev.json'),
+    JSON.stringify(
+      {
+        version: 1,
+        families: {
+          adapters: {},
+        },
+      },
+      null,
+      2
+    )
+  );
+
+  const hookPath = path.join(workspaceRoot, '.pnpmfile.cjs');
+  delete require.cache[hookPath];
+  const { hooks } = require(hookPath);
+
+  const pkg = withEnv(
+    {
+      LOCAL_ADAPTERS: 'true',
+    },
+    () =>
+      hooks.readPackage(createPackage(), {
+        dir: nestedContextDir,
+        log: () => {},
+      })
+  );
+
+  assert.equal(
+    pkg.dependencies['@openzeppelin/adapter-evm'],
+    `file:${fs.realpathSync(path.join(adaptersRepo, 'packages', 'adapter-evm'))}`
+  );
 });

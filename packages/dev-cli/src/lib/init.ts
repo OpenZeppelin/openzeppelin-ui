@@ -172,8 +172,8 @@ function resolveRepoRoot(baseDir, family) {
   return absolutePath;
 }
 
-function resolvePackageDirectory(baseDir, family, packageName, packagePath) {
-  const repoRoot = resolveRepoRoot(baseDir, family);
+function resolvePackageDirectory(workspaceRoot, family, packageName, packagePath) {
+  const repoRoot = resolveRepoRoot(workspaceRoot, family);
   const absolutePath = path.resolve(repoRoot, packagePath);
 
   if (!fs.existsSync(absolutePath)) {
@@ -200,8 +200,8 @@ function readPackedManifest(cacheDir, familyKey) {
 }
 
 function rewriteDependencies(pkg, context, cacheDir, familyKey, family) {
-  const baseDir = context.dir || process.cwd();
   const packedPackages = readPackedManifest(cacheDir, familyKey);
+  const workspaceRoot = __dirname;
 
   for (const depType of ['dependencies', 'devDependencies']) {
     if (!pkg[depType]) continue;
@@ -216,7 +216,7 @@ function rewriteDependencies(pkg, context, cacheDir, familyKey, family) {
         continue;
       }
 
-      const absolutePath = resolvePackageDirectory(baseDir, family, npmName, packagePath);
+      const absolutePath = resolvePackageDirectory(workspaceRoot, family, npmName, packagePath);
       pkg[depType][npmName] = \`file:\${absolutePath}\`;
       context.log(\`[local-dev] \${npmName} → \${absolutePath}\`);
     }

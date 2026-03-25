@@ -180,19 +180,38 @@ export function resolvePackedFilename(destinationDir: string, packedFilename: st
     : path.join(destinationDir, packedFilename);
 }
 
+/**
+ * Extracts the packed tarball filename from `pnpm pack --json` output.
+ */
+export function extractPackedFilename(stdout: string): string | null {
+  const payload = JSON.parse(stdout) as unknown;
+
+  if (Array.isArray(payload)) {
+    const firstEntry = payload[0] as { filename?: unknown } | undefined;
+    return typeof firstEntry?.filename === 'string' ? firstEntry.filename : null;
+  }
+
+  if (payload && typeof payload === 'object') {
+    const entry = payload as { filename?: unknown };
+    return typeof entry.filename === 'string' ? entry.filename : null;
+  }
+
+  return null;
+}
+
 function packPackage(packageRoot: string, destinationDir: string): string {
   const stdout = runCommand(
     'pnpm',
     ['pack', '--pack-destination', destinationDir, '--json'],
     packageRoot
   );
-  const payload = JSON.parse(stdout) as { filename?: string };
+  const packedFilename = extractPackedFilename(stdout);
 
-  if (!payload.filename) {
+  if (!packedFilename) {
     throw new Error(`Unexpected pack output for ${packageRoot}: ${stdout}`);
   }
 
-  return resolvePackedFilename(destinationDir, payload.filename);
+  return resolvePackedFilename(destinationDir, packedFilename);
 }
 
 function packFamily(

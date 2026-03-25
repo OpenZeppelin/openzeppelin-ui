@@ -12,8 +12,11 @@ interface UseCommandOptions {
   json?: boolean;
 }
 
-function parseFamilyValues(values: string[]): FamilyKey[] {
-  return values.map((value) => {
+/**
+ * Validates CLI family flags and removes duplicates while preserving order.
+ */
+export function parseFamilyValues(values: string[]): FamilyKey[] {
+  return [...new Set(values)].map((value) => {
     if (!isFamilyKey(value)) {
       throw new Error(`Unsupported family "${value}".`);
     }
