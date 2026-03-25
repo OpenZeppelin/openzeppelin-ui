@@ -61,7 +61,7 @@
     "picocolors": "^1.1.1"
   },
   "devDependencies": {
-    "@types/node": "^24.10.13",
+    "@types/node": "^22.19.15",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   },
