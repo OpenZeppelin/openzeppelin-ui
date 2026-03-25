@@ -238,9 +238,13 @@ export function extractPackedFilename(stdout: string): string | null {
   return null;
 }
 
-function packPackage(packageRoot: string, destinationDir: string): string {
+function packPackage(
+  packageManager: ResolvedProjectConfig['packageManager'],
+  packageRoot: string,
+  destinationDir: string
+): string {
   const stdout = runCommand(
-    'pnpm',
+    packageManager,
     ['pack', '--pack-destination', destinationDir, '--json'],
     packageRoot
   );
@@ -270,7 +274,7 @@ function packFamily(
 
   for (const [packageName, packagePath] of Object.entries(family.packageMap)) {
     const packageRoot = ensurePackageRoot(repoRoot, family, packageName, packagePath);
-    manifest[packageName] = packPackage(packageRoot, familyDir);
+    manifest[packageName] = packPackage(config.packageManager, packageRoot, familyDir);
   }
 
   fs.writeFileSync(
