@@ -1,5 +1,17 @@
 # @openzeppelin/ui-components
 
+## 1.6.0
+
+### Minor Changes
+
+- [#95](https://github.com/OpenZeppelin/openzeppelin-ui/pull/95) [`71a64bd`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/71a64bd439073fa814299e466d38f3ce42c05412) Thanks [@pasevin](https://github.com/pasevin)! - Add `showTooltip`, `variant`, and `untruncateOnHover` props to AddressDisplay
+  - `showTooltip` shows the full address in a tooltip on hover when truncated.
+  - `variant` accepts `"chip"` (default) or `"inline"` for use inside existing
+    styled containers like wallet bars.
+  - `untruncateOnHover` reveals the full address inline on hover (desktop) or
+    tap (touch devices).
+  - Fix TooltipContent to render inside a Portal, preventing layout shifts.
+
 ## 1.5.0
 
 ### Minor Changes
