@@ -30,7 +30,7 @@ const ADAPTER_PACKAGE_MAP = {
 };
 
 function createBuildArgs(packageNames: string[]): string[] {
-  return [...packageNames.flatMap((packageName) => ['--filter', packageName]), 'build'];
+  return [...packageNames.flatMap((packageName) => ['--filter', `${packageName}...`]), 'build'];
 }
 
 export const STANDARD_FAMILIES: Record<FamilyKey, FamilyDefinition> = {
