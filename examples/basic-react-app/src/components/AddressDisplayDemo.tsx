@@ -42,11 +42,22 @@ const { adapter, sampleAddresses } = useEcosystem();
 // Basic truncated display
 <AddressDisplay address={sampleAddresses.wallet} />
 
-// With copy button
+// Reveal full address on hover
+<AddressDisplay address={sampleAddresses.wallet} untruncateOnHover />
+
+// Tooltip shows full address on hover
+<AddressDisplay address={sampleAddresses.wallet} showTooltip />
+
+// With copy button (shown on hover)
 <AddressDisplay
   address={sampleAddresses.wallet}
+  showTooltip
   showCopyButton
+  showCopyButtonOnHover
 />
+
+// Inline variant — no chip background
+<AddressDisplay address={sampleAddresses.wallet} variant="inline" showTooltip />
 
 // With explorer link (using adapter)
 <AddressDisplay
@@ -90,6 +101,78 @@ const { adapter, sampleAddresses } = useEcosystem();
           <div className="space-y-2">
             <p className="text-muted-foreground text-sm">Extended (10 start, 6 end)</p>
             <AddressDisplay address={sampleAddresses.wallet} startChars={10} endChars={6} />
+          </div>
+          <div className="space-y-2">
+            <p className="text-muted-foreground text-sm">
+              Full address on hover (
+              <code className="bg-muted rounded px-1">untruncateOnHover</code>)
+            </p>
+            <p className="text-muted-foreground text-xs">
+              Hover-capable devices: pointer over the chip shows the full address. Touch-first
+              devices: tap the chip to expand, tap again to collapse.
+            </p>
+            <AddressDisplay address={sampleAddresses.wallet} untruncateOnHover />
+          </div>
+          <div className="space-y-2">
+            <p className="text-muted-foreground text-sm">
+              Tooltip on hover (<code className="bg-muted rounded px-1">showTooltip</code>)
+            </p>
+            <p className="text-muted-foreground text-xs">
+              Hover the chip to see the full address in a tooltip. Address stays truncated.
+            </p>
+            <AddressDisplay address={sampleAddresses.wallet} showTooltip />
+          </div>
+          <div className="space-y-2">
+            <p className="text-muted-foreground text-sm">
+              Tooltip + copy on hover — compact but discoverable
+            </p>
+            <AddressDisplay
+              address={sampleAddresses.wallet}
+              showTooltip
+              showCopyButton
+              showCopyButtonOnHover
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Variants */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Variants</h3>
+        <div className="flex flex-col gap-4">
+          <div className="space-y-2">
+            <p className="text-muted-foreground text-sm">
+              Chip (default) — slate background with padding
+            </p>
+            <AddressDisplay address={sampleAddresses.wallet} showCopyButton showTooltip />
+          </div>
+          <div className="space-y-2">
+            <p className="text-muted-foreground text-sm">
+              Inline — no background, padding, or border-radius
+            </p>
+            <p className="text-muted-foreground text-xs">
+              Use when the parent already provides container styling (e.g. wallet bars, navbars).
+            </p>
+            <AddressDisplay
+              address={sampleAddresses.wallet}
+              variant="inline"
+              showCopyButton
+              showCopyButtonOnHover
+              showTooltip
+            />
+          </div>
+          <div className="space-y-2">
+            <p className="text-muted-foreground text-sm">Inline inside a styled container</p>
+            <div className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
+              <span className="text-muted-foreground">Wallet:</span>
+              <AddressDisplay
+                address={sampleAddresses.wallet}
+                variant="inline"
+                showCopyButton
+                showCopyButtonOnHover
+                showTooltip
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -171,20 +254,24 @@ const { adapter, sampleAddresses } = useEcosystem();
               <span className="text-muted-foreground text-xs">2 mins ago</span>
             </div>
             <div className="grid gap-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">From</span>
+              <div className="flex min-w-0 items-center justify-between gap-2">
+                <span className="text-muted-foreground shrink-0">From</span>
                 <AddressDisplay
                   address={sampleAddresses.wallet}
                   showCopyButton
                   showCopyButtonOnHover
+                  showTooltip
+                  className="min-w-0 shrink"
                 />
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">To</span>
+              <div className="flex min-w-0 items-center justify-between gap-2">
+                <span className="text-muted-foreground shrink-0">To</span>
                 <AddressDisplay
                   address={sampleAddresses.contract}
                   showCopyButton
                   showCopyButtonOnHover
+                  showTooltip
+                  className="min-w-0 shrink"
                 />
               </div>
               <div className="flex items-center justify-between">

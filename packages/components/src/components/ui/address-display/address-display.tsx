@@ -3,7 +3,40 @@ import * as React from 'react';
 
 import { cn, truncateMiddle } from '@openzeppelin/ui-utils';
 
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../tooltip';
 import { AddressLabelContext } from './context';
+
+/**
+ * True when the primary input can hover (e.g. desktop with mouse).
+ * Touch-first phones typically report false. SSR assumes hover-capable.
+ */
+function usePrefersHover(): boolean {
+  return React.useSyncExternalStore(
+    React.useCallback((onStoreChange) => {
+      if (typeof window === 'undefined' || typeof window.matchMedia === 'undefined') {
+        return (): void => {};
+      }
+      const mq = window.matchMedia('(hover: hover)');
+      mq.addEventListener('change', onStoreChange);
+      return (): void => mq.removeEventListener('change', onStoreChange);
+    }, []),
+    () =>
+      typeof window !== 'undefined' && typeof window.matchMedia !== 'undefined'
+        ? window.matchMedia('(hover: hover)').matches
+        : true,
+    () => true
+  );
+}
+
+/**
+ * Visual style for the component container.
+ *
+ * - `"chip"` – rounded pill with a slate background (default).
+ * - `"inline"` – no background, padding, or border-radius; just the text
+ *    and optional action buttons. Use when dropping into existing layouts
+ *    where the parent already provides styling (e.g. wallet display bars).
+ */
+export type AddressDisplayVariant = 'chip' | 'inline';
 
 interface AddressDisplayProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
@@ -16,6 +49,15 @@ interface AddressDisplayProps extends React.HTMLAttributes<HTMLDivElement> {
    * @default true
    */
   truncate?: boolean;
+
+  /**
+   * When `truncate` is true, show the full address while the pointer is over
+   * the component (on devices that support hover), or toggle on tap
+   * (on touch-first / `(hover: none)` devices).
+   * Has no effect when `truncate` is false.
+   * @default false
+   */
+  untruncateOnHover?: boolean;
 
   /**
    * Number of characters to show at the beginning when truncating
@@ -75,6 +117,21 @@ interface AddressDisplayProps extends React.HTMLAttributes<HTMLDivElement> {
   disableLabel?: boolean;
 
   /**
+   * When `true` and the address is truncated, a tooltip shows the full
+   * address on hover. Has no visual effect when `truncate` is `false`.
+   * Mutually exclusive with `untruncateOnHover` — if both are set,
+   * `showTooltip` takes precedence.
+   * @default false
+   */
+  showTooltip?: boolean;
+
+  /**
+   * Visual variant of the component container.
+   * @default "chip"
+   */
+  variant?: AddressDisplayVariant;
+
+  /**
    * Additional CSS classes
    */
   className?: string;
@@ -82,7 +139,7 @@ interface AddressDisplayProps extends React.HTMLAttributes<HTMLDivElement> {
 
 /**
  * Displays a blockchain address with optional truncation, copy button,
- * explorer link, and human-readable label.
+ * explorer link, tooltip, and human-readable label.
  *
  * Labels are resolved in priority order:
  * 1. Explicit `label` prop
@@ -107,11 +164,21 @@ interface AddressDisplayProps extends React.HTMLAttributes<HTMLDivElement> {
  *
  * // Suppress label resolution for a specific instance
  * <AddressDisplay address="0x742d35Cc..." disableLabel />
+ *
+ * // Reveal full address on hover (still truncated when idle)
+ * <AddressDisplay address="0x742d35Cc..." untruncateOnHover />
+ *
+ * // Tooltip with full address on hover + copy icon on hover
+ * <AddressDisplay address="0x742d35Cc..." showTooltip showCopyButton showCopyButtonOnHover />
+ *
+ * // Inline variant (no chip background) — useful inside wallet bars
+ * <AddressDisplay address="0x742d35Cc..." variant="inline" showTooltip showCopyButton />
  * ```
  */
 export function AddressDisplay({
   address,
   truncate = true,
+  untruncateOnHover = false,
   startChars = 6,
   endChars = 4,
   showCopyButton = false,
@@ -121,11 +188,20 @@ export function AddressDisplay({
   onLabelEdit: onLabelEditProp,
   networkId,
   disableLabel = false,
+  showTooltip = false,
+  variant = 'chip',
   className,
+  onPointerEnter,
+  onPointerLeave,
+  onMouseEnter,
+  onMouseLeave,
+  onClick,
   ...props
 }: AddressDisplayProps): React.ReactElement {
   const [copied, setCopied] = React.useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
   const copyTimeoutRef = React.useRef<number | null>(null);
+  const prefersHover = usePrefersHover();
 
   const resolver = React.useContext(AddressLabelContext);
 
@@ -141,7 +217,39 @@ export function AddressDisplay({
     ? undefined
     : (onLabelEditProp ?? (resolver?.onEditLabel ? contextEditHandler : undefined));
 
-  const displayAddress = truncate ? truncateMiddle(address, startChars, endChars) : address;
+  const canUntruncate = untruncateOnHover && truncate && !showTooltip;
+  const showFullAddress = !truncate || (canUntruncate && isHovered);
+  const displayAddress = showFullAddress ? address : truncateMiddle(address, startChars, endChars);
+
+  const addressTextClassName = cn(
+    !showFullAddress && 'truncate',
+    (showFullAddress || !truncate) && 'break-all'
+  );
+
+  const expandInteractionClassName = canUntruncate && !prefersHover ? 'cursor-pointer' : undefined;
+
+  const handlePointerEnter = (e: React.PointerEvent<HTMLDivElement>): void => {
+    if (canUntruncate && prefersHover) {
+      setIsHovered(true);
+    }
+    onPointerEnter?.(e);
+    onMouseEnter?.(e as unknown as React.MouseEvent<HTMLDivElement>);
+  };
+
+  const handlePointerLeave = (e: React.PointerEvent<HTMLDivElement>): void => {
+    if (canUntruncate && prefersHover) {
+      setIsHovered(false);
+    }
+    onPointerLeave?.(e);
+    onMouseLeave?.(e as unknown as React.MouseEvent<HTMLDivElement>);
+  };
+
+  const handleUntruncateClick = (e: React.MouseEvent<HTMLDivElement>): void => {
+    if (canUntruncate && !prefersHover) {
+      setIsHovered((open) => !open);
+    }
+    onClick?.(e);
+  };
 
   const handleCopy = (e: React.MouseEvent): void => {
     e.stopPropagation();
@@ -164,6 +272,8 @@ export function AddressDisplay({
       }
     };
   }, []);
+
+  const isChip = variant === 'chip';
 
   const actionButtons = (
     <>
@@ -193,6 +303,9 @@ export function AddressDisplay({
           href={explorerUrl}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
           className="ml-1.5 shrink-0 text-slate-500 transition-colors hover:text-slate-700"
           aria-label="View in explorer"
         >
@@ -216,37 +329,61 @@ export function AddressDisplay({
     </>
   );
 
-  if (resolvedLabel) {
+  const shouldShowTooltip = showTooltip && truncate;
+
+  const wrapWithTooltip = (content: React.ReactElement): React.ReactElement => {
+    if (!shouldShowTooltip) return content;
     return (
+      <TooltipProvider delayDuration={300}>
+        <Tooltip>
+          <TooltipTrigger asChild>{content}</TooltipTrigger>
+          <TooltipContent className="font-mono text-xs">{address}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
+
+  if (resolvedLabel) {
+    return wrapWithTooltip(
       <div
         className={cn(
-          'group inline-flex max-w-full flex-col rounded-md bg-slate-100 px-2 py-1',
+          'group inline-flex max-w-full min-w-0 flex-col',
+          isChip && 'rounded-md bg-slate-100 px-2 py-1',
           'text-xs text-slate-700',
+          expandInteractionClassName,
           className
         )}
+        onPointerEnter={handlePointerEnter}
+        onPointerLeave={handlePointerLeave}
+        onClick={handleUntruncateClick}
         {...props}
       >
         <span className="truncate font-sans font-medium text-slate-900 leading-snug">
           {resolvedLabel}
         </span>
-        <div className="flex items-center font-mono text-[10px] text-slate-400 leading-snug">
-          <span className={cn('truncate', truncate ? '' : 'break-all')}>{displayAddress}</span>
+        <div className="flex min-w-0 items-center font-mono text-[10px] text-slate-400 leading-snug">
+          <span className={addressTextClassName}>{displayAddress}</span>
           {actionButtons}
         </div>
       </div>
     );
   }
 
-  return (
+  return wrapWithTooltip(
     <div
       className={cn(
-        'group inline-flex max-w-full items-center rounded-md bg-slate-100 px-2 py-1',
+        'group inline-flex max-w-full min-w-0 items-center',
+        isChip && 'rounded-md bg-slate-100 px-2 py-1',
         'text-xs font-mono text-slate-700',
+        expandInteractionClassName,
         className
       )}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
+      onClick={handleUntruncateClick}
       {...props}
     >
-      <span className={cn('truncate', truncate ? '' : 'break-all')}>{displayAddress}</span>
+      <span className={addressTextClassName}>{displayAddress}</span>
       {actionButtons}
     </div>
   );
