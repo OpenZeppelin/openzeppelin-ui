@@ -4,6 +4,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { initProject } from './init';
+import { getCliDependencyRange } from './packageInfo';
 
 function createProjectRoot(): string {
   const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'oz-dev-init-'));
@@ -23,6 +24,8 @@ function createProjectRoot(): string {
 }
 
 describe('initProject', () => {
+  const expectedCliDependencyRange = getCliDependencyRange();
+
   it('writes managed config, pnpmfile, and scripts for ui plus adapters', () => {
     const projectRoot = createProjectRoot();
 
@@ -57,7 +60,9 @@ describe('initProject', () => {
     );
     expect(pnpmfile).toContain('function resolveCacheDir(workspaceRoot, cacheDir)');
     expect(pnpmfile).toContain('function getRealPath(targetPath)');
-    expect(packageJson.devDependencies['@openzeppelin/ui-dev-cli']).toBe('^0.1.0');
+    expect(packageJson.devDependencies['@openzeppelin/ui-dev-cli']).toBe(
+      expectedCliDependencyRange
+    );
     expect(packageJson.scripts['dev:local']).toContain('oz-dev use local');
     expect(packageJson.scripts['dev:local']).toContain('--family ui --family adapters');
     expect(packageJson.scripts['dev:npm']).toContain('use remote');
@@ -95,7 +100,9 @@ describe('initProject', () => {
 
     expect(result.keptScripts).toContain('dev:local');
     expect(packageJson.scripts['dev:local']).toBe('custom-command');
-    expect(packageJson.devDependencies['@openzeppelin/ui-dev-cli']).toBe('^0.1.0');
+    expect(packageJson.devDependencies['@openzeppelin/ui-dev-cli']).toBe(
+      expectedCliDependencyRange
+    );
     expect(packageJson.scripts['dev:npm']).toContain('oz-dev use remote');
     expect(packageJson.scripts['dev:npm']).toContain('use remote');
   });
