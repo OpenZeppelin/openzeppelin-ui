@@ -6,6 +6,13 @@
  * This turns silent visual/behavioral degradation into an actionable error.
  */
 
+/**
+ * Validates that installed peer packages meet minimum version requirements.
+ *
+ * @param consumerName - Package name shown in error messages (e.g. `@openzeppelin/adapter-evm`)
+ * @param peers - Map of package names to their installed and minimum required versions
+ * @throws {Error} If any peer version is missing or below the required minimum
+ */
 export function validatePeerVersions(
   consumerName: string,
   peers: Record<string, { installed: string | undefined; minimum: string }>
