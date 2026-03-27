@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process';
+import { spawnSync, type StdioOptions } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -6,6 +6,7 @@ import { loadProjectConfig, ResolvedFamilyConfig, ResolvedProjectConfig } from '
 import { FamilyKey } from './families';
 
 const MAX_COMMAND_BUFFER = 50 * 1024 * 1024;
+const STALE_DIST_THRESHOLD_MS = 30_000;
 
 interface ResolvedPathInfo {
   envName: string | null;
@@ -169,17 +170,24 @@ function readManifest(
   }
 }
 
+interface RunCommandOptions {
+  stdio?: StdioOptions;
+  extraEnv?: NodeJS.ProcessEnv;
+}
+
 function runCommand(
   command: string,
   args: string[],
   cwd: string,
-  extraEnv?: NodeJS.ProcessEnv
+  options: RunCommandOptions = {}
 ): string {
+  const { stdio = ['ignore', 'pipe', 'pipe'], extraEnv } = options;
+
   const result = spawnSync(command, args, {
     cwd,
     env: { ...process.env, ...extraEnv },
     encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
+    stdio,
     maxBuffer: MAX_COMMAND_BUFFER,
   });
 
@@ -201,12 +209,115 @@ function runCommand(
     throw new Error(message);
   }
 
-  return result.stdout.trim();
+  return typeof result.stdout === 'string' ? result.stdout.trim() : '';
+}
+
+function newestFileTimestamp(dir: string): number {
+  if (!fs.existsSync(dir)) return 0;
+  let newest = 0;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const entryPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      newest = Math.max(newest, newestFileTimestamp(entryPath));
+    } else {
+      newest = Math.max(newest, fs.statSync(entryPath).mtimeMs);
+    }
+  }
+  return newest;
+}
+
+function newestSourceTimestamp(packageRoot: string): number {
+  const srcDir = path.join(packageRoot, 'src');
+  const pkgJson = path.join(packageRoot, 'package.json');
+  let newest = newestFileTimestamp(srcDir);
+  if (fs.existsSync(pkgJson)) {
+    newest = Math.max(newest, fs.statSync(pkgJson).mtimeMs);
+  }
+  return newest;
+}
+
+function collectWorkspaceDeps(packageRoot: string, repoRoot: string): string[] {
+  const pkgPath = path.join(packageRoot, 'package.json');
+  if (!fs.existsSync(pkgPath)) return [];
+
+  try {
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8')) as Record<string, unknown>;
+    const roots: string[] = [];
+    for (const depSection of ['dependencies', 'devDependencies'] as const) {
+      const deps = pkg[depSection];
+      if (!deps || typeof deps !== 'object') continue;
+      for (const [depName, version] of Object.entries(deps as Record<string, string>)) {
+        if (typeof version === 'string' && version.startsWith('workspace:')) {
+          const depPkg = findWorkspacePackage(repoRoot, depName);
+          if (depPkg) roots.push(depPkg);
+        }
+      }
+    }
+    return roots;
+  } catch {
+    return [];
+  }
+}
+
+function findWorkspacePackage(repoRoot: string, packageName: string): string | null {
+  const packagesDir = path.join(repoRoot, 'packages');
+  if (!fs.existsSync(packagesDir)) return null;
+
+  for (const entry of fs.readdirSync(packagesDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const pkgJsonPath = path.join(packagesDir, entry.name, 'package.json');
+    if (!fs.existsSync(pkgJsonPath)) continue;
+    try {
+      const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf8')) as { name?: string };
+      if (pkg.name === packageName) return path.join(packagesDir, entry.name);
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
+function verifyDistFreshness(repoRoot: string, family: ResolvedFamilyConfig): string[] {
+  const warnings: string[] = [];
+
+  for (const [packageName, packagePath] of Object.entries(family.packageMap)) {
+    const packageRoot = path.join(repoRoot, packagePath);
+    const distDir = path.join(packageRoot, 'dist');
+
+    if (!fs.existsSync(distDir)) {
+      warnings.push(`${packageName}: dist/ directory is missing after build`);
+      continue;
+    }
+
+    const distTime = newestFileTimestamp(distDir);
+    let srcTime = newestSourceTimestamp(packageRoot);
+
+    for (const depRoot of collectWorkspaceDeps(packageRoot, repoRoot)) {
+      srcTime = Math.max(srcTime, newestSourceTimestamp(depRoot));
+    }
+
+    if (srcTime > 0 && distTime > 0 && srcTime - distTime > STALE_DIST_THRESHOLD_MS) {
+      const staleBy = Math.round((srcTime - distTime) / 1000);
+      warnings.push(`${packageName}: dist/ appears stale (source is ~${staleBy}s newer than dist)`);
+    }
+  }
+
+  return warnings;
 }
 
 function buildFamily(config: ResolvedProjectConfig, family: ResolvedFamilyConfig): string {
   const repoRoot = ensureRepoRoot(config, family);
-  runCommand(config.packageManager, family.buildArgs, repoRoot);
+  runCommand(config.packageManager, family.buildArgs, repoRoot, {
+    stdio: ['ignore', 'inherit', 'inherit'],
+  });
+
+  const warnings = verifyDistFreshness(repoRoot, family);
+  if (warnings.length > 0) {
+    const header = `[local-dev] dist freshness warnings for ${family.displayName}:`;
+    const details = warnings.map((w) => `  - ${w}`).join('\n');
+    process.stderr.write(`${header}\n${details}\n`);
+  }
+
   return repoRoot;
 }
 
@@ -305,7 +416,7 @@ function installProject(config: ResolvedProjectConfig, familyKeys: FamilyKey[]):
     ])
   );
 
-  runCommand(config.packageManager, config.installArgs, config.projectRoot, env);
+  runCommand(config.packageManager, config.installArgs, config.projectRoot, { extraEnv: env });
 }
 
 function removePath(targetPath: string, removedPaths: string[]): void {
