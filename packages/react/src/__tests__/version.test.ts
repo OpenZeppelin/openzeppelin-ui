@@ -1,5 +1,4 @@
 import { readFileSync } from 'fs';
-import { resolve } from 'path';
 import { describe, expect, it } from 'vitest';
 
 import { VERSION } from '../version';
@@ -11,7 +10,7 @@ describe('VERSION', () => {
   });
 
   it('matches the version in package.json', () => {
-    const pkg = JSON.parse(readFileSync(resolve(__dirname, '../../package.json'), 'utf-8'));
+    const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf-8'));
     expect(VERSION).toBe(pkg.version);
   });
 
