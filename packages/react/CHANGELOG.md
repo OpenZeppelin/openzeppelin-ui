@@ -1,5 +1,18 @@
 # @openzeppelin/ui-react
 
+## 1.2.0
+
+### Minor Changes
+
+- [#96](https://github.com/OpenZeppelin/openzeppelin-ui/pull/96) [`b7f6eb5`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/b7f6eb5d8c1c0a0090f8cc22370c1c397435d71a) Thanks [@pasevin](https://github.com/pasevin)! - Add VERSION export to all public packages for runtime peer compatibility validation. Each package now exports a `VERSION` constant that reflects the package version at build time, enabling consuming libraries (such as adapters) to verify compatible versions are installed and throw actionable errors on mismatch.
+
+### Patch Changes
+
+- Updated dependencies [[`b7f6eb5`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/b7f6eb5d8c1c0a0090f8cc22370c1c397435d71a)]:
+  - @openzeppelin/ui-components@1.7.0
+  - @openzeppelin/ui-types@1.12.0
+  - @openzeppelin/ui-utils@1.4.0
+
 ## 1.1.0
 
 ### Minor Changes
