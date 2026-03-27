@@ -1,5 +1,11 @@
 # @openzeppelin/ui-dev-cli
 
+## 0.2.2
+
+### Patch Changes
+
+- [#98](https://github.com/OpenZeppelin/openzeppelin-ui/pull/98) [`6a10c57`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/6a10c57d4fb5a1d01dc7809a709ffef6f89b3d62) Thanks [@pasevin](https://github.com/pasevin)! - Stream build output to terminal during `use local` and verify dist freshness after build
+
 ## 0.2.1
 
 ### Patch Changes
