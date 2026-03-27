@@ -1,3 +1,6 @@
+// Package version (injected at build time)
+export { VERSION } from './version';
+
 // Contexts and Providers
 export {
   AdapterContext,
