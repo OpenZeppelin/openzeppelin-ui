@@ -2,12 +2,15 @@ import type { Ecosystem, ExecutionConfig, TransactionSuccessPayload } from '@ope
 
 /**
  * Normalizes adapter `txHash` for the success callback (non-empty trimmed string or omitted).
+ * Expects the `txHash` string from `signAndBroadcast`, not arbitrary values (avoids coercing objects).
  */
-export function normalizeTransactionSuccessHash(finalTxHash: unknown): string | undefined {
+export function normalizeTransactionSuccessHash(
+  finalTxHash: string | null | undefined
+): string | undefined {
   if (finalTxHash == null) {
     return undefined;
   }
-  const trimmed = String(finalTxHash).trim();
+  const trimmed = finalTxHash.trim();
   return trimmed !== '' ? trimmed : undefined;
 }
 
@@ -15,10 +18,11 @@ export function normalizeTransactionSuccessHash(finalTxHash: unknown): string | 
  * Builds the {@link TransactionSuccessPayload} passed to `onTransactionSuccess`.
  */
 export function buildTransactionSuccessPayload(options: {
-  networkId: string;
+  networkId: TransactionSuccessPayload['network_id'];
   ecosystem: Ecosystem;
   executionMethod: ExecutionConfig['method'];
-  finalTxHash: unknown;
+  /** From `signAndBroadcast` result (`txHash: string`) */
+  finalTxHash: string | null | undefined;
 }): TransactionSuccessPayload {
   const hash = normalizeTransactionSuccessHash(options.finalTxHash);
   return {
