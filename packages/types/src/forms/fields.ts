@@ -129,6 +129,16 @@ export type FormError =
     };
 
 /**
+ * Payload passed to {@link TransactionFormProps.onTransactionSuccess}.
+ */
+export type TransactionSuccessPayload = {
+  network_id: NetworkConfig['id'];
+  ecosystem: Ecosystem;
+  execution_method: ExecutionConfig['method'];
+  transaction_hash?: string;
+};
+
+/**
  * Props for the top-level TransactionForm component
  */
 export interface TransactionFormProps {
@@ -187,10 +197,5 @@ export interface TransactionFormProps {
    * May be `async`; rejections are caught and logged by the renderer so they do not become
    * unhandled promise rejections.
    */
-  onTransactionSuccess?: (payload: {
-    network_id: NetworkConfig['id'];
-    ecosystem: Ecosystem;
-    execution_method: ExecutionConfig['method'];
-    transaction_hash?: string;
-  }) => void | Promise<void>;
+  onTransactionSuccess?: (payload: TransactionSuccessPayload) => void | Promise<void>;
 }

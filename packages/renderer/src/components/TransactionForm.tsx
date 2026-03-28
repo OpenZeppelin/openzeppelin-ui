@@ -15,6 +15,10 @@ import { TransactionExecuteButton } from './transaction/TransactionExecuteButton
 
 import { createDefaultFormValues } from '../utils/formUtils';
 import { extractRuntimeSecrets } from '../utils/runtimeSecretExtractor';
+import {
+  buildTransactionSuccessPayload,
+  invokeOnTransactionSuccess,
+} from '../utils/transactionSuccessCallback';
 import { DynamicFormField } from './DynamicFormField';
 import { TransactionStatusDisplay } from './transaction';
 
@@ -185,27 +189,13 @@ export function TransactionForm({
 
       const reportTransactionSuccess = (): void => {
         const executionMethod = executionConfig?.method ?? 'eoa';
-        const hash =
-          finalTxHash != null && String(finalTxHash).trim() !== ''
-            ? String(finalTxHash).trim()
-            : undefined;
-        try {
-          const maybePromise = onTransactionSuccess?.({
-            network_id: adapter.networkConfig.id,
-            ecosystem: adapter.networkConfig.ecosystem,
-            execution_method: executionMethod,
-            ...(hash !== undefined ? { transaction_hash: hash } : {}),
-          });
-          void Promise.resolve(maybePromise).catch((error: unknown) => {
-            logger.error(
-              'TransactionForm',
-              'onTransactionSuccess callback rejected with an error',
-              error
-            );
-          });
-        } catch (error) {
-          logger.error('TransactionForm', 'onTransactionSuccess callback threw an error', error);
-        }
+        const payload = buildTransactionSuccessPayload({
+          networkId: adapter.networkConfig.id,
+          ecosystem: adapter.networkConfig.ecosystem,
+          executionMethod,
+          finalTxHash,
+        });
+        invokeOnTransactionSuccess(onTransactionSuccess, payload, logger);
       };
 
       // Functions that execute locally don't need confirmation - they complete immediately
