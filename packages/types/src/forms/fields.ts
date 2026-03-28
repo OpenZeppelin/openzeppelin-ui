@@ -1,7 +1,9 @@
 import type { ContractAdapter } from '../adapters/base';
 import type { EnumValue, MapEntry } from '../common';
+import type { Ecosystem } from '../common/ecosystem';
 import type { ContractSchema } from '../contracts/schema';
 import type { ExecutionConfig } from '../execution';
+import type { NetworkConfig } from '../networks/config';
 import type { RenderFormSchema } from './schema';
 
 /**
@@ -127,6 +129,16 @@ export type FormError =
     };
 
 /**
+ * Payload passed to {@link TransactionFormProps.onTransactionSuccess}.
+ */
+export type TransactionSuccessPayload = {
+  network_id: NetworkConfig['id'];
+  ecosystem: Ecosystem;
+  execution_method: ExecutionConfig['method'];
+  transaction_hash?: string;
+};
+
+/**
  * Props for the top-level TransactionForm component
  */
 export interface TransactionFormProps {
@@ -159,4 +171,31 @@ export interface TransactionFormProps {
    * Execution configuration for the transaction
    */
   executionConfig?: ExecutionConfig;
+
+  /**
+   * Optional callback when a transaction completes successfully (local `pure` execution,
+   * confirmed on-chain transaction, or immediate success when the adapter has no confirmation helper).
+   *
+   * @param payload - Metadata for the successful execution
+   * @param payload.network_id - Active network id from the adapter
+   * @param payload.ecosystem - Active ecosystem from the adapter (e.g. `evm`, `stellar`)
+   * @param payload.execution_method - Execution path from `executionConfig.method`, or `eoa` when unset
+   * @param payload.transaction_hash - On-chain tx id or relayer job id from the adapter when available;
+   *   omitted for local-only runs with no id (e.g. some `pure` paths)
+   *
+   * @example
+   * ```tsx
+   * <TransactionForm
+   *   {...props}
+   *   onTransactionSuccess={({ network_id, ecosystem, execution_method, transaction_hash }) => {
+   *     analytics.track('tx_ok', { network_id, ecosystem, execution_method });
+   *     if (transaction_hash) showToast(`Submitted: ${transaction_hash}`);
+   *   }}
+   * />
+   * ```
+   *
+   * May be `async`; rejections are caught and logged by the renderer so they do not become
+   * unhandled promise rejections.
+   */
+  onTransactionSuccess?: (payload: TransactionSuccessPayload) => void | Promise<void>;
 }
