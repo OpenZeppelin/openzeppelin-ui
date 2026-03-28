@@ -39,6 +39,13 @@ pnpm build
 pnpm test
 ```
 
+### Troubleshooting: example app typecheck (`Cannot find module '@openzeppelin/ui-builder-adapter-*'`)
+
+`pnpm typecheck` runs every workspace package, including `examples/basic-react-app`. That example depends on **published** adapter packages (`@openzeppelin/ui-builder-adapter-evm`, `@openzeppelin/ui-builder-adapter-stellar`) pulled from npm per the root lockfile—not on local workspace source.
+
+- Run **`pnpm install` from the repository root** so all workspaces (including `examples/*`) get their dependencies. Installing only a subset of packages can leave the example without those modules and TypeScript will report `TS2307`.
+- If you enable **`LOCAL_ADAPTERS=true`** or **`LOCAL_UI=true`**, the root `.pnpmfile.cjs` expects a valid **`.openzeppelin-dev.json`** (see `pnpm dev:local` / `oz-dev init` in the main README). Without it, `pnpm install` can fail. For a normal clone using registry packages, leave those env vars unset.
+
 ## Scripts
 
 - `pnpm build` - Build all packages
