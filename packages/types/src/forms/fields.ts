@@ -161,7 +161,23 @@ export interface TransactionFormProps {
   executionConfig?: ExecutionConfig;
 
   /**
-   * Optional callback when a transaction completes successfully (confirmed or local execution).
+   * Optional callback when a transaction completes successfully (local `pure` execution,
+   * confirmed on-chain transaction, or immediate success when the adapter has no confirmation helper).
+   *
+   * @param payload - Metadata for the successful execution
+   * @param payload.network_id - Active network id from the adapter
+   * @param payload.ecosystem - Active ecosystem from the adapter (e.g. `evm`, `stellar`)
+   * @param payload.execution_method - Execution path from `executionConfig.method`, or `eoa` when unset
+   *
+   * @example
+   * ```tsx
+   * <TransactionForm
+   *   {...props}
+   *   onTransactionSuccess={({ network_id, ecosystem, execution_method }) => {
+   *     analytics.track('tx_ok', { network_id, ecosystem, execution_method });
+   *   }}
+   * />
+   * ```
    */
   onTransactionSuccess?: (payload: {
     network_id: string;
