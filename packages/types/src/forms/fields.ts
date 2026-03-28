@@ -159,4 +159,13 @@ export interface TransactionFormProps {
    * Execution configuration for the transaction
    */
   executionConfig?: ExecutionConfig;
+
+  /**
+   * Optional callback when a transaction completes successfully (confirmed or local execution).
+   */
+  onTransactionSuccess?: (payload: {
+    network_id: string;
+    ecosystem: string;
+    execution_method: string;
+  }) => void;
 }

@@ -47,6 +47,7 @@ export function TransactionForm({
   adapter,
   isWalletConnected = false,
   executionConfig,
+  onTransactionSuccess,
 }: TransactionFormProps): React.ReactElement {
   const [formError, setFormError] = useState<string | null>(null);
   const [executionConfigError, setExecutionConfigError] = useState<string | null>(null);
@@ -182,10 +183,19 @@ export function TransactionForm({
         logger.info('TransactionForm', 'Execution result received:', result);
       }
 
+      const reportTransactionSuccess = (): void => {
+        onTransactionSuccess?.({
+          network_id: adapter.networkConfig.id,
+          ecosystem: adapter.networkConfig.ecosystem,
+          execution_method: executionConfig?.method ?? 'eoa',
+        });
+      };
+
       // Functions that execute locally don't need confirmation - they complete immediately
       if (canExecuteLocally) {
         setTxStatus('success');
         setTxError(null);
+        reportTransactionSuccess();
         return;
       }
 
@@ -202,6 +212,7 @@ export function TransactionForm({
           );
           setTxStatus('success');
           setTxError(null);
+          reportTransactionSuccess();
         } else {
           logger.error(
             'TransactionForm',
@@ -221,6 +232,7 @@ export function TransactionForm({
         );
         setTxStatus('success'); // Or maybe a different status like 'submitted'?
         setTxError(null);
+        reportTransactionSuccess();
       }
       // --> End: Wait for confirmation <--
     } catch (error) {
