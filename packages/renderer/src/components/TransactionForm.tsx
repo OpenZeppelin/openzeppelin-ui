@@ -190,11 +190,18 @@ export function TransactionForm({
             ? String(finalTxHash).trim()
             : undefined;
         try {
-          onTransactionSuccess?.({
+          const maybePromise = onTransactionSuccess?.({
             network_id: adapter.networkConfig.id,
             ecosystem: adapter.networkConfig.ecosystem,
             execution_method: executionMethod,
             ...(hash !== undefined ? { transaction_hash: hash } : {}),
+          });
+          void Promise.resolve(maybePromise).catch((error: unknown) => {
+            logger.error(
+              'TransactionForm',
+              'onTransactionSuccess callback rejected with an error',
+              error
+            );
           });
         } catch (error) {
           logger.error('TransactionForm', 'onTransactionSuccess callback threw an error', error);

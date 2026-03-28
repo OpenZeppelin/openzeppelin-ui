@@ -183,11 +183,14 @@ export interface TransactionFormProps {
    *   }}
    * />
    * ```
+   *
+   * May be `async`; rejections are caught and logged by the renderer so they do not become
+   * unhandled promise rejections.
    */
   onTransactionSuccess?: (payload: {
     network_id: NetworkConfig['id'];
     ecosystem: Ecosystem;
     execution_method: ExecutionConfig['method'];
     transaction_hash?: string;
-  }) => void;
+  }) => void | Promise<void>;
 }
