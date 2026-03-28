@@ -168,13 +168,16 @@ export interface TransactionFormProps {
    * @param payload.network_id - Active network id from the adapter
    * @param payload.ecosystem - Active ecosystem from the adapter (e.g. `evm`, `stellar`)
    * @param payload.execution_method - Execution path from `executionConfig.method`, or `eoa` when unset
+   * @param payload.transaction_hash - On-chain tx id or relayer job id from the adapter when available;
+   *   omitted for local-only runs with no id (e.g. some `pure` paths)
    *
    * @example
    * ```tsx
    * <TransactionForm
    *   {...props}
-   *   onTransactionSuccess={({ network_id, ecosystem, execution_method }) => {
+   *   onTransactionSuccess={({ network_id, ecosystem, execution_method, transaction_hash }) => {
    *     analytics.track('tx_ok', { network_id, ecosystem, execution_method });
+   *     if (transaction_hash) showToast(`Submitted: ${transaction_hash}`);
    *   }}
    * />
    * ```
@@ -183,5 +186,6 @@ export interface TransactionFormProps {
     network_id: string;
     ecosystem: string;
     execution_method: string;
+    transaction_hash?: string;
   }) => void;
 }
