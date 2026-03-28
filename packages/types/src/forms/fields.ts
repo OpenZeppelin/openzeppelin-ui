@@ -1,7 +1,9 @@
 import type { ContractAdapter } from '../adapters/base';
 import type { EnumValue, MapEntry } from '../common';
+import type { Ecosystem } from '../common/ecosystem';
 import type { ContractSchema } from '../contracts/schema';
 import type { ExecutionConfig } from '../execution';
+import type { NetworkConfig } from '../networks/config';
 import type { RenderFormSchema } from './schema';
 
 /**
@@ -183,9 +185,9 @@ export interface TransactionFormProps {
    * ```
    */
   onTransactionSuccess?: (payload: {
-    network_id: string;
-    ecosystem: string;
-    execution_method: string;
+    network_id: NetworkConfig['id'];
+    ecosystem: Ecosystem;
+    execution_method: ExecutionConfig['method'];
     transaction_hash?: string;
   }) => void;
 }

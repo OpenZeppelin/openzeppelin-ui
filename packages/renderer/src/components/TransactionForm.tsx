@@ -189,12 +189,16 @@ export function TransactionForm({
           finalTxHash != null && String(finalTxHash).trim() !== ''
             ? String(finalTxHash).trim()
             : undefined;
-        onTransactionSuccess?.({
-          network_id: adapter.networkConfig.id,
-          ecosystem: adapter.networkConfig.ecosystem,
-          execution_method: executionMethod,
-          ...(hash !== undefined ? { transaction_hash: hash } : {}),
-        });
+        try {
+          onTransactionSuccess?.({
+            network_id: adapter.networkConfig.id,
+            ecosystem: adapter.networkConfig.ecosystem,
+            execution_method: executionMethod,
+            ...(hash !== undefined ? { transaction_hash: hash } : {}),
+          });
+        } catch (error) {
+          logger.error('TransactionForm', 'onTransactionSuccess callback threw an error', error);
+        }
       };
 
       // Functions that execute locally don't need confirmation - they complete immediately
