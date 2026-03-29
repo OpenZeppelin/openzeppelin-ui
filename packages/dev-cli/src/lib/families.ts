@@ -22,6 +22,7 @@ const UI_PACKAGE_MAP = {
 };
 
 const ADAPTER_PACKAGE_MAP = {
+  '@openzeppelin/adapters-vite': 'packages/adapters-vite',
   '@openzeppelin/adapter-evm': 'packages/adapter-evm',
   '@openzeppelin/adapter-midnight': 'packages/adapter-midnight',
   '@openzeppelin/adapter-polkadot': 'packages/adapter-polkadot',

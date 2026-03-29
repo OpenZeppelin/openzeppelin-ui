@@ -35,7 +35,7 @@ import { CodeBlock } from './CodeBlock';
 import { DemoSection } from './DemoSection';
 
 const PROVIDER_SETUP_CODE = `import { AdapterProvider, WalletStateProvider } from '@openzeppelin/ui-react';
-import { EvmAdapter } from '@openzeppelin/ui-builder-adapter-evm';
+import { EvmAdapter } from '@openzeppelin/adapter-evm';
 
 function App() {
   return (
