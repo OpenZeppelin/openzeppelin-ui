@@ -229,6 +229,9 @@ function writeSmokeAppPackageJson(projectRoot: string): void {
           viem: '^2.44.4',
           wagmi: '^2.16.1',
         },
+        devDependencies: {
+          '@openzeppelin/adapters-vite': '^1.1.0',
+        },
       },
       null,
       2

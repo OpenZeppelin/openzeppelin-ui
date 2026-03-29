@@ -36,10 +36,10 @@
   - Root node_modules: where packages are hoisted locally
   - App's node_modules: where pnpm may install them directly
 */
-@source "../../../node_modules/@openzeppelin/ui-builder-adapter-evm";
-@source "../../../node_modules/@openzeppelin/ui-builder-adapter-stellar";
-@source "../node_modules/@openzeppelin/ui-builder-adapter-evm";
-@source "../node_modules/@openzeppelin/ui-builder-adapter-stellar";
+@source "../../../node_modules/@openzeppelin/adapter-evm";
+@source "../../../node_modules/@openzeppelin/adapter-stellar";
+@source "../node_modules/@openzeppelin/adapter-evm";
+@source "../node_modules/@openzeppelin/adapter-stellar";
 
 /*
   Import global theme variables and base styles from the styles package.

@@ -10,7 +10,7 @@
 
 import { type RainbowKitProvider } from '@rainbow-me/rainbowkit';
 
-import type { RainbowKitCustomizations } from '@openzeppelin/ui-builder-adapter-evm';
+import type { RainbowKitCustomizations } from '@openzeppelin/adapter-evm';
 
 // Infer props type from RainbowKitProvider for stronger typing
 type InferredRainbowKitProviderProps = React.ComponentProps<typeof RainbowKitProvider>;

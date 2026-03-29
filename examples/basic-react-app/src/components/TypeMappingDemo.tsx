@@ -1,7 +1,7 @@
 /**
  * Type Mapping Demo
  *
- * Demonstrates how REAL adapters from @openzeppelin/ui-builder-adapter-*
+ * Demonstrates how real adapters from @openzeppelin/adapter-*
  * map blockchain-specific parameter types to UI form fields.
  */
 
@@ -387,8 +387,8 @@ function TypeMappingContent({ adapter }: TypeMappingContentProps): React.ReactEl
 // Code Example
 // ============================================================================
 
-const codeExample = `// Using the REAL adapter's type mapping capabilities
-import { EvmAdapter, ethereumSepolia } from '@openzeppelin/ui-builder-adapter-evm';
+const codeExample = `// Using the real adapter's type mapping capabilities
+import { EvmAdapter, ethereumSepolia } from '@openzeppelin/adapter-evm';
 
 const adapter = new EvmAdapter(ethereumSepolia);
 
@@ -428,7 +428,7 @@ export function TypeMappingDemo(): React.ReactElement {
   return (
     <DemoSection
       title="Type Mapping"
-      description="Real adapters from @openzeppelin/ui-builder-adapter-* automatically map blockchain-specific parameter types to appropriate UI form fields. This enables dynamic form generation from contract ABIs/schemas."
+      description="Real adapters from @openzeppelin/adapter-* automatically map blockchain-specific parameter types to appropriate UI form fields. This enables dynamic form generation from contract ABIs and schemas."
       codeExample={codeExample}
     >
       <div className="space-y-6">
