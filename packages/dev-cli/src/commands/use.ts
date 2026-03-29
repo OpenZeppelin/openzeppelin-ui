@@ -42,7 +42,9 @@ export function registerUseCommand(program: Command): void {
           supportedFamilies,
           Boolean(options.json)
         );
-        const result = useLocal(options.project, selectedFamilies);
+        const result = useLocal(options.project, selectedFamilies, {
+          quiet: Boolean(options.json),
+        });
 
         if (options.json) {
           printJson({ ok: true, action: 'use-local', ...result });

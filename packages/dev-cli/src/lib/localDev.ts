@@ -49,6 +49,10 @@ export interface UseLocalResult {
   manifests: Array<{ family: FamilyKey; manifestPath: string; tarballCount: number }>;
 }
 
+export interface UseLocalOptions {
+  quiet?: boolean;
+}
+
 export interface UseRemoteResult {
   projectRoot: string;
   removedPaths: string[];
@@ -305,10 +309,15 @@ function verifyDistFreshness(repoRoot: string, family: ResolvedFamilyConfig): st
   return warnings;
 }
 
-function buildFamily(config: ResolvedProjectConfig, family: ResolvedFamilyConfig): string {
+function buildFamily(
+  config: ResolvedProjectConfig,
+  family: ResolvedFamilyConfig,
+  options: UseLocalOptions = {}
+): string {
   const repoRoot = ensureRepoRoot(config, family);
   runCommand(config.packageManager, family.buildArgs, repoRoot, {
-    stdio: ['ignore', 'inherit', 'inherit'],
+    // Keep human-friendly build logs for interactive use, but preserve clean stdout for JSON mode.
+    stdio: options.quiet ? ['ignore', 'pipe', 'inherit'] : ['ignore', 'inherit', 'inherit'],
   });
 
   const warnings = verifyDistFreshness(repoRoot, family);
@@ -520,7 +529,11 @@ export function doctorProject(projectRootInput: string): DoctorResult {
 /**
  * Builds, packs, and installs the selected local package families for a consumer repository.
  */
-export function useLocal(projectRootInput: string, familyKeys: FamilyKey[]): UseLocalResult {
+export function useLocal(
+  projectRootInput: string,
+  familyKeys: FamilyKey[],
+  options: UseLocalOptions = {}
+): UseLocalResult {
   const config = loadProjectConfig(projectRootInput);
   const manifests = familyKeys.map((familyKey) => {
     const family = config.families[familyKey];
@@ -528,7 +541,7 @@ export function useLocal(projectRootInput: string, familyKeys: FamilyKey[]): Use
       throw new Error(`Family "${familyKey}" is not configured for ${config.projectRoot}.`);
     }
 
-    buildFamily(config, family);
+    buildFamily(config, family, options);
     return packFamily(config, familyKey, family);
   });
 
