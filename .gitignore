@@ -41,3 +41,4 @@ test-results/
 .temp/
 .pnpm-store
 .vercel
+/.packed-packages
