@@ -1,5 +1,15 @@
 # @openzeppelin/ui-dev-cli
 
+## 0.2.3
+
+### Patch Changes
+
+- [#102](https://github.com/OpenZeppelin/openzeppelin-ui/pull/102) [`932eb82`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/932eb82f939e0eae970fd7ce837a52e979c7a153) Thanks [@pasevin](https://github.com/pasevin)! - Update the local adapters development workflow to recognize the published
+  `@openzeppelin/adapters-vite` helper package and align the example app with the
+  new higher-level Vite integration API.
+
+- [#106](https://github.com/OpenZeppelin/openzeppelin-ui/pull/106) [`ca20232`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/ca2023208e2bac98ddd62f47469e2eaa409a1913) Thanks [@pasevin](https://github.com/pasevin)! - Fix `oz-dev use local --json` so it emits clean machine-readable stdout while local package builds run.
+
 ## 0.2.2
 
 ### Patch Changes
