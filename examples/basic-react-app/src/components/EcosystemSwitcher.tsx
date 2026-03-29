@@ -5,7 +5,6 @@
  * Displays the current ecosystem and provides a selection of available options.
  */
 
-import { NetworkIcon } from '@web3icons/react';
 import { ChevronDown } from 'lucide-react';
 
 import {
@@ -18,6 +17,7 @@ import {
 
 import { useEcosystem } from '../context';
 import { getEcosystemStaticMetadata, getSupportedEcosystems } from '../core/ecosystemManager';
+import { Web3NetworkIcon } from './Web3NetworkIcon';
 
 // =============================================================================
 // Component
@@ -39,7 +39,7 @@ export function EcosystemSwitcher(): React.ReactElement {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2" disabled={isLoading}>
-          <NetworkIcon key={ecosystem} network={currentMeta.iconName} size={16} />
+          <Web3NetworkIcon key={ecosystem} network={currentMeta.iconName} size={16} />
           <span className="hidden sm:inline">{currentMeta.name}</span>
           <ChevronDown className="size-3 opacity-50" />
         </Button>
@@ -53,7 +53,7 @@ export function EcosystemSwitcher(): React.ReactElement {
               onClick={() => void setEcosystem(eco)}
               className={ecosystem === eco ? 'bg-accent' : ''}
             >
-              <NetworkIcon network={meta.iconName} size={16} className="mr-2" />
+              <Web3NetworkIcon network={meta.iconName} size={16} className="mr-2" />
               {meta.name}
             </DropdownMenuItem>
           );

@@ -8,7 +8,6 @@
  * the pieces fit together before diving into specific features.
  */
 
-import { NetworkIcon } from '@web3icons/react';
 import {
   Boxes,
   Check,
@@ -33,6 +32,7 @@ import {
 
 import { CodeBlock } from './CodeBlock';
 import { DemoSection } from './DemoSection';
+import { Web3NetworkIcon } from './Web3NetworkIcon';
 
 const PROVIDER_SETUP_CODE = `import { AdapterProvider, WalletStateProvider } from '@openzeppelin/ui-react';
 import { EvmAdapter } from '@openzeppelin/adapter-evm';
@@ -271,7 +271,7 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-3 rounded-lg border p-4">
               <h4 className="flex items-center gap-2.5 font-semibold">
-                <NetworkIcon network="ethereum" size={24} />
+                <Web3NetworkIcon network="ethereum" size={24} />
                 EVM Adapter
               </h4>
               <ul className="space-y-1.5 text-sm text-muted-foreground">
@@ -285,7 +285,7 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
             </div>
             <div className="space-y-3 rounded-lg border p-4">
               <h4 className="flex items-center gap-2.5 font-semibold">
-                <NetworkIcon network="stellar" size={24} />
+                <Web3NetworkIcon network="stellar" size={24} />
                 Stellar Adapter
               </h4>
               <ul className="space-y-1.5 text-sm text-muted-foreground">

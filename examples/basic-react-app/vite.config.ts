@@ -1,7 +1,11 @@
+import { createRequire } from 'node:module';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineOpenZeppelinAdapterViteConfig } from '@openzeppelin/adapters-vite';
 import type { UserConfig } from 'vite';
+
+const require = createRequire(import.meta.url);
+const relayerSdkEsmPath = require.resolve('@openzeppelin/relayer-sdk/dist/esm/index.js');
 
 const viteConfig: Promise<UserConfig> = defineOpenZeppelinAdapterViteConfig({
   ecosystems: ['evm', 'stellar'],
@@ -14,6 +18,9 @@ const viteConfig: Promise<UserConfig> = defineOpenZeppelinAdapterViteConfig({
     resolve: {
       // Prevent duplicate module instances (causes singleton issues)
       dedupe: ['react', 'react-dom', '@openzeppelin/ui-utils', '@openzeppelin/ui-types'],
+      alias: {
+        '@openzeppelin/relayer-sdk': relayerSdkEsmPath,
+      },
     },
     optimizeDeps: {
       esbuildOptions: {
@@ -30,6 +37,7 @@ const viteConfig: Promise<UserConfig> = defineOpenZeppelinAdapterViteConfig({
         'react/jsx-dev-runtime',
         'lucide-react',
         '@web3icons/react',
+        '@openzeppelin/relayer-sdk',
         'react-hook-form',
         'zustand',
         'zustand/shallow',

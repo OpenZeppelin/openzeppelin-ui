@@ -225,6 +225,7 @@ export function AppProviders({
   // Initialize the ecosystem store on mount
   const initialize = useEcosystemStore((s) => s.initialize);
   const storeNetwork = useEcosystemStore((s) => s.network);
+  const storeError = useEcosystemStore((s) => s.error);
 
   useEffect(() => {
     let mounted = true;
@@ -256,6 +257,19 @@ export function AppProviders({
   }, []);
 
   // Show loading state while initializing
+  if (storeError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-6">
+        <div className="max-w-xl text-center">
+          <p className="text-sm font-medium text-destructive">
+            Failed to initialize the example app
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">{storeError}</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!isInitialized || !initialNetworkId) {
     return (
       <div className="flex min-h-screen items-center justify-center">

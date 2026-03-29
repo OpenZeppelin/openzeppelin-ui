@@ -131,8 +131,8 @@ importers:
         specifier: ^2.16.0
         version: 2.22.1(@tanstack/query-core@5.90.16)(@types/react@19.2.8)(react@19.2.3)(typescript@5.9.3)(use-sync-external-store@1.4.0(react@19.2.3))(viem@2.43.5(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@4.3.5))
       '@web3icons/react':
-        specifier: ^3.16.0
-        version: 3.16.0(react@19.2.3)(typescript@5.9.3)
+        specifier: ^4.0.26
+        version: 4.1.10(react@19.2.3)(typescript@5.9.3)
       lucide-react:
         specifier: ^0.510.0
         version: 0.510.0(react@19.2.3)
@@ -3853,20 +3853,10 @@ packages:
   '@walletconnect/window-metadata@1.0.1':
     resolution: {integrity: sha512-9koTqyGrM2cqFRW517BPY/iEtUDx2r1+Pwwu5m7sJ7ka79wi3EyqhqcICk/yDmv6jAS1rjKgTKXlEhanYjijcA==}
 
-  '@web3icons/common@0.10.0':
-    resolution: {integrity: sha512-Ksh9CAkxNtj9FPiBCNoctqj8ieS7eBcixtm4+Xt0ralK/35MltSrNizMYfrwXAlF9M3ACqRBkZbrHnIEPsrdLg==}
-    peerDependencies:
-      typescript: ^5.0.0
-
   '@web3icons/common@0.11.39':
     resolution: {integrity: sha512-D+CEsZ68ncYsKmZOcYstCTbHbjc1kBt4NdFRT2ES9o/TJBTp5lx9f95jVXyKmzbEf+27xK+Kl/arheUq7EVTww==}
     peerDependencies:
       typescript: ^5.0.0
-
-  '@web3icons/react@3.16.0':
-    resolution: {integrity: sha512-EDTKJA0Q9aR6ihiwaMZrJjwC/N0fteJd3doV2wOYm6/LiRQaWAZYbL9pUE0dVuuukSQC1MDL8lSU/qGZJ8ewJg==}
-    peerDependencies:
-      react: ^18.2.0
 
   '@web3icons/react@4.1.10':
     resolution: {integrity: sha512-8WRYKkUhmiNr8nfIcmckEz5omOcnh0G4c58Jz96e0u1JkKbM7FIyiRySkku+uxa3lArbi02BiMNSAHVmrj9Ffg==}
@@ -13311,20 +13301,9 @@ snapshots:
       '@walletconnect/window-getters': 1.0.1
       tslib: 1.14.1
 
-  '@web3icons/common@0.10.0(typescript@5.9.3)':
-    dependencies:
-      typescript: 5.9.3
-
   '@web3icons/common@0.11.39(typescript@5.9.3)':
     dependencies:
       typescript: 5.9.3
-
-  '@web3icons/react@3.16.0(react@19.2.3)(typescript@5.9.3)':
-    dependencies:
-      '@web3icons/common': 0.10.0(typescript@5.9.3)
-      react: 19.2.3
-    transitivePeerDependencies:
-      - typescript
 
   '@web3icons/react@4.1.10(react@19.2.3)(typescript@5.9.3)':
     dependencies:

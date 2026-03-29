@@ -1,4 +1,3 @@
-import { NetworkIcon } from '@web3icons/react';
 import {
   ArrowLeftRight,
   ArrowRight,
@@ -18,6 +17,7 @@ import {
   getSupportedEcosystems,
   type DemoEcosystem,
 } from '../core/ecosystemManager';
+import { Web3NetworkIcon } from './Web3NetworkIcon';
 
 export interface HomeDemoProps {
   onNavigate?: (demoKey: string) => void;
@@ -25,7 +25,7 @@ export interface HomeDemoProps {
 
 // Ecosystem icon helper
 function EcosystemIcon({ ecosystem, size = 24 }: { ecosystem: DemoEcosystem; size?: number }) {
-  return <NetworkIcon network={getEcosystemStaticMetadata(ecosystem).iconName} size={size} />;
+  return <Web3NetworkIcon network={getEcosystemStaticMetadata(ecosystem).iconName} size={size} />;
 }
 
 export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
