@@ -47,11 +47,30 @@ pnpm add @openzeppelin/ui-storage
 
 ### 1. Setup Styles
 
-Import the global styles and Tailwind CSS in your app's entry CSS:
+Import the generated Tailwind wiring in your app's entry CSS. For new or existing consumer apps, the recommended path is to let `oz-dev tailwind fix` create and maintain the managed file for you:
+
+```bash
+pnpm add -D @openzeppelin/ui-dev-cli
+pnpm exec oz-dev tailwind doctor --project "$PWD"
+pnpm exec oz-dev tailwind fix --project "$PWD"
+```
+
+That command normalizes your entry stylesheet to import `oz-tailwind.generated.css`, which contains the required Tailwind v4 `@source` directives for OpenZeppelin UI and adapter packages.
+
+If you need to wire it manually, your entry CSS must explicitly register the OpenZeppelin sources:
 
 ```css
+@layer base, components, utilities;
+
+@import 'tailwindcss' source(none);
+@source "./";
+@source "../";
+@source "../node_modules/@openzeppelin/ui-components";
+@source "../node_modules/@openzeppelin/ui-react";
+@source "../node_modules/@openzeppelin/ui-renderer";
+@source "../node_modules/@openzeppelin/ui-styles";
+@source "../node_modules/@openzeppelin/ui-utils";
 @import '@openzeppelin/ui-styles/global.css';
-@import 'tailwindcss';
 ```
 
 ### 2. Use Components

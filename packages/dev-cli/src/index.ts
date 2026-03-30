@@ -3,6 +3,7 @@ import { Command } from 'commander';
 import { registerDoctorCommand } from './commands/doctor';
 import { registerInitCommand } from './commands/init';
 import { registerStatusCommand } from './commands/status';
+import { registerTailwindCommand } from './commands/tailwind';
 import { registerUseCommand } from './commands/use';
 import { getCliPackageVersion } from './lib/packageInfo';
 
@@ -17,5 +18,6 @@ registerInitCommand(program);
 registerUseCommand(program);
 registerStatusCommand(program);
 registerDoctorCommand(program);
+registerTailwindCommand(program);
 
 program.parse();

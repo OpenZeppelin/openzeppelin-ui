@@ -56,6 +56,65 @@ interface DoctorCommandResult extends StatusCommandPayload {
   issues: DoctorIssue[];
 }
 
+interface TailwindDoctorIssue {
+  scope: 'tailwind';
+  code: string;
+  severity: 'warning' | 'error' | 'info';
+  message: string;
+  file?: string;
+  fixable: boolean;
+}
+
+interface TailwindSourcePlan {
+  packages: string[];
+  appSources: string[];
+  workspaceSources: string[];
+  packageSources: string[];
+  imports: string[];
+  sources: string[];
+}
+
+interface TailwindDoctorCommandResult {
+  ok: boolean;
+  action: 'tailwind-doctor';
+  projectRoot: string;
+  appRoot: string | null;
+  cssPath: string | null;
+  generatedCssPath: string | null;
+  sourcePlan: TailwindSourcePlan | null;
+  issues: TailwindDoctorIssue[];
+}
+
+interface TailwindFixChange {
+  path: string;
+  action: 'create' | 'update' | 'noop';
+  summary: string;
+}
+
+interface TailwindFixCommandResult {
+  ok: boolean;
+  action: 'tailwind-fix';
+  projectRoot: string;
+  appRoot: string | null;
+  cssPath: string | null;
+  generatedCssPath: string | null;
+  sourcePlan: TailwindSourcePlan | null;
+  issuesBefore: TailwindDoctorIssue[];
+  changes: TailwindFixChange[];
+  changed: boolean;
+  wrote: boolean;
+}
+
+interface TailwindPrintCommandResult {
+  ok: boolean;
+  action: 'tailwind-print';
+  projectRoot: string;
+  appRoot: string | null;
+  cssPath: string | null;
+  generatedCssPath: string | null;
+  sourcePlan: TailwindSourcePlan | null;
+}
+
 interface UseLocalManifest {
   family: string;
   manifestPath: string;
@@ -237,6 +296,73 @@ function writeSmokeAppPackageJson(projectRoot: string): void {
       2
     ) + '\n'
   );
+}
+
+function writeTailwindFixture(projectRoot: string): string {
+  const appRoot = path.join(projectRoot, 'apps', 'example-app');
+
+  fs.writeFileSync(
+    path.join(projectRoot, 'package.json'),
+    JSON.stringify(
+      {
+        name: 'oz-dev-tailwind-e2e',
+        private: true,
+        version: '0.0.0',
+      },
+      null,
+      2
+    ) + '\n'
+  );
+  fs.writeFileSync(path.join(projectRoot, 'pnpm-workspace.yaml'), "packages:\n  - 'apps/*'\n");
+  fs.mkdirSync(path.join(appRoot, 'src'), { recursive: true });
+  fs.writeFileSync(
+    path.join(appRoot, 'package.json'),
+    JSON.stringify(
+      {
+        name: '@example/example-app',
+        private: true,
+        version: '0.0.0',
+        type: 'module',
+        dependencies: {
+          '@openzeppelin/adapter-evm': '^1.0.0',
+          '@openzeppelin/ui-components': '^1.0.0',
+          '@openzeppelin/ui-renderer': '^1.0.0',
+          '@openzeppelin/ui-styles': '^1.0.0',
+          react: '^19.2.1',
+          'react-dom': '^19.2.1',
+        },
+        devDependencies: {
+          '@tailwindcss/vite': '^4.1.0',
+          tailwindcss: '^4.1.0',
+        },
+      },
+      null,
+      2
+    ) + '\n'
+  );
+  fs.writeFileSync(
+    path.join(appRoot, 'src', 'main.tsx'),
+    ["import './index.css';", '', 'export function main(): void {}', ''].join('\n')
+  );
+  fs.writeFileSync(
+    path.join(appRoot, 'src', 'index.css'),
+    [
+      '/* Tailwind setup */',
+      '@layer base, components, utilities;',
+      "@import 'tailwindcss' source('../../../');",
+      "@source '../../../node_modules/@openzeppelin';",
+      "@import '@openzeppelin/ui-styles/global.css';",
+      '',
+      '@layer components {',
+      '  .app-shell {',
+      '    display: flex;',
+      '  }',
+      '}',
+      '',
+    ].join('\n')
+  );
+
+  return appRoot;
 }
 
 async function packCliTarball(packageRoot: string, destinationDir: string): Promise<string> {
@@ -467,5 +593,111 @@ describe('oz-dev CLI end-to-end', () => {
         tarballCount: 0,
       }),
     ]);
+  });
+
+  it('diagnoses, prints, and fixes Tailwind setup in a fixture project', async () => {
+    const workspaceRoot = createTemporaryDirectory('oz-dev-tailwind-e2e-');
+    const appRoot = writeTailwindFixture(workspaceRoot);
+
+    const packageRoot = findPackageRoot(
+      path.dirname(fileURLToPath(import.meta.url)),
+      CLI_PACKAGE_NAME
+    );
+    const tarballPath = await packCliTarball(packageRoot, workspaceRoot);
+    await runCommand('pnpm', ['add', '-D', tarballPath], workspaceRoot);
+
+    const doctorBefore = await runJsonCommand<TailwindDoctorCommandResult>(workspaceRoot, [
+      'tailwind',
+      'doctor',
+      '--project',
+      workspaceRoot,
+      '--json',
+    ]);
+
+    expect(doctorBefore.ok).toBe(true);
+    expect(doctorBefore.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'missing-managed-import', severity: 'warning' }),
+        expect.objectContaining({ code: 'legacy-inline-setup', severity: 'warning' }),
+      ])
+    );
+
+    const printResult = await runJsonCommand<TailwindPrintCommandResult>(workspaceRoot, [
+      'tailwind',
+      'print',
+      '--project',
+      workspaceRoot,
+      '--json',
+    ]);
+
+    expect(printResult.ok).toBe(true);
+    expect(printResult.sourcePlan?.sources).toEqual(
+      expect.arrayContaining([
+        './',
+        '../',
+        '../../../node_modules/@openzeppelin/ui-components',
+        '../node_modules/@openzeppelin/ui-components',
+        '../../../node_modules/@openzeppelin/adapter-evm/src',
+        '../node_modules/@openzeppelin/adapter-evm/src',
+      ])
+    );
+
+    const dryRunResult = await runJsonCommand<TailwindFixCommandResult>(workspaceRoot, [
+      'tailwind',
+      'fix',
+      '--project',
+      workspaceRoot,
+      '--dry-run',
+      '--json',
+    ]);
+
+    expect(dryRunResult.ok).toBe(true);
+    expect(dryRunResult.changed).toBe(true);
+    expect(dryRunResult.wrote).toBe(false);
+    expect(fs.existsSync(path.join(appRoot, 'src', 'oz-tailwind.generated.css'))).toBe(false);
+
+    const fixResult = await runJsonCommand<TailwindFixCommandResult>(workspaceRoot, [
+      'tailwind',
+      'fix',
+      '--project',
+      workspaceRoot,
+      '--json',
+    ]);
+
+    expect(fixResult.ok).toBe(true);
+    expect(fixResult.changed).toBe(true);
+    expect(fixResult.wrote).toBe(true);
+    expect(fixResult.changes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: path.join(appRoot, 'src', 'index.css'),
+          action: 'update',
+        }),
+        expect.objectContaining({
+          path: path.join(appRoot, 'src', 'oz-tailwind.generated.css'),
+          action: 'create',
+        }),
+      ])
+    );
+
+    const normalizedCss = fs.readFileSync(path.join(appRoot, 'src', 'index.css'), 'utf8');
+    const generatedCss = fs.readFileSync(
+      path.join(appRoot, 'src', 'oz-tailwind.generated.css'),
+      'utf8'
+    );
+    expect(normalizedCss).toContain("@import './oz-tailwind.generated.css';");
+    expect(normalizedCss).toContain('@layer components {');
+    expect(generatedCss).toContain('@source "../node_modules/@openzeppelin/ui-components";');
+
+    const doctorAfter = await runJsonCommand<TailwindDoctorCommandResult>(workspaceRoot, [
+      'tailwind',
+      'doctor',
+      '--project',
+      workspaceRoot,
+      '--json',
+    ]);
+
+    expect(doctorAfter.ok).toBe(true);
+    expect(doctorAfter.issues).toEqual([]);
   });
 });

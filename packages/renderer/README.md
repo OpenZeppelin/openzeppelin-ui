@@ -95,12 +95,30 @@ This package renders forms using UI components from `@openzeppelin/ui-components
 Styling relies on the consuming application to:
 
 1. **Include Tailwind CSS** in its build process.
-2. **Configure Tailwind** to scan the `@openzeppelin/ui-components` package's source files.
+2. **Configure Tailwind** to scan the OpenZeppelin UI and adapter packages that provide class names.
 3. **Import the shared theme** from `@openzeppelin/ui-styles`.
 
+For consumer apps that use `@openzeppelin/ui-dev-cli`, the recommended workflow is:
+
+```bash
+pnpm exec oz-dev tailwind doctor --project "$PWD"
+pnpm exec oz-dev tailwind fix --project "$PWD"
+```
+
+That generates a managed `oz-tailwind.generated.css` file so Tailwind v4 always sees the required `@source` entries.
+
+If you need to wire Tailwind manually, use explicit `@source` directives instead of a bare import:
+
 ```css
+@layer base, components, utilities;
+
+@import 'tailwindcss' source(none);
+@source "../node_modules/@openzeppelin/ui-components";
+@source "../node_modules/@openzeppelin/ui-react";
+@source "../node_modules/@openzeppelin/ui-renderer";
+@source "../node_modules/@openzeppelin/ui-styles";
+@source "../node_modules/@openzeppelin/ui-utils";
 @import '@openzeppelin/ui-styles/global.css';
-@import 'tailwindcss';
 ```
 
 ## Usage
