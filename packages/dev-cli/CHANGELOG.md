@@ -1,5 +1,11 @@
 # @openzeppelin/ui-dev-cli
 
+## 0.4.0
+
+### Minor Changes
+
+- [#108](https://github.com/OpenZeppelin/openzeppelin-ui/pull/108) [`f9abe2c`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/f9abe2cff5bd22e967f66069192715cdcab59ade) Thanks [@pasevin](https://github.com/pasevin)! - Add Tailwind doctor, fix, and print commands for consumer apps.
+
 ## 0.2.3
 
 ### Patch Changes
