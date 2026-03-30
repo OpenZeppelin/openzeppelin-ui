@@ -1,5 +1,13 @@
 # @openzeppelin/ui-dev-cli
 
+## 0.5.0
+
+### Minor Changes
+
+- [#110](https://github.com/OpenZeppelin/openzeppelin-ui/pull/110) [`1ab4767`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/1ab476706b8d147bf74ac0302dcb0ec9fbd52693) Thanks [@pasevin](https://github.com/pasevin)! - Rename CLI binary from `oz-dev` to `oz-ui-dev` to scope the tool under the UI ecosystem namespace and avoid usurping the broader OpenZeppelin CLI namespace.
+
+  Consumer apps must update their `package.json` scripts to reference `oz-ui-dev` instead of `oz-dev`.
+
 ## 0.4.0
 
 ### Minor Changes
