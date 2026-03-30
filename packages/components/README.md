@@ -142,8 +142,8 @@ Important: a bare Tailwind import is not enough for OpenZeppelin packages. Tailw
 For consumer apps that use `@openzeppelin/ui-dev-cli`, the recommended workflow is:
 
 ```bash
-pnpm exec oz-dev tailwind doctor --project "$PWD"
-pnpm exec oz-dev tailwind fix --project "$PWD"
+pnpm exec oz-ui-dev tailwind doctor --project "$PWD"
+pnpm exec oz-ui-dev tailwind fix --project "$PWD"
 ```
 
 That creates a managed `oz-tailwind.generated.css` file and keeps the `@source` wiring in sync with your installed dependencies.

@@ -44,7 +44,7 @@ function createIssue(
     message,
     file: file ? path.relative(projectRoot, file) : undefined,
     fixable,
-    suggestedCommand: fixable ? 'oz-dev tailwind fix --project "$PWD"' : undefined,
+    suggestedCommand: fixable ? 'oz-ui-dev tailwind fix --project "$PWD"' : undefined,
   };
 }
 

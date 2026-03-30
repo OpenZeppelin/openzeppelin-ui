@@ -47,12 +47,12 @@ pnpm add @openzeppelin/ui-storage
 
 ### 1. Setup Styles
 
-Import the generated Tailwind wiring in your app's entry CSS. For new or existing consumer apps, the recommended path is to let `oz-dev tailwind fix` create and maintain the managed file for you:
+Import the generated Tailwind wiring in your app's entry CSS. For new or existing consumer apps, the recommended path is to let `oz-ui-dev tailwind fix` create and maintain the managed file for you:
 
 ```bash
 pnpm add -D @openzeppelin/ui-dev-cli
-pnpm exec oz-dev tailwind doctor --project "$PWD"
-pnpm exec oz-dev tailwind fix --project "$PWD"
+pnpm exec oz-ui-dev tailwind doctor --project "$PWD"
+pnpm exec oz-ui-dev tailwind fix --project "$PWD"
 ```
 
 That command normalizes your entry stylesheet to import `oz-tailwind.generated.css`, which contains the required Tailwind v4 `@source` directives for OpenZeppelin UI and adapter packages.
@@ -161,7 +161,7 @@ pnpm typecheck
 
 ## Local Development (Consuming Projects)
 
-This repo now ships the shared `oz-dev` local-development CLI for OpenZeppelin consumer apps.
+This repo now ships the shared `oz-ui-dev` local-development CLI for OpenZeppelin consumer apps.
 
 Existing first-party consumers such as `ui-builder`, `role-manager`, and `rwa-wizard` already check in the required `.openzeppelin-dev.json`, `.pnpmfile.cjs`, and `dev:local` / `dev:npm` scripts.
 
@@ -169,10 +169,10 @@ For a new consumer project, install the CLI once like a normal dev tool and then
 
 ```bash
 pnpm add -D @openzeppelin/ui-dev-cli
-pnpm exec oz-dev init --project "$PWD" --family ui
+pnpm exec oz-ui-dev init --project "$PWD" --family ui
 ```
 
-That creates a config-driven `.pnpmfile.cjs`, writes `.openzeppelin-dev.json`, records `@openzeppelin/ui-dev-cli` in `devDependencies`, and adds `dev:local` / `dev:npm` scripts that call `oz-dev` directly. Developers only need local `openzeppelin-ui` or `openzeppelin-adapters` checkouts when they want to test package changes from source.
+That creates a config-driven `.pnpmfile.cjs`, writes `.openzeppelin-dev.json`, records `@openzeppelin/ui-dev-cli` in `devDependencies`, and adds `dev:local` / `dev:npm` scripts that call `oz-ui-dev` directly. Developers only need local `openzeppelin-ui` or `openzeppelin-adapters` checkouts when they want to test package changes from source.
 
 ## Contributing
 

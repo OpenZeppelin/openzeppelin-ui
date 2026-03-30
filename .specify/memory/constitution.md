@@ -82,7 +82,7 @@ Follow-up TODOs: none
   - Include migration documentation in the package CHANGELOG
   - Update the migration guide at `docs/MIGRATION.md` if affecting cross-package changes
 - New features SHOULD be designed with the UI Builder and Role Manager use cases in mind; validate designs against real consumer scenarios.
-- Local development against consumer repos MUST be supported via the shared `oz-dev init` bootstrap flow, which writes `.openzeppelin-dev.json` and configures `.pnpmfile.cjs` hooks.
+- Local development against consumer repos MUST be supported via the shared `oz-ui-dev init` bootstrap flow, which writes `.openzeppelin-dev.json` and configures `.pnpmfile.cjs` hooks.
 - Rationale: This library exists to serve consuming applications; their needs drive design decisions.
 
 ## Additional Constraints

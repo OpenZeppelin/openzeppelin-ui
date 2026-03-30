@@ -2,7 +2,7 @@ import fs from 'node:fs';
 
 import { TailwindProjectContext, TailwindSourcePlan } from './types';
 
-export const MANAGED_TAILWIND_IMPORT_COMMENT = '/* Managed by oz-dev tailwind fix */';
+export const MANAGED_TAILWIND_IMPORT_COMMENT = '/* Managed by oz-ui-dev tailwind fix */';
 
 function isAppSpecificStart(line: string): boolean {
   const trimmedLine = line.trim();

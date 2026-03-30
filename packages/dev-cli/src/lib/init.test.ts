@@ -7,7 +7,7 @@ import { initProject } from './init';
 import { getCliDependencyRange } from './packageInfo';
 
 function createProjectRoot(): string {
-  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'oz-dev-init-'));
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'oz-ui-dev-init-'));
   fs.writeFileSync(
     path.join(projectRoot, 'package.json'),
     JSON.stringify(
@@ -63,7 +63,7 @@ describe('initProject', () => {
     expect(packageJson.devDependencies['@openzeppelin/ui-dev-cli']).toBe(
       expectedCliDependencyRange
     );
-    expect(packageJson.scripts['dev:local']).toContain('oz-dev use local');
+    expect(packageJson.scripts['dev:local']).toContain('oz-ui-dev use local');
     expect(packageJson.scripts['dev:local']).toContain('--family ui --family adapters');
     expect(packageJson.scripts['dev:npm']).toContain('use remote');
   });
@@ -103,7 +103,7 @@ describe('initProject', () => {
     expect(packageJson.devDependencies['@openzeppelin/ui-dev-cli']).toBe(
       expectedCliDependencyRange
     );
-    expect(packageJson.scripts['dev:npm']).toContain('oz-dev use remote');
+    expect(packageJson.scripts['dev:npm']).toContain('oz-ui-dev use remote');
     expect(packageJson.scripts['dev:npm']).toContain('use remote');
   });
 
@@ -150,7 +150,7 @@ describe('initProject', () => {
     );
   });
 
-  it('replaces legacy setup-local-dev scripts with oz-dev commands', () => {
+  it('replaces legacy setup-local-dev scripts with oz-ui-dev commands', () => {
     const projectRoot = createProjectRoot();
     const packageJsonPath = path.join(projectRoot, 'package.json');
     fs.writeFileSync(
@@ -182,7 +182,7 @@ describe('initProject', () => {
 
     expect(result.updatedScripts).toContain('dev:local');
     expect(result.updatedScripts).toContain('dev:npm');
-    expect(packageJson.scripts['dev:local']).toContain('oz-dev use local');
-    expect(packageJson.scripts['dev:npm']).toContain('oz-dev use remote');
+    expect(packageJson.scripts['dev:local']).toContain('oz-ui-dev use local');
+    expect(packageJson.scripts['dev:npm']).toContain('oz-ui-dev use remote');
   });
 });

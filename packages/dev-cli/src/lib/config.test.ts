@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { loadProjectConfig } from './config';
 
 function createProject(config: object): string {
-  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'oz-dev-config-'));
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'oz-ui-dev-config-'));
   fs.writeFileSync(
     path.join(projectRoot, '.openzeppelin-dev.json'),
     JSON.stringify(config, null, 2)
