@@ -313,26 +313,26 @@ function createManagedScripts(options: InitProjectOptions): Record<string, strin
       `${localUiPrefix} && ` +
       `${localAdaptersPrefix} && ` +
       `LOCAL_UI_PATH="$LOCAL_UI_PATH" LOCAL_ADAPTERS_PATH="$LOCAL_ADAPTERS_PATH" ` +
-      `oz-dev use local --project "$PWD" --family ui --family adapters`;
+      `oz-ui-dev use local --project "$PWD" --family ui --family adapters`;
     scripts['dev:uikit:local'] =
       `${localUiPrefix} && ` +
-      `LOCAL_UI_PATH="$LOCAL_UI_PATH" oz-dev use local --project "$PWD" --family ui`;
+      `LOCAL_UI_PATH="$LOCAL_UI_PATH" oz-ui-dev use local --project "$PWD" --family ui`;
     scripts['dev:adapters:local'] =
       `${localAdaptersPrefix} && ` +
-      `LOCAL_ADAPTERS_PATH="$LOCAL_ADAPTERS_PATH" oz-dev use local --project "$PWD" --family adapters`;
+      `LOCAL_ADAPTERS_PATH="$LOCAL_ADAPTERS_PATH" oz-ui-dev use local --project "$PWD" --family adapters`;
   } else if (options.families.includes('adapters')) {
     scripts['dev:local'] =
       `${localAdaptersPrefix} && ` +
-      `LOCAL_ADAPTERS_PATH="$LOCAL_ADAPTERS_PATH" oz-dev use local --project "$PWD" --family adapters`;
+      `LOCAL_ADAPTERS_PATH="$LOCAL_ADAPTERS_PATH" oz-ui-dev use local --project "$PWD" --family adapters`;
     scripts['dev:adapters:local'] = scripts['dev:local'];
   } else {
     scripts['dev:local'] =
       `${localUiPrefix} && ` +
-      `LOCAL_UI_PATH="$LOCAL_UI_PATH" oz-dev use local --project "$PWD" --family ui`;
+      `LOCAL_UI_PATH="$LOCAL_UI_PATH" oz-ui-dev use local --project "$PWD" --family ui`;
     scripts['dev:uikit:local'] = scripts['dev:local'];
   }
 
-  scripts['dev:npm'] = 'oz-dev use remote --project "$PWD"';
+  scripts['dev:npm'] = 'oz-ui-dev use remote --project "$PWD"';
 
   return scripts;
 }
@@ -343,7 +343,7 @@ function shouldReplaceManagedScript(existingScript: string | undefined): boolean
     existingScript.includes('packages/dev-cli/dist/index.mjs') ||
     existingScript.includes('pnpm --filter @openzeppelin/ui-dev-cli build') ||
     existingScript.includes('pnpm dlx @openzeppelin/ui-dev-cli@') ||
-    existingScript.includes('oz-dev use ') ||
+    existingScript.includes('oz-ui-dev use ') ||
     existingScript.includes('LOCAL_UI=true pnpm install --force') ||
     existingScript.includes('LOCAL_ADAPTERS=true pnpm install --force') ||
     existingScript.includes('setup-local-dev.mjs') ||

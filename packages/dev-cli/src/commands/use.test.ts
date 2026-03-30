@@ -69,7 +69,17 @@ describe('registerUseCommand', () => {
 
     registerUseCommand(program);
     await program.parseAsync(
-      ['node', 'oz-dev', 'use', 'local', '--project', '/tmp/app', '--family', 'adapters', '--json'],
+      [
+        'node',
+        'oz-ui-dev',
+        'use',
+        'local',
+        '--project',
+        '/tmp/app',
+        '--family',
+        'adapters',
+        '--json',
+      ],
       { from: 'node' }
     );
 

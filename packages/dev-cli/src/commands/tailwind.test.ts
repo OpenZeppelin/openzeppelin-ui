@@ -74,7 +74,7 @@ describe('registerTailwindCommand', () => {
 
     registerTailwindCommand(program);
     await program.parseAsync(
-      ['node', 'oz-dev', 'tailwind', 'doctor', '--project', '/tmp/app', '--json'],
+      ['node', 'oz-ui-dev', 'tailwind', 'doctor', '--project', '/tmp/app', '--json'],
       { from: 'node' }
     );
 
@@ -100,7 +100,7 @@ describe('registerTailwindCommand', () => {
     await program.parseAsync(
       [
         'node',
-        'oz-dev',
+        'oz-ui-dev',
         'tailwind',
         'fix',
         '--project',
@@ -127,7 +127,7 @@ describe('registerTailwindCommand', () => {
     const program = new Command();
 
     registerTailwindCommand(program);
-    await program.parseAsync(['node', 'oz-dev', 'tailwind', 'print', '--project', '/tmp/app'], {
+    await program.parseAsync(['node', 'oz-ui-dev', 'tailwind', 'print', '--project', '/tmp/app'], {
       from: 'node',
     });
 

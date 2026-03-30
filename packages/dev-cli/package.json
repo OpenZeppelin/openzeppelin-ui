@@ -5,7 +5,7 @@
   "description": "Shared local development CLI for OpenZeppelin UI consumer applications.",
   "type": "module",
   "bin": {
-    "oz-dev": "dist/index.mjs"
+    "oz-ui-dev": "dist/index.mjs"
   },
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",

@@ -10,7 +10,7 @@ import { getCliPackageVersion } from './lib/packageInfo';
 const program = new Command();
 
 program
-  .name('oz-dev')
+  .name('oz-ui-dev')
   .description('Shared local development tooling for OpenZeppelin consumer apps')
   .version(getCliPackageVersion());
 

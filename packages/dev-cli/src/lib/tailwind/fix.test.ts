@@ -108,7 +108,7 @@ afterEach(() => {
 
 describe('resolveTailwindProject', () => {
   it('detects the single Tailwind entry stylesheet in a monorepo app', () => {
-    const projectRoot = createTemporaryDirectory('oz-dev-tailwind-project-');
+    const projectRoot = createTemporaryDirectory('oz-ui-dev-tailwind-project-');
     const appRoot = createTailwindApp(projectRoot, { monorepo: true });
 
     const result = resolveTailwindProject(projectRoot);
@@ -124,7 +124,7 @@ describe('resolveTailwindProject', () => {
   });
 
   it('requires --css when multiple Tailwind entry stylesheets exist', () => {
-    const projectRoot = createTemporaryDirectory('oz-dev-tailwind-multi-');
+    const projectRoot = createTemporaryDirectory('oz-ui-dev-tailwind-multi-');
     createTailwindApp(projectRoot, { monorepo: true, withSecondApp: true });
 
     expect(() => resolveTailwindProject(projectRoot)).toThrow(
@@ -135,7 +135,7 @@ describe('resolveTailwindProject', () => {
 
 describe('doctorTailwindProject', () => {
   it('warns on legacy inline setup and broad OpenZeppelin scanning', () => {
-    const projectRoot = createTemporaryDirectory('oz-dev-tailwind-doctor-');
+    const projectRoot = createTemporaryDirectory('oz-ui-dev-tailwind-doctor-');
     createTailwindApp(projectRoot);
 
     const result = doctorTailwindProject(projectRoot);
@@ -153,7 +153,7 @@ describe('doctorTailwindProject', () => {
 
 describe('fixTailwindProject', () => {
   it('reports planned changes during dry runs without writing files', () => {
-    const projectRoot = createTemporaryDirectory('oz-dev-tailwind-dry-run-');
+    const projectRoot = createTemporaryDirectory('oz-ui-dev-tailwind-dry-run-');
     const appRoot = createTailwindApp(projectRoot, { monorepo: true });
 
     const result = fixTailwindProject(projectRoot, { dryRun: true });
@@ -175,7 +175,7 @@ describe('fixTailwindProject', () => {
   });
 
   it('writes the managed import and generated stylesheet while preserving app CSS', () => {
-    const projectRoot = createTemporaryDirectory('oz-dev-tailwind-fix-');
+    const projectRoot = createTemporaryDirectory('oz-ui-dev-tailwind-fix-');
     const appRoot = createTailwindApp(projectRoot, { monorepo: true });
 
     const result = fixTailwindProject(projectRoot);
@@ -191,7 +191,7 @@ describe('fixTailwindProject', () => {
     expect(stylesheetContent).toContain("@import './oz-tailwind.generated.css';");
     expect(stylesheetContent).toContain('@layer components {');
     expect(stylesheetContent).not.toContain("@import 'tailwindcss' source('../../../');");
-    expect(generatedCssContent).toContain('Managed by oz-dev tailwind fix');
+    expect(generatedCssContent).toContain('Managed by oz-ui-dev tailwind fix');
     expect(generatedCssContent).toContain('@source "./";');
     expect(generatedCssContent).toContain('@source "../";');
     expect(generatedCssContent).toContain('@openzeppelin/ui-components');
@@ -200,7 +200,7 @@ describe('fixTailwindProject', () => {
   });
 
   it('can self-heal a partially normalized stylesheet on repeated runs', () => {
-    const projectRoot = createTemporaryDirectory('oz-dev-tailwind-heal-');
+    const projectRoot = createTemporaryDirectory('oz-ui-dev-tailwind-heal-');
     const appRoot = createTailwindApp(projectRoot, { monorepo: true });
     const cssPath = path.join(appRoot, 'src', 'index.css');
 
@@ -246,7 +246,7 @@ describe('fixTailwindProject', () => {
 
 describe('printTailwindProject', () => {
   it('returns explicit sources for both project-local and hoisted node_modules', () => {
-    const projectRoot = createTemporaryDirectory('oz-dev-tailwind-print-');
+    const projectRoot = createTemporaryDirectory('oz-ui-dev-tailwind-print-');
     const appRoot = createTailwindApp(projectRoot, { monorepo: true });
 
     const result = printTailwindProject(projectRoot);

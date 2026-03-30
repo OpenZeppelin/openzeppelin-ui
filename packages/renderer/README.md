@@ -101,8 +101,8 @@ Styling relies on the consuming application to:
 For consumer apps that use `@openzeppelin/ui-dev-cli`, the recommended workflow is:
 
 ```bash
-pnpm exec oz-dev tailwind doctor --project "$PWD"
-pnpm exec oz-dev tailwind fix --project "$PWD"
+pnpm exec oz-ui-dev tailwind doctor --project "$PWD"
+pnpm exec oz-ui-dev tailwind fix --project "$PWD"
 ```
 
 That generates a managed `oz-tailwind.generated.css` file so Tailwind v4 always sees the required `@source` entries.

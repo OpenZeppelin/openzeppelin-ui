@@ -258,10 +258,10 @@ async function runCommand(
 }
 
 async function runJsonCommand<T>(cwd: string, args: string[], allowFailure = false): Promise<T> {
-  const result = await runCommand('pnpm', ['exec', 'oz-dev', ...args], cwd, { allowFailure });
+  const result = await runCommand('pnpm', ['exec', 'oz-ui-dev', ...args], cwd, { allowFailure });
 
   if (!result.stdout) {
-    throw new Error(`Expected JSON stdout for oz-dev ${args.join(' ')}, but received none.`);
+    throw new Error(`Expected JSON stdout for oz-ui-dev ${args.join(' ')}, but received none.`);
   }
 
   return JSON.parse(result.stdout) as T;
@@ -272,7 +272,7 @@ function writeSmokeAppPackageJson(projectRoot: string): void {
     path.join(projectRoot, 'package.json'),
     JSON.stringify(
       {
-        name: 'oz-dev-e2e-app',
+        name: 'oz-ui-dev-e2e-app',
         private: true,
         version: '0.0.0',
         type: 'module',
@@ -305,7 +305,7 @@ function writeTailwindFixture(projectRoot: string): string {
     path.join(projectRoot, 'package.json'),
     JSON.stringify(
       {
-        name: 'oz-dev-tailwind-e2e',
+        name: 'oz-ui-dev-tailwind-e2e',
         private: true,
         version: '0.0.0',
       },
@@ -390,7 +390,7 @@ afterAll(() => {
   }
 });
 
-describe('oz-dev CLI end-to-end', () => {
+describe('oz-ui-dev CLI end-to-end', () => {
   it('bootstraps a scratch app and runs the full local/remote workflow', async ({ skip }) => {
     const repoRoots = resolveFixtureRepoRoots();
     if (!repoRoots) {
@@ -398,7 +398,7 @@ describe('oz-dev CLI end-to-end', () => {
       return;
     }
 
-    const workspaceRoot = createTemporaryDirectory('oz-dev-e2e-');
+    const workspaceRoot = createTemporaryDirectory('oz-ui-dev-e2e-');
     const appRoot = path.join(workspaceRoot, 'app');
     fs.mkdirSync(appRoot, { recursive: true });
 
@@ -436,8 +436,8 @@ describe('oz-dev CLI end-to-end', () => {
     }>(path.join(appRoot, 'package.json'));
 
     expect(initializedPackageJson.devDependencies[CLI_PACKAGE_NAME]).toBe(`file:${tarballPath}`);
-    expect(initializedPackageJson.scripts['dev:local']).toContain('oz-dev use local');
-    expect(initializedPackageJson.scripts['dev:npm']).toBe('oz-dev use remote --project "$PWD"');
+    expect(initializedPackageJson.scripts['dev:local']).toContain('oz-ui-dev use local');
+    expect(initializedPackageJson.scripts['dev:npm']).toBe('oz-ui-dev use remote --project "$PWD"');
 
     const statusBefore = await runJsonCommand<StatusCommandResult>(appRoot, [
       'status',
@@ -596,7 +596,7 @@ describe('oz-dev CLI end-to-end', () => {
   });
 
   it('diagnoses, prints, and fixes Tailwind setup in a fixture project', async () => {
-    const workspaceRoot = createTemporaryDirectory('oz-dev-tailwind-e2e-');
+    const workspaceRoot = createTemporaryDirectory('oz-ui-dev-tailwind-e2e-');
     const appRoot = writeTailwindFixture(workspaceRoot);
 
     const packageRoot = findPackageRoot(
