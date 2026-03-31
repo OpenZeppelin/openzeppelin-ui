@@ -8,7 +8,6 @@
  */
 
 import type {
-  ContractAdapter,
   Ecosystem,
   EcosystemExport,
   NetworkConfig,
@@ -19,6 +18,8 @@ import { ecosystemMetadata as evmMetadata } from '@openzeppelin/adapter-evm/meta
 import { networks as evmNetworks } from '@openzeppelin/adapter-evm/networks';
 import { ecosystemMetadata as stellarMetadata } from '@openzeppelin/adapter-stellar/metadata';
 import { networks as stellarNetworks } from '@openzeppelin/adapter-stellar/networks';
+
+import type { DemoRuntime } from './runtimeCapabilities';
 
 // ============================================================================
 // Types
@@ -85,25 +86,19 @@ const demoRegistry: Record<DemoEcosystem, DemoEcosystemData> = {
 interface PublishedEcosystemEntry {
   metadata: PublishedEcosystemMetadata;
   networks: NetworkConfig[];
-  loadCreateAdapter: () => Promise<(config: NetworkConfig) => ContractAdapter>;
+  loadDefinition: () => Promise<EcosystemExport>;
 }
 
 const PUBLISHED_ECOSYSTEMS: Record<DemoEcosystem, PublishedEcosystemEntry> = {
   evm: {
     metadata: evmMetadata,
     networks: evmNetworks,
-    loadCreateAdapter: async () => {
-      const { ecosystemDefinition } = await import('@openzeppelin/adapter-evm');
-      return ecosystemDefinition.createAdapter;
-    },
+    loadDefinition: async () => (await import('@openzeppelin/adapter-evm')).ecosystemDefinition,
   },
   stellar: {
     metadata: stellarMetadata,
     networks: stellarNetworks,
-    loadCreateAdapter: async () => {
-      const { ecosystemDefinition } = await import('@openzeppelin/adapter-stellar');
-      return ecosystemDefinition.createAdapter;
-    },
+    loadDefinition: async () => (await import('@openzeppelin/adapter-stellar')).ecosystemDefinition,
   },
 };
 
@@ -117,7 +112,7 @@ export const ECOSYSTEM_METADATA: Record<DemoEcosystem, PublishedEcosystemMetadat
 // ============================================================================
 
 const ecosystemDefCache = new Map<DemoEcosystem, EcosystemExport>();
-const adapterCache = new Map<string, ContractAdapter>();
+const runtimeCache = new Map<string, DemoRuntime>();
 
 // ============================================================================
 // Full Adapter Loading
@@ -129,14 +124,7 @@ async function loadEcosystemDefinition(ecosystem: DemoEcosystem): Promise<Ecosys
     return cached;
   }
 
-  const entry = PUBLISHED_ECOSYSTEMS[ecosystem];
-  const createAdapter = await entry.loadCreateAdapter();
-  const definition: EcosystemExport = {
-    ...entry.metadata,
-    networks: entry.networks,
-    createAdapter,
-  };
-
+  const definition = await PUBLISHED_ECOSYSTEMS[ecosystem].loadDefinition();
   ecosystemDefCache.set(ecosystem, definition);
   return definition;
 }
@@ -222,15 +210,15 @@ export async function getEcosystemMetadata(ecosystem: DemoEcosystem): Promise<Ec
   };
 }
 
-export async function createAdapter(networkConfig: NetworkConfig): Promise<ContractAdapter> {
-  const cached = adapterCache.get(networkConfig.id);
+export async function getRuntime(networkConfig: NetworkConfig): Promise<DemoRuntime> {
+  const cached = runtimeCache.get(networkConfig.id);
   if (cached) return cached;
 
   const def = await loadEcosystemDefinition(networkConfig.ecosystem as DemoEcosystem);
-  const adapter = def.createAdapter(networkConfig);
+  const runtime = def.createRuntime('composer', networkConfig) as DemoRuntime;
 
-  adapterCache.set(networkConfig.id, adapter);
-  return adapter;
+  runtimeCache.set(networkConfig.id, runtime);
+  return runtime;
 }
 
 // ============================================================================
@@ -239,7 +227,8 @@ export async function createAdapter(networkConfig: NetworkConfig): Promise<Contr
 
 export function clearAllCaches(): void {
   ecosystemDefCache.clear();
-  adapterCache.clear();
+  runtimeCache.forEach((runtime) => runtime.dispose());
+  runtimeCache.clear();
 }
 
 export function isEcosystemLoaded(ecosystem: DemoEcosystem): boolean {

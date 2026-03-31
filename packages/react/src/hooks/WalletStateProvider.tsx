@@ -13,11 +13,6 @@ import { logger } from '@openzeppelin/ui-utils';
 import { useRuntimeContext } from './useAdapterContext';
 import { WalletStateContext, type WalletStateContextValue } from './WalletStateContext';
 
-const DEFAULT_UI_KIT_CONFIGURATION: UiKitConfiguration = {
-  kitName: 'custom',
-  kitConfig: {},
-};
-
 export interface WalletStateProviderProps {
   children: ReactNode;
   /** Optional initial network ID to set as active when the provider mounts. */
@@ -54,20 +49,15 @@ async function configureRuntimeUiKit(
   try {
     const hasUiKitOverride = Object.keys(programmaticOverrides).length > 0;
 
-    // Reconfigure only when explicit overrides are provided; otherwise assume the runtime
-    // was created with the intended default UI kit selection.
-    if (hasUiKitOverride && typeof uiKit.configureUiKit === 'function') {
-      const nextUiKitConfig: UiKitConfiguration = {
-        ...DEFAULT_UI_KIT_CONFIGURATION,
-        ...programmaticOverrides,
-        kitConfig: {
-          ...DEFAULT_UI_KIT_CONFIGURATION.kitConfig,
-          ...(programmaticOverrides.kitConfig ?? {}),
-        },
-      };
+    // Always initialize the runtime UI kit so adapter-managed providers (wagmi, Stellar kit, etc.)
+    // can hydrate their internal state from app-config defaults even without explicit overrides.
+    if (typeof uiKit.configureUiKit === 'function') {
+      const nextUiKitConfig = { ...programmaticOverrides };
       logger.info(
-        '[WSP configureRuntimeUiKit] Calling configureUiKit for runtime:',
-        runtime.networkConfig.id
+        '[WSP configureRuntimeUiKit]',
+        hasUiKitOverride
+          ? `Applying explicit UI kit overrides for runtime: ${runtime.networkConfig.id}`
+          : `Initializing runtime UI kit from adapter/app defaults for runtime: ${runtime.networkConfig.id}`
       );
       await uiKit.configureUiKit(nextUiKitConfig, {
         loadUiKitNativeConfig: loadConfigModule,

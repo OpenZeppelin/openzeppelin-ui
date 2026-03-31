@@ -37,12 +37,12 @@ export const FORM_SCHEMA_EXAMPLE = `// Generate form schema from contract functi
 function createFormSchema(
   contractAddress: string,
   fn: ContractFunction,
-  adapter: ContractAdapter,
+  typeMapping: TypeMappingCapability,
   contractSchema: ContractSchema // Needed for enum/struct type resolution
 ): RenderFormSchema {
   // Pass contractSchema to resolve complex types (enums, structs, etc.)
   const fields = fn.inputs.map((input) => 
-    adapter.generateDefaultField(input, contractSchema)
+    typeMapping.generateDefaultField(input, contractSchema)
   );
 
   return {
@@ -60,7 +60,7 @@ function createFormSchema(
 export const TRANSACTION_FORM_EXAMPLE = `import { TransactionForm } from '@openzeppelin/ui-renderer';
 
 function ContractTransactionDemo() {
-  const { adapter } = useEcosystem();
+  const { runtime } = useEcosystem();
   const { isConnected } = useDerivedAccountStatus();
 
   // formSchema defines the form fields and layout
@@ -69,33 +69,34 @@ function ContractTransactionDemo() {
     <TransactionForm
       schema={formSchema}
       contractSchema={contractSchema}
-      adapter={adapter}
+      adapter={toTransactionFormCapabilities(runtime)!}
       isWalletConnected={isConnected}
     />
   );
 }`;
 
 export const TRANSACTION_EXECUTION_EXAMPLE = `// The TransactionForm handles execution internally, but you can also
-// execute transactions directly using the adapter:
+// execute transactions directly using the runtime capabilities:
 
 async function executeTransaction(
-  adapter: ContractAdapter,
+  execution: ExecutionCapability,
+  explorer: ExplorerCapability,
   contractAddress: string,
   functionId: string,
   args: unknown[]
 ) {
-  // Prepare the transaction
-  const txRequest = await adapter.prepareTransaction({
-    contractAddress,
+  const transactionData = execution.formatTransactionData(
+    contractSchema,
     functionId,
-    args,
-  });
+    { args },
+    fields
+  );
 
   // Execute and wait for confirmation
-  const result = await adapter.executeTransaction(txRequest);
+  const result = await execution.signAndBroadcast(transactionData, { method: 'eoa' }, () => {});
   
   // Get explorer URL for the transaction
-  const explorerUrl = adapter.getExplorerTxUrl?.(result.txHash);
+  const explorerUrl = explorer.getExplorerTxUrl?.(result.txHash);
   
   return { result, explorerUrl };
 }`;

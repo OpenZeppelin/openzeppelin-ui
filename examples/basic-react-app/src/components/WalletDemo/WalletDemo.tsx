@@ -150,7 +150,7 @@ export function WalletDemo(): React.ReactElement {
   const selectedKitName = useSelectedKitName();
   const setSelectedKitName = useSetSelectedKitName();
   const [kits, setKits] = useState<AvailableUiKit[]>([]);
-  const { reconfigureActiveAdapterUiKit } = useWalletState();
+  const { reconfigureActiveUiKit } = useWalletState();
 
   // Customization state for testing new props
   const [buttonSize, setButtonSize] = useState<WalletComponentSize>('default');
@@ -306,7 +306,7 @@ export function WalletDemo(): React.ReactElement {
                     size="sm"
                     className="mt-2"
                     onClick={() => {
-                      reconfigureActiveAdapterUiKit({ kitName: 'custom' as UiKitName });
+                      reconfigureActiveUiKit({ kitName: 'custom' as UiKitName });
                       setSelectedKitName('custom');
                     }}
                   >
@@ -661,7 +661,7 @@ export function WalletDemo(): React.ReactElement {
                 Runtime Status
               </CardTitle>
               <CardDescription>
-                Live state derived from real adapter + facade hooks. Shows connection errors,
+                Live state derived from the active runtime + facade hooks. Shows connection errors,
                 network mismatches, and component availability.
               </CardDescription>
             </CardHeader>

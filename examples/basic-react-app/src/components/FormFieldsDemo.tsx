@@ -66,7 +66,7 @@ interface FormFieldsData {
 export function FormFieldsDemo(): React.ReactElement {
   const [submittedData, setSubmittedData] = useState<Partial<FormFieldsData> | null>(null);
 
-  const { ecosystem, adapter, sampleAddresses, metadata, isLoading } = useEcosystem();
+  const { ecosystem, capabilities, sampleAddresses, metadata, isLoading } = useEcosystem();
 
   const form = useForm<FormFieldsData>({
     defaultValues: {
@@ -97,10 +97,10 @@ export function FormFieldsDemo(): React.ReactElement {
   };
 
   // Show loading state while ecosystem data is being loaded
-  if (isLoading || !adapter || !metadata) {
+  if (isLoading || !capabilities || !metadata) {
     return (
       <DemoSection title="Form Fields" description="Loading...">
-        <div className="text-muted-foreground">Loading adapter...</div>
+        <div className="text-muted-foreground">Loading runtime...</div>
       </DemoSection>
     );
   }
@@ -114,8 +114,8 @@ export function FormFieldsDemo(): React.ReactElement {
 import { useForm, FormProvider } from 'react-hook-form';
 import { useEcosystem } from './context/EcosystemContext';
 
-// Get real adapter from context
-const { adapter, ecosystem } = useEcosystem();
+// Get real runtime capabilities from context
+const { capabilities, ecosystem } = useEcosystem();
 const form = useForm({ defaultValues: { ... } });
 
 <FormProvider {...form}>
@@ -129,14 +129,14 @@ const form = useForm({ defaultValues: { ... } });
       validation={{ required: true }}
     />
     
-    {/* AddressField uses real adapter for validation */}
+    {/* AddressField uses the addressing capability for validation */}
     <AddressField
       id="address"
       name="address"
       label="Wallet Address"
       control={form.control}
       placeholder="0x..."
-      adapter={adapter}  // Real adapter validates addresses
+      addressing={capabilities}  // Real addressing capability validates addresses
     />
     
     <AmountField
@@ -366,7 +366,7 @@ const form = useForm({ defaultValues: { ... } });
                     control={form.control}
                     placeholder={sampleAddresses.wallet?.slice(0, 20) + '...'}
                     helperText={`Validated ${metadata.name} address input`}
-                    adapter={adapter}
+                    addressing={capabilities}
                   />
 
                   <BytesField

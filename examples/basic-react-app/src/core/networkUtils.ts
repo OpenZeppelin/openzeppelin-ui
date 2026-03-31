@@ -1,14 +1,15 @@
 /**
  * Network Utility Functions
  *
- * Centralizes adapter-led network resolution logic used across the example app.
+ * Centralizes runtime-led network resolution logic used across the example app.
  * All chain-specific knowledge comes from ecosystem metadata or network config —
  * no hardcoded chain conditionals scattered across components.
  */
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { AddressingCapability, NetworkConfig } from '@openzeppelin/ui-types';
 
-import { createAdapter, ECOSYSTEM_METADATA, type DemoEcosystem } from './ecosystemManager';
+import { ECOSYSTEM_METADATA, getRuntime, type DemoEcosystem } from './ecosystemManager';
+import type { DemoRuntime } from './runtimeCapabilities';
 
 /**
  * Explorer address path segment per ecosystem.
@@ -60,19 +61,28 @@ export function getAddressPlaceholder(network: NetworkConfig): string {
 }
 
 /**
- * Resolve the address placeholder for the currently active adapter.
+ * Resolve the address placeholder for the currently active runtime.
  */
-export function getAdapterAddressPlaceholder(adapter: ContractAdapter | null): string {
-  if (!adapter) return '0x...';
+export function getRuntimeAddressPlaceholder(runtime: DemoRuntime | null): string {
+  if (!runtime) return '0x...';
   return (
-    ECOSYSTEM_METADATA[adapter.networkConfig.ecosystem as DemoEcosystem]?.addressExample ?? '0x...'
+    ECOSYSTEM_METADATA[runtime.networkConfig.ecosystem as DemoEcosystem]?.addressExample ?? '0x...'
   );
 }
 
 /**
- * Resolve a ContractAdapter for a given NetworkConfig.
- * Thin wrapper around `createAdapter` for use as a callback prop.
+ * Resolve a runtime for a given NetworkConfig.
  */
-export async function resolveAdapter(network: NetworkConfig): Promise<ContractAdapter> {
-  return createAdapter(network);
+export async function resolveRuntime(network: NetworkConfig): Promise<DemoRuntime> {
+  return getRuntime(network);
+}
+
+/**
+ * Resolve the addressing capability for a given network.
+ */
+export async function resolveAddressing(
+  network: NetworkConfig
+): Promise<AddressingCapability | undefined> {
+  const runtime = await getRuntime(network);
+  return runtime.addressing;
 }

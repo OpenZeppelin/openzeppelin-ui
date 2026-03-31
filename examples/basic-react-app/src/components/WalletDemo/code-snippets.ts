@@ -25,12 +25,12 @@ function MyWalletInfo() {
   return <p>Connected: {address} on chain {chainId}</p>;
 }`;
 
-export const WALLET_COMPONENTS_CODE = `// WalletConnectionUI renders adapter-provided components
-// It automatically adapts to the active adapter and UI kit
+export const WALLET_COMPONENTS_CODE = `// WalletConnectionUI renders runtime-provided components
+// It automatically adapts to the active runtime and UI kit
 
 import { WalletConnectionUI } from '@openzeppelin/ui-react';
 
-// The component retrieves wallet UI from the active adapter:
+// The component retrieves wallet UI from the active runtime:
 // - ConnectButton: Wallet connection trigger
 // - AccountDisplay: Shows connected account info
 // - NetworkSwitcher: Allows network switching
@@ -44,7 +44,7 @@ function MyApp() {
 }
 
 // Under the hood, it calls:
-const components = activeAdapter.getEcosystemWalletComponents();
+const components = activeRuntime?.uiKit?.getEcosystemWalletComponents?.();
 // Returns: { ConnectButton, AccountDisplay, NetworkSwitcher }`;
 
 export const UI_KIT_SWITCHING_CODE = `// UI kits can be switched at runtime without page reload
@@ -53,18 +53,18 @@ export const UI_KIT_SWITCHING_CODE = `// UI kits can be switched at runtime with
 import { useWalletState } from '@openzeppelin/ui-react';
 
 function KitSwitcher() {
-  const { activeAdapter, reconfigureActiveAdapterUiKit } = useWalletState();
+  const { activeRuntime, reconfigureActiveUiKit } = useWalletState();
   const [kits, setKits] = useState<AvailableUiKit[]>([]);
 
   useEffect(() => {
-    // Get available kits from the adapter
-    activeAdapter?.getAvailableUiKits().then(setKits);
-  }, [activeAdapter]);
+    // Get available kits from the runtime's UI kit capability
+    activeRuntime?.uiKit?.getAvailableUiKits().then(setKits);
+  }, [activeRuntime]);
 
   return (
     <select onChange={(e) => {
       // Switch kit without losing connection state
-      reconfigureActiveAdapterUiKit({ kitName: e.target.value });
+      reconfigureActiveUiKit({ kitName: e.target.value });
     }}>
       {kits.map(kit => (
         <option key={kit.id} value={kit.id}>{kit.name}</option>
@@ -81,19 +81,18 @@ import { create } from 'zustand';
 // The ecosystem store manages:
 // - Current ecosystem (evm, stellar)
 // - Selected network configuration
-// - Adapter instance (cached)
+// - Active network selection
 // - Selected UI kit name
 
 const useEcosystemStore = create<EcosystemStore>((set, get) => ({
   ecosystem: 'evm',
   network: null,
-  adapter: null,
   selectedKitName: null,
   
   setEcosystem: async (newEcosystem) => {
-    // Load adapter lazily when ecosystem changes
-    const adapter = await createAdapter(newEcosystem);
-    set({ ecosystem: newEcosystem, adapter });
+    // Update metadata + network selection when ecosystems change
+    const defaultNetwork = await getDefaultNetwork(newEcosystem);
+    set({ ecosystem: newEcosystem, network: defaultNetwork });
   },
 }));
 
@@ -126,14 +125,14 @@ const config: Partial<UiKitConfiguration> = {
 };
 
 // Apply configuration at runtime:
-const { reconfigureActiveAdapterUiKit } = useWalletState();
-reconfigureActiveAdapterUiKit(config);
+const { reconfigureActiveUiKit } = useWalletState();
+reconfigureActiveUiKit(config);
 
 // ============================================================
 // EXAMPLE: Hide only the NetworkSwitcher
 // ============================================================
 
-reconfigureActiveAdapterUiKit({
+reconfigureActiveUiKit({
   kitName: 'custom',
   kitConfig: {
     components: {

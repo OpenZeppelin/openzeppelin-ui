@@ -6,7 +6,7 @@
  * to ensure ecosystem-aware mock data without hardcoding specific ecosystems.
  */
 
-import type { ContractAdapter, FormFieldType } from '@openzeppelin/ui-types';
+import type { FormFieldType, TypeMappingCapability } from '@openzeppelin/ui-types';
 
 // ============================================================================
 // Types
@@ -26,12 +26,12 @@ export type SchemaEnhancement = {
  * Extracts representative primitive types from an adapter's type mapping.
  * Returns ecosystem-aware types without hardcoding specific ecosystems.
  */
-function getRepresentativeTypes(adapter: ContractAdapter): {
+function getRepresentativeTypes(typeMapping: TypeMappingCapability): {
   addressType: string;
   numericType: string;
   boolType: string;
 } {
-  const typeInfo = adapter.getTypeMappingInfo();
+  const typeInfo = typeMapping.getTypeMappingInfo();
   const primitives = Object.keys(typeInfo.primitives);
 
   return {
@@ -56,13 +56,13 @@ function getRepresentativeTypes(adapter: ContractAdapter): {
  * The ObjectField component expects `components` as an array of FunctionParameter objects,
  * which it then passes to adapter.generateDefaultField() for proper field generation.
  */
-export function generateMockComponents(adapter: ContractAdapter): Array<{
+export function generateMockComponents(typeMapping: TypeMappingCapability): Array<{
   name: string;
   type: string;
   displayName?: string;
   description?: string;
 }> {
-  const { addressType, numericType, boolType } = getRepresentativeTypes(adapter);
+  const { addressType, numericType, boolType } = getRepresentativeTypes(typeMapping);
 
   return [
     {
@@ -91,7 +91,7 @@ export function generateMockComponents(adapter: ContractAdapter): Array<{
  * EnumField expects enumMetadata with variants, not simple options.
  * Uses adapter's primitive types to generate ecosystem-aware payload examples.
  */
-export function generateMockEnumMetadata(adapter: ContractAdapter): {
+export function generateMockEnumMetadata(typeMapping: TypeMappingCapability): {
   name: string;
   variants: Array<{
     name: string;
@@ -99,7 +99,7 @@ export function generateMockEnumMetadata(adapter: ContractAdapter): {
     payloadTypes?: string[];
   }>;
 } {
-  const { addressType, numericType } = getRepresentativeTypes(adapter);
+  const { addressType, numericType } = getRepresentativeTypes(typeMapping);
 
   return {
     name: 'MockEnum',
@@ -149,7 +149,7 @@ export function getMockPreviewMessage(typeDescription: string): string {
  */
 export function enhanceSchemaWithMockData(
   fieldSchema: FormFieldType,
-  adapter: ContractAdapter
+  typeMapping: TypeMappingCapability
 ): SchemaEnhancement {
   const { type } = fieldSchema;
 
@@ -162,7 +162,7 @@ export function enhanceSchemaWithMockData(
         message: getMockPreviewMessage('a mock struct with example fields'),
         enhancedSchema: {
           ...fieldSchema,
-          components: generateMockComponents(adapter),
+          components: generateMockComponents(typeMapping),
         } as FormFieldType,
       };
     }
@@ -177,7 +177,7 @@ export function enhanceSchemaWithMockData(
         message: getMockPreviewMessage('a mock array of structs'),
         enhancedSchema: {
           ...fieldSchema,
-          components: generateMockComponents(adapter),
+          components: generateMockComponents(typeMapping),
         } as FormFieldType,
       };
     }
@@ -192,7 +192,7 @@ export function enhanceSchemaWithMockData(
         message: getMockPreviewMessage('mock enum variants'),
         enhancedSchema: {
           ...fieldSchema,
-          enumMetadata: generateMockEnumMetadata(adapter),
+          enumMetadata: generateMockEnumMetadata(typeMapping),
         } as FormFieldType,
       };
     }

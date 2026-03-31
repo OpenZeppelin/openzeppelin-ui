@@ -22,7 +22,7 @@ export interface WalletStatusPanelProps {
 }
 
 export function WalletStatusPanel({ selectedKitName }: WalletStatusPanelProps): React.ReactElement {
-  const { activeAdapter, activeNetworkConfig, isAdapterLoading } = useWalletState();
+  const { activeRuntime, activeNetworkConfig, isRuntimeLoading } = useWalletState();
   const { isConnected, address, chainId } = useDerivedAccountStatus();
   const { currentChainId } = useDerivedChainInfo();
   const { error: connectError, isConnecting } = useDerivedConnectStatus();
@@ -32,18 +32,18 @@ export function WalletStatusPanel({ selectedKitName }: WalletStatusPanelProps): 
   const isZeroConfigKit = selectedKitName === 'custom' || selectedKitName === 'none';
 
   const walletComponentsAvailability = useMemo(() => {
-    if (!activeAdapter) {
-      return { isAvailable: false, reason: 'No active adapter.' };
+    if (!activeRuntime?.uiKit) {
+      return { isAvailable: false, reason: 'No active runtime UI kit.' };
     }
 
-    if (typeof activeAdapter.getEcosystemWalletComponents !== 'function') {
-      return { isAvailable: false, reason: 'Adapter does not expose wallet components.' };
+    if (typeof activeRuntime.uiKit.getEcosystemWalletComponents !== 'function') {
+      return { isAvailable: false, reason: 'Runtime UI kit does not expose wallet components.' };
     }
 
     try {
-      const comps = activeAdapter.getEcosystemWalletComponents();
+      const comps = activeRuntime.uiKit.getEcosystemWalletComponents();
       if (!comps)
-        return { isAvailable: false, reason: 'No wallet components for this adapter/kit.' };
+        return { isAvailable: false, reason: 'No wallet components for this runtime/kit.' };
       return { isAvailable: true, reason: null as string | null };
     } catch {
       return {
@@ -51,7 +51,7 @@ export function WalletStatusPanel({ selectedKitName }: WalletStatusPanelProps): 
         reason: 'Failed to resolve wallet components (possible context/version mismatch).',
       };
     }
-  }, [activeAdapter]);
+  }, [activeRuntime]);
 
   const expectedChainId =
     activeNetworkConfig &&
@@ -102,8 +102,8 @@ export function WalletStatusPanel({ selectedKitName }: WalletStatusPanelProps): 
               <StatusIndicator value={isSwitching} activeColor="text-yellow-600" />
             </div>
             <div className="flex items-center justify-between rounded-md bg-background px-3 py-2">
-              <code className="text-xs text-muted-foreground">isAdapterLoading</code>
-              <StatusIndicator value={isAdapterLoading} activeColor="text-yellow-600" />
+              <code className="text-xs text-muted-foreground">isRuntimeLoading</code>
+              <StatusIndicator value={isRuntimeLoading} activeColor="text-yellow-600" />
             </div>
             <div className="flex items-center justify-between rounded-md bg-background px-3 py-2">
               <code className="text-xs text-muted-foreground">address</code>
@@ -164,8 +164,8 @@ export function WalletStatusPanel({ selectedKitName }: WalletStatusPanelProps): 
               </code>
             </div>
             <div className="flex items-center justify-between rounded-md bg-background px-3 py-2">
-              <code className="text-xs text-muted-foreground">hasAdapter</code>
-              <StatusIndicator value={!!activeAdapter} />
+              <code className="text-xs text-muted-foreground">hasRuntime</code>
+              <StatusIndicator value={!!activeRuntime} />
             </div>
             <div className="flex items-center justify-between rounded-md bg-background px-3 py-2">
               <code className="text-xs text-muted-foreground">hasWalletComponents</code>
@@ -200,7 +200,7 @@ export function WalletStatusPanel({ selectedKitName }: WalletStatusPanelProps): 
               </Alert>
             )}
 
-            {!walletComponentsAvailability.isAvailable && !isAdapterLoading && (
+            {!walletComponentsAvailability.isAvailable && !isRuntimeLoading && (
               <Alert variant="destructive">
                 <AlertDescription>{walletComponentsAvailability.reason}</AlertDescription>
               </Alert>

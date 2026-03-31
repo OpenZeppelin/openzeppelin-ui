@@ -19,9 +19,9 @@ import { useEcosystem } from '../context';
 import { demoDb } from '../core/demoDb';
 import {
   createResolveExplorerUrl,
-  getAdapterAddressPlaceholder,
   getAddressPlaceholder,
-  resolveAdapter,
+  getRuntimeAddressPlaceholder,
+  resolveAddressing,
 } from '../core/networkUtils';
 import { DemoSection } from './DemoSection';
 
@@ -44,7 +44,7 @@ interface SuggestionDemoForm {
  * - Full network-aware features: network picker, badges, filtering
  */
 export function AccountAliasDemo(): React.ReactElement {
-  const { adapter, network, availableNetworks } = useEcosystem();
+  const { capabilities, network, availableNetworks, runtime } = useEcosystem();
 
   const [filterNetworkIds, setFilterNetworkIds] = useState<string[]>([]);
 
@@ -73,7 +73,7 @@ export function AccountAliasDemo(): React.ReactElement {
     [availableNetworks]
   );
 
-  const addressPlaceholder = useMemo(() => getAdapterAddressPlaceholder(adapter), [adapter]);
+  const addressPlaceholder = useMemo(() => getRuntimeAddressPlaceholder(runtime), [runtime]);
 
   const { control } = useForm<SuggestionDemoForm>({
     defaultValues: { recipientAddress: '' },
@@ -139,11 +139,11 @@ function App() {
 
           <AddressBookWidget
             {...widgetProps}
-            adapter={adapter}
+            addressing={capabilities ?? undefined}
             networks={availableNetworks}
             resolveNetwork={resolveNetwork}
             resolveExplorerUrl={resolveExplorerUrl}
-            resolveAdapter={resolveAdapter}
+            resolveAddressing={resolveAddressing}
             filterNetworkIds={filterNetworkIds}
             onFilterNetworkIdsChange={setFilterNetworkIds}
           />
@@ -177,11 +177,11 @@ function App() {
           </p>
           <AddressBookWidget
             {...widgetProps}
-            adapter={adapter ?? undefined}
+            addressing={capabilities ?? undefined}
             addressPlaceholder={addressPlaceholder}
             resolveNetwork={resolveNetwork}
             resolveExplorerUrl={resolveExplorerUrl}
-            resolveAdapter={resolveAdapter}
+            resolveAddressing={resolveAddressing}
             resolveAddressPlaceholder={getAddressPlaceholder}
             networks={availableNetworks}
             currentNetworkId={network?.id}
@@ -210,7 +210,7 @@ function App() {
                 placeholder="Start typing an alias name..."
                 helperText="Try typing the name of an alias you added above."
                 control={control}
-                adapter={adapter ?? undefined}
+                addressing={capabilities ?? undefined}
               />
             </div>
           </AddressSuggestionProvider>

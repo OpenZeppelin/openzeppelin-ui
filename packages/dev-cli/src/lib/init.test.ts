@@ -60,6 +60,11 @@ describe('initProject', () => {
     );
     expect(pnpmfile).toContain('function resolveCacheDir(workspaceRoot, cacheDir)');
     expect(pnpmfile).toContain('function getRealPath(targetPath)');
+    expect(pnpmfile).toContain('function findWorkspacePackage(repoRoot, packageName)');
+    expect(pnpmfile).toContain(
+      'function resolvePackageDirectoryByName(workspaceRoot, family, packageName)'
+    );
+    expect(pnpmfile).toContain('(workspace fallback)');
     expect(packageJson.devDependencies['@openzeppelin/ui-dev-cli']).toBe(
       expectedCliDependencyRange
     );

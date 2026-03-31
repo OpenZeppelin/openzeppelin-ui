@@ -16,13 +16,16 @@ import type {
  */
 export interface UiKitCapability extends RuntimeCapability {
   /**
-   * Apply UI kit selection (e.g. RainbowKit) for subsequent provider/hook resolution.
+   * Apply UI kit selection or partial overrides for subsequent provider/hook resolution.
    *
-   * @param config - Kit id and opaque kit-specific options.
+   * Passing an empty object is a valid way to initialize adapter-managed defaults before
+   * resolving providers, hooks, or wallet components.
+   *
+   * @param config - Partial kit selection and opaque kit-specific options.
    * @param options - Optional loader for native config modules.
    */
   configureUiKit?(
-    config: UiKitConfiguration,
+    config: Partial<UiKitConfiguration>,
     options?: {
       loadUiKitNativeConfig?: (relativePath: string) => Promise<Record<string, unknown> | null>;
     }

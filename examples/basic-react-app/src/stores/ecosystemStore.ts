@@ -6,16 +6,15 @@
  * state survives component remounts (e.g., when WalletStateProvider remounts
  * during network/kit changes).
  *
- * LAZY LOADING: Adapters are loaded on-demand when switching ecosystems.
- * The initial ecosystem (EVM) is loaded at startup, others load when accessed.
+ * This store owns ecosystem selection state only. Runtime instances are resolved
+ * by RuntimeProvider so wallet and UI kit state stay centralized.
  */
 
 import { create } from 'zustand';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
 
 import {
-  createAdapter,
   getDefaultNetwork,
   getEcosystemMetadata,
   getNetworkById,
@@ -35,9 +34,6 @@ export interface EcosystemState {
 
   /** Currently selected network configuration (null while loading) */
   network: NetworkConfig | null;
-
-  /** Cached adapter instance for current network (null while loading) */
-  adapter: ContractAdapter | null;
 
   /** Metadata for current ecosystem (null while loading) */
   metadata: EcosystemMetadata | null;
@@ -65,7 +61,7 @@ export interface EcosystemActions {
   /**
    * Change the active ecosystem.
    * This also switches to the default network for that ecosystem.
-   * Async - triggers lazy loading of the adapter if not already loaded.
+   * Async - updates metadata and switches to that ecosystem's default network.
    */
   setEcosystem: (ecosystem: DemoEcosystem) => Promise<void>;
 
@@ -127,7 +123,6 @@ export const useEcosystemStore = create<EcosystemStore>((set, get) => {
     // Initial state (will be populated by initialize())
     ecosystem: initialEcosystem,
     network: null,
-    adapter: null,
     metadata: null,
     availableNetworks: [],
     sampleAddresses: getSampleAddresses(initialEcosystem),
@@ -142,19 +137,15 @@ export const useEcosystemStore = create<EcosystemStore>((set, get) => {
       try {
         set({ isLoading: true, error: null });
 
-        // Load ecosystem data (this triggers lazy loading of the adapter)
+        // Load ecosystem data and select the default network.
         const [metadata, networks, defaultNetwork] = await Promise.all([
           getEcosystemMetadata(ecosystem),
           getNetworksForEcosystem(ecosystem),
           getDefaultNetwork(ecosystem),
         ]);
 
-        // Create adapter for default network
-        const adapter = await createAdapter(defaultNetwork);
-
         set({
           network: defaultNetwork,
-          adapter,
           metadata,
           availableNetworks: networks,
           isLoading: false,
@@ -179,19 +170,15 @@ export const useEcosystemStore = create<EcosystemStore>((set, get) => {
       try {
         set({ isLoading: true, error: null, ecosystem: newEcosystem });
 
-        // Load new ecosystem data (triggers lazy loading)
+        // Load new ecosystem data and switch to its default network.
         const [metadata, networks, defaultNetwork] = await Promise.all([
           getEcosystemMetadata(newEcosystem),
           getNetworksForEcosystem(newEcosystem),
           getDefaultNetwork(newEcosystem),
         ]);
 
-        // Create adapter for default network
-        const adapter = await createAdapter(defaultNetwork);
-
         set({
           network: defaultNetwork,
-          adapter,
           metadata,
           availableNetworks: networks,
           sampleAddresses: getSampleAddresses(newEcosystem),
@@ -221,9 +208,6 @@ export const useEcosystemStore = create<EcosystemStore>((set, get) => {
       try {
         set({ isLoading: true, error: null });
 
-        // Create adapter for new network (may trigger lazy loading if new ecosystem)
-        const adapter = await createAdapter(newNetwork);
-
         // If ecosystem changed, load new ecosystem data
         if (isEcosystemChange) {
           const [metadata, networks] = await Promise.all([
@@ -234,7 +218,6 @@ export const useEcosystemStore = create<EcosystemStore>((set, get) => {
           set({
             ecosystem: newEcosystem,
             network: newNetwork,
-            adapter,
             metadata,
             availableNetworks: networks,
             sampleAddresses: getSampleAddresses(newEcosystem),
@@ -244,7 +227,6 @@ export const useEcosystemStore = create<EcosystemStore>((set, get) => {
         } else {
           set({
             network: newNetwork,
-            adapter,
             isLoading: false,
           });
         }
@@ -290,12 +272,6 @@ export const useCurrentEcosystem = () => useEcosystemStore((s) => s.ecosystem);
  * Component only re-renders when network changes.
  */
 export const useCurrentNetwork = () => useEcosystemStore((s) => s.network);
-
-/**
- * Get the adapter for the current network.
- * Component only re-renders when adapter changes.
- */
-export const useCurrentAdapter = () => useEcosystemStore((s) => s.adapter);
 
 /**
  * Get ecosystem metadata.
