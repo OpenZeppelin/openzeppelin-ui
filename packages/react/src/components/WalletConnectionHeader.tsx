@@ -10,18 +10,18 @@ import { WalletConnectionUI } from './WalletConnectionUI';
  * Uses useWalletState to get its data.
  */
 export const WalletConnectionHeader: React.FC = () => {
-  const { isAdapterLoading, activeAdapter } = useWalletState();
+  const { isRuntimeLoading, activeRuntime } = useWalletState();
 
   useEffect(() => {
     logger.debug('WalletConnectionHeader', '[Debug] State from useWalletState:', {
-      adapterPresent: !!activeAdapter,
-      adapterNetwork: activeAdapter?.networkConfig.id,
-      isLoading: isAdapterLoading,
+      runtimePresent: !!activeRuntime,
+      runtimeNetwork: activeRuntime?.networkConfig.id,
+      isLoading: isRuntimeLoading,
     });
-  }, [activeAdapter, isAdapterLoading]);
+  }, [activeRuntime, isRuntimeLoading]);
 
-  if (isAdapterLoading) {
-    logger.debug('WalletConnectionHeader', '[Debug] Adapter loading, showing skeleton.');
+  if (isRuntimeLoading) {
+    logger.debug('WalletConnectionHeader', '[Debug] Runtime loading, showing skeleton.');
     return <div className="h-9 w-28 animate-pulse rounded bg-muted"></div>;
   }
 

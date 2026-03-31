@@ -3,14 +3,14 @@ import type { EcosystemWalletComponents } from '@openzeppelin/ui-types';
 import { useWalletState } from './WalletStateContext';
 
 /**
- * Hook that provides direct access to wallet UI components from the active adapter.
+ * Hook that provides direct access to wallet UI components from the active runtime.
  *
  * Use this hook when you need full control over the layout and composition of
  * wallet components. For standard layouts, prefer using `WalletConnectionUI`
  * with its props forwarding capabilities.
  *
- * @returns The wallet components object, or null if no adapter is active or
- *          the adapter doesn't provide wallet components.
+ * @returns The wallet components object, or null if no runtime is active or
+ *          the runtime doesn't provide wallet components.
  *
  * @example
  * ```tsx
@@ -45,14 +45,15 @@ import { useWalletState } from './WalletStateContext';
  * ```
  */
 export function useWalletComponents(): EcosystemWalletComponents | null {
-  const { activeAdapter } = useWalletState();
+  const { activeRuntime } = useWalletState();
+  const activeUiKit = activeRuntime?.uiKit;
 
-  if (!activeAdapter || typeof activeAdapter.getEcosystemWalletComponents !== 'function') {
+  if (!activeUiKit || typeof activeUiKit.getEcosystemWalletComponents !== 'function') {
     return null;
   }
 
   try {
-    return activeAdapter.getEcosystemWalletComponents() ?? null;
+    return activeUiKit.getEcosystemWalletComponents() ?? null;
   } catch {
     return null;
   }

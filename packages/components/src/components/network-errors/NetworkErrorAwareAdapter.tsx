@@ -2,27 +2,27 @@
 
 import { useEffect, useRef } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-types';
+import type { RuntimeCapability } from '@openzeppelin/ui-types';
 
 import { useNetworkErrors } from './useNetworkErrors';
 
 /**
  * Creates an adapter proxy that intercepts and reports network errors
  */
-export function useNetworkErrorAwareAdapter(
-  adapter: ContractAdapter | null
-): ContractAdapter | null {
+export function useNetworkErrorAwareAdapter<T extends RuntimeCapability>(
+  capability: T | null
+): T | null {
   const { reportNetworkError } = useNetworkErrors();
-  const wrappedAdapterRef = useRef<ContractAdapter | null>(null);
+  const wrappedCapabilityRef = useRef<T | null>(null);
 
   useEffect(() => {
-    if (!adapter) {
-      wrappedAdapterRef.current = null;
+    if (!capability) {
+      wrappedCapabilityRef.current = null;
       return;
     }
 
-    // Create a proxy that wraps the adapter to intercept errors
-    const wrappedAdapter = new Proxy(adapter, {
+    // Create a proxy that wraps the runtime capability to intercept errors
+    const wrappedCapability = new Proxy(capability, {
       get(target, prop, receiver): unknown {
         const value = Reflect.get(target, prop, receiver);
 
@@ -77,10 +77,10 @@ export function useNetworkErrorAwareAdapter(
 
         return value;
       },
-    }) as ContractAdapter;
+    }) as T;
 
-    wrappedAdapterRef.current = wrappedAdapter;
-  }, [adapter, reportNetworkError]);
+    wrappedCapabilityRef.current = wrappedCapability;
+  }, [capability, reportNetworkError]);
 
-  return wrappedAdapterRef.current;
+  return wrappedCapabilityRef.current;
 }

@@ -72,10 +72,10 @@ export interface AddressBookWidgetProps {
   resolveExplorerUrl?: (address: string, networkId?: string) => string | undefined;
 
   /** Addressing capability for chain-specific validation (used as default when no network selected) */
-  adapter?: AddressingCapability;
+  addressing?: AddressingCapability;
 
   /** Resolve addressing capability for a given network (enables validation when user changes network) */
-  resolveAdapter?: (network: NetworkConfig) => Promise<AddressingCapability | undefined>;
+  resolveAddressing?: (network: NetworkConfig) => Promise<AddressingCapability | undefined>;
 
   /** Ecosystem-aware address placeholder (used as default when no network selected) */
   addressPlaceholder?: string;

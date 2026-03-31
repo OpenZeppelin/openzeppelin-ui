@@ -1,7 +1,10 @@
-import type { ExecutionCapability } from '../adapters/capabilities/execution';
-import type { SchemaCapability } from '../adapters/capabilities/schema';
-import type { TypeMappingCapability } from '../adapters/capabilities/type-mapping';
 import type { EnumValue, MapEntry } from '../common';
+import type {
+  ContractStateCapabilities,
+  DynamicFormCapabilities,
+  ExecutionConfigCapabilities,
+  TransactionStatusCapabilities,
+} from '../common/capability-bundles';
 import type { Ecosystem } from '../common/ecosystem';
 import type { ContractSchema } from '../contracts/schema';
 import type { ExecutionConfig } from '../execution';
@@ -143,9 +146,10 @@ export type TransactionSuccessPayload = {
 /**
  * Capability intersection required to render and submit {@link TransactionFormProps}.
  */
-export type TransactionFormCapabilities = ExecutionCapability &
-  TypeMappingCapability &
-  SchemaCapability;
+export type TransactionFormCapabilities = DynamicFormCapabilities &
+  TransactionStatusCapabilities &
+  ExecutionConfigCapabilities &
+  ContractStateCapabilities;
 
 /**
  * Props for the top-level TransactionForm component

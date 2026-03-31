@@ -32,10 +32,10 @@ describe('useWalletComponents', () => {
     vi.restoreAllMocks();
   });
 
-  describe('when adapter is null', () => {
-    it('should return null when activeAdapter is null', () => {
+  describe('when runtime is null', () => {
+    it('should return null when activeRuntime is null', () => {
       mockUseWalletState.mockReturnValue({
-        activeAdapter: null,
+        activeRuntime: null,
       });
 
       const { result } = renderHook(() => useWalletComponents());
@@ -43,9 +43,9 @@ describe('useWalletComponents', () => {
       expect(result.current).toBeNull();
     });
 
-    it('should return null when activeAdapter is undefined', () => {
+    it('should return null when activeRuntime is undefined', () => {
       mockUseWalletState.mockReturnValue({
-        activeAdapter: undefined,
+        activeRuntime: undefined,
       });
 
       const { result } = renderHook(() => useWalletComponents());
@@ -55,9 +55,9 @@ describe('useWalletComponents', () => {
   });
 
   describe('when getEcosystemWalletComponents is not a function', () => {
-    it('should return null when adapter has no getEcosystemWalletComponents', () => {
+    it('should return null when runtime has no uiKit capability', () => {
       mockUseWalletState.mockReturnValue({
-        activeAdapter: {},
+        activeRuntime: {},
       });
 
       const { result } = renderHook(() => useWalletComponents());
@@ -67,8 +67,10 @@ describe('useWalletComponents', () => {
 
     it('should return null when getEcosystemWalletComponents is a non-function value', () => {
       mockUseWalletState.mockReturnValue({
-        activeAdapter: {
-          getEcosystemWalletComponents: 'not-a-function',
+        activeRuntime: {
+          uiKit: {
+            getEcosystemWalletComponents: 'not-a-function',
+          },
         },
       });
 
@@ -79,8 +81,10 @@ describe('useWalletComponents', () => {
 
     it('should return null when getEcosystemWalletComponents is null', () => {
       mockUseWalletState.mockReturnValue({
-        activeAdapter: {
-          getEcosystemWalletComponents: null,
+        activeRuntime: {
+          uiKit: {
+            getEcosystemWalletComponents: null,
+          },
         },
       });
 
@@ -93,9 +97,11 @@ describe('useWalletComponents', () => {
   describe('when getEcosystemWalletComponents throws an error', () => {
     it('should return null when getEcosystemWalletComponents throws', () => {
       mockUseWalletState.mockReturnValue({
-        activeAdapter: {
-          getEcosystemWalletComponents: () => {
-            throw new Error('Component retrieval failed');
+        activeRuntime: {
+          uiKit: {
+            getEcosystemWalletComponents: () => {
+              throw new Error('Component retrieval failed');
+            },
           },
         },
       });
@@ -109,8 +115,10 @@ describe('useWalletComponents', () => {
   describe('when getEcosystemWalletComponents returns null or undefined', () => {
     it('should return null when getEcosystemWalletComponents returns null', () => {
       mockUseWalletState.mockReturnValue({
-        activeAdapter: {
-          getEcosystemWalletComponents: () => null,
+        activeRuntime: {
+          uiKit: {
+            getEcosystemWalletComponents: () => null,
+          },
         },
       });
 
@@ -121,8 +129,10 @@ describe('useWalletComponents', () => {
 
     it('should return null when getEcosystemWalletComponents returns undefined', () => {
       mockUseWalletState.mockReturnValue({
-        activeAdapter: {
-          getEcosystemWalletComponents: () => undefined,
+        activeRuntime: {
+          uiKit: {
+            getEcosystemWalletComponents: () => undefined,
+          },
         },
       });
 
@@ -135,8 +145,10 @@ describe('useWalletComponents', () => {
   describe('when getEcosystemWalletComponents returns components successfully', () => {
     it('should return wallet components when available', () => {
       mockUseWalletState.mockReturnValue({
-        activeAdapter: {
-          getEcosystemWalletComponents: () => mockWalletComponents,
+        activeRuntime: {
+          uiKit: {
+            getEcosystemWalletComponents: () => mockWalletComponents,
+          },
         },
       });
 
@@ -147,8 +159,10 @@ describe('useWalletComponents', () => {
 
     it('should return components with all expected properties', () => {
       mockUseWalletState.mockReturnValue({
-        activeAdapter: {
-          getEcosystemWalletComponents: () => mockWalletComponents,
+        activeRuntime: {
+          uiKit: {
+            getEcosystemWalletComponents: () => mockWalletComponents,
+          },
         },
       });
 
@@ -165,8 +179,10 @@ describe('useWalletComponents', () => {
       };
 
       mockUseWalletState.mockReturnValue({
-        activeAdapter: {
-          getEcosystemWalletComponents: () => partialComponents,
+        activeRuntime: {
+          uiKit: {
+            getEcosystemWalletComponents: () => partialComponents,
+          },
         },
       });
 
@@ -177,10 +193,12 @@ describe('useWalletComponents', () => {
       expect(result.current?.AccountDisplay).toBeUndefined();
     });
 
-    it('should return empty object when adapter returns empty object', () => {
+    it('should return empty object when runtime uiKit returns empty object', () => {
       mockUseWalletState.mockReturnValue({
-        activeAdapter: {
-          getEcosystemWalletComponents: () => ({}),
+        activeRuntime: {
+          uiKit: {
+            getEcosystemWalletComponents: () => ({}),
+          },
         },
       });
 
@@ -191,19 +209,21 @@ describe('useWalletComponents', () => {
   });
 
   describe('reactivity', () => {
-    it('should update when adapter changes', () => {
-      // Start with no adapter
+    it('should update when runtime changes', () => {
+      // Start with no runtime
       mockUseWalletState.mockReturnValue({
-        activeAdapter: null,
+        activeRuntime: null,
       });
 
       const { result, rerender } = renderHook(() => useWalletComponents());
       expect(result.current).toBeNull();
 
-      // Update to have an adapter
+      // Update to have a runtime with uiKit
       mockUseWalletState.mockReturnValue({
-        activeAdapter: {
-          getEcosystemWalletComponents: () => mockWalletComponents,
+        activeRuntime: {
+          uiKit: {
+            getEcosystemWalletComponents: () => mockWalletComponents,
+          },
         },
       });
 

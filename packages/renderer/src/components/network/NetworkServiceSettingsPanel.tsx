@@ -14,13 +14,13 @@ import {
   AlertTitle,
   Button,
 } from '@openzeppelin/ui-components';
-import type { ContractAdapter, FormValues, NetworkServiceForm } from '@openzeppelin/ui-types';
+import type { FormValues, NetworkServiceForm, RelayerCapability } from '@openzeppelin/ui-types';
 import { logger, sanitizeHtml, userNetworkServiceConfigService } from '@openzeppelin/ui-utils';
 
 import { DynamicFormField } from '../DynamicFormField';
 
 interface Props {
-  adapter: ContractAdapter;
+  relayer: RelayerCapability;
   networkId: string;
   service: NetworkServiceForm;
   onSettingsChanged?: () => void;
@@ -28,7 +28,7 @@ interface Props {
 
 /** Panel for configuring network service settings like RPC endpoints. */
 export function NetworkServiceSettingsPanel({
-  adapter,
+  relayer,
   networkId,
   service,
   onSettingsChanged,
@@ -104,12 +104,12 @@ export function NetworkServiceSettingsPanel({
   }, [networkId, service.id, fields, setValue, getValues]);
 
   const testConnection = useCallback(async () => {
-    if (!adapter.testNetworkServiceConnection) return;
+    if (!relayer.testNetworkServiceConnection) return;
     setIsTesting(true);
     setResult(null);
     try {
       const data = getValues() as unknown as Record<string, unknown>;
-      const r = await adapter.testNetworkServiceConnection(service.id, data);
+      const r = await relayer.testNetworkServiceConnection(service.id, data);
       setResult({
         success: r.success,
         message: r.error || (r.success ? 'Connection successful' : 'Connection failed'),
@@ -123,13 +123,13 @@ export function NetworkServiceSettingsPanel({
     } finally {
       setIsTesting(false);
     }
-  }, [adapter, service.id, getValues]);
+  }, [relayer, service.id, getValues]);
 
   const onSubmit = useCallback(
     async (formData: FormValues) => {
       const data = formData as unknown as Record<string, unknown>;
-      if (adapter.validateNetworkServiceConfig) {
-        const ok = await adapter.validateNetworkServiceConfig(service.id, data);
+      if (relayer.validateNetworkServiceConfig) {
+        const ok = await relayer.validateNetworkServiceConfig(service.id, data);
         if (!ok) {
           setResult({ success: false, message: 'Invalid configuration' });
           return;
@@ -145,7 +145,7 @@ export function NetworkServiceSettingsPanel({
       onSettingsChanged?.();
       setResult({ success: true, message: 'Settings saved successfully' });
     },
-    [adapter, networkId, service.id, onSettingsChanged]
+    [relayer, networkId, service.id, onSettingsChanged]
   );
 
   return (
@@ -201,7 +201,6 @@ export function NetworkServiceSettingsPanel({
               key={field.id}
               field={field}
               control={control as unknown as Control<FormValues>}
-              adapter={adapter}
             />
           ))}
         </div>
@@ -250,7 +249,6 @@ export function NetworkServiceSettingsPanel({
                             <DynamicFormField
                               field={wrappedField}
                               control={control as unknown as Control<FormValues>}
-                              adapter={adapter}
                             />
                           </div>
                         );
@@ -300,7 +298,7 @@ export function NetworkServiceSettingsPanel({
             const md = f.metadata as Record<string, unknown> | undefined;
             return (md?.hideTestConnection as boolean) === true;
           });
-          return Boolean(adapter.testNetworkServiceConnection) && !hideTest;
+          return Boolean(relayer.testNetworkServiceConnection) && !hideTest;
         })() ? (
           <Button type="button" variant="outline" onClick={testConnection} disabled={isTesting}>
             {isTesting ? (

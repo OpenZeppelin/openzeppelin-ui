@@ -19,8 +19,8 @@ export const RelayerConfigDetails: React.FC<RelayerConfigDetailsProps> = ({
   loading = false,
 }) => {
   const { relayer } = config;
-  const { activeAdapter } = useWalletState();
-  const labels = activeAdapter?.getUiLabels?.();
+  const { activeRuntime } = useWalletState();
+  const labels = activeRuntime?.uiLabels.getUiLabels();
 
   return (
     <div className="space-y-4">

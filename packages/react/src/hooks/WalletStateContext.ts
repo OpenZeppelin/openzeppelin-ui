@@ -1,7 +1,7 @@
 import React, { createContext } from 'react';
 
 import type {
-  ContractAdapter,
+  EcosystemRuntime,
   EcosystemSpecificReactHooks,
   NetworkConfig,
   UiKitConfiguration,
@@ -13,14 +13,14 @@ export interface WalletStateContextValue {
   setActiveNetworkId: (networkId: string | null) => void;
   activeNetworkConfig: NetworkConfig | null;
 
-  // Active adapter state
-  activeAdapter: ContractAdapter | null;
-  isAdapterLoading: boolean;
+  // Active runtime state
+  activeRuntime: EcosystemRuntime | null;
+  isRuntimeLoading: boolean;
 
-  // Facade hooks object from the active adapter
+  // Facade hooks object from the active runtime's UI kit
   // Consumers will call these hooks (e.g., walletFacadeHooks.useAccount())
   walletFacadeHooks: EcosystemSpecificReactHooks | null;
-  reconfigureActiveAdapterUiKit: (uiKitConfig?: Partial<UiKitConfiguration>) => void;
+  reconfigureActiveUiKit: (uiKitConfig?: Partial<UiKitConfiguration>) => void;
 }
 
 /**

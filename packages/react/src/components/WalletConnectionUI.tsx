@@ -49,28 +49,33 @@ export const WalletConnectionUI: React.FC<WalletConnectionUIProps> = ({
   networkSwitcherProps,
 }) => {
   const [isError, setIsError] = useState(false);
-  const { activeAdapter, walletFacadeHooks } = useWalletState();
+  const { activeRuntime, walletFacadeHooks } = useWalletState();
+  const activeUiKit = activeRuntime?.uiKit;
 
   useEffect(() => {
     logger.debug('WalletConnectionUI', '[Debug] State from useWalletState:', {
-      adapterId: activeAdapter?.networkConfig.id,
+      runtimeId: activeRuntime?.networkConfig.id,
       hasFacadeHooks: !!walletFacadeHooks,
     });
-  }, [activeAdapter, walletFacadeHooks]);
+  }, [activeRuntime, walletFacadeHooks]);
 
   // Compute wallet components on each render to ensure UI kit changes are reflected immediately
   const walletComponents = (() => {
-    if (!activeAdapter || typeof activeAdapter.getEcosystemWalletComponents !== 'function') {
+    if (!activeUiKit || typeof activeUiKit.getEcosystemWalletComponents !== 'function') {
       logger.debug(
         'WalletConnectionUI',
-        '[Debug] No activeAdapter or getEcosystemWalletComponents method, returning null.'
+        '[Debug] No active uiKit or getEcosystemWalletComponents method, returning null.'
       );
       return null;
     }
 
     try {
-      const components = activeAdapter.getEcosystemWalletComponents();
-      logger.debug('WalletConnectionUI', '[Debug] walletComponents from adapter:', components);
+      const components = activeUiKit.getEcosystemWalletComponents();
+      logger.debug(
+        'WalletConnectionUI',
+        '[Debug] walletComponents from runtime uiKit:',
+        components
+      );
       return components;
     } catch (error) {
       logger.error('WalletConnectionUI', '[Debug] Error getting wallet components:', error);
