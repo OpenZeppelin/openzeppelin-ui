@@ -72,6 +72,10 @@ export function RuntimeProvider({ children, resolveRuntime }: RuntimeProviderPro
    * Evicts a runtime from the registry by network ID and disposes it.
    * This is the safe counterpart to `getRuntimeForNetwork`: callers should only
    * release a runtime after they have already promoted its replacement.
+   *
+   * Disposal is deferred to the next macrotask so React's commit phase
+   * (including development-mode prop diffing) can finish reading the old
+   * runtime's properties without hitting the RuntimeDisposedError proxy trap.
    */
   const releaseRuntime = useCallback((networkId: string) => {
     const runtime = runtimeRegistryRef.current[networkId];
@@ -87,11 +91,13 @@ export function RuntimeProvider({ children, resolveRuntime }: RuntimeProviderPro
       return next;
     });
 
-    try {
-      runtime.dispose();
-    } catch (error) {
-      logger.error('RuntimeProvider', `Error disposing runtime for network ${networkId}:`, error);
-    }
+    setTimeout(() => {
+      try {
+        runtime.dispose();
+      } catch (error) {
+        logger.error('RuntimeProvider', `Error disposing runtime for network ${networkId}:`, error);
+      }
+    }, 0);
   }, []);
 
   /**
