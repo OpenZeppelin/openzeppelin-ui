@@ -30,6 +30,11 @@ export interface RuntimeContextValue {
     runtime: EcosystemRuntime | null;
     isLoading: boolean;
   };
+  /**
+   * Evicts a runtime from the registry and calls `dispose()` on it.
+   * Used by WalletStateProvider to release superseded runtimes after a safe handoff.
+   */
+  releaseRuntime: (networkId: string) => void;
 }
 
 /**

@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
   EcosystemReactUiProviderProps,
@@ -135,7 +135,11 @@ export function WalletStateProvider({
   >(undefined);
 
   // Consume RuntimeContext to get the function for fetching runtime instances.
-  const { getRuntimeForNetwork } = useRuntimeContext();
+  const { getRuntimeForNetwork, releaseRuntime } = useRuntimeContext();
+
+  // Track the network ID of the currently promoted runtime so we can release it
+  // after a successful handoff to the next runtime.
+  const promotedNetworkIdRef = useRef<string | null>(null);
 
   // Effect to derive the full NetworkConfig object when currentGlobalNetworkId changes.
   useEffect(() => {
@@ -168,16 +172,23 @@ export function WalletStateProvider({
   }, [currentGlobalNetworkId, getNetworkConfigById]);
 
   // Effect to load the active runtime and its UI capabilities when currentGlobalNetworkConfig changes.
+  // Implements a safe handoff: the previous runtime stays active while the replacement loads and
+  // configures its UI kit. Only after the new runtime is promoted does the old one get released.
   useEffect(() => {
     const abortController = new AbortController();
 
     async function loadRuntimeAndConfigureUi() {
       if (!currentGlobalNetworkConfig) {
-        // No network config - clear everything
         if (!abortController.signal.aborted) {
+          const prevNetworkId = promotedNetworkIdRef.current;
           setGlobalActiveRuntime(null);
           setIsGlobalRuntimeLoading(false);
           setActiveWalletSessionEcosystem(null);
+
+          if (prevNetworkId) {
+            releaseRuntime(prevNetworkId);
+            promotedNetworkIdRef.current = null;
+          }
         }
         return;
       }
@@ -188,8 +199,6 @@ export function WalletStateProvider({
 
       if (abortController.signal.aborted) return;
 
-      // Update loading state immediately, but defer exposing the new runtime
-      // until its UI provider and hooks are configured to avoid mismatch renders.
       setIsGlobalRuntimeLoading(newIsLoading);
 
       if (newRuntime && !newIsLoading) {
@@ -202,20 +211,26 @@ export function WalletStateProvider({
 
           if (!abortController.signal.aborted) {
             const ecosystem = newRuntime.networkConfig.ecosystem;
+            const prevNetworkId = promotedNetworkIdRef.current;
+            const nextNetworkId = newRuntime.networkConfig.id;
 
-            // Cache the latest provider/hooks pair for this ecosystem. When switching between
-            // networks inside the same ecosystem, the provider key stays stable and the mounted
-            // wallet session survives the runtime replacement underneath it.
             setWalletSessionRegistry((prevRegistry) =>
               upsertWalletSession(prevRegistry, {
                 ecosystem,
-                lastConfiguredNetworkId: newRuntime.networkConfig.id,
+                lastConfiguredNetworkId: nextNetworkId,
                 providerComponent,
                 hooks,
               })
             );
             setGlobalActiveRuntime(newRuntime);
             setActiveWalletSessionEcosystem(ecosystem);
+            promotedNetworkIdRef.current = nextNetworkId;
+
+            // Release the superseded runtime now that the replacement is promoted.
+            // Skip when the network ID hasn't changed (e.g. UI-kit reconfiguration).
+            if (prevNetworkId && prevNetworkId !== nextNetworkId) {
+              releaseRuntime(prevNetworkId);
+            }
           }
         } catch (error) {
           if (!abortController.signal.aborted) {
@@ -227,10 +242,15 @@ export function WalletStateProvider({
           }
         }
       } else if (!newRuntime && !newIsLoading) {
-        // Runtime is null and not loading, clear active runtime and visible session selection.
         if (!abortController.signal.aborted) {
+          const prevNetworkId = promotedNetworkIdRef.current;
           setGlobalActiveRuntime(null);
           setActiveWalletSessionEcosystem(null);
+
+          if (prevNetworkId) {
+            releaseRuntime(prevNetworkId);
+            promotedNetworkIdRef.current = null;
+          }
         }
       }
       // If newIsLoading is true, retain the active wallet session so same-ecosystem switches do
@@ -242,6 +262,7 @@ export function WalletStateProvider({
   }, [
     currentGlobalNetworkConfig,
     getRuntimeForNetwork,
+    releaseRuntime,
     loadConfigModule,
     uiKitConfigVersion,
     programmaticUiKitConfig,

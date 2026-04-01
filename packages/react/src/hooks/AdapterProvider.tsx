@@ -69,6 +69,32 @@ export function RuntimeProvider({ children, resolveRuntime }: RuntimeProviderPro
   }, [runtimeRegistry, loadingNetworks]);
 
   /**
+   * Evicts a runtime from the registry by network ID and disposes it.
+   * This is the safe counterpart to `getRuntimeForNetwork`: callers should only
+   * release a runtime after they have already promoted its replacement.
+   */
+  const releaseRuntime = useCallback((networkId: string) => {
+    const runtime = runtimeRegistryRef.current[networkId];
+    if (!runtime) {
+      return;
+    }
+
+    logger.info('RuntimeProvider', `Releasing runtime for network ${networkId}`);
+
+    setRuntimeRegistry((prev) => {
+      const next = { ...prev };
+      delete next[networkId];
+      return next;
+    });
+
+    try {
+      runtime.dispose();
+    } catch (error) {
+      logger.error('RuntimeProvider', `Error disposing runtime for network ${networkId}:`, error);
+    }
+  }, []);
+
+  /**
    * Function to get or create a runtime for a network
    *
    * IMPORTANT: Runtime loading is coordinated carefully to avoid React state updates
@@ -164,8 +190,9 @@ export function RuntimeProvider({ children, resolveRuntime }: RuntimeProviderPro
   const contextValue = useMemo<RuntimeContextValue>(
     () => ({
       getRuntimeForNetwork,
+      releaseRuntime,
     }),
-    [getRuntimeForNetwork]
+    [getRuntimeForNetwork, releaseRuntime]
   );
 
   return <RuntimeContext.Provider value={contextValue}>{children}</RuntimeContext.Provider>;
