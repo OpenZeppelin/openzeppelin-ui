@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { Button } from '@openzeppelin/ui-components';
 import type { BaseComponentProps } from '@openzeppelin/ui-types';
@@ -49,59 +49,39 @@ export const WalletConnectionUI: React.FC<WalletConnectionUIProps> = ({
   networkSwitcherProps,
 }) => {
   const [isError, setIsError] = useState(false);
-  const { activeRuntime, walletFacadeHooks } = useWalletState();
+  const { activeNetworkConfig, activeRuntime, isRuntimeLoading } = useWalletState();
   const activeUiKit = activeRuntime?.uiKit;
+  const isCrossEcosystemTransition = !!(
+    isRuntimeLoading &&
+    activeRuntime?.networkConfig?.ecosystem &&
+    activeNetworkConfig?.ecosystem &&
+    activeRuntime.networkConfig.ecosystem !== activeNetworkConfig.ecosystem
+  );
 
-  useEffect(() => {
-    logger.debug('WalletConnectionUI', '[Debug] State from useWalletState:', {
-      runtimeId: activeRuntime?.networkConfig.id,
-      hasFacadeHooks: !!walletFacadeHooks,
-    });
-  }, [activeRuntime, walletFacadeHooks]);
+  if (isCrossEcosystemTransition) {
+    return null;
+  }
 
-  // Compute wallet components on each render to ensure UI kit changes are reflected immediately
   const walletComponents = (() => {
     if (!activeUiKit || typeof activeUiKit.getEcosystemWalletComponents !== 'function') {
-      logger.debug(
-        'WalletConnectionUI',
-        '[Debug] No active uiKit or getEcosystemWalletComponents method, returning null.'
-      );
       return null;
     }
 
     try {
-      const components = activeUiKit.getEcosystemWalletComponents();
-      logger.debug(
-        'WalletConnectionUI',
-        '[Debug] walletComponents from runtime uiKit:',
-        components
-      );
-      return components;
+      return activeUiKit.getEcosystemWalletComponents();
     } catch (error) {
-      logger.error('WalletConnectionUI', '[Debug] Error getting wallet components:', error);
+      logger.error('WalletConnectionUI', 'Error getting wallet components:', error);
       setIsError(true);
       return null;
     }
   })();
 
   if (!walletComponents) {
-    logger.debug(
-      'WalletConnectionUI',
-      '[Debug] getEcosystemWalletComponents returned null/undefined, rendering null.'
-    );
     return null;
   }
 
-  // Log available components for debugging
-  logger.debug('WalletConnectionUI', 'Rendering wallet components:', {
-    hasConnectButton: !!walletComponents.ConnectButton,
-    hasAccountDisplay: !!walletComponents.AccountDisplay,
-    hasNetworkSwitcher: !!walletComponents.NetworkSwitcher,
-  });
-
   const { ConnectButton, AccountDisplay, NetworkSwitcher } = walletComponents;
 
-  // If there was an error, show an error button
   if (isError) {
     return (
       <div className={cn('flex items-center gap-4', className)}>
@@ -114,13 +94,8 @@ export const WalletConnectionUI: React.FC<WalletConnectionUIProps> = ({
 
   return (
     <div className={cn('flex items-center gap-4', className)}>
-      {/* Display network switcher if available - moved before account to match typical wallet UI flow */}
       {NetworkSwitcher && <NetworkSwitcher {...networkSwitcherProps} />}
-
-      {/* Display account info if available */}
       {AccountDisplay && <AccountDisplay {...accountDisplayProps} />}
-
-      {/* Display connect button if available */}
       {ConnectButton && <ConnectButton {...connectButtonProps} />}
     </div>
   );

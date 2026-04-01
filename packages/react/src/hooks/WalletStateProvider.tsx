@@ -11,6 +11,11 @@ import type {
 import { logger } from '@openzeppelin/ui-utils';
 
 import { useRuntimeContext } from './useAdapterContext';
+import {
+  getWalletSession,
+  upsertWalletSession,
+  type WalletSessionRegistry,
+} from './walletSessionRegistry';
 import { WalletStateContext, type WalletStateContextValue } from './WalletStateContext';
 
 export interface WalletStateProviderProps {
@@ -31,7 +36,7 @@ export interface WalletStateProviderProps {
 }
 
 /**
- * Configures the runtime's UI kit capability and returns the provider component and hooks.
+ * Configures the runtime's UI kit capability and returns the ecosystem session artifacts.
  */
 async function configureRuntimeUiKit(
   runtime: EcosystemRuntime,
@@ -88,9 +93,10 @@ async function configureRuntimeUiKit(
  * 2. Deriving the full `NetworkConfig` object (`activeNetworkConfig`) for the active network.
  * 3. Fetching and providing the corresponding `EcosystemRuntime` (`activeRuntime`) for the active network,
  *    leveraging the `RuntimeProvider` to ensure runtime singletons.
- * 4. Storing and providing the `EcosystemSpecificReactHooks` (`walletFacadeHooks`) from the active runtime's UI kit.
- * 5. Rendering the runtime-provided UI context provider (e.g., WagmiProvider for EVM) around its children,
- *    which is essential for the facade hooks to function correctly.
+ * 4. Caching ecosystem-scoped wallet session artifacts (provider roots and facade hooks)
+ *    independently from the network-scoped runtime.
+ * 5. Rendering the active ecosystem wallet provider (e.g., WagmiProvider for EVM) around its
+ *    children, which is essential for the facade hooks to function correctly.
  * 6. Providing a function (`setActiveNetworkId`) to change the globally active network.
  *
  * Consumers use the `useWalletState()` hook to access this global state.
@@ -114,13 +120,12 @@ export function WalletStateProvider({
   const [globalActiveRuntime, setGlobalActiveRuntime] = useState<EcosystemRuntime | null>(null);
   // Loading state for the globalActiveRuntime.
   const [isGlobalRuntimeLoading, setIsGlobalRuntimeLoading] = useState<boolean>(false);
-  // State for the facade hooks provided by the active runtime's UI kit.
-  const [walletFacadeHooks, setWalletFacadeHooks] = useState<EcosystemSpecificReactHooks | null>(
+  // Cache one wallet provider/hooks pair per ecosystem so same-ecosystem network switches do not
+  // remount the wallet provider. The active runtime remains network-scoped and disposable.
+  const [walletSessionRegistry, setWalletSessionRegistry] = useState<WalletSessionRegistry>({});
+  const [activeWalletSessionEcosystem, setActiveWalletSessionEcosystem] = useState<string | null>(
     null
   );
-  // State to hold the Component Type
-  const [RuntimeUiContextProviderToRender, setRuntimeUiContextProviderToRender] =
-    useState<React.ComponentType<EcosystemReactUiProviderProps> | null>(null);
 
   // New state to act as a manual trigger for re-configuring the UI kit.
   const [uiKitConfigVersion, setUiKitConfigVersion] = useState(0);
@@ -172,8 +177,7 @@ export function WalletStateProvider({
         if (!abortController.signal.aborted) {
           setGlobalActiveRuntime(null);
           setIsGlobalRuntimeLoading(false);
-          setRuntimeUiContextProviderToRender(null);
-          setWalletFacadeHooks(null);
+          setActiveWalletSessionEcosystem(null);
         }
         return;
       }
@@ -197,12 +201,21 @@ export function WalletStateProvider({
           );
 
           if (!abortController.signal.aborted) {
-            // Ensure provider component and hooks are ready before exposing the new runtime
-            // to consumers. This prevents rendering ecosystem-specific components under the
-            // previous ecosystem provider (e.g., Stellar components under EVM provider).
-            setRuntimeUiContextProviderToRender(() => providerComponent);
-            setWalletFacadeHooks(hooks);
+            const ecosystem = newRuntime.networkConfig.ecosystem;
+
+            // Cache the latest provider/hooks pair for this ecosystem. When switching between
+            // networks inside the same ecosystem, the provider key stays stable and the mounted
+            // wallet session survives the runtime replacement underneath it.
+            setWalletSessionRegistry((prevRegistry) =>
+              upsertWalletSession(prevRegistry, {
+                ecosystem,
+                lastConfiguredNetworkId: newRuntime.networkConfig.id,
+                providerComponent,
+                hooks,
+              })
+            );
             setGlobalActiveRuntime(newRuntime);
+            setActiveWalletSessionEcosystem(ecosystem);
           }
         } catch (error) {
           if (!abortController.signal.aborted) {
@@ -211,20 +224,17 @@ export function WalletStateProvider({
               'Error during runtime UI setup:',
               error
             );
-            setRuntimeUiContextProviderToRender(null);
-            setWalletFacadeHooks(null);
           }
         }
       } else if (!newRuntime && !newIsLoading) {
-        // Runtime is null and not loading, clear UI specific state
+        // Runtime is null and not loading, clear active runtime and visible session selection.
         if (!abortController.signal.aborted) {
-          setRuntimeUiContextProviderToRender(null);
-          setWalletFacadeHooks(null);
           setGlobalActiveRuntime(null);
+          setActiveWalletSessionEcosystem(null);
         }
       }
-      // If newIsLoading is true, retain previous RuntimeUiContextProviderToRender and hooks
-      // to prevent UI flicker, EvmWalletUiRoot will handle its loading state internally.
+      // If newIsLoading is true, retain the active wallet session so same-ecosystem switches do
+      // not tear down the connected provider while the target runtime is still loading.
     }
 
     void loadRuntimeAndConfigureUi();
@@ -239,7 +249,7 @@ export function WalletStateProvider({
 
   /**
    * Callback to set the globally active network ID.
-   * Also clears dependent states (config, runtime, hooks) if the network ID is cleared.
+   * Also clears dependent states if the network ID is cleared.
    */
   const setActiveNetworkIdCallback = useCallback((networkId: string | null) => {
     logger.info('WalletStateProvider', `Setting global network ID to: ${networkId}`);
@@ -250,10 +260,7 @@ export function WalletStateProvider({
       setCurrentGlobalNetworkConfig(null);
       setGlobalActiveRuntime(null);
       setIsGlobalRuntimeLoading(false);
-      setWalletFacadeHooks(null);
-      // Do not clear RuntimeUiContextProviderToRender here, let the effect handle it
-      // based on whether it's a loading transition or an actual clearing.
-      // setRuntimeUiContextProviderToRender(() => null);
+      setActiveWalletSessionEcosystem(null);
     }
   }, []); // Empty dependency array as it only uses setters from useState.
 
@@ -274,8 +281,15 @@ export function WalletStateProvider({
     [setProgrammaticUiKitConfig, setUiKitConfigVersion]
   );
 
-  // The context value now only provides the raw walletFacadeHooks object.
-  // Consumers are responsible for calling specific hooks from it and handling their results.
+  const activeWalletSession = useMemo(
+    () => getWalletSession(walletSessionRegistry, activeWalletSessionEcosystem),
+    [walletSessionRegistry, activeWalletSessionEcosystem]
+  );
+
+  const walletFacadeHooks: EcosystemSpecificReactHooks | null = activeWalletSession?.hooks ?? null;
+
+  // The context value exposes the active network-scoped runtime and the active ecosystem-scoped
+  // wallet session hooks. Consumers continue to access the same public fields.
   const contextValue = useMemo<WalletStateContextValue>(
     () => ({
       activeNetworkId: currentGlobalNetworkId,
@@ -297,16 +311,16 @@ export function WalletStateProvider({
     ]
   );
 
-  const ActualProviderToRender = RuntimeUiContextProviderToRender;
+  const ActualProviderToRender = activeWalletSession?.providerComponent ?? null;
   let childrenToRender: ReactNode;
 
   if (ActualProviderToRender) {
-    // Generate a unique key based on runtime network ecosystem and ID
-    // This ensures proper unmounting/mounting when switching between EVM/Stellar/etc.
-    const key = `${globalActiveRuntime?.networkConfig?.ecosystem || 'unknown'}-${globalActiveRuntime?.networkConfig?.id || 'unknown'}`;
+    // Key the provider by ecosystem instead of network so same-ecosystem network switches keep
+    // the wallet provider mounted. Switching ecosystems still remounts the provider cleanly.
+    const key = activeWalletSessionEcosystem || 'unknown';
 
     // Runtime-provided UI roots manage their own configuration internally via the UI kit capability.
-    logger.info(
+    logger.debug(
       '[WSP RENDER]',
       'Rendering runtime-provided UI context provider:',
       ActualProviderToRender.displayName || ActualProviderToRender.name || 'UnknownComponent',
@@ -315,7 +329,7 @@ export function WalletStateProvider({
     );
     childrenToRender = <ActualProviderToRender key={key}>{children}</ActualProviderToRender>;
   } else {
-    logger.info(
+    logger.debug(
       '[WSP RENDER]',
       'No runtime UI context provider to render. Rendering direct children.'
     );

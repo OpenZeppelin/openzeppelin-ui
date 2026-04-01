@@ -45,10 +45,20 @@ import { useWalletState } from './WalletStateContext';
  * ```
  */
 export function useWalletComponents(): EcosystemWalletComponents | null {
-  const { activeRuntime } = useWalletState();
+  const { activeNetworkConfig, activeRuntime, isRuntimeLoading } = useWalletState();
   const activeUiKit = activeRuntime?.uiKit;
+  const isCrossEcosystemTransition = !!(
+    isRuntimeLoading &&
+    activeRuntime?.networkConfig?.ecosystem &&
+    activeNetworkConfig?.ecosystem &&
+    activeRuntime.networkConfig.ecosystem !== activeNetworkConfig.ecosystem
+  );
 
-  if (!activeUiKit || typeof activeUiKit.getEcosystemWalletComponents !== 'function') {
+  if (
+    isCrossEcosystemTransition ||
+    !activeUiKit ||
+    typeof activeUiKit.getEcosystemWalletComponents !== 'function'
+  ) {
     return null;
   }
 
