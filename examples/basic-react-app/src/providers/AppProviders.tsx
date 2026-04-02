@@ -40,7 +40,7 @@ const kitConfigImportersAlt = import.meta.glob('../config/wallet/*.config.ts');
 
 /**
  * Loads a native configuration module for a wallet kit (e.g., RainbowKit).
- * The adapter calls this when configuring the UI kit, passing a conventional path.
+ * The runtime calls this when configuring the UI kit, passing a conventional path.
  *
  * @param relativePath - The conventional path like './config/wallet/rainbowkit.config.ts'
  * @returns The configuration object or null if not found

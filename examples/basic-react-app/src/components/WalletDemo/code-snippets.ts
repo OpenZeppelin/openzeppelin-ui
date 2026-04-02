@@ -199,7 +199,7 @@ export const STELLAR_WALLETS_KIT_EXPLANATION_CODE = `// The Stellar Wallets Kit 
 //
 // CONFIGURATION:
 // Unlike RainbowKit, the Stellar Wallets Kit uses its own built-in UI
-// and does not require a separate config file. The adapter automatically
+// and does not require a separate config file. The runtime automatically
 // initializes it with the current network (testnet/mainnet).
 //
 // The kit's modal UI is opened automatically when clicking "Connect Wallet"
@@ -208,7 +208,7 @@ export const STELLAR_WALLETS_KIT_EXPLANATION_CODE = `// The Stellar Wallets Kit 
 /**
  * Code snippet showing how the Stellar Wallets Kit works under the hood.
  */
-export const STELLAR_WALLETS_KIT_USAGE_CODE = `// The adapter initializes the Stellar Wallets Kit internally:
+export const STELLAR_WALLETS_KIT_USAGE_CODE = `// The runtime initializes the Stellar Wallets Kit internally:
 import { StellarWalletsKit, WalletNetwork, allowAllModules } from '@creit.tech/stellar-wallets-kit';
 
 // Kit is created with all wallet modules enabled
@@ -227,7 +227,7 @@ await kit.openModal({
   },
 });
 
-// For transaction signing, the adapter uses the kit internally:
+// For transaction signing, the runtime uses the kit internally:
 const signedXdr = await kit.signTransaction(transactionXdr);`;
 
 // ============================================================

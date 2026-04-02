@@ -53,8 +53,8 @@ export function ContractLoadingCard({
           </Button>
         </div>
         <CardDescription>
-          Uses <code>adapter.loadContract(address)</code> to fetch the contract ABI from block
-          explorers
+          Uses <code>contractLoading.loadContract(address)</code> to fetch the contract ABI from
+          block explorers
         </CardDescription>
       </CardHeader>
       <CardContent>

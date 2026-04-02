@@ -133,7 +133,7 @@ export function ContractInteractionsDemo(): React.ReactElement {
       title="Contract Interactions"
       description="Demonstrate reading contract state and executing transactions using the active runtime and UI components."
     >
-      {/* Adapter Switcher */}
+      {/* Ecosystem Switcher */}
       <div className="mb-6 flex items-center gap-3 rounded-lg bg-muted/50 p-3">
         <span className="text-sm text-muted-foreground">Select ecosystem:</span>
         <EcosystemSwitcher />

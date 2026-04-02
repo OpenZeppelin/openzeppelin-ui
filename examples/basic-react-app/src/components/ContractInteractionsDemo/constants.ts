@@ -5,16 +5,16 @@
 export const LOAD_CONTRACT_EXAMPLE = `import { useEcosystem } from './context';
 
 function ContractLoader() {
-  const { adapter } = useEcosystem();
+  const { capabilities } = useEcosystem();
   const [schema, setSchema] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const loadContract = async (address: string) => {
     setLoading(true);
     try {
-      // The adapter fetches the contract ABI from block explorers
+      // The runtime fetches the contract ABI from block explorers
       // (Etherscan, Sourcify for EVM; Soroban RPC for Stellar)
-      const contractSchema = await adapter.loadContract(address);
+      const contractSchema = await capabilities.loadContract(address);
       setSchema(contractSchema);
     } catch (error) {
       console.error('Failed to load contract:', error);

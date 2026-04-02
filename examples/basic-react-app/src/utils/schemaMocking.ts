@@ -2,8 +2,8 @@
  * Schema Mocking Utilities
  *
  * Generates mock schema data for preview purposes when the actual contract
- * schema is not available. All utilities derive from the adapter where possible
- * to ensure ecosystem-aware mock data without hardcoding specific ecosystems.
+ * schema is not available. All utilities derive from the runtime's type mapping
+ * capability to ensure ecosystem-aware mock data without hardcoding specific ecosystems.
  */
 
 import type { FormFieldType, TypeMappingCapability } from '@openzeppelin/ui-types';
@@ -23,7 +23,7 @@ export type SchemaEnhancement = {
 // ============================================================================
 
 /**
- * Extracts representative primitive types from an adapter's type mapping.
+ * Extracts representative primitive types from the type mapping capability.
  * Returns ecosystem-aware types without hardcoding specific ecosystems.
  */
 function getRepresentativeTypes(typeMapping: TypeMappingCapability): {
@@ -50,11 +50,11 @@ function getRepresentativeTypes(typeMapping: TypeMappingCapability): {
 // ============================================================================
 
 /**
- * Generates mock components (FunctionParameter format) using the adapter's own primitive types.
+ * Generates mock components (FunctionParameter format) using the runtime's own primitive types.
  * This makes the mock data ecosystem-aware (EVM uses address/uint256, Stellar uses Address/U128, etc.)
  *
  * The ObjectField component expects `components` as an array of FunctionParameter objects,
- * which it then passes to adapter.generateDefaultField() for proper field generation.
+ * which it then passes to typeMapping.generateDefaultField() for proper field generation.
  */
 export function generateMockComponents(typeMapping: TypeMappingCapability): Array<{
   name: string;
@@ -89,7 +89,7 @@ export function generateMockComponents(typeMapping: TypeMappingCapability): Arra
 /**
  * Generates mock enum metadata for preview purposes.
  * EnumField expects enumMetadata with variants, not simple options.
- * Uses adapter's primitive types to generate ecosystem-aware payload examples.
+ * Uses the type mapping's primitive types to generate ecosystem-aware payload examples.
  */
 export function generateMockEnumMetadata(typeMapping: TypeMappingCapability): {
   name: string;
@@ -142,10 +142,10 @@ export function getMockPreviewMessage(typeDescription: string): string {
 
 /**
  * Detects incomplete schemas and dynamically generates mock data using
- * the adapter's own primitive types. This makes previews ecosystem-aware.
+ * the runtime's own primitive types. This makes previews ecosystem-aware.
  *
  * Key insight: ObjectField expects `components` (FunctionParameter[]), not `properties`.
- * The adapter.generateDefaultField() is called by ObjectField for each component.
+ * typeMapping.generateDefaultField() is called by ObjectField for each component.
  */
 export function enhanceSchemaWithMockData(
   fieldSchema: FormFieldType,
