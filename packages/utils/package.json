@@ -1,6 +1,6 @@
 {
   "name": "@openzeppelin/ui-utils",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "private": false,
   "description": "Shared, framework-agnostic utility functions for the OpenZeppelin UI ecosystem.",
   "type": "module",
