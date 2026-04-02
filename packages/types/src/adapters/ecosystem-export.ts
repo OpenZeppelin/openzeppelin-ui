@@ -11,6 +11,7 @@ import type { ProfileName } from './profiles/profile-name';
 import type { NetworkConfig } from '../networks';
 import type { AdapterConfig } from './config';
 import type { EcosystemMetadata } from './ecosystem-metadata';
+import type { AdapterExportBootstrap, AdapterExportContext } from './export';
 import type { CapabilityFactoryMap, EcosystemRuntime } from './runtime';
 
 export interface EcosystemExport extends EcosystemMetadata {
@@ -34,6 +35,14 @@ export interface EcosystemExport extends EcosystemMetadata {
     config: NetworkConfig,
     options?: { uiKit?: string }
   ) => EcosystemRuntime;
+
+  /**
+   * Optional build-time hook for exported apps that need adapter-specific
+   * bootstrap files or initialization snippets.
+   */
+  getExportBootstrapFiles?: (
+    context: AdapterExportContext
+  ) => Promise<AdapterExportBootstrap | null>;
 
   /** Dependency and build configuration (used by ui-builder for scaffolding) */
   adapterConfig?: AdapterConfig;
