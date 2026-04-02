@@ -1,5 +1,21 @@
 # @openzeppelin/ui-components
 
+## 2.0.0
+
+### Major Changes
+
+- [#113](https://github.com/OpenZeppelin/openzeppelin-ui/pull/113) [`52f2823`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/52f2823734d1a123b607f1ce8804b0f6d57cf728) Thanks [@pasevin](https://github.com/pasevin)! - Migrate shared UI packages from monolithic adapter APIs to capability-based runtime APIs.
+
+  BREAKING CHANGE: shared component props, helper types, and React context exports now use
+  narrow capability interfaces and runtime-oriented names instead of `ContractAdapter` and
+  `FullContractAdapter` surfaces.
+
+### Patch Changes
+
+- Updated dependencies [[`52f2823`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/52f2823734d1a123b607f1ce8804b0f6d57cf728), [`52f2823`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/52f2823734d1a123b607f1ce8804b0f6d57cf728), [`52f2823`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/52f2823734d1a123b607f1ce8804b0f6d57cf728)]:
+  - @openzeppelin/ui-types@2.0.0
+  - @openzeppelin/ui-utils@2.0.0
+
 ## 1.7.0
 
 ### Minor Changes

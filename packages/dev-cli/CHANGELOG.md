@@ -1,5 +1,15 @@
 # @openzeppelin/ui-dev-cli
 
+## 0.5.1
+
+### Patch Changes
+
+- [#113](https://github.com/OpenZeppelin/openzeppelin-ui/pull/113) [`52f2823`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/52f2823734d1a123b607f1ce8804b0f6d57cf728) Thanks [@pasevin](https://github.com/pasevin)! - Fix local adapter development installs by resolving first-party workspace packages that are
+  outside the public family package map. Derive pnpmfile family data from the canonical
+  `STANDARD_FAMILIES` definition instead of maintaining a hardcoded duplicate. Also formalize
+  partial `UiKitConfiguration` overrides in the public types and ensure wallet state initializes
+  adapter-managed UI kits consistently.
+
 ## 0.5.0
 
 ### Minor Changes
