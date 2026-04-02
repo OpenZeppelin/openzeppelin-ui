@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { PROJECT_CONFIG_FILE } from './config';
-import { FamilyKey } from './families';
+import { STANDARD_FAMILIES, type FamilyKey } from './families';
 import { CLI_PACKAGE_NAME, getCliDependencyRange } from './packageInfo';
 
 export interface InitProjectOptions {
@@ -49,7 +49,22 @@ function createProjectConfig(options: InitProjectOptions): string {
   )}\n`;
 }
 
+function serializePnpmfileFamilies(): string {
+  const subset: Record<string, unknown> = {};
+  for (const [key, family] of Object.entries(STANDARD_FAMILIES)) {
+    subset[key] = {
+      repoName: family.repoName,
+      envFlag: family.envFlag,
+      envNames: [...family.envNames],
+      defaultPath: family.defaultPath,
+      packageMap: { ...family.packageMap },
+    };
+  }
+  return JSON.stringify(subset, null, 2);
+}
+
 function createPnpmfileContent(): string {
+  const familiesJson = serializePnpmfileFamilies();
   return `/**
  * pnpm hook for config-driven local development.
  *
@@ -62,37 +77,7 @@ const fs = require('fs');
 const path = require('path');
 
 const CONFIG_FILE = '.openzeppelin-dev.json';
-const STANDARD_FAMILIES = {
-  ui: {
-    repoName: 'openzeppelin-ui',
-    envFlag: 'LOCAL_UI',
-    envNames: ['LOCAL_UI_PATH'],
-    defaultPath: '../openzeppelin-ui',
-    packageMap: {
-      '@openzeppelin/ui-types': 'packages/types',
-      '@openzeppelin/ui-utils': 'packages/utils',
-      '@openzeppelin/ui-styles': 'packages/styles',
-      '@openzeppelin/ui-components': 'packages/components',
-      '@openzeppelin/ui-renderer': 'packages/renderer',
-      '@openzeppelin/ui-react': 'packages/react',
-      '@openzeppelin/ui-storage': 'packages/storage',
-    },
-  },
-  adapters: {
-    repoName: 'openzeppelin-adapters',
-    envFlag: 'LOCAL_ADAPTERS',
-    envNames: ['LOCAL_ADAPTERS_PATH'],
-    defaultPath: '../openzeppelin-adapters',
-    packageMap: {
-      '@openzeppelin/adapters-vite': 'packages/adapters-vite',
-      '@openzeppelin/adapter-evm': 'packages/adapter-evm',
-      '@openzeppelin/adapter-midnight': 'packages/adapter-midnight',
-      '@openzeppelin/adapter-polkadot': 'packages/adapter-polkadot',
-      '@openzeppelin/adapter-solana': 'packages/adapter-solana',
-      '@openzeppelin/adapter-stellar': 'packages/adapter-stellar',
-    },
-  },
-};
+const STANDARD_FAMILIES = ${familiesJson};
 
 function isObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
