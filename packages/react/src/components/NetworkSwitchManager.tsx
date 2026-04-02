@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { ContractAdapter } from '@openzeppelin/ui-types';
+import { NetworkCatalogCapability, WalletCapability } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
 
 import { useDerivedAccountStatus } from '../hooks/useDerivedAccountStatus';
@@ -10,8 +10,10 @@ import { useDerivedSwitchChainStatus } from '../hooks/useDerivedSwitchChainStatu
  * Props for the NetworkSwitchManager component.
  */
 export interface NetworkSwitchManagerProps {
-  /** The adapter instance for the target network */
-  adapter: ContractAdapter;
+  /** Wallet capability for the target network */
+  wallet: WalletCapability;
+  /** Network catalog capability used to validate the target network id */
+  networkCatalog: NetworkCatalogCapability;
   /** The network ID we want to switch to */
   targetNetworkId: string;
   /** Callback when network switch completes (success or error) */
@@ -33,7 +35,8 @@ export interface NetworkSwitchManagerProps {
  * - Provides completion callback for parent components to handle state cleanup
  */
 export const NetworkSwitchManager: React.FC<NetworkSwitchManagerProps> = ({
-  adapter,
+  wallet,
+  networkCatalog,
   targetNetworkId,
   onNetworkSwitchComplete,
 }) => {
@@ -66,7 +69,7 @@ export const NetworkSwitchManager: React.FC<NetworkSwitchManagerProps> = ({
   useEffect(() => {
     logger.info('NetworkSwitchManager', 'State Update:', {
       target: targetNetworkId,
-      adapterNetwork: adapter.networkConfig.id,
+      walletNetwork: wallet.networkConfig.id,
       isSwitching: isSwitchingNetworkViaHook,
       hookError: !!switchNetworkError,
       canExec: !!execSwitchNetwork,
@@ -75,7 +78,7 @@ export const NetworkSwitchManager: React.FC<NetworkSwitchManagerProps> = ({
       attempted: hasAttemptedSwitch,
     });
   }, [
-    adapter,
+    wallet,
     targetNetworkId,
     isSwitchingNetworkViaHook,
     switchNetworkError,
@@ -129,9 +132,21 @@ export const NetworkSwitchManager: React.FC<NetworkSwitchManagerProps> = ({
     // Note: setHasAttemptedSwitch(false) is in mount effect for targetNetworkId change.
 
     // === Pre-flight checks for the current targetNetworkId ===
-    if (adapter.networkConfig.id !== targetNetworkId) {
+    const targetNetwork = networkCatalog
+      .getNetworks()
+      .find((network) => network.id === targetNetworkId);
+    if (!targetNetwork) {
       completeOperation(
-        `CRITICAL: Adapter (${adapter.networkConfig.id}) vs Target (${targetNetworkId}) mismatch. Operation halted.`,
+        `Target network ${targetNetworkId} is not present in the network catalog.`,
+        {
+          notifyComplete: false,
+        }
+      );
+      return;
+    }
+    if (wallet.networkConfig.id !== targetNetworkId) {
+      completeOperation(
+        `CRITICAL: Wallet capability (${wallet.networkConfig.id}) vs Target (${targetNetworkId}) mismatch. Operation halted.`,
         {
           notifyComplete: false,
         }
@@ -144,13 +159,13 @@ export const NetworkSwitchManager: React.FC<NetworkSwitchManagerProps> = ({
       });
       return;
     }
-    if (!('chainId' in adapter.networkConfig)) {
+    if (!('chainId' in wallet.networkConfig)) {
       completeOperation(
         'Network does not support chain switching (non-EVM). Operation complete (no-op).'
       );
       return;
     }
-    const targetChainToBeSwitchedTo = Number(adapter.networkConfig.chainId);
+    const targetChainToBeSwitchedTo = Number(wallet.networkConfig.chainId);
     if (currentChainIdFromHook === targetChainToBeSwitchedTo) {
       completeOperation('Already on correct chain (derived status). Operation complete.');
       return;
@@ -176,7 +191,8 @@ export const NetworkSwitchManager: React.FC<NetworkSwitchManagerProps> = ({
     const timeoutId = setTimeout(performSwitchActual, 100);
     return () => clearTimeout(timeoutId);
   }, [
-    adapter,
+    wallet,
+    networkCatalog,
     targetNetworkId,
     execSwitchNetwork,
     isSwitchingNetworkViaHook,

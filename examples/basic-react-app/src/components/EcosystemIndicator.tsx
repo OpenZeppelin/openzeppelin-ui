@@ -20,7 +20,7 @@ export function EcosystemIndicator({
   if (isLoading || !metadata) {
     return (
       <div className={`bg-muted/50 rounded-lg p-3 ${className}`.trim()}>
-        <p className="text-muted-foreground text-sm">Loading adapter...</p>
+        <p className="text-muted-foreground text-sm">Loading runtime...</p>
       </div>
     );
   }

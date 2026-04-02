@@ -1,7 +1,7 @@
 /**
  * Type Mapping Demo
  *
- * Demonstrates how real adapters from @openzeppelin/adapter-*
+ * Demonstrates how profile runtimes from @openzeppelin/adapter-*
  * map blockchain-specific parameter types to UI form fields.
  */
 
@@ -10,7 +10,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 
 import { DynamicFormField } from '@openzeppelin/ui-renderer';
 import type {
-  ContractAdapter,
   DynamicTypePattern,
   FieldType,
   FormFieldType,
@@ -18,6 +17,7 @@ import type {
 } from '@openzeppelin/ui-types';
 
 import { useEcosystem } from '../context';
+import type { DemoCapabilities } from '../core/runtimeCapabilities';
 import { enhanceSchemaWithMockData, type SchemaEnhancement } from '../utils';
 import { DemoSection } from './DemoSection';
 import { EcosystemSwitcher } from './EcosystemSwitcher';
@@ -99,7 +99,7 @@ const FIELD_TYPE_DESCRIPTIONS: Partial<Record<FieldType, string>> = {
 
 interface FieldTypePreviewProps {
   parameterType: string;
-  adapter: ContractAdapter;
+  capabilities: DemoCapabilities;
 }
 
 interface FieldTypePreviewResult {
@@ -113,10 +113,10 @@ interface FieldTypePreviewResult {
  */
 function useFieldTypePreview(
   parameterType: string,
-  adapter: ContractAdapter
+  capabilities: DemoCapabilities
 ): FieldTypePreviewResult {
   return useMemo(() => {
-    const generated = adapter.generateDefaultField({
+    const generated = capabilities.generateDefaultField({
       name: 'previewField',
       type: parameterType,
     });
@@ -128,13 +128,13 @@ function useFieldTypePreview(
     };
 
     // Enhance incomplete schemas with mock data using adapter's own types
-    const enhancement = enhanceSchemaWithMockData(baseSchema, adapter);
+    const enhancement = enhanceSchemaWithMockData(baseSchema, capabilities);
 
     return {
       fieldSchema: enhancement.enhancedSchema,
       enhancement,
     };
-  }, [adapter, parameterType]);
+  }, [capabilities, parameterType]);
 }
 
 /**
@@ -143,9 +143,9 @@ function useFieldTypePreview(
  */
 function PreviewWithSchemaNote({
   parameterType,
-  adapter,
+  capabilities,
 }: FieldTypePreviewProps): React.ReactElement {
-  const { fieldSchema, enhancement } = useFieldTypePreview(parameterType, adapter);
+  const { fieldSchema, enhancement } = useFieldTypePreview(parameterType, capabilities);
 
   // Create a form for the preview field with onChange mode for real-time validation
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -188,7 +188,12 @@ function PreviewWithSchemaNote({
       )}
       <FormProvider {...previewForm}>
         <form className="w-full" onSubmit={(e) => e.preventDefault()}>
-          <DynamicFormField field={fieldSchema} control={previewForm.control} adapter={adapter} />
+          <DynamicFormField
+            field={fieldSchema}
+            control={previewForm.control}
+            addressing={capabilities}
+            typeMapping={capabilities}
+          />
         </form>
       </FormProvider>
     </div>
@@ -200,28 +205,30 @@ function PreviewWithSchemaNote({
 // ============================================================================
 
 interface TypeMappingContentProps {
-  adapter: ContractAdapter;
+  capabilities: DemoCapabilities;
 }
 
 /**
  * Interactive component demonstrating how blockchain types map to form fields
  * Uses adapter.getTypeMappingInfo() for dynamic type discovery
  */
-function TypeMappingContent({ adapter }: TypeMappingContentProps): React.ReactElement {
+function TypeMappingContent({ capabilities }: TypeMappingContentProps): React.ReactElement {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedPatternName, setSelectedPatternName] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'primitives' | 'patterns'>('primitives');
 
   // Get type mapping info directly from the adapter
   const typeMappingInfo: TypeMappingInfo = useMemo(() => {
-    return adapter.getTypeMappingInfo();
-  }, [adapter]);
+    return capabilities.getTypeMappingInfo();
+  }, [capabilities]);
 
   const primitiveTypes = Object.keys(typeMappingInfo.primitives);
   const dynamicPatterns = typeMappingInfo.dynamicPatterns;
 
   // Get mapping result for selected type
-  const mappedFieldType = selectedType ? adapter.mapParameterTypeToFieldType(selectedType) : null;
+  const mappedFieldType = selectedType
+    ? capabilities.mapParameterTypeToFieldType(selectedType)
+    : null;
 
   // Get description: use pattern description if available, otherwise UI field type description
   const selectedPattern = selectedPatternName
@@ -314,7 +321,7 @@ function TypeMappingContent({ adapter }: TypeMappingContentProps): React.ReactEl
             {dynamicPatterns.flatMap((pattern) => {
               const examples = generatePatternExamples(pattern, primitiveTypes);
               return examples.map((example) => {
-                const resolvedFieldType = adapter.mapParameterTypeToFieldType(example);
+                const resolvedFieldType = capabilities.mapParameterTypeToFieldType(example);
                 const isSelected = selectedType === example;
                 return (
                   <button
@@ -375,7 +382,7 @@ function TypeMappingContent({ adapter }: TypeMappingContentProps): React.ReactEl
           <PreviewWithSchemaNote
             key={selectedType}
             parameterType={selectedType}
-            adapter={adapter}
+            capabilities={capabilities}
           />
         </div>
       )}
@@ -387,24 +394,24 @@ function TypeMappingContent({ adapter }: TypeMappingContentProps): React.ReactEl
 // Code Example
 // ============================================================================
 
-const codeExample = `// Using the real adapter's type mapping capabilities
-import { EvmAdapter, ethereumSepolia } from '@openzeppelin/adapter-evm';
+const codeExample = `// Using a runtime's type-mapping capabilities
+import { ecosystemDefinition, ethereumSepolia } from '@openzeppelin/adapter-evm';
 
-const adapter = new EvmAdapter(ethereumSepolia);
+const runtime = ecosystemDefinition.createRuntime('composer', ethereumSepolia);
 
 // Discover all supported types dynamically
-const typeInfo = adapter.getTypeMappingInfo();
+const typeInfo = runtime.typeMapping.getTypeMappingInfo();
 console.log(typeInfo.primitives);      // { address: 'blockchain-address', uint256: 'bigint', ... }
 console.log(typeInfo.dynamicPatterns); // [{ name: 'array', syntax: 'T[]', mapsTo: 'array' }, ...]
 
 // Map specific types to form field types
-adapter.mapParameterTypeToFieldType('address');   // → 'blockchain-address'
-adapter.mapParameterTypeToFieldType('uint256');   // → 'bigint'
-adapter.mapParameterTypeToFieldType('uint256[]'); // → 'array' (dynamic pattern)
-adapter.mapParameterTypeToFieldType('tuple');     // → 'object'
+runtime.typeMapping.mapParameterTypeToFieldType('address');   // → 'blockchain-address'
+runtime.typeMapping.mapParameterTypeToFieldType('uint256');   // → 'bigint'
+runtime.typeMapping.mapParameterTypeToFieldType('uint256[]'); // → 'array' (dynamic pattern)
+runtime.typeMapping.mapParameterTypeToFieldType('tuple');     // → 'object'
 
 // Validate addresses
-adapter.isValidAddress('0x742d35Cc6634C0532925a3b844Bc9e7595f1D3F4'); // true`;
+runtime.addressing.isValidAddress('0x742d35Cc6634C0532925a3b844Bc9e7595f1D3F4'); // true`;
 
 // ============================================================================
 // Main Export
@@ -414,13 +421,13 @@ adapter.isValidAddress('0x742d35Cc6634C0532925a3b844Bc9e7595f1D3F4'); // true`;
  * TypeMappingDemo - Demonstrates how REAL adapters map blockchain types to UI components
  */
 export function TypeMappingDemo(): React.ReactElement {
-  const { adapter, isLoading } = useEcosystem();
+  const { capabilities, isLoading } = useEcosystem();
 
   // Show loading state while ecosystem data is being loaded
-  if (isLoading || !adapter) {
+  if (isLoading || !capabilities) {
     return (
       <DemoSection title="Type Mapping" description="Loading...">
-        <div className="text-muted-foreground">Loading adapter...</div>
+        <div className="text-muted-foreground">Loading runtime...</div>
       </DemoSection>
     );
   }
@@ -436,18 +443,19 @@ export function TypeMappingDemo(): React.ReactElement {
         <div className="space-y-3">
           <h3 className="text-lg font-medium">How It Works</h3>
           <p className="text-muted-foreground text-sm">
-            Each adapter exposes <code className="bg-muted rounded px-1">getTypeMappingInfo()</code>{' '}
-            which returns all supported primitive types and dynamic patterns. The{' '}
-            <code className="bg-muted rounded px-1">mapParameterTypeToFieldType()</code> method then
-            converts any blockchain type to a UI field type. This demo dynamically renders types
-            from the <strong>real adapter packages</strong>.
+            Each runtime exposes a{' '}
+            <code className="bg-muted rounded px-1">typeMapping.getTypeMappingInfo()</code>{' '}
+            capability which returns all supported primitive types and dynamic patterns. The{' '}
+            <code className="bg-muted rounded px-1">typeMapping.mapParameterTypeToFieldType()</code>{' '}
+            method then converts any blockchain type to a UI field type. This demo dynamically
+            renders types from the <strong>real adapter packages</strong>.
           </p>
         </div>
 
         {/* Interactive Demo */}
         <div className="space-y-3">
           <h3 className="text-lg font-medium">Interactive Demo</h3>
-          <TypeMappingContent adapter={adapter} />
+          <TypeMappingContent capabilities={capabilities} />
         </div>
 
         {/* Field Type Reference */}

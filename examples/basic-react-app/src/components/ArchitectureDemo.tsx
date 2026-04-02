@@ -34,45 +34,44 @@ import { CodeBlock } from './CodeBlock';
 import { DemoSection } from './DemoSection';
 import { Web3NetworkIcon } from './Web3NetworkIcon';
 
-const PROVIDER_SETUP_CODE = `import { AdapterProvider, WalletStateProvider } from '@openzeppelin/ui-react';
-import { EvmAdapter } from '@openzeppelin/adapter-evm';
+const PROVIDER_SETUP_CODE = `import { RuntimeProvider, WalletStateProvider } from '@openzeppelin/ui-react';
+import { ecosystemDefinition, ethereumSepolia } from '@openzeppelin/adapter-evm';
 
 function App() {
   return (
-    <AdapterProvider adapter={new EvmAdapter(config)}>
-      <WalletStateProvider>
-        {/* Your app - all components now have access to adapter capabilities */}
+    <RuntimeProvider
+      resolveRuntime={(networkConfig) =>
+        ecosystemDefinition.createRuntime('composer', networkConfig)
+      }
+    >
+      <WalletStateProvider initialNetworkId={ethereumSepolia.id}>
+        {/* Your app - all components now have access to runtime capabilities */}
         <MyApp />
       </WalletStateProvider>
-    </AdapterProvider>
+    </RuntimeProvider>
   );
 }`;
 
-const ADAPTER_INTERFACE_CODE = `interface ContractAdapter {
-  // Contract Loading
-  loadContract(address: string): Promise<ContractSchema>;
-  loadContractWithMetadata(address: string): Promise<ContractWithMetadata>;
-  
-  // Type System & Form Generation
-  mapParameterTypeToFieldType(type: string): FieldType;
-  generateDefaultField(param: Parameter): FormFieldConfig;
-  getTypeMappingInfo(): TypeMappingInfo;
-  
-  // Transaction Execution
-  signAndBroadcast(tx: Transaction, callbacks: TxCallbacks): Promise<TxResult>;
-  getSupportedExecutionMethods(): ExecutionMethod[]; // EOA, Relayer
-  
-  // View Function Queries
-  queryViewFunction(contract: string, fn: string, args: unknown[]): Promise<unknown>;
-  isViewFunction(fn: FunctionSchema): boolean;
-  
-  // Wallet Integration
-  getAvailableUiKits(): Promise<AvailableUiKit[]>;
-  getEcosystemWalletComponents(): WalletComponents;
-  
-  // Validation & Utils
-  isValidAddress(address: string): boolean;
-  getExplorerUrl(address: string): string;
+const RUNTIME_INTERFACE_CODE = `interface EcosystemRuntime {
+  networkConfig: NetworkConfig;
+
+  // Tier 1 capabilities
+  addressing: AddressingCapability;
+  explorer: ExplorerCapability;
+  networkCatalog: NetworkCatalogCapability;
+  uiLabels: UiLabelsCapability;
+
+  // Tier 2 / 3 capabilities (profile-dependent)
+  contractLoading?: ContractLoadingCapability;
+  schema?: SchemaCapability;
+  typeMapping?: TypeMappingCapability;
+  query?: QueryCapability;
+  execution?: ExecutionCapability;
+  wallet?: WalletCapability;
+  uiKit?: UiKitCapability;
+  relayer?: RelayerCapability;
+
+  dispose(): void;
 }`;
 
 const FACADE_HOOKS_CODE = `// Same API, any blockchain
@@ -264,7 +263,7 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
         <CardHeader>
           <CardTitle>Supported Adapters</CardTitle>
           <CardDescription>
-            Each adapter is tailored for its blockchain while exposing the same interface.
+            Each adapter is tailored for its blockchain while exposing the same runtime model.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -370,7 +369,7 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
         <CardHeader>
           <CardTitle>Provider Setup</CardTitle>
           <CardDescription>
-            Wrap your app with AdapterProvider and WalletStateProvider to enable all features.
+            Wrap your app with RuntimeProvider and WalletStateProvider to enable all features.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -381,14 +380,14 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
       {/* Adapter Interface */}
       <Card>
         <CardHeader>
-          <CardTitle>The ContractAdapter Interface</CardTitle>
+          <CardTitle>The EcosystemRuntime Interface</CardTitle>
           <CardDescription>
-            Every adapter implements this interface, ensuring consistent behavior across all
-            adapters.
+            Every composed runtime exposes the same capability model, with profile-specific
+            capabilities filled in as needed.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <CodeBlock code={ADAPTER_INTERFACE_CODE} language="typescript" />
+          <CodeBlock code={RUNTIME_INTERFACE_CODE} language="typescript" />
         </CardContent>
       </Card>
 
@@ -397,7 +396,7 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
         <CardHeader>
           <CardTitle>Using Facade Hooks</CardTitle>
           <CardDescription>
-            Write your component once - the hooks automatically use the correct adapter.
+            Write your component once - the hooks automatically use the correct runtime.
           </CardDescription>
         </CardHeader>
         <CardContent>

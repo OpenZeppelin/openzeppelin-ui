@@ -4,7 +4,7 @@ import { Info } from 'lucide-react';
 import { JSX, useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-import type { ContractAdapter, UserExplorerConfig } from '@openzeppelin/ui-types';
+import type { ContractLoadingCapability, UserExplorerConfig } from '@openzeppelin/ui-types';
 import { appConfigService, logger, userExplorerConfigService } from '@openzeppelin/ui-utils';
 
 import { SettingsFooter } from '@/components/settings/SettingsFooter';
@@ -14,7 +14,7 @@ import { BooleanField } from '../fields/BooleanField';
 import { SelectField } from '../fields/SelectField';
 
 interface ContractDefinitionSettingsPanelProps {
-  adapter: ContractAdapter;
+  contractLoading: ContractLoadingCapability;
   networkId: string;
   onSettingsChanged?: () => void;
 }
@@ -28,7 +28,7 @@ type ProviderOption = { key: string; label: string };
 
 /** Settings panel for contract definition provider preferences. */
 export function ContractDefinitionSettingsPanel({
-  adapter,
+  contractLoading,
   networkId,
   onSettingsChanged,
 }: ContractDefinitionSettingsPanelProps): JSX.Element {
@@ -39,12 +39,12 @@ export function ContractDefinitionSettingsPanel({
   const [providerOptions, setProviderOptions] = useState<ProviderOption[]>([]);
   const [result, setResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // Load provider options from adapter with optional app-config relabel/filter
+  // Load provider options from the contract-loading capability with optional app-config relabel/filter
   useEffect(() => {
     (async (): Promise<void> => {
       let adapterOptions: ProviderOption[] = [];
       try {
-        const method = adapter.getSupportedContractDefinitionProviders;
+        const method = contractLoading.getSupportedContractDefinitionProviders;
         const list = typeof method === 'function' ? method() : undefined;
         if (Array.isArray(list)) {
           adapterOptions = list
@@ -91,7 +91,7 @@ export function ContractDefinitionSettingsPanel({
     })().catch(() => {
       // ignore
     });
-  }, [adapter]);
+  }, [contractLoading]);
 
   // Load saved selection (after options are available to avoid placeholder state)
   useEffect(() => {

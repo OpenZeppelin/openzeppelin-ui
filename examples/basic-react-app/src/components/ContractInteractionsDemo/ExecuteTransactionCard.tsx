@@ -11,10 +11,10 @@ import {
 import { WalletConnectionUI } from '@openzeppelin/ui-react';
 import { TransactionForm } from '@openzeppelin/ui-renderer';
 import type {
-  ContractAdapter,
   ContractFunction,
   ContractSchema,
   RenderFormSchema,
+  TransactionFormCapabilities,
 } from '@openzeppelin/ui-types';
 
 interface ExecuteTransactionCardProps {
@@ -25,7 +25,7 @@ interface ExecuteTransactionCardProps {
   onToggleShowAll: () => void;
   formSchema: RenderFormSchema | null;
   contractSchema: ContractSchema;
-  adapter: ContractAdapter;
+  capabilities: TransactionFormCapabilities;
   isConnected: boolean;
   isWidgetVisible: boolean;
   onShowWidget: () => void;
@@ -39,7 +39,7 @@ export function ExecuteTransactionCard({
   onToggleShowAll,
   formSchema,
   contractSchema,
-  adapter,
+  capabilities,
   isConnected,
   isWidgetVisible,
   onShowWidget,
@@ -110,7 +110,7 @@ export function ExecuteTransactionCard({
               <TransactionForm
                 schema={formSchema}
                 contractSchema={contractSchema}
-                adapter={adapter}
+                adapter={capabilities}
                 isWalletConnected={isConnected}
               />
             )}

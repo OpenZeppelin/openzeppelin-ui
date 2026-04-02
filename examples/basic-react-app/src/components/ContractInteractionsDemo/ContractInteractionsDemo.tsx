@@ -20,7 +20,6 @@ import {
 } from '@openzeppelin/ui-components';
 import { useDerivedAccountStatus } from '@openzeppelin/ui-react';
 import { ContractStateWidget } from '@openzeppelin/ui-renderer';
-import type { FullContractAdapter } from '@openzeppelin/ui-types';
 
 import { useEcosystem } from '../../context';
 import {
@@ -28,6 +27,7 @@ import {
   isDemoContractDeployed,
   type DemoEcosystem,
 } from '../../core/ecosystemManager';
+import { toTransactionFormCapabilities } from '../../core/runtimeCapabilities';
 import { DemoSection } from '../DemoSection';
 import { EcosystemSwitcher } from '../EcosystemSwitcher';
 import { ContractLoadingCard } from './ContractLoadingCard';
@@ -38,7 +38,7 @@ import { useContractLoader } from './useContractLoader';
 import { createFormSchemaFromFunction, getWritableFunctions } from './utils';
 
 export function ContractInteractionsDemo(): React.ReactElement {
-  const { adapter, ecosystem, isLoading: isAdapterLoading, network } = useEcosystem();
+  const { capabilities, ecosystem, isLoading, network, runtime } = useEcosystem();
   const { isConnected } = useDerivedAccountStatus();
 
   const [activeTab, setActiveTab] = useState<DemoTab>('try-it');
@@ -55,14 +55,14 @@ export function ContractInteractionsDemo(): React.ReactElement {
     return isDemoContractDeployed(ecosystem as DemoEcosystem);
   }, [ecosystem]);
 
-  // Get explorer URL from adapter (adapter knows the network's explorer)
+  // Get explorer URL from the runtime's explorer capability.
   const explorerUrl = useMemo(() => {
-    return adapter?.getExplorerUrl(contractAddress) ?? undefined;
-  }, [adapter, contractAddress]);
+    return capabilities?.getExplorerUrl(contractAddress) ?? undefined;
+  }, [capabilities, contractAddress]);
 
   // Load contract
   const { contractState, loadContract } = useContractLoader({
-    adapter,
+    contractLoading: capabilities,
     contractAddress,
     isDeployed,
   });
@@ -100,17 +100,19 @@ export function ContractInteractionsDemo(): React.ReactElement {
 
   // Generate form schema for selected function
   const formSchema = useMemo(() => {
-    if (!selectedFunction || !adapter || !contractState.schema) return null;
+    if (!selectedFunction || !capabilities || !contractState.schema) return null;
     return createFormSchemaFromFunction(
       contractAddress,
       selectedFunction,
-      adapter as FullContractAdapter,
+      capabilities,
       contractState.schema
     );
-  }, [selectedFunction, adapter, contractAddress, contractState.schema]);
+  }, [selectedFunction, capabilities, contractAddress, contractState.schema]);
 
-  // Show loading state while adapter is loading
-  if (isAdapterLoading || !adapter) {
+  const transactionCapabilities = useMemo(() => toTransactionFormCapabilities(runtime), [runtime]);
+
+  // Show loading state while the runtime is loading
+  if (isLoading || !capabilities || !runtime || !transactionCapabilities) {
     return (
       <DemoSection
         title="Contract Interactions"
@@ -119,7 +121,7 @@ export function ContractInteractionsDemo(): React.ReactElement {
         <Card>
           <CardContent className="flex items-center justify-center py-12">
             <Loader2 className="mr-2 h-5 w-5 animate-spin text-muted-foreground" />
-            <span className="text-muted-foreground">Loading adapter...</span>
+            <span className="text-muted-foreground">Loading runtime...</span>
           </CardContent>
         </Card>
       </DemoSection>
@@ -129,11 +131,11 @@ export function ContractInteractionsDemo(): React.ReactElement {
   return (
     <DemoSection
       title="Contract Interactions"
-      description="Demonstrate reading contract state and executing transactions using the real adapters and UI components."
+      description="Demonstrate reading contract state and executing transactions using the active runtime and UI components."
     >
-      {/* Adapter Switcher */}
+      {/* Ecosystem Switcher */}
       <div className="mb-6 flex items-center gap-3 rounded-lg bg-muted/50 p-3">
-        <span className="text-sm text-muted-foreground">Select adapter:</span>
+        <span className="text-sm text-muted-foreground">Select ecosystem:</span>
         <EcosystemSwitcher />
       </div>
 
@@ -184,7 +186,8 @@ export function ContractInteractionsDemo(): React.ReactElement {
                   <ContractStateWidget
                     contractSchema={contractState.schema}
                     contractAddress={contractAddress}
-                    adapter={adapter as FullContractAdapter}
+                    query={capabilities}
+                    schema={capabilities}
                     isVisible={isWidgetVisible}
                     onToggle={() => setIsWidgetVisible(!isWidgetVisible)}
                   />
@@ -201,7 +204,7 @@ export function ContractInteractionsDemo(): React.ReactElement {
                   onToggleShowAll={() => setShowAllFunctions(!showAllFunctions)}
                   formSchema={formSchema}
                   contractSchema={contractState.schema}
-                  adapter={adapter}
+                  capabilities={transactionCapabilities}
                   isConnected={isConnected}
                   isWidgetVisible={isWidgetVisible}
                   onShowWidget={() => setIsWidgetVisible(true)}

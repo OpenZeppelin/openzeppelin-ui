@@ -1,170 +1,80 @@
-# Contract Adapter Interface
+# Adapter Capabilities & Runtime Types
 
-This directory contains the base interface and type definitions for the contract adapter system. The adapter pattern allows applications to support multiple blockchains while keeping the application chain-agnostic.
+This directory defines the capability-based adapter contract used by the OpenZeppelin UI ecosystem.
+Adapter packages stay chain-specific, while applications and shared UI packages consume the chain-agnostic
+types declared here.
 
-## ContractAdapter Interface
+## Architecture
 
-The `ContractAdapter` interface defines the methods that must be implemented by all chain-specific adapters. This interface acts as a contract between the application and the chain-specific code, ensuring a consistent API regardless of the underlying blockchain.
+The legacy monolithic `ContractAdapter` surface has been replaced by three layers:
 
-### Core Methods
+1. **Capabilities**: Small interfaces for focused behavior such as addressing, query, execution, wallet, or access control.
+2. **Profile runtimes**: Pre-composed bundles of capabilities returned by `createRuntime(profile, networkConfig, options)`.
+3. **Ecosystem exports**: Self-describing adapter entry points that publish metadata, networks, capability factories, and runtime factories.
 
-- `formatTransactionData`: Formats the submitted form data into a transaction payload for the specific chain
-- `isValidAddress`: Validates that an address follows the format for a specific chain
-- `getCompatibleFieldTypes`: Returns field types that are compatible with a specific blockchain parameter type
-- `generateDefaultField`: Generates a default form field configuration for a function parameter
+## Capability Tiers
 
-### Wallet Connection Methods
+### Tier 1: Declarative / lightweight
 
-The adapter interface includes methods for wallet connection functionality, allowing renderer components to work with any supported blockchain wallet in a chain-agnostic way:
+- `AddressingCapability`
+- `ExplorerCapability`
+- `NetworkCatalogCapability`
+- `UiLabelsCapability`
 
-#### `supportsWalletConnection(): boolean`
+These are intended to be side-effect free and safe to import independently.
 
-Indicates whether this adapter supports wallet connection. Adapters that don't support wallet connection should return `false`, which allows UI components to conditionally render wallet features.
+### Tier 2: Network-aware, no wallet required
 
-Example:
+- `ContractLoadingCapability`
+- `SchemaCapability`
+- `TypeMappingCapability`
+- `QueryCapability`
 
-```typescript
-// In EVM adapter
-supportsWalletConnection(): boolean {
-  return true; // EVM adapter supports wallet connection
-}
+These extend `RuntimeCapability`, which provides `readonly networkConfig` and a `dispose()` lifecycle hook.
 
-// In minimal adapter
-supportsWalletConnection(): boolean {
-  return false; // This adapter doesn't support wallet connection
-}
-```
+### Tier 3: Stateful / runtime-bound
 
-#### `connectWallet(): Promise<{ connected: boolean; address?: string; error?: string }>`
+- `ExecutionCapability`
+- `WalletCapability`
+- `UiKitCapability`
+- `RelayerCapability`
+- `AccessControlCapability`
 
-Initiates the wallet connection process. Returns a Promise that resolves to an object containing:
+These also extend `RuntimeCapability` and participate in runtime lifecycle management.
 
-- `connected`: Whether the connection was successful
-- `address`: The connected wallet address (if successful)
-- `error`: An error message (if the connection failed)
+## Runtimes & Profiles
 
-Example:
+Adapters expose five standard profile names:
 
-```typescript
-async connectWallet(): Promise<{ connected: boolean; address?: string; error?: string }> {
-  try {
-    // Chain-specific wallet connection code
-    const address = await this.internalConnectMethod();
-    return { connected: true, address };
-  } catch (err) {
-    return { connected: false, error: err.message };
-  }
-}
-```
+- `declarative`
+- `viewer`
+- `transactor`
+- `composer`
+- `operator`
 
-#### `disconnectWallet(): Promise<{ disconnected: boolean; error?: string }>`
+Calling `ecosystemDefinition.createRuntime(profile, networkConfig, options)` returns an `EcosystemRuntime`.
+Capabilities created inside the same runtime share runtime-scoped state; standalone capability factories remain isolated.
 
-Disconnects the currently connected wallet. Returns a Promise that resolves to an object containing:
+## EcosystemExport
 
-- `disconnected`: Whether the disconnection was successful
-- `error`: An error message (if the disconnection failed)
+`EcosystemExport` is the public adapter module contract. It includes:
 
-Example:
+- Ecosystem metadata
+- Supported network definitions
+- `capabilities: CapabilityFactoryMap`
+- `createRuntime(...)`
+- Optional build-time hooks such as `getExportBootstrapFiles(...)`
 
-```typescript
-async disconnectWallet(): Promise<{ disconnected: boolean; error?: string }> {
-  try {
-    // Chain-specific wallet disconnection code
-    await this.internalDisconnectMethod();
-    return { disconnected: true };
-  } catch (err) {
-    return { disconnected: false, error: err.message };
-  }
-}
-```
+Adapters with partial capability support may leave unsupported capabilities as `undefined` in the factory map.
 
-#### `getWalletConnectionStatus(): { isConnected: boolean; address?: string; chainId?: string }`
+## Adapter Author Guidance
 
-Gets the current wallet connection status. Returns an object containing:
+When implementing a new adapter package:
 
-- `isConnected`: Whether a wallet is currently connected
-- `address`: The connected wallet address (if connected)
-- `chainId`: The ID of the connected chain (if available)
+1. Define capability factories under `src/capabilities/`.
+2. Expose profile factories and `createRuntime(...)` under `src/profiles/`.
+3. Export an `ecosystemDefinition` object that satisfies `EcosystemExport`.
+4. Keep chain-specific logic inside the adapter package; shared UI packages should only see these interfaces.
 
-Example:
-
-```typescript
-getWalletConnectionStatus(): { isConnected: boolean; address?: string; chainId?: string } {
-  // Chain-specific status check
-  const status = this.internalGetStatus();
-  return {
-    isConnected: status.connected,
-    address: status.account,
-    chainId: status.network
-  };
-}
-```
-
-#### `onWalletConnectionChange?(callback: (status: { isConnected: boolean; address?: string }) => void): () => void`
-
-Optional method to subscribe to wallet connection changes. Takes a callback function that will be called whenever the connection status changes. Returns a cleanup function to unsubscribe.
-
-Example:
-
-```typescript
-onWalletConnectionChange(
-  callback: (status: { isConnected: boolean; address?: string }) => void
-): () => void {
-  // Chain-specific subscription code
-  const unsubscribe = this.internalSubscribe((newStatus) => {
-    callback({
-      isConnected: newStatus.connected,
-      address: newStatus.account
-    });
-  });
-
-  return unsubscribe;
-}
-```
-
-## Implementation Guidelines
-
-When implementing the wallet connection methods in a chain-specific adapter:
-
-1. Fully encapsulate all chain-specific wallet connection logic within the adapter
-2. Do not expose any chain-specific libraries or interfaces outside the adapter
-3. Handle errors gracefully and return appropriate error messages
-4. Ensure the adapter properly cleans up resources when disconnecting
-
-For adapters that don't support wallet connection, implement stub methods:
-
-```typescript
-supportsWalletConnection(): boolean {
-  return false;
-}
-
-async connectWallet(): Promise<{ connected: boolean; address?: string; error?: string }> {
-  return { connected: false, error: "Wallet connection not supported" };
-}
-
-async disconnectWallet(): Promise<{ disconnected: boolean; error?: string }> {
-  return { disconnected: true };
-}
-
-getWalletConnectionStatus(): { isConnected: boolean; address?: string; chainId?: string } {
-  return { isConnected: false };
-}
-```
-
-## UI Facilitation Capabilities (Optional)
-
-In addition to the core contract interaction and wallet connection methods, the `ContractAdapter` interface supports optional methods that allow adapters to provide enhanced UI facilitation for richer, ecosystem-specific user experiences. These methods enable applications and UI components to leverage underlying libraries (like `wagmi/react` for EVM) in a chain-agnostic manner.
-
-These capabilities are defined in `packages/types/src/adapters/ui-enhancements.ts` and include:
-
-- `**configureUiKit?(config: UiKitConfiguration): void;**`
-  - Allows the consuming application to inform the adapter about the desired UI kit and pass any kit-specific configuration.
-- `**getEcosystemReactUiContextProvider?(): React.ComponentType<EcosystemReactUiProviderProps> | undefined;**`
-  - Adapters can return a React component that sets up the necessary UI context for that adapter's ecosystem.
-- `**getEcosystemReactHooks?(): EcosystemSpecificReactHooks | undefined;**`
-  - Returns an object containing facade React hooks for common wallet and blockchain interactions.
-  - **Convention for Hook Return Objects:** Adapters implementing this should ensure their facade hooks return objects with conventionally named properties for common states and actions.
-- `**getEcosystemWalletComponents?(): EcosystemWalletComponents | undefined;**`
-  - Returns an object mapping standardized names to React components for wallet interactions.
-
-By implementing these optional methods, adapters can offer a deeply integrated and reactive UI experience while allowing applications to remain decoupled from the specifics of any particular wallet library or UI kit.
+For the concrete package/layout conventions, see the adapter repo's
+`docs/ADAPTER_ARCHITECTURE.md`.

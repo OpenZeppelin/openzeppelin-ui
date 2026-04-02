@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { PROJECT_CONFIG_FILE } from './config';
-import { FamilyKey } from './families';
+import { STANDARD_FAMILIES, type FamilyKey } from './families';
 import { CLI_PACKAGE_NAME, getCliDependencyRange } from './packageInfo';
 
 export interface InitProjectOptions {
@@ -49,7 +49,22 @@ function createProjectConfig(options: InitProjectOptions): string {
   )}\n`;
 }
 
+function serializePnpmfileFamilies(): string {
+  const subset: Record<string, unknown> = {};
+  for (const [key, family] of Object.entries(STANDARD_FAMILIES)) {
+    subset[key] = {
+      repoName: family.repoName,
+      envFlag: family.envFlag,
+      envNames: [...family.envNames],
+      defaultPath: family.defaultPath,
+      packageMap: { ...family.packageMap },
+    };
+  }
+  return JSON.stringify(subset, null, 2);
+}
+
 function createPnpmfileContent(): string {
+  const familiesJson = serializePnpmfileFamilies();
   return `/**
  * pnpm hook for config-driven local development.
  *
@@ -62,37 +77,7 @@ const fs = require('fs');
 const path = require('path');
 
 const CONFIG_FILE = '.openzeppelin-dev.json';
-const STANDARD_FAMILIES = {
-  ui: {
-    repoName: 'openzeppelin-ui',
-    envFlag: 'LOCAL_UI',
-    envNames: ['LOCAL_UI_PATH'],
-    defaultPath: '../openzeppelin-ui',
-    packageMap: {
-      '@openzeppelin/ui-types': 'packages/types',
-      '@openzeppelin/ui-utils': 'packages/utils',
-      '@openzeppelin/ui-styles': 'packages/styles',
-      '@openzeppelin/ui-components': 'packages/components',
-      '@openzeppelin/ui-renderer': 'packages/renderer',
-      '@openzeppelin/ui-react': 'packages/react',
-      '@openzeppelin/ui-storage': 'packages/storage',
-    },
-  },
-  adapters: {
-    repoName: 'openzeppelin-adapters',
-    envFlag: 'LOCAL_ADAPTERS',
-    envNames: ['LOCAL_ADAPTERS_PATH'],
-    defaultPath: '../openzeppelin-adapters',
-    packageMap: {
-      '@openzeppelin/adapters-vite': 'packages/adapters-vite',
-      '@openzeppelin/adapter-evm': 'packages/adapter-evm',
-      '@openzeppelin/adapter-midnight': 'packages/adapter-midnight',
-      '@openzeppelin/adapter-polkadot': 'packages/adapter-polkadot',
-      '@openzeppelin/adapter-solana': 'packages/adapter-solana',
-      '@openzeppelin/adapter-stellar': 'packages/adapter-stellar',
-    },
-  },
-};
+const STANDARD_FAMILIES = ${familiesJson};
 
 function isObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -226,6 +211,46 @@ function resolvePackageDirectory(workspaceRoot, family, packageName, packagePath
   return absolutePath;
 }
 
+function findWorkspacePackage(repoRoot, packageName) {
+  const packagesDir = path.join(repoRoot, 'packages');
+  if (!fs.existsSync(packagesDir)) {
+    return null;
+  }
+
+  for (const entry of fs.readdirSync(packagesDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+
+    const packageRoot = path.join(packagesDir, entry.name);
+    const packageJsonPath = path.join(packageRoot, 'package.json');
+    if (!fs.existsSync(packageJsonPath)) {
+      continue;
+    }
+
+    try {
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+      if (packageJson.name === packageName) {
+        return getRealPath(packageRoot);
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+}
+
+function resolvePackageDirectoryByName(workspaceRoot, family, packageName) {
+  const explicitPackagePath = family.packageMap[packageName];
+  if (explicitPackagePath) {
+    return resolvePackageDirectory(workspaceRoot, family, packageName, explicitPackagePath);
+  }
+
+  const repoRoot = resolveRepoRoot(workspaceRoot, family);
+  return findWorkspacePackage(repoRoot, packageName);
+}
+
 function readPackedManifest(cacheDir, familyKey) {
   const manifestPath = path.join(cacheDir, \`\${familyKey}.json\`);
   if (!fs.existsSync(manifestPath)) {
@@ -247,9 +272,7 @@ function rewriteDependencies(pkg, context, cacheDir, familyKey, family) {
   for (const depType of ['dependencies', 'devDependencies']) {
     if (!pkg[depType]) continue;
 
-    for (const [npmName, packagePath] of Object.entries(family.packageMap)) {
-      if (!pkg[depType][npmName]) continue;
-
+    for (const npmName of Object.keys(pkg[depType])) {
       const packedTarballPath = packedPackages && packedPackages[npmName];
       if (packedTarballPath && fs.existsSync(packedTarballPath)) {
         pkg[depType][npmName] = \`file:\${packedTarballPath}\`;
@@ -257,9 +280,15 @@ function rewriteDependencies(pkg, context, cacheDir, familyKey, family) {
         continue;
       }
 
-      const absolutePath = resolvePackageDirectory(workspaceRoot, family, npmName, packagePath);
+      const absolutePath = resolvePackageDirectoryByName(workspaceRoot, family, npmName);
+      if (!absolutePath) {
+        continue;
+      }
+
       pkg[depType][npmName] = \`file:\${absolutePath}\`;
-      context.log(\`[local-dev] \${npmName} → \${absolutePath}\`);
+      const source =
+        Object.prototype.hasOwnProperty.call(family.packageMap, npmName) ? '' : ' (workspace fallback)';
+      context.log(\`[local-dev] \${npmName} → \${absolutePath}\${source}\`);
     }
   }
 }

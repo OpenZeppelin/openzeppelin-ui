@@ -4,9 +4,10 @@
 
 import { createContext } from 'react';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
 
 import type { DemoEcosystem, EcosystemMetadata } from '../core/ecosystemManager';
+import type { DemoCapabilities, DemoRuntime } from '../core/runtimeCapabilities';
 
 // ============================================================================
 // Context Types
@@ -26,8 +27,11 @@ export interface EcosystemContextValue {
   /** Available networks for the current ecosystem */
   availableNetworks: NetworkConfig[];
 
-  /** The active adapter instance for the current network (null while loading) */
-  adapter: ContractAdapter | null;
+  /** The active runtime for the current network (null while loading) */
+  runtime: DemoRuntime | null;
+
+  /** Flattened capability bundle used by demo components */
+  capabilities: DemoCapabilities | null;
 
   /** Metadata for the current ecosystem (null while loading) */
   metadata: EcosystemMetadata | null;

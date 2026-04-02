@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-types';
+import type { ContractLoadingCapability } from '@openzeppelin/ui-types';
 
 import type { ContractLoadState } from './types';
 
 interface UseContractLoaderOptions {
-  adapter: ContractAdapter | null;
+  contractLoading: ContractLoadingCapability | null;
   contractAddress: string;
   isDeployed: boolean;
 }
@@ -19,7 +19,7 @@ interface UseContractLoaderResult {
  * Hook to handle contract loading logic
  */
 export function useContractLoader({
-  adapter,
+  contractLoading,
   contractAddress,
   isDeployed,
 }: UseContractLoaderOptions): UseContractLoaderResult {
@@ -30,7 +30,7 @@ export function useContractLoader({
   });
 
   const loadContract = useCallback(async () => {
-    if (!adapter || !isDeployed) {
+    if (!contractLoading || !isDeployed) {
       setContractState({
         status: 'idle',
         schema: null,
@@ -47,8 +47,8 @@ export function useContractLoader({
 
     try {
       // Use loadContractWithMetadata if available for richer information
-      if ('loadContractWithMetadata' in adapter && adapter.loadContractWithMetadata) {
-        const result = await adapter.loadContractWithMetadata(contractAddress);
+      if (contractLoading.loadContractWithMetadata) {
+        const result = await contractLoading.loadContractWithMetadata(contractAddress);
         setContractState({
           status: 'success',
           schema: result.schema,
@@ -61,7 +61,7 @@ export function useContractLoader({
         });
       } else {
         // Fallback to basic loadContract
-        const schema = await adapter.loadContract(contractAddress);
+        const schema = await contractLoading.loadContract(contractAddress);
         setContractState({
           status: 'success',
           schema,
@@ -76,7 +76,7 @@ export function useContractLoader({
         error: message,
       });
     }
-  }, [adapter, contractAddress, isDeployed]);
+  }, [contractLoading, contractAddress, isDeployed]);
 
   // Load contract on mount and when dependencies change
   useEffect(() => {

@@ -265,7 +265,8 @@ export function TransactionForm({
             field={field}
             control={methods.control}
             error={errors[field.name]?.message as string}
-            adapter={adapter}
+            addressing={adapter}
+            typeMapping={adapter}
             contractSchema={contractSchema}
           />
         ))}
@@ -356,7 +357,8 @@ export function TransactionForm({
               customMessage={txStatusDetails?.message}
               result={txResult}
               functionDetails={currentFunction}
-              adapter={adapter}
+              query={adapter}
+              explorer={adapter}
             />
           </div>
         )}
@@ -381,7 +383,8 @@ export function TransactionForm({
             <div className="w-full">
               <ExecutionConfigDisplay
                 executionConfig={executionConfig}
-                adapter={adapter}
+                execution={adapter}
+                relayer={adapter}
                 error={executionConfigError}
                 onRuntimeApiKeyChange={setRuntimeApiKey}
               />

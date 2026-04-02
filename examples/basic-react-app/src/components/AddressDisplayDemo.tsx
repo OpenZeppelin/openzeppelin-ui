@@ -6,24 +6,24 @@ import { EcosystemIndicator } from './EcosystemIndicator';
 
 /**
  * Demonstrates AddressDisplay component variations for blockchain address rendering
- * Uses real sample addresses from the active ecosystem adapter.
+ * Uses real sample addresses from the active ecosystem runtime.
  */
 export function AddressDisplayDemo(): React.ReactElement {
-  const { adapter, sampleAddresses, metadata, isLoading } = useEcosystem();
+  const { capabilities, sampleAddresses, metadata, isLoading } = useEcosystem();
 
   // Show loading state while ecosystem data is being loaded
-  if (isLoading || !adapter || !metadata) {
+  if (isLoading || !capabilities || !metadata) {
     return (
       <DemoSection title="AddressDisplay" description="Loading...">
-        <div className="text-muted-foreground">Loading adapter...</div>
+        <div className="text-muted-foreground">Loading runtime...</div>
       </DemoSection>
     );
   }
 
-  // Get explorer URL using the adapter (ecosystem-specific)
+  // Get explorer URL using the explorer capability.
   const getExplorerUrl = (address: string): string | undefined => {
     try {
-      return adapter.getExplorerUrl(address) ?? undefined;
+      return capabilities.getExplorerUrl(address) ?? undefined;
     } catch {
       return undefined;
     }
@@ -36,8 +36,8 @@ export function AddressDisplayDemo(): React.ReactElement {
       codeExample={`import { AddressDisplay } from '@openzeppelin/ui-components';
 import { useEcosystem } from './context';
 
-// Get adapter for explorer URLs
-const { adapter, sampleAddresses } = useEcosystem();
+// Get explorer capabilities from context
+const { capabilities, sampleAddresses } = useEcosystem();
 
 // Basic truncated display
 <AddressDisplay address={sampleAddresses.wallet} />
@@ -59,11 +59,11 @@ const { adapter, sampleAddresses } = useEcosystem();
 // Inline variant — no chip background
 <AddressDisplay address={sampleAddresses.wallet} variant="inline" showTooltip />
 
-// With explorer link (using adapter)
+// With explorer link (using the explorer capability)
 <AddressDisplay
   address={sampleAddresses.contract}
   showCopyButton
-  explorerUrl={adapter.getExplorerUrl(address)}
+  explorerUrl={capabilities.getExplorerUrl(address)}
 />`}
     >
       <EcosystemIndicator
@@ -197,7 +197,7 @@ const { adapter, sampleAddresses } = useEcosystem();
         <h3 className="text-lg font-medium">Explorer Link</h3>
         <p className="text-muted-foreground text-sm">
           Explorer URLs are generated using{' '}
-          <code className="bg-muted rounded px-1">adapter.getExplorerUrl()</code>
+          <code className="bg-muted rounded px-1">capabilities.getExplorerUrl()</code>
         </p>
         <div className="flex flex-col gap-4">
           <div className="space-y-2">

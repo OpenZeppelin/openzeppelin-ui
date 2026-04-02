@@ -81,11 +81,11 @@ Renders form fields dynamically based on field type configuration.
 
 ## Type System
 
-This package uses type definitions from `@openzeppelin/ui-types`:
+This package uses type definitions from `@openzeppelin/ui-types`. Form and state widgets take **capability intersections** (for example `TransactionFormCapabilities`, `QueryCapability` + `SchemaCapability`) rather than a single monolithic adapter type:
 
 ```tsx
 import { TransactionForm } from '@openzeppelin/ui-renderer';
-import type { ContractAdapter, FormValues, RenderFormSchema } from '@openzeppelin/ui-types';
+import type { FormValues, RenderFormSchema, TransactionFormCapabilities } from '@openzeppelin/ui-types';
 ```
 
 ## Component Styling
@@ -125,9 +125,11 @@ If you need to wire Tailwind manually, use explicit `@source` directives instead
 
 ### Transaction Form
 
+`TransactionForm` expects an `adapter` prop typed as **`TransactionFormCapabilities`** (execution, schema, type mapping, wallet-related pieces, etc., depending on profile). Derive it from your active `EcosystemRuntime` (for example by intersecting the capabilities your app uses) or pass the object your ecosystem exposes for transaction authoring.
+
 ```tsx
 import { TransactionForm } from '@openzeppelin/ui-renderer';
-import type { ContractAdapter, EvmNetworkConfig, RenderFormSchema } from '@openzeppelin/ui-types';
+import type { RenderFormSchema, TransactionFormCapabilities } from '@openzeppelin/ui-types';
 
 const schema: RenderFormSchema = {
   id: 'transfer-form',
@@ -140,13 +142,19 @@ const schema: RenderFormSchema = {
   submitButton: { text: 'Transfer', loadingText: 'Transferring...' },
 };
 
-function App() {
+function App({
+  adapter,
+  contractSchema,
+}: {
+  adapter: TransactionFormCapabilities;
+  contractSchema: import('@openzeppelin/ui-types').ContractSchema;
+}) {
   return (
     <TransactionForm
       schema={schema}
+      contractSchema={contractSchema}
       adapter={adapter}
-      networkConfig={networkConfig}
-      onSubmit={handleSubmit}
+      onTransactionSuccess={handleTransactionSuccess}
     />
   );
 }
@@ -154,15 +162,24 @@ function App() {
 
 ### Contract State Widget
 
+`ContractStateWidget` extends **`ContractStateCapabilityProps`**: pass `query` and `schema` capabilities (from the active runtime) so view calls use the same network and schema pipeline as the rest of the app.
+
 ```tsx
 import { ContractStateWidget } from '@openzeppelin/ui-renderer';
 
-function ContractView() {
+function ContractView({
+  query,
+  schema,
+}: {
+  query: import('@openzeppelin/ui-types').QueryCapability;
+  schema: import('@openzeppelin/ui-types').SchemaCapability;
+}) {
   return (
     <ContractStateWidget
-      contractSchema={schema}
+      contractSchema={contractSchema}
       contractAddress="0x..."
-      adapter={adapter}
+      query={query}
+      schema={schema}
       isVisible={true}
     />
   );
@@ -189,26 +206,32 @@ function FormHeader() {
 
 ### `<TransactionForm>`
 
-| Prop            | Type                       | Description                                  |
-| --------------- | -------------------------- | -------------------------------------------- |
-| `schema`        | `RenderFormSchema`         | The schema definition for the form           |
-| `adapter`       | `ContractAdapter`          | The blockchain adapter instance              |
-| `networkConfig` | `NetworkConfig`            | Network configuration for the target network |
-| `onSubmit`      | `(data: FormData) => void` | Callback function when form is submitted     |
-| `previewMode`   | `boolean`                  | (Optional) Renders form in preview mode      |
-| `initialValues` | `FormData`                 | (Optional) Initial values for form fields    |
-| `disabled`      | `boolean`                  | (Optional) Disables all form fields          |
-| `loading`       | `boolean`                  | (Optional) Shows loading state               |
+See **`TransactionFormProps`** in `@openzeppelin/ui-types` for the full contract. Important props:
+
+| Prop                  | Type                         | Description                                        |
+| --------------------- | ---------------------------- | -------------------------------------------------- |
+| `schema`              | `RenderFormSchema`           | Form layout and fields                             |
+| `contractSchema`      | `ContractSchema` (optional)| ABI / function metadata for the target call        |
+| `adapter`             | `TransactionFormCapabilities`| Capability bundle for signing, mapping, execution  |
+| `executionConfig`     | `ExecutionConfig` (optional) | EOA vs relayer and related options              |
+| `onTransactionSuccess`| callback (optional)          | Fires after a successful transaction lifecycle     |
+| `isWalletConnected`   | `boolean` (optional)         | Whether a wallet session is present                |
+
+Network configuration is taken from **`adapter.networkConfig`** (see `RuntimeCapability`).
 
 ### `<ContractStateWidget>`
 
-| Prop              | Type              | Description                             |
-| ----------------- | ----------------- | --------------------------------------- |
-| `contractSchema`  | `ContractSchema`  | The contract schema with view functions |
-| `contractAddress` | `string`          | The deployed contract address           |
-| `adapter`         | `ContractAdapter` | The blockchain adapter instance         |
-| `isVisible`       | `boolean`         | (Optional) Controls widget visibility   |
-| `onToggle`        | `() => void`      | (Optional) Callback for toggle actions  |
+Implements **`ContractStateCapabilityProps`** plus display props:
+
+| Prop              | Type                     | Description                                      |
+| ----------------- | ------------------------ | ------------------------------------------------ |
+| `contractSchema`  | `ContractSchema \| null` | Contract schema with view functions              |
+| `contractAddress` | `string \| null`         | Deployed contract address                        |
+| `query`           | `QueryCapability`        | View/query capability (includes `networkConfig`) |
+| `schema`          | `SchemaCapability`       | Schema capability for the active network         |
+| `isVisible`       | `boolean`                | (Optional) Controls widget visibility            |
+| `onToggle`        | `() => void`             | (Optional) Toggle callback                       |
+| `error`           | `Error \| null`          | (Optional) External error to surface             |
 
 ### `<ContractActionBar>`
 

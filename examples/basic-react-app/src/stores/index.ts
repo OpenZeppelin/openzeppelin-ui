@@ -8,7 +8,6 @@ export {
   useEcosystemStore,
   useCurrentEcosystem,
   useCurrentNetwork,
-  useCurrentAdapter,
   useEcosystemMetadata,
   useAvailableNetworks,
   useSampleAddresses,

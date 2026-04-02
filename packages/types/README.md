@@ -21,9 +21,10 @@ pnpm add @openzeppelin/ui-types
 
 This package serves as the single source of truth for all shared types used across the OpenZeppelin UI packages, including:
 
-- Contract and blockchain related types
+- **Capability and runtime types** — `EcosystemRuntime`, per-capability interfaces, and profile names used by adapter packages and apps
+- Contract and blockchain-related types (`ContractSchema`, networks, execution)
 - Form field and layout definitions
-- Adapter interfaces
+- Transaction and execution configuration types
 
 By centralizing type definitions, we ensure consistency across all packages and eliminate type duplication.
 
@@ -32,26 +33,23 @@ By centralizing type definitions, we ensure consistency across all packages and 
 The package is organized into namespaces for better organization and to prevent naming collisions.
 
 ```typescript
-// Import everything
-// Import specific types from their respective namespaces
-import {
-  adapters,
-  ContractAdapter,
-  contracts,
-  FieldType,
-  FormFieldType,
-  forms,
+import type {
+  EcosystemRuntime,
+  NetworkConfig,
+  ProfileName,
+  TransactionFormCapabilities,
 } from '@openzeppelin/ui-types';
-// Import specific namespaces
-import * as contracts from '@openzeppelin/ui-types';
-import * as adapters from '@openzeppelin/ui-types';
-import * as forms from '@openzeppelin/ui-types';
 
-// Example usage in a function
-function validateField(field: forms.FormFieldType): boolean {
-  // Implementation
-  return true;
+// Example: narrowing form props
+function describeFormAdapter(adapter: TransactionFormCapabilities): string {
+  return adapter.networkConfig.id;
 }
+```
+
+Import capability groups from the main entry (they are re-exported from `./adapters`):
+
+```typescript
+import type { QueryCapability, SchemaCapability, WalletCapability } from '@openzeppelin/ui-types';
 ```
 
 ## Package Structure
@@ -59,101 +57,71 @@ function validateField(field: forms.FormFieldType): boolean {
 ```text
 types/
 ├── src/
-│   ├── adapters/           # Contract adapter interfaces
-│   │   ├── base.ts         # Core ContractAdapter interface
-│   │   ├── contract-state.ts # Contract state querying capabilities
-│   │   └── index.ts        # Re-exports all adapter types
-│   ├── common/             # Common types shared across namespaces
-│   │   ├── ecosystem.ts    # NetworkEcosystem enum/type
-│   │   └── index.ts        # Re-exports common types
-│   ├── config/             # Types for runtime application configuration
-│   │   └── app-config.ts   # Defines AppRuntimeConfig and related types
-│   ├── contracts/          # Contract schema related types
-│   │   ├── schema.ts       # ContractSchema, ContractFunction etc.
-│   │   └── index.ts        # Re-exports contract types
-│   ├── execution/          # Types for transaction execution methods
-│   │   ├── eoa.ts
-│   │   ├── relayer.ts
-│   │   └── ...
-│   ├── forms/              # Form field, layout, schema, and validation definitions
-│   │   ├── fields.ts       # Base FieldType definitions
-│   │   ├── form-field.ts   # FormField definition
-│   │   ├── layout.ts       # FormLayout definitions
-│   │   ├── schema.ts       # RenderFormSchema, BuilderFormConfig definitions
-│   │   ├── validation.ts   # FieldValidation definitions
-│   │   ├── values.ts       # FormValues type
-│   │   └── index.ts        # Re-exports all form types
-│   ├── networks/           # Network configuration types
-│   │   ├── config.ts       # Network config interfaces and type guards
-│   │   ├── validation.ts   # Network configuration validation utilities
-│   │   └── index.ts        # Re-exports all network types
-│   ├── transactions/       # Types related to transaction submission status
-│   │   ├── status.ts       # TransactionStatus types
-│   │   └── index.ts        # Re-exports transaction types
-│   └── index.ts            # Main entry point that re-exports all modules
+│   ├── adapters/              # Capability interfaces, profiles, runtime, ecosystem export
+│   │   ├── capabilities/    # Tier 2/3 capability contracts (wallet, query, schema, …)
+│   │   ├── profiles/        # Profile-narrowed EcosystemRuntime shapes (viewer, transactor, …)
+│   │   ├── runtime.ts       # EcosystemRuntime, RuntimeCapability
+│   │   ├── ecosystem-export.ts  # EcosystemExport (createRuntime, networks, metadata)
+│   │   ├── common.ts        # Shared adapter primitives
+│   │   └── index.ts
+│   ├── common/              # NetworkEcosystem, address book helpers, …
+│   ├── config/              # AppRuntimeConfig and app config types
+│   ├── contracts/           # ContractSchema, ContractFunction, …
+│   ├── execution/           # EOA / relayer execution config types
+│   ├── forms/               # Form fields, layout, schema, validation
+│   ├── networks/            # NetworkConfig unions and guards
+│   ├── transactions/        # TransactionStatus, progress types
+│   └── index.ts             # Main entry re-exports all modules
 ├── package.json
 └── tsconfig.json
 ```
 
 ## Type Definitions
 
-### Adapter Types (`./src/adapters`)
+### Adapters & capabilities (`./src/adapters`)
 
-Interfaces for blockchain-specific adapters:
+- **`EcosystemRuntime`**: Per-network bundle of optional capabilities (`wallet`, `query`, `schema`, `execution`, `accessControl`, …). Created by each ecosystem’s `createRuntime(profile, networkConfig, options)` (see published `@openzeppelin/adapter-*` packages).
+- **`RuntimeCapability`**: Base for Tier 2+ capabilities; includes `networkConfig` and `dispose()`.
+- **`ProfileName`**: `'declarative' | 'viewer' | 'transactor' | 'composer' | 'operator'` — selects which capabilities are required for a runtime.
+- **`EcosystemExport`**: Metadata + `networks` + `capabilities` factories + `createRuntime` — the object adapter packages publish as `ecosystemDefinition`.
+- Individual **capability** interfaces (e.g. `WalletCapability`, `QueryCapability`, `TransactionFormCapabilities`) live under `./capabilities` and are re-exported from the package root.
 
-- `ContractAdapter`: The core interface defining methods for loading contracts, mapping types, querying state, formatting data, validating addresses, handling transactions, and interacting with wallets.
-- `AccessControlService`: Interface for access control and ownership management operations on contracts.
+Legacy monolithic `ContractAdapter` types are **not** part of the current public model; apps compose `EcosystemRuntime` and pass capability intersections (e.g. `TransactionFormProps['adapter']`) into UI packages.
 
-### Config Types (`./src/config`)
+### Config types (`./src/config`)
 
-- `AppRuntimeConfig`: Defines the shape of the `app.config.json` file used by exported applications.
+- `AppRuntimeConfig`: Shape of `app.config.json` for exported applications.
 
-### Common Types (`./src/common`)
+### Common types (`./src/common`)
 
-- `NetworkEcosystem`: Enum or type defining supported blockchain ecosystems (e.g., 'evm', 'solana').
-- `AddressLabelResolver`: Interface for synchronous address-to-label resolution. Consumed by `AddressLabelContext` in `@openzeppelin/ui-components`.
-- `AddressSuggestion`: A single autocomplete suggestion (label, value, optional description).
-- `AddressSuggestionResolver`: Interface for resolving address suggestions from a query string. Consumed by `AddressSuggestionContext` in `@openzeppelin/ui-components`.
-- `AddressBookAlias`: Plain data shape for an alias record as consumed by the Address Book widget.
-- `AddressBookWidgetProps`: Props contract shared between `AddressBookWidget` (ui-renderer) and `useAddressBookWidgetProps` (ui-storage).
+- `NetworkEcosystem`: Supported blockchain ecosystems (e.g. `'evm'`, `'stellar'`).
+- `AddressLabelResolver`, `AddressSuggestion`, `AddressSuggestionResolver`, `AddressBookAlias`, `AddressBookWidgetProps`: shared contracts for address book and labeling (used with `@openzeppelin/ui-components`).
 
-### Contract Types (`./src/contracts`)
+### Contract types (`./src/contracts`)
 
-- `ContractSchema`: Interface for contract schema definitions (ABI in EVM).
-- `ContractFunction`: Interface for function definitions within a contract.
-- `ContractParameter`: Interface for function parameter definitions.
+- `ContractSchema`, `ContractFunction`, `ContractParameter`: ABI-level schema types.
 
-### Form Types (`./src/forms`)
+### Form types (`./src/forms`)
 
-- `FieldType`: Types of form fields (text, number, boolean, address, select, etc.).
-- `FormField`: Complete definition of a form field including ID, type, label, validation, etc.
-- `RenderFormSchema`: The schema used by the renderer package.
-- `BuilderFormConfig`: The configuration used by builder applications.
-- `FieldValidation`: Validation rules for form fields.
-- `FormValues`: Type representing the collected data from a form submission.
+- `FieldType`, `FormField`, `RenderFormSchema`, `BuilderFormConfig`, `FieldValidation`, `FormValues`.
 
-### Network Types (`./src/networks`)
+### Network types (`./src/networks`)
 
-- Interfaces for common properties (`BaseNetworkConfig`) and ecosystem-specific details.
-- The discriminated union type `NetworkConfig` representing any valid network configuration.
-- Type guard functions (e.g., `isEvmNetworkConfig(config)`) to safely narrow down the `NetworkConfig` union type.
+- `BaseNetworkConfig`, discriminated `NetworkConfig`, and guards such as `isEvmNetworkConfig`.
 
-### Execution Types (`./src/execution`)
+### Execution types (`./src/execution`)
 
-- Types related to transaction execution strategies, such as `EoaExecutionConfig`, `RelayerExecutionConfig`, and `RelayerDetails`.
+- `EoaExecutionConfig`, `RelayerExecutionConfig`, `RelayerDetails`, etc.
 
-### Transaction Types (`./src/transactions`)
+### Transaction types (`./src/transactions`)
 
-- `TransactionStatus`: Enum or type defining possible states (Idle, Signing, Broadcasting, PendingConfirmation, Success, Error).
-- `TransactionProgress`: Interface holding details like transaction hash, error messages, explorer links.
+- `TransactionStatus`, `TransactionProgress`, and related UI progress types.
 
 ## Integration with Other Packages
 
-This package is a dependency for multiple packages in the ecosystem:
-
-- **@openzeppelin/ui-components**: Uses types for form field rendering
-- **@openzeppelin/ui-renderer**: Uses types for form rendering and validation
-- **@openzeppelin/ui-utils**: Uses types for utility functions
+- **@openzeppelin/ui-components**: Form and layout types
+- **@openzeppelin/ui-renderer**: `TransactionFormProps`, `ContractStateCapabilityProps`, etc.
+- **@openzeppelin/ui-utils**: Shared utilities typed against these definitions
 
 ## Development
 

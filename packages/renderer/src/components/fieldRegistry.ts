@@ -22,7 +22,7 @@ import {
   TextField,
   UrlField,
 } from '@openzeppelin/ui-components';
-import type { ContractAdapter, ContractSchema } from '@openzeppelin/ui-types';
+import type { DynamicFormContextProps } from '@openzeppelin/ui-types';
 import { FieldType, FormValues } from '@openzeppelin/ui-types';
 
 import { CodeEditorField } from '@openzeppelin/ui-components/code-editor';
@@ -34,9 +34,7 @@ import { CodeEditorField } from '@openzeppelin/ui-components/code-editor';
  */
 export const fieldComponents: Record<
   FieldType,
-  React.ComponentType<
-    BaseFieldProps<FormValues> & { adapter?: ContractAdapter; contractSchema?: ContractSchema }
-  >
+  React.ComponentType<BaseFieldProps<FormValues> & DynamicFormContextProps>
 > = {
   text: TextField,
   number: NumberField,

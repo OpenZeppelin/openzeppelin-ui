@@ -84,7 +84,7 @@ export function WalletComponentsSection(): React.ReactElement {
           Wallet UI Components
         </CardTitle>
         <CardDescription>
-          The WalletConnectionUI component dynamically renders wallet UI from the active adapter,
+          The WalletConnectionUI component dynamically renders wallet UI from the active runtime,
           supporting multiple UI kits.
         </CardDescription>
       </CardHeader>
@@ -155,9 +155,9 @@ export function UiKitSwitchingSection(): React.ReactElement {
             <AccordionTrigger>Seamless switching explained</AccordionTrigger>
             <AccordionContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Kit switching uses <code>reconfigureActiveAdapterUiKit</code> which triggers a
-                version bump in WalletStateProvider. This causes the adapter to reconfigure its UI
-                kit manager without unmounting the entire provider tree.
+                Kit switching uses <code>reconfigureActiveUiKit</code> which triggers a version bump
+                in WalletStateProvider. This causes the runtime to reconfigure its UI kit manager
+                without unmounting the entire provider tree.
               </p>
               <ul className="ml-4 list-disc space-y-1 text-sm text-muted-foreground">
                 <li>Connection state is preserved across kit switches</li>

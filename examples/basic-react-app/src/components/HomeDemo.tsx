@@ -29,14 +29,15 @@ function EcosystemIcon({ ecosystem, size = 24 }: { ecosystem: DemoEcosystem; siz
 }
 
 export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
-  const { ecosystem, setEcosystem, adapter, sampleAddresses, metadata, isLoading } = useEcosystem();
+  const { ecosystem, setEcosystem, capabilities, sampleAddresses, metadata, isLoading } =
+    useEcosystem();
   const [testAddress, setTestAddress] = useState('');
 
   // Show loading state while ecosystem data is being loaded
-  if (isLoading || !adapter || !metadata) {
+  if (isLoading || !capabilities || !metadata) {
     return (
       <section className="flex min-h-[400px] items-center justify-center">
-        <div className="text-muted-foreground">Loading adapter...</div>
+        <div className="text-muted-foreground">Loading runtime...</div>
       </section>
     );
   }
@@ -97,10 +98,10 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
           {testAddress ? (
             <p
               className={`flex items-center gap-2 text-sm font-medium ${
-                adapter.isValidAddress(testAddress) ? 'text-green-600' : 'text-red-500'
+                capabilities.isValidAddress(testAddress) ? 'text-green-600' : 'text-red-500'
               }`}
             >
-              {adapter.isValidAddress(testAddress)
+              {capabilities.isValidAddress(testAddress)
                 ? `✓ Valid ${metadata.name} address`
                 : `✗ Invalid ${metadata.name} address`}
             </p>

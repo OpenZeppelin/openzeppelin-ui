@@ -21,7 +21,7 @@ import { EcosystemSwitcher } from './EcosystemSwitcher';
  * Now ecosystem-aware - networks change based on selected ecosystem.
  */
 export function NetworkDemo(): React.ReactElement {
-  const { metadata, adapter, isLoading: ecosystemLoading } = useEcosystem();
+  const { metadata, capabilities, isLoading: ecosystemLoading } = useEcosystem();
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkConfig | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
@@ -74,7 +74,7 @@ export function NetworkDemo(): React.ReactElement {
 
   if (ecosystemLoading || !metadata) {
     return (
-      <DemoSection title="Network Components" description="Loading adapter data...">
+      <DemoSection title="Network Components" description="Loading runtime data...">
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
@@ -85,7 +85,7 @@ export function NetworkDemo(): React.ReactElement {
   return (
     <DemoSection
       title="Network Components"
-      description={`Network components for ${metadata.name}. Switch adapters to see different networks. Currently showing ${networks.length} ${metadata.name} networks.`}
+      description={`Network components for ${metadata.name}. Switch ecosystems to see different networks. Currently showing ${networks.length} ${metadata.name} networks.`}
       codeExample={`import { NetworkIcon, NetworkSelector, NetworkServiceErrorBanner, NetworkStatusBadge } from '@openzeppelin/ui-components';
 import { NetworkSettingsDialog } from '@openzeppelin/ui-renderer';
 import type { NetworkConfig } from '@openzeppelin/ui-types';
@@ -114,21 +114,21 @@ import type { NetworkConfig } from '@openzeppelin/ui-types';
   onOpenNetworkSettings={(networkId) => openSettingsDialog(networkId)}
 />
 
-// Network settings dialog - adapter-driven service configuration
-// The dialog uses adapter.getNetworkServiceForms() to render tabs
+// Network settings dialog - runtime-driven service configuration
+// The dialog uses relayer.getNetworkServiceForms() to render tabs
 <NetworkSettingsDialog
   isOpen={isOpen}
   onOpenChange={setIsOpen}
   networkConfig={network}
-  adapter={adapter}
+  relayer={relayer}
 />`}
     >
       {/* Ecosystem Switcher */}
       <div className="space-y-4">
-        <h3 className="text-lg font-medium">Current Adapter</h3>
+        <h3 className="text-lg font-medium">Current Ecosystem</h3>
         <p className="text-muted-foreground text-sm">
-          Switch adapters to see how network components adapt. Networks, icons, and selectors all
-          change based on the active adapter.
+          Switch ecosystems to see how network components adapt. Networks, icons, and selectors all
+          change based on the active runtime.
         </p>
         <div className="flex items-center gap-4">
           <EcosystemSwitcher />
@@ -312,7 +312,7 @@ import type { NetworkConfig } from '@openzeppelin/ui-types';
         isOpen={isSettingsDialogOpen}
         onOpenChange={(open) => !open && handleCloseNetworkSettings()}
         networkConfig={settingsNetworkConfig}
-        adapter={adapter ?? null}
+        relayer={capabilities ?? null}
       />
 
       {/* NetworkServiceErrorBanner */}

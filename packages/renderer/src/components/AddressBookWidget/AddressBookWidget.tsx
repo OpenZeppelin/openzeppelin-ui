@@ -31,8 +31,8 @@ export function AddressBookWidget({
   currentNetworkId,
   resolveNetwork,
   resolveExplorerUrl,
-  adapter,
-  resolveAdapter,
+  addressing,
+  resolveAddressing,
   addressPlaceholder,
   resolveAddressPlaceholder,
   networks,
@@ -118,8 +118,8 @@ export function AddressBookWidget({
         onOpenChange={setAddDialogOpen}
         onSave={onSave}
         currentNetworkId={currentNetworkId}
-        adapter={adapter}
-        resolveAdapter={resolveAdapter}
+        addressing={addressing}
+        resolveAddressing={resolveAddressing}
         addressPlaceholder={addressPlaceholder}
         resolveAddressPlaceholder={resolveAddressPlaceholder}
         resolveNetwork={resolveNetwork}

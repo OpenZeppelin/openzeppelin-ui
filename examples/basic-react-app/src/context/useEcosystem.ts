@@ -13,10 +13,10 @@ import { EcosystemContext, type EcosystemContextValue } from './ecosystemContext
  * @example
  * ```tsx
  * function MyComponent() {
- *   const { adapter, ecosystem, network } = useEcosystem();
+ *   const { capabilities, ecosystem, network } = useEcosystem();
  *
- *   const isValid = adapter.isValidAddress(userInput);
- *   const fieldType = adapter.mapParameterTypeToFieldType('uint256');
+ *   const isValid = capabilities?.isValidAddress(userInput);
+ *   const fieldType = capabilities?.mapParameterTypeToFieldType('uint256');
  * }
  * ```
  */
