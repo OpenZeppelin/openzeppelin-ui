@@ -116,27 +116,54 @@ function computeF1(fixtureName: string): FixtureScore {
   };
 }
 
-function main(): void {
+function runEvaluation(): { scores: FixtureScore[]; meanF1: number } {
   const fixtures = discoverFixtures();
-
-  if (fixtures.length === 0) {
-    console.error('No fixtures found in autoresearch/fixtures/');
-    process.exit(1);
-  }
+  if (fixtures.length === 0) return { scores: [], meanF1: 0 };
 
   const scores: FixtureScore[] = [];
 
   for (const fixture of fixtures) {
     const expectedPath = path.join(__dirname, 'expected', `${fixture}.json`);
-    if (!fs.existsSync(expectedPath)) {
-      console.error(`⚠ Skipping ${fixture}: no expected/${fixture}.json`);
-      continue;
+    if (!fs.existsSync(expectedPath)) continue;
+    scores.push(computeF1(fixture));
+  }
+
+  const meanF1 = scores.length > 0 ? scores.reduce((sum, s) => sum + s.f1, 0) / scores.length : 0;
+  return { scores, meanF1 };
+}
+
+function main(): void {
+  const jsonMode = process.argv.includes('--json');
+  const { scores, meanF1 } = runEvaluation();
+
+  if (scores.length === 0) {
+    if (jsonMode) {
+      console.log(JSON.stringify({ fixtures: [], meanF1: 0 }));
+    } else {
+      console.error('No fixtures found in autoresearch/fixtures/');
     }
+    process.exit(scores.length === 0 && !jsonMode ? 1 : 0);
+  }
 
-    const score = computeF1(fixture);
-    scores.push(score);
+  if (jsonMode) {
+    const jsonFixtures = scores.map((s) => ({
+      fixture: s.fixture,
+      precision: s.precision,
+      recall: s.recall,
+      f1: s.f1,
+      tp: s.truePositives,
+      fp: s.falsePositives,
+      fn: s.falseNegatives,
+      matched: s.details.matched,
+      missed: s.details.missed,
+      extra: s.details.extra,
+    }));
+    console.log(JSON.stringify({ fixtures: jsonFixtures, meanF1 }));
+    return;
+  }
 
-    console.error(`--- ${fixture} ---`);
+  for (const score of scores) {
+    console.error(`--- ${score.fixture} ---`);
     console.error(
       `  F1=${score.f1.toFixed(4)}  P=${score.precision.toFixed(4)}  R=${score.recall.toFixed(4)}  TP=${score.truePositives} FP=${score.falsePositives} FN=${score.falseNegatives}`
     );
@@ -148,17 +175,8 @@ function main(): void {
     }
   }
 
-  if (scores.length === 0) {
-    console.error('No fixtures could be evaluated.');
-    process.exit(1);
-  }
-
-  const meanF1 = scores.reduce((sum, s) => sum + s.f1, 0) / scores.length;
-
   console.error(`\n=== AGGREGATE ===`);
   console.error(`mean_f1=${meanF1.toFixed(4)}  (${scores.length} fixtures)`);
-
-  // Karpathy-style output: single metric to stdout for easy parsing
   console.log(meanF1.toFixed(6));
 }
 

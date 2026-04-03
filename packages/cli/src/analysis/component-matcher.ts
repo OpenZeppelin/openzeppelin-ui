@@ -21,12 +21,13 @@ interface ImportInfo {
 
 function extractImports(content: string): ImportInfo[] {
   const imports: ImportInfo[] = [];
-  const importRegex = /import\s+(?:\{([^}]+)\}|(\w+))\s+from\s+['"]([^'"]+)['"]/g;
+  const importRegex = /import\s+(?:\{([^}]+)\}|\*\s+as\s+(\w+)|(\w+))\s+from\s+['"]([^'"]+)['"]/g;
 
   for (const match of content.matchAll(importRegex)) {
     const namedImports = match[1];
-    const defaultImport = match[2];
-    const source = match[3];
+    const namespaceImport = match[2];
+    const defaultImport = match[3];
+    const source = match[4];
 
     const specifiers: string[] = [];
     if (namedImports) {
@@ -37,6 +38,9 @@ function extractImports(content: string): ImportInfo[] {
           .trim();
         if (name) specifiers.push(name);
       }
+    }
+    if (namespaceImport) {
+      specifiers.push(namespaceImport);
     }
     if (defaultImport) {
       specifiers.push(defaultImport);
@@ -49,7 +53,7 @@ function extractImports(content: string): ImportInfo[] {
 }
 
 function countJsxUsage(content: string, componentName: string): number {
-  const openTagRegex = new RegExp(`<${componentName}[\\s/>]`, 'g');
+  const openTagRegex = new RegExp(`<${componentName}[\\s/.>]`, 'g');
   return [...content.matchAll(openTagRegex)].length;
 }
 

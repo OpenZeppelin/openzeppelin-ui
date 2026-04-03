@@ -13,11 +13,18 @@
       --border: #2a2e3d;
       --text: #e1e4ed;
       --text-muted: #8b90a0;
+      --text-dim: #5d6175;
       --accent: #6366f1;
       --green: #22c55e;
+      --green-bg: rgba(34, 197, 94, 0.12);
       --orange: #f97316;
+      --orange-bg: rgba(249, 115, 22, 0.12);
       --red: #ef4444;
+      --red-bg: rgba(239, 68, 68, 0.12);
       --blue: #3b82f6;
+      --blue-bg: rgba(59, 130, 246, 0.12);
+      --yellow: #eab308;
+      --yellow-bg: rgba(234, 179, 8, 0.12);
       --radius: 10px;
     }
 
@@ -29,6 +36,85 @@
       color: var(--text);
       min-height: 100vh;
     }
+
+    /* ── Tooltips ────────────────────────────────────── */
+
+    [data-tip] {
+      position: relative;
+      cursor: help;
+    }
+
+    [data-tip]::before {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 12px;
+      background: #2d3148;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.45;
+      white-space: normal;
+      width: max-content;
+      max-width: 280px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      z-index: 100;
+    }
+
+    [data-tip]::after {
+      content: '';
+      position: absolute;
+      bottom: calc(100% + 2px);
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #2d3148;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      z-index: 100;
+    }
+
+    [data-tip]:hover::before,
+    [data-tip]:hover::after {
+      opacity: 1;
+    }
+
+    /* tooltip on right for items that might clip on left edge */
+    [data-tip-right]::before {
+      left: 0;
+      transform: none;
+    }
+    [data-tip-right]::after {
+      left: 16px;
+      transform: none;
+    }
+
+    /* ── Info icon ───────────────────────────────────── */
+
+    .info-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--border);
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 700;
+      cursor: help;
+      flex-shrink: 0;
+    }
+
+    /* ── Header ──────────────────────────────────────── */
 
     .header {
       padding: 24px 32px;
@@ -48,6 +134,12 @@
 
     .header h1 span { color: var(--accent); }
 
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
     .status-pill {
       font-size: 12px;
       padding: 4px 12px;
@@ -59,8 +151,13 @@
     }
 
     .status-pill.live {
-      background: rgba(34, 197, 94, 0.12);
+      background: var(--green-bg);
       color: var(--green);
+    }
+
+    .status-pill.stale {
+      background: var(--yellow-bg);
+      color: var(--yellow);
     }
 
     .status-pill .dot {
@@ -76,7 +173,32 @@
       50% { opacity: 0.4; }
     }
 
+    /* ── Container ───────────────────────────────────── */
+
     .container { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+
+    /* ── Stale Banner ────────────────────────────────── */
+
+    .stale-banner {
+      display: none;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      border-radius: var(--radius);
+      background: var(--yellow-bg);
+      border: 1px solid rgba(234, 179, 8, 0.25);
+      color: var(--yellow);
+      font-size: 13px;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stale-banner.visible {
+      display: flex;
+    }
+
+    .stale-banner .stale-icon { font-size: 16px; flex-shrink: 0; }
+
+    /* ── Stats Grid ──────────────────────────────────── */
 
     .stats-grid {
       display: grid;
@@ -90,6 +212,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 20px;
+      position: relative;
     }
 
     .stat-card .label {
@@ -98,6 +221,9 @@
       letter-spacing: 0.5px;
       color: var(--text-muted);
       margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .stat-card .value {
@@ -111,6 +237,45 @@
       color: var(--text-muted);
       margin-top: 4px;
     }
+
+    /* ── Refresh button ──────────────────────────────── */
+
+    .refresh-btn {
+      background: var(--border);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+
+    .refresh-btn:hover {
+      background: var(--surface-hover);
+      color: var(--text);
+    }
+
+    .refresh-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .refresh-btn .spin {
+      display: inline-block;
+      animation: rotate 1s linear infinite;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── Panels ──────────────────────────────────────── */
 
     .panels {
       display: grid;
@@ -138,6 +303,13 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
+    }
+
+    .panel-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .panel-header .badge {
@@ -156,6 +328,22 @@
       height: 300px;
     }
 
+    /* ── Fixture Breakdown ───────────────────────────── */
+
+    .fixture-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .fixture-header .last-eval {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
     .fixture-grid { display: flex; flex-direction: column; gap: 12px; }
 
     .fixture-row {
@@ -165,7 +353,10 @@
       padding: 12px 16px;
       background: var(--bg);
       border-radius: 8px;
+      transition: background 0.15s;
     }
+
+    .fixture-row:hover { background: var(--surface-hover); }
 
     .fixture-name {
       font-size: 13px;
@@ -195,12 +386,26 @@
       text-align: right;
     }
 
-    .fixture-detail {
-      font-size: 11px;
-      color: var(--text-muted);
-      min-width: 100px;
-      text-align: right;
+    .fixture-metrics {
+      display: flex;
+      gap: 6px;
+      min-width: 160px;
+      justify-content: flex-end;
     }
+
+    .fixture-metric-chip {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .fixture-metric-chip.tp { background: var(--green-bg); color: var(--green); }
+    .fixture-metric-chip.fp { background: var(--red-bg); color: var(--red); }
+    .fixture-metric-chip.fn { background: var(--orange-bg); color: var(--orange); }
+
+    /* ── Table ───────────────────────────────────────── */
 
     .table-panel { grid-column: 1 / -1; }
 
@@ -248,9 +453,9 @@
       letter-spacing: 0.3px;
     }
 
-    .status-badge.keep { background: rgba(34, 197, 94, 0.12); color: var(--green); }
-    .status-badge.discard { background: rgba(249, 115, 22, 0.12); color: var(--orange); }
-    .status-badge.crash { background: rgba(239, 68, 68, 0.12); color: var(--red); }
+    .status-badge.keep { background: var(--green-bg); color: var(--green); }
+    .status-badge.discard { background: var(--orange-bg); color: var(--orange); }
+    .status-badge.crash { background: var(--red-bg); color: var(--red); }
 
     .empty-state {
       text-align: center;
@@ -264,36 +469,60 @@
     .table-scroll::-webkit-scrollbar { width: 6px; }
     .table-scroll::-webkit-scrollbar-track { background: transparent; }
     .table-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Footer ──────────────────────────────────────── */
+
+    .footer {
+      padding: 16px 32px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border);
+    }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1><span>&#9670;</span> Autoresearch Dashboard</h1>
-    <div class="status-pill live" id="status-pill">
-      <div class="dot"></div>
-      <span id="status-text">Connecting...</span>
+    <h1>
+      <span>&#9670;</span> Autoresearch Dashboard
+      <span class="info-icon" data-tip="Monitors the autoresearch agent's experiment loop. The agent modifies detection code, runs evaluate.ts, and logs results to results.tsv. This dashboard visualizes that data in real time.">?</span>
+    </h1>
+    <div class="header-right">
+      <button class="refresh-btn" id="refresh-btn" onclick="manualRefresh()" data-tip="Re-run the evaluation harness (evaluate.ts) against the current codebase to get a fresh live F1 score.">
+        &#x21bb; Refresh Live Eval
+      </button>
+      <div class="status-pill live" id="status-pill" data-tip="Shows connection status. 'Live' means the dashboard is receiving real-time updates via Server-Sent Events when results.tsv changes.">
+        <div class="dot"></div>
+        <span id="status-text">Connecting...</span>
+      </div>
     </div>
   </div>
 
   <div class="container">
+
+    <div class="stale-banner" id="stale-banner">
+      <span class="stale-icon">&#9888;</span>
+      <span id="stale-message">The live evaluation score differs from the last logged experiment. The agent may have changed code since the last experiment was recorded. Click "Refresh Live Eval" to re-check.</span>
+    </div>
+
     <div class="stats-grid" id="stats-grid">
-      <div class="stat-card">
-        <div class="label">Experiments</div>
+      <div class="stat-card" data-tip="Total number of experiments the autoresearch agent has run. Each experiment is one attempt to improve component detection accuracy." data-tip-right>
+        <div class="label">Experiments <span class="info-icon">?</span></div>
         <div class="value" id="stat-total">-</div>
         <div class="sub" id="stat-breakdown">-</div>
       </div>
-      <div class="stat-card">
-        <div class="label">Best Mean F1</div>
+      <div class="stat-card" data-tip="Highest mean F1 score across all 'keep' experiments. F1 is the harmonic mean of precision and recall — 1.0 means perfect detection, 0.0 means no correct detections.">
+        <div class="label">Best Mean F1 <span class="info-icon">?</span></div>
         <div class="value" id="stat-best">-</div>
         <div class="sub" id="stat-best-exp">-</div>
       </div>
-      <div class="stat-card">
-        <div class="label">Current F1 (Live)</div>
+      <div class="stat-card" data-tip="Live F1 score from running evaluate.ts RIGHT NOW against the current codebase. Unlike the logged results, this always reflects the latest code. Spawns a fresh process each time.">
+        <div class="label">Current F1 (Live) <span class="info-icon">?</span></div>
         <div class="value" id="stat-current">-</div>
-        <div class="sub" id="stat-current-sub">Running evaluation...</div>
+        <div class="sub" id="stat-current-sub">Evaluating...</div>
       </div>
-      <div class="stat-card">
-        <div class="label">Keep Rate</div>
+      <div class="stat-card" data-tip="Percentage of experiments that improved the score and were kept. A low keep rate means most experiments failed to improve detection — this is normal for optimization.">
+        <div class="label">Keep Rate <span class="info-icon">?</span></div>
         <div class="value" id="stat-keeprate">-</div>
         <div class="sub" id="stat-keeprate-sub">-</div>
       </div>
@@ -302,7 +531,10 @@
     <div class="panels">
       <div class="panel">
         <div class="panel-header">
-          Experiment Progress
+          <div class="panel-header-left">
+            Experiment Progress
+            <span class="info-icon" data-tip="Scatter plot of all experiments. Green dots = kept (improved score), orange X = discarded (no improvement), red triangle = crashed. The green shaded line shows the running maximum — the best score achieved up to that point.">?</span>
+          </div>
           <span class="badge" id="chart-badge">-</span>
         </div>
         <div class="panel-body">
@@ -314,10 +546,17 @@
 
       <div class="panel">
         <div class="panel-header">
-          Per-Fixture Breakdown
+          <div class="panel-header-left">
+            Per-Fixture Breakdown
+            <span class="info-icon" data-tip="Shows the live F1 score for each benchmark fixture. Each fixture is a sample React app (raw HTML, shadcn, Radix) that tests different detection patterns. The evaluation runs the current analyzer code against these fixtures.">?</span>
+          </div>
           <span class="badge" id="fixture-badge">live</span>
         </div>
         <div class="panel-body">
+          <div class="fixture-header" id="fixture-header" style="display:none">
+            <span class="last-eval" id="last-eval-time">Last evaluated: never</span>
+            <button class="refresh-btn" onclick="manualRefresh()" style="font-size:11px;padding:2px 8px">&#x21bb; Re-evaluate</button>
+          </div>
           <div class="fixture-grid" id="fixture-grid">
             <div class="empty-state">
               <p>Loading evaluation...</p>
@@ -328,18 +567,21 @@
 
       <div class="panel table-panel">
         <div class="panel-header">
-          Experiment Log
+          <div class="panel-header-left">
+            Experiment Log
+            <span class="info-icon" data-tip="Chronological log of all experiments from results.tsv. Each row shows the experiment number, whether it was kept/discarded/crashed, its mean F1 score, the delta from the previous experiment, and what the agent changed.">?</span>
+          </div>
           <span class="badge" id="log-badge">0 rows</span>
         </div>
         <div class="table-scroll" id="table-scroll">
           <table>
             <thead>
               <tr>
-                <th>#</th>
-                <th>Status</th>
-                <th>Mean F1</th>
-                <th>Delta</th>
-                <th>Description</th>
+                <th data-tip="Sequential experiment number assigned by the autoresearch agent.">#</th>
+                <th data-tip="Outcome of the experiment. keep = improved the score and was committed. discard = did not improve, changes reverted. crash = evaluation harness failed to run.">Status</th>
+                <th data-tip="Mean F1 score across all benchmark fixtures for this experiment. Ranges from 0 (no correct detections) to 1 (perfect detection).">Mean F1</th>
+                <th data-tip="Change in Mean F1 compared to the previous kept experiment. Green positive = improvement, red negative = regression.">Delta</th>
+                <th data-tip="Agent's description of what was changed in this experiment.">Description</th>
               </tr>
             </thead>
             <tbody id="log-body">
@@ -355,10 +597,17 @@
     </div>
   </div>
 
+  <div class="footer">
+    Autoresearch — Karpathy-style autonomous improvement loop for component detection
+  </div>
+
   <script>
     let chart = null;
     let lastMtime = 0;
     let lastRowCount = 0;
+    let lastEvalTime = null;
+    let lastLiveF1 = null;
+    let isEvaluating = false;
 
     function initChart() {
       const ctx = document.getElementById('progress-chart').getContext('2d');
@@ -367,7 +616,7 @@
         data: {
           datasets: [
             {
-              label: 'keep',
+              label: 'keep — score improved, changes committed',
               data: [],
               backgroundColor: 'rgba(34, 197, 94, 0.8)',
               borderColor: 'rgba(34, 197, 94, 1)',
@@ -376,7 +625,7 @@
               order: 1,
             },
             {
-              label: 'discard',
+              label: 'discard — no improvement, reverted',
               data: [],
               backgroundColor: 'rgba(249, 115, 22, 0.7)',
               borderColor: 'rgba(249, 115, 22, 1)',
@@ -386,7 +635,7 @@
               order: 2,
             },
             {
-              label: 'crash',
+              label: 'crash — evaluation failed',
               data: [],
               backgroundColor: 'rgba(239, 68, 68, 0.7)',
               borderColor: 'rgba(239, 68, 68, 1)',
@@ -396,7 +645,7 @@
               order: 3,
             },
             {
-              label: 'running max',
+              label: 'running max — best score so far',
               data: [],
               type: 'line',
               borderColor: 'rgba(34, 197, 94, 0.5)',
@@ -420,7 +669,7 @@
               ticks: { color: '#8b90a0' },
             },
             y: {
-              title: { display: true, text: 'Mean F1', color: '#8b90a0' },
+              title: { display: true, text: 'Mean F1 Score', color: '#8b90a0' },
               min: 0,
               max: 1.05,
               grid: { color: 'rgba(42, 46, 61, 0.5)' },
@@ -429,13 +678,13 @@
           },
           plugins: {
             legend: {
-              labels: { color: '#8b90a0', usePointStyle: true, pointStyle: 'circle' },
+              labels: { color: '#8b90a0', usePointStyle: true, pointStyle: 'circle', padding: 16 },
             },
             tooltip: {
               callbacks: {
                 label: function (ctx) {
-                  if (ctx.dataset.label === 'running max') return '';
-                  return `#${ctx.parsed.x} — F1: ${ctx.parsed.y.toFixed(6)}`;
+                  if (ctx.dataset.label.startsWith('running max')) return '';
+                  return `Experiment #${ctx.parsed.x} — F1: ${ctx.parsed.y.toFixed(6)}`;
                 },
               },
             },
@@ -482,28 +731,56 @@
 
       document.getElementById('stat-total').textContent = total || '-';
       document.getElementById('stat-breakdown').textContent =
-        total ? `${kept.length} kept · ${discarded} discarded · ${crashed} crashed` : 'No experiments';
+        total ? `${kept.length} kept \u00b7 ${discarded} discarded \u00b7 ${crashed} crashed` : 'Waiting for experiments...';
 
       if (kept.length > 0) {
         const bestRow = kept.reduce((a, b) => a.meanF1 > b.meanF1 ? a : b);
         document.getElementById('stat-best').textContent = bestRow.meanF1.toFixed(4);
-        document.getElementById('stat-best-exp').textContent = `Experiment #${bestRow.experiment}`;
+        document.getElementById('stat-best-exp').textContent = `Achieved at experiment #${bestRow.experiment}`;
       } else {
         document.getElementById('stat-best').textContent = '-';
-        document.getElementById('stat-best-exp').textContent = 'No kept experiments';
+        document.getElementById('stat-best-exp').textContent = 'No kept experiments yet';
       }
 
       if (total > 0) {
         const rate = ((kept.length / total) * 100).toFixed(0);
         document.getElementById('stat-keeprate').textContent = rate + '%';
-        document.getElementById('stat-keeprate-sub').textContent = `${kept.length} of ${total} experiments`;
+        document.getElementById('stat-keeprate-sub').textContent = `${kept.length} of ${total} experiments kept`;
       } else {
         document.getElementById('stat-keeprate').textContent = '-';
-        document.getElementById('stat-keeprate-sub').textContent = '-';
+        document.getElementById('stat-keeprate-sub').textContent = 'Waiting for experiments...';
       }
 
       document.getElementById('chart-badge').textContent = `${total} experiments`;
       document.getElementById('log-badge').textContent = `${total} rows`;
+
+      checkStaleness(rows);
+    }
+
+    function checkStaleness(rows) {
+      const banner = document.getElementById('stale-banner');
+      if (lastLiveF1 === null || rows.length === 0) {
+        banner.classList.remove('visible');
+        return;
+      }
+
+      const keptRows = rows.filter(r => r.status === 'keep');
+      if (keptRows.length === 0) {
+        banner.classList.remove('visible');
+        return;
+      }
+
+      const lastKeptF1 = keptRows[keptRows.length - 1].meanF1;
+      const diff = Math.abs(lastLiveF1 - lastKeptF1);
+
+      if (diff > 0.001) {
+        document.getElementById('stale-message').textContent =
+          `Live F1 (${lastLiveF1.toFixed(4)}) differs from last logged experiment (${lastKeptF1.toFixed(4)}). ` +
+          `The agent may have modified code since the last experiment was recorded. Click "Refresh Live Eval" for a fresh evaluation.`;
+        banner.classList.add('visible');
+      } else {
+        banner.classList.remove('visible');
+      }
     }
 
     function updateTable(rows) {
@@ -515,56 +792,111 @@
       }
 
       const reversed = [...rows].reverse();
+
+      let lastKeptF1 = null;
+      const keepScores = rows.filter(r => r.status === 'keep').map(r => r.meanF1);
+      const deltas = new Map();
+      for (let i = 0; i < rows.length; i++) {
+        if (rows[i].status === 'keep') {
+          if (lastKeptF1 !== null) {
+            deltas.set(rows[i].experiment, rows[i].meanF1 - lastKeptF1);
+          }
+          lastKeptF1 = rows[i].meanF1;
+        }
+      }
+
       tbody.innerHTML = reversed
-        .map((r, i) => {
-          const prev = i < reversed.length - 1 ? reversed[i + 1] : null;
+        .map((r) => {
           let delta = '';
-          if (prev && r.status === 'keep') {
-            const d = r.meanF1 - prev.meanF1;
+          if (r.status === 'keep' && deltas.has(r.experiment)) {
+            const d = deltas.get(r.experiment);
             if (d > 0) delta = `<span style="color:var(--green)">+${d.toFixed(4)}</span>`;
             else if (d < 0) delta = `<span style="color:var(--red)">${d.toFixed(4)}</span>`;
             else delta = `<span style="color:var(--text-muted)">0.0000</span>`;
+          } else if (r.status === 'keep' && !deltas.has(r.experiment)) {
+            delta = `<span style="color:var(--text-dim)">baseline</span>`;
           }
+
+          const statusTip = {
+            keep: 'This experiment improved the F1 score and its code changes were committed.',
+            discard: 'This experiment did not improve the F1 score. Code changes were reverted.',
+            crash: 'The evaluation harness failed to run for this experiment (syntax error, timeout, etc).'
+          }[r.status] || '';
+
           return `<tr>
             <td>${r.experiment}</td>
-            <td><span class="status-badge ${r.status}">${r.status}</span></td>
+            <td><span class="status-badge ${r.status}" data-tip="${statusTip}">${r.status}</span></td>
             <td>${r.meanF1.toFixed(6)}</td>
             <td>${delta}</td>
-            <td style="color:var(--text-muted)">${r.description}</td>
+            <td style="color:var(--text-muted);max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(r.description)}">${escapeHtml(r.description)}</td>
           </tr>`;
         })
         .join('');
     }
 
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
     function getBarColor(f1) {
       if (f1 >= 0.9) return 'var(--green)';
+      if (f1 >= 0.7) return 'var(--blue)';
       if (f1 >= 0.5) return 'var(--orange)';
       return 'var(--red)';
     }
 
+    function getScoreLabel(f1) {
+      if (f1 >= 0.95) return 'Excellent';
+      if (f1 >= 0.9) return 'Great';
+      if (f1 >= 0.7) return 'Good';
+      if (f1 >= 0.5) return 'Fair';
+      return 'Poor';
+    }
+
     function updateFixtures(evalData) {
       const grid = document.getElementById('fixture-grid');
+      const header = document.getElementById('fixture-header');
 
-      if (!evalData || evalData.fixtures.length === 0) {
-        grid.innerHTML = '<div class="empty-state"><p>No fixtures found.</p></div>';
+      if (evalData.error) {
+        grid.innerHTML = `<div class="empty-state" style="padding:20px"><p style="color:var(--red)">Evaluation failed: ${escapeHtml(evalData.error).substring(0, 200)}</p></div>`;
         return;
       }
 
-      document.getElementById('stat-current').textContent = evalData.meanF1.toFixed(4);
+      if (!evalData || evalData.fixtures.length === 0) {
+        grid.innerHTML = '<div class="empty-state"><p>No fixtures found. Create benchmark apps in autoresearch/fixtures/</p></div>';
+        return;
+      }
+
+      lastEvalTime = new Date();
+      lastLiveF1 = evalData.meanF1;
+      header.style.display = 'flex';
+      document.getElementById('last-eval-time').textContent = `Last evaluated: ${lastEvalTime.toLocaleTimeString()}`;
+
+      const currentEl = document.getElementById('stat-current');
+      currentEl.textContent = evalData.meanF1.toFixed(4);
+      currentEl.style.color = getBarColor(evalData.meanF1);
+
       document.getElementById('stat-current-sub').textContent =
-        `${evalData.fixtures.length} fixtures evaluated`;
+        `${getScoreLabel(evalData.meanF1)} \u00b7 ${evalData.fixtures.length} fixtures \u00b7 ${lastEvalTime.toLocaleTimeString()}`;
 
       grid.innerHTML = evalData.fixtures
         .map(f => {
           const pct = (f.f1 * 100).toFixed(0);
           const color = getBarColor(f.f1);
-          return `<div class="fixture-row">
-            <div class="fixture-name">${f.fixture}</div>
-            <div class="fixture-bar-container">
+          const precisionPct = (f.precision * 100).toFixed(0);
+          const recallPct = (f.recall * 100).toFixed(0);
+
+          return `<div class="fixture-row" data-tip="F1=${f.f1.toFixed(4)} | Precision=${precisionPct}% (of detected, how many are correct) | Recall=${recallPct}% (of expected, how many were found)">
+            <div class="fixture-name" data-tip="Benchmark fixture: a sample React app in autoresearch/fixtures/${f.fixture}/" data-tip-right>${f.fixture}</div>
+            <div class="fixture-bar-container" data-tip="Visual representation of F1 score (${pct}%). Green=90%+, Blue=70%+, Orange=50%+, Red=below 50%">
               <div class="fixture-bar" style="width:${pct}%;background:${color}"></div>
             </div>
             <div class="fixture-score" style="color:${color}">${f.f1.toFixed(4)}</div>
-            <div class="fixture-detail">TP:${f.tp} FP:${f.fp} FN:${f.fn}</div>
+            <div class="fixture-metrics">
+              <span class="fixture-metric-chip tp" data-tip="True Positives: components correctly detected and mapped. ${f.matched ? f.matched.length + ' components matched.' : ''}">TP ${f.tp}</span>
+              <span class="fixture-metric-chip fp" data-tip="False Positives: components detected that shouldn't have been. These reduce precision. ${f.extra ? f.extra.join(', ') : 'None'}">FP ${f.fp}</span>
+              <span class="fixture-metric-chip fn" data-tip="False Negatives: expected components that were not detected. These reduce recall. ${f.missed ? f.missed.join(', ') : 'None'}">FN ${f.fn}</span>
+            </div>
           </div>`;
         })
         .join('');
@@ -588,13 +920,29 @@
     }
 
     async function fetchEvaluation() {
+      if (isEvaluating) return;
+      isEvaluating = true;
+
+      const btn = document.getElementById('refresh-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spin">&#x21bb;</span> Evaluating...';
+
       try {
         const res = await fetch('/api/evaluate');
         const data = await res.json();
         updateFixtures(data);
       } catch (e) {
         console.error('Failed to fetch evaluation:', e);
+        document.getElementById('stat-current-sub').textContent = 'Evaluation request failed';
+      } finally {
+        isEvaluating = false;
+        btn.disabled = false;
+        btn.innerHTML = '&#x21bb; Refresh Live Eval';
       }
+    }
+
+    async function manualRefresh() {
+      await Promise.all([fetchResults(), fetchEvaluation()]);
     }
 
     function connectSSE() {
@@ -609,19 +957,22 @@
 
       source.onopen = () => {
         document.getElementById('status-text').textContent = 'Live';
+        document.getElementById('status-pill').className = 'status-pill live';
       };
 
       source.onerror = () => {
         document.getElementById('status-text').textContent = 'Reconnecting...';
+        document.getElementById('status-pill').className = 'status-pill stale';
       };
     }
 
     async function init() {
       initChart();
-      await Promise.all([fetchResults(), fetchEvaluation()]);
+      await fetchResults();
+      await fetchEvaluation();
       connectSSE();
       setInterval(fetchResults, 5000);
-      setInterval(fetchEvaluation, 15000);
+      setInterval(fetchEvaluation, 30000);
     }
 
     init();

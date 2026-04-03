@@ -4,16 +4,20 @@
  * Serves a live HTML dashboard that polls for results.tsv changes and
  * displays experiment progress with charts and tables.
  *
+ * Live evaluation spawns evaluate.ts as a child process on each request,
+ * so it always picks up the latest code changes from the agent.
+ *
  * Usage:  npx tsx autoresearch/dashboard.ts [--port 4200]
  */
 
+import { execFile } from 'node:child_process';
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 
-import { analyzeProject } from '../src/analysis/index.js';
-
+const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_PORT = 4200;
 
@@ -22,31 +26,6 @@ interface ResultRow {
   status: string;
   meanF1: number;
   description: string;
-}
-
-interface ExpectedComponent {
-  name: string;
-  ozTarget: string;
-  sourceLibrary: string;
-}
-
-interface ExpectedResult {
-  fixture: string;
-  description?: string;
-  components: ExpectedComponent[];
-}
-
-interface FixtureScore {
-  fixture: string;
-  precision: number;
-  recall: number;
-  f1: number;
-  tp: number;
-  fp: number;
-  fn: number;
-  matched: string[];
-  missed: string[];
-  extra: string[];
 }
 
 function parseResults(): ResultRow[] {
@@ -67,54 +46,20 @@ function parseResults(): ResultRow[] {
   });
 }
 
-function runLiveEvaluation(): { fixtures: FixtureScore[]; meanF1: number } {
-  const fixturesDir = path.join(__dirname, 'fixtures');
-  if (!fs.existsSync(fixturesDir)) return { fixtures: [], meanF1: 0 };
+async function runLiveEvaluation(): Promise<{ fixtures: unknown[]; meanF1: number; error?: string }> {
+  const tsxBin = path.join(__dirname, '..', 'node_modules', '.bin', 'tsx');
+  const evalScript = path.join(__dirname, 'evaluate.ts');
 
-  const fixtureDirs = fs
-    .readdirSync(fixturesDir, { withFileTypes: true })
-    .filter((d) => d.isDirectory())
-    .map((d) => d.name)
-    .sort();
-
-  const scores: FixtureScore[] = [];
-
-  for (const name of fixtureDirs) {
-    const expectedPath = path.join(__dirname, 'expected', `${name}.json`);
-    if (!fs.existsSync(expectedPath)) continue;
-
-    const expected = JSON.parse(fs.readFileSync(expectedPath, 'utf8')) as ExpectedResult;
-    const report = analyzeProject(path.join(fixturesDir, name));
-
-    const expectedSet = new Set(expected.components.map((c) => `${c.name}::${c.ozTarget}`));
-    const actualSet = new Set(
-      report.components.filter((c) => c.ozTarget !== null).map((c) => `${c.name}::${c.ozTarget}`)
-    );
-
-    const matched: string[] = [];
-    const missed: string[] = [];
-    const extra: string[] = [];
-
-    for (const key of expectedSet) {
-      if (actualSet.has(key)) matched.push(key);
-      else missed.push(key);
-    }
-    for (const key of actualSet) {
-      if (!expectedSet.has(key)) extra.push(key);
-    }
-
-    const tp = matched.length;
-    const fp = extra.length;
-    const fn = missed.length;
-    const precision = tp + fp > 0 ? tp / (tp + fp) : 0;
-    const recall = tp + fn > 0 ? tp / (tp + fn) : 0;
-    const f1 = precision + recall > 0 ? (2 * precision * recall) / (precision + recall) : 0;
-
-    scores.push({ fixture: name, precision, recall, f1, tp, fp, fn, matched, missed, extra });
+  try {
+    const { stdout } = await execFileAsync(tsxBin, [evalScript, '--json'], {
+      cwd: path.join(__dirname, '..'),
+      timeout: 30_000,
+    });
+    return JSON.parse(stdout.trim());
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { fixtures: [], meanF1: 0, error: message };
   }
-
-  const meanF1 = scores.length > 0 ? scores.reduce((s, x) => s + x.f1, 0) / scores.length : 0;
-  return { fixtures: scores, meanF1 };
 }
 
 function getResultsMtime(): number {
@@ -183,7 +128,7 @@ function main(): void {
   const portArg = process.argv.indexOf('--port');
   const port = portArg >= 0 ? parseInt(process.argv[portArg + 1], 10) : DEFAULT_PORT;
 
-  const server = http.createServer((req, res) => {
+  const server = http.createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', `http://localhost:${port}`);
 
     switch (url.pathname) {
@@ -193,9 +138,11 @@ function main(): void {
       case '/api/results':
         serveJson(res, { rows: parseResults(), mtime: getResultsMtime() });
         break;
-      case '/api/evaluate':
-        serveJson(res, runLiveEvaluation());
+      case '/api/evaluate': {
+        const evalResult = await runLiveEvaluation();
+        serveJson(res, evalResult);
         break;
+      }
       case '/api/stream':
         serveSSE(req, res);
         break;
@@ -210,6 +157,7 @@ function main(): void {
   server.listen(port, () => {
     console.log(`\n  Autoresearch Dashboard`);
     console.log(`  http://localhost:${port}\n`);
+    console.log(`  Live evaluation spawns fresh process on each request.`);
     console.log(`  Watching results.tsv for changes...\n`);
   });
 }
