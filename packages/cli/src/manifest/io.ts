@@ -11,14 +11,23 @@ import {
 } from './schema';
 import { assertValidTransition } from './transitions';
 
+/**
+ *
+ */
 export function getManifestPath(projectRoot: string): string {
   return path.join(projectRoot, MANIFEST_FILENAME);
 }
 
+/**
+ *
+ */
 export function manifestExists(projectRoot: string): boolean {
   return fs.existsSync(getManifestPath(projectRoot));
 }
 
+/**
+ *
+ */
 export function readManifest(manifestPath: string): MigrationManifest {
   if (!fs.existsSync(manifestPath)) {
     throw new Error(`Manifest not found at ${manifestPath}`);
@@ -31,12 +40,18 @@ export function readManifest(manifestPath: string): MigrationManifest {
   return manifest;
 }
 
+/**
+ *
+ */
 export function writeManifest(manifestPath: string, manifest: MigrationManifest): void {
   manifest.updatedAt = new Date().toISOString();
   fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
 }
 
+/**
+ *
+ */
 export function updateTaskStatus(
   manifest: MigrationManifest,
   taskId: string,
@@ -68,6 +83,9 @@ export function updateTaskStatus(
   };
 }
 
+/**
+ *
+ */
 export function computePhaseProgress(manifest: MigrationManifest): PhaseProgress[] {
   const phaseMap = new Map<string, MigrationTask[]>();
 
@@ -119,6 +137,9 @@ function validateManifest(manifest: MigrationManifest): void {
   }
 }
 
+/**
+ *
+ */
 export function createEmptyManifest(
   projectRoot: string,
   options: {

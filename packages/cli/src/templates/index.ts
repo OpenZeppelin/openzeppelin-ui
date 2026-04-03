@@ -3,6 +3,9 @@ import path from 'node:path';
 
 import { getTemplatesPath } from '../utils/paths';
 
+/**
+ *
+ */
 export function readTemplate(templateName: string): string {
   const templatePath = path.join(getTemplatesPath(), templateName);
   if (!fs.existsSync(templatePath)) {
@@ -11,6 +14,9 @@ export function readTemplate(templateName: string): string {
   return fs.readFileSync(templatePath, 'utf8');
 }
 
+/**
+ *
+ */
 export function writeTemplate(
   targetPath: string,
   templateName: string,
@@ -34,6 +40,9 @@ export function writeTemplate(
   return true;
 }
 
+/**
+ *
+ */
 export function copyTemplateDirectory(
   sourceDir: string,
   targetDir: string

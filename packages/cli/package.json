@@ -45,7 +45,9 @@
     "lint": "eslint \"src/**/*.ts\" --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint \"src/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.ts\""
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "evaluate": "tsx autoresearch/evaluate.ts",
+    "dashboard": "tsx autoresearch/dashboard.ts"
   },
   "keywords": [
     "openzeppelin",

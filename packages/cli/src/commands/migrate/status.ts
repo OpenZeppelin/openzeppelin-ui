@@ -20,6 +20,9 @@ interface StatusResult {
   percentComplete: number;
 }
 
+/**
+ *
+ */
 export function registerStatusCommand(parent: Command): void {
   parent
     .command('status')

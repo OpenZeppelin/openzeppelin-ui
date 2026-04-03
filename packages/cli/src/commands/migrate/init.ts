@@ -104,6 +104,9 @@ function normalizeTailwind(
   }
 }
 
+/**
+ *
+ */
 export function registerInitCommand(parent: Command): void {
   parent
     .command('init')

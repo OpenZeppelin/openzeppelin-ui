@@ -14,12 +14,19 @@ export interface SourceLibraryMapping {
   source: string;
   effort: 'low' | 'medium' | 'high';
   notes: string;
+  propMappings?: Record<string, string>;
+  variantMap?: Record<string, string>;
+  incompatible?: string[];
 }
 
 export interface SourceLibrary {
   library: string;
   importPatterns: string[];
   mappings: Record<string, SourceLibraryMapping>;
+}
+
+export interface HtmlElementLibrary extends SourceLibrary {
+  htmlTags: true;
 }
 
 export interface ComponentCatalog {
@@ -31,7 +38,11 @@ export interface ComponentCatalog {
 
 let cachedCatalog: ComponentCatalog | null = null;
 let cachedSourceLibraries: Record<string, SourceLibrary> | null = null;
+let cachedHtmlElements: HtmlElementLibrary | null | undefined = undefined;
 
+/**
+ *
+ */
 export function loadCatalog(): ComponentCatalog {
   if (cachedCatalog) return cachedCatalog;
 
@@ -40,6 +51,9 @@ export function loadCatalog(): ComponentCatalog {
   return cachedCatalog;
 }
 
+/**
+ *
+ */
 export function loadSourceLibraries(): Record<string, SourceLibrary> {
   if (cachedSourceLibraries) return cachedSourceLibraries;
 
@@ -58,6 +72,25 @@ export function loadSourceLibraries(): Record<string, SourceLibrary> {
 
   cachedSourceLibraries = libraries;
   return libraries;
+}
+
+export function loadHtmlElementMappings(): HtmlElementLibrary | null {
+  if (cachedHtmlElements !== undefined) return cachedHtmlElements;
+
+  const filePath = path.join(getCatalogPath(), 'source-libraries', 'html-elements.json');
+  if (!fs.existsSync(filePath)) {
+    cachedHtmlElements = null;
+    return null;
+  }
+
+  const raw = JSON.parse(fs.readFileSync(filePath, 'utf8')) as HtmlElementLibrary;
+  if (!raw.htmlTags) {
+    cachedHtmlElements = null;
+    return null;
+  }
+
+  cachedHtmlElements = raw;
+  return cachedHtmlElements;
 }
 
 export function detectSourceLibrary(

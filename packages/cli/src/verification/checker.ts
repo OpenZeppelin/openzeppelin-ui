@@ -135,6 +135,9 @@ function checkComponentReplacement(task: MigrationTask, projectRoot: string): Ta
   return { taskId: task.id, passed: false, diagnostics };
 }
 
+/**
+ *
+ */
 export function checkTask(task: MigrationTask, projectRoot: string): TaskCheckResult {
   switch (task.type) {
     case 'install-packages':

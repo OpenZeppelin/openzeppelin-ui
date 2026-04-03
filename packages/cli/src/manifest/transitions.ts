@@ -8,14 +8,23 @@ const VALID_TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
   skipped: ['in_progress'],
 };
 
+/**
+ *
+ */
 export function isValidTransition(from: TaskStatus, to: TaskStatus): boolean {
   return VALID_TRANSITIONS[from].includes(to);
 }
 
+/**
+ *
+ */
 export function getValidNextStatuses(current: TaskStatus): TaskStatus[] {
   return [...VALID_TRANSITIONS[current]];
 }
 
+/**
+ *
+ */
 export function assertValidTransition(from: TaskStatus, to: TaskStatus, taskId: string): void {
   if (!isValidTransition(from, to)) {
     throw new Error(

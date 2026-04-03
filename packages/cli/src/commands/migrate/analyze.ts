@@ -13,6 +13,9 @@ interface AnalyzeOptions {
   json?: boolean;
 }
 
+/**
+ *
+ */
 export function registerAnalyzeCommand(parent: Command): void {
   parent
     .command('analyze')

@@ -26,15 +26,24 @@ function findPackageRoot(): string {
 
 let cachedRoot: string | null = null;
 
+/**
+ *
+ */
 export function getPackageRoot(): string {
   if (!cachedRoot) cachedRoot = findPackageRoot();
   return cachedRoot;
 }
 
+/**
+ *
+ */
 export function getCatalogPath(): string {
   return path.join(getPackageRoot(), 'src', 'catalog');
 }
 
+/**
+ *
+ */
 export function getTemplatesPath(): string {
   return path.join(getPackageRoot(), 'src', 'templates');
 }

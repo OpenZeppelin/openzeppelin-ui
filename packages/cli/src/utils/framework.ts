@@ -24,6 +24,9 @@ function hasDependency(pkg: PackageJsonLike, name: string): boolean {
   return Boolean(pkg.dependencies?.[name] || pkg.devDependencies?.[name]);
 }
 
+/**
+ *
+ */
 export function detectFramework(projectRoot: string): Framework {
   const pkg = readPackageJson(projectRoot);
   if (!pkg) return 'unknown';
@@ -55,6 +58,9 @@ export function detectFramework(projectRoot: string): Framework {
 
 export type PackageManager = 'pnpm' | 'npm' | 'yarn';
 
+/**
+ *
+ */
 export function detectPackageManager(projectRoot: string): PackageManager {
   if (
     fs.existsSync(path.join(projectRoot, 'pnpm-lock.yaml')) ||
@@ -70,6 +76,9 @@ export function detectPackageManager(projectRoot: string): PackageManager {
   return 'npm';
 }
 
+/**
+ *
+ */
 export function buildInstallCommand(packageManager: PackageManager, packages: string[]): string {
   const pkgList = packages.join(' ');
   switch (packageManager) {

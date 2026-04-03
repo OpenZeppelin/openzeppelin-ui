@@ -1,9 +1,9 @@
 import { doctorTailwindProject, type TailwindDoctorResult } from '@openzeppelin/ui-tailwind-utils';
 
 import { CLI_BRANDING, CLI_FAMILIES } from '../branding';
-import { loadCatalog, loadSourceLibraries } from '../catalog';
+import { loadCatalog, loadHtmlElementMappings, loadSourceLibraries } from '../catalog';
 import { detectFramework, type Framework } from '../utils/framework';
-import { analyzeComponents, type ComponentMatch } from './component-matcher';
+import { analyzeComponents, analyzeHtmlElements, type ComponentMatch } from './component-matcher';
 import { scanPatterns, type PatternMatch } from './pattern-scanner';
 import { scanProjectFiles } from './scanner';
 
@@ -40,12 +40,26 @@ function estimateEffort(
   return 'low';
 }
 
+/**
+ *
+ */
 export function analyzeProject(projectRoot: string, scope?: string): AnalysisReport {
   const framework = detectFramework(projectRoot);
   const catalog = loadCatalog();
   const sourceLibraries = loadSourceLibraries();
+  const htmlLib = loadHtmlElementMappings();
   const files = scanProjectFiles(projectRoot, scope);
-  const components = analyzeComponents(files, catalog, sourceLibraries);
+
+  const importComponents = analyzeComponents(files, catalog, sourceLibraries);
+  const htmlComponents = htmlLib ? analyzeHtmlElements(files, htmlLib) : [];
+
+  const mergedMap = new Map<string, ComponentMatch>();
+  for (const c of importComponents) mergedMap.set(c.name, c);
+  for (const c of htmlComponents) {
+    if (!mergedMap.has(c.name)) mergedMap.set(c.name, c);
+  }
+  const components = [...mergedMap.values()].sort((a, b) => b.usageCount - a.usageCount);
+
   const patterns = scanPatterns(files);
   const tailwind = doctorTailwindProject(projectRoot, CLI_FAMILIES, CLI_BRANDING);
 

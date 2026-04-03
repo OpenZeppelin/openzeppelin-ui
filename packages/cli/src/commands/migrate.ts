@@ -6,6 +6,9 @@ import { registerInitCommand } from './migrate/init';
 import { registerPlanCommand } from './migrate/plan';
 import { registerStatusCommand } from './migrate/status';
 
+/**
+ *
+ */
 export function registerMigrateCommand(program: Command): void {
   const migrate = program
     .command('migrate')

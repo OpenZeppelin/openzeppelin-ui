@@ -30,10 +30,16 @@ function isRecognizedSetupDirective(line: string): boolean {
   );
 }
 
+/**
+ *
+ */
 export function createManagedImportLine(context: TailwindProjectContext): string {
   return `@import '${context.managedImportPath}';`;
 }
 
+/**
+ *
+ */
 export function createManagedTailwindCss(
   plan: TailwindSourcePlan,
   branding: TailwindBrandingOptions
@@ -52,14 +58,23 @@ export function createManagedTailwindCss(
   return `${lines.join('\n')}\n`;
 }
 
+/**
+ *
+ */
 export function hasManagedImport(content: string, importLine: string): boolean {
   return content.includes(importLine);
 }
 
+/**
+ *
+ */
 export function hasRecognizedInlineSetup(content: string): boolean {
   return content.split('\n').some((line) => isRecognizedSetupDirective(line));
 }
 
+/**
+ *
+ */
 export function normalizeEntryStylesheet(content: string, importLine: string): string {
   const escapedImportLine = importLine.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const contentWithoutManagedImport = content.replace(
@@ -124,6 +139,9 @@ export function normalizeEntryStylesheet(content: string, importLine: string): s
   return normalizedBody.endsWith('\n') ? normalizedBody : `${normalizedBody}\n`;
 }
 
+/**
+ *
+ */
 export function readIfExists(filePath: string): string | null {
   return fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : null;
 }

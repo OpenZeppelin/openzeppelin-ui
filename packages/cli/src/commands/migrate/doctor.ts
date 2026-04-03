@@ -22,6 +22,9 @@ interface DoctorResult {
   total: number;
 }
 
+/**
+ *
+ */
 export function registerDoctorCommand(parent: Command): void {
   parent
     .command('doctor')

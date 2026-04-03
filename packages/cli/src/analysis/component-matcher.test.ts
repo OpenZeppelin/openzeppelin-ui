@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { ComponentCatalog, SourceLibrary } from '../catalog';
-import { analyzeComponents } from './component-matcher';
+import type { ComponentCatalog, HtmlElementLibrary, SourceLibrary } from '../catalog';
+import { analyzeComponents, analyzeHtmlElements } from './component-matcher';
 import type { ScannedFile } from './scanner';
 
 const MOCK_CATALOG: ComponentCatalog = {
@@ -111,5 +111,117 @@ describe('analyzeComponents', () => {
 
     const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SHADCN);
     expect(matches).toHaveLength(0);
+  });
+});
+
+const MOCK_HTML_LIB: HtmlElementLibrary = {
+  library: 'HTML Elements',
+  importPatterns: [],
+  htmlTags: true,
+  mappings: {
+    Button: { source: 'button', effort: 'low', notes: 'Map onClick' },
+    Input: { source: 'input[type=text]', effort: 'low', notes: 'type=text' },
+    Checkbox: { source: 'input[type=checkbox]', effort: 'low', notes: 'Map checked' },
+    RadioGroup: { source: 'input[type=radio]', effort: 'medium', notes: 'Group by name' },
+    Select: { source: 'select', effort: 'medium', notes: 'Map options' },
+    Textarea: { source: 'textarea', effort: 'low', notes: 'Direct swap' },
+    Label: { source: 'label', effort: 'low', notes: 'Map htmlFor' },
+    Progress: { source: 'progress', effort: 'low', notes: 'Map value/max' },
+    Dialog: { source: 'dialog', effort: 'medium', notes: 'Map open attr' },
+  },
+};
+
+describe('analyzeHtmlElements', () => {
+  it('detects <button> as Button', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/A.tsx',
+        relativePath: 'src/A.tsx',
+        content: '<button onClick={go}>Click</button>',
+      },
+    ];
+
+    const matches = analyzeHtmlElements(files, MOCK_HTML_LIB);
+    const btn = matches.find((m) => m.name === 'Button');
+    expect(btn).toBeDefined();
+    expect(btn!.usageCount).toBe(1);
+    expect(btn!.sourceLibrary).toBe('html-elements');
+  });
+
+  it('differentiates input types into distinct OZ targets', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/Form.tsx',
+        relativePath: 'src/Form.tsx',
+        content: [
+          '<input type="text" />',
+          '<input type="checkbox" checked />',
+          '<input type="radio" name="opt" />',
+          '<input type="email" />',
+        ].join('\n'),
+      },
+    ];
+
+    const matches = analyzeHtmlElements(files, MOCK_HTML_LIB);
+    const names = matches.map((m) => m.name).sort();
+    expect(names).toEqual(['Checkbox', 'Input', 'RadioGroup']);
+
+    const input = matches.find((m) => m.name === 'Input');
+    expect(input!.usageCount).toBe(2);
+  });
+
+  it('defaults to Input when <input> has no type attribute', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/A.tsx',
+        relativePath: 'src/A.tsx',
+        content: '<input value="" onChange={fn} />',
+      },
+    ];
+
+    const matches = analyzeHtmlElements(files, MOCK_HTML_LIB);
+    const input = matches.find((m) => m.name === 'Input');
+    expect(input).toBeDefined();
+    expect(input!.usageCount).toBe(1);
+  });
+
+  it('detects <select>, <textarea>, <label>, <progress>, <dialog>', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/A.tsx',
+        relativePath: 'src/A.tsx',
+        content: [
+          '<select><option>A</option></select>',
+          '<textarea rows={3} />',
+          '<label htmlFor="x">Name</label>',
+          '<progress value={50} max={100} />',
+          '<dialog open>Hi</dialog>',
+        ].join('\n'),
+      },
+    ];
+
+    const matches = analyzeHtmlElements(files, MOCK_HTML_LIB);
+    const names = matches.map((m) => m.name).sort();
+    expect(names).toEqual(['Dialog', 'Label', 'Progress', 'Select', 'Textarea']);
+  });
+
+  it('counts usages across multiple files', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/A.tsx',
+        relativePath: 'src/A.tsx',
+        content: '<button>A</button>\n<button>B</button>',
+      },
+      {
+        absolutePath: '/project/src/B.tsx',
+        relativePath: 'src/B.tsx',
+        content: '<button>C</button>',
+      },
+    ];
+
+    const matches = analyzeHtmlElements(files, MOCK_HTML_LIB);
+    const btn = matches.find((m) => m.name === 'Button');
+    expect(btn!.usageCount).toBe(3);
+    expect(btn!.files).toEqual(['src/A.tsx', 'src/B.tsx']);
   });
 });

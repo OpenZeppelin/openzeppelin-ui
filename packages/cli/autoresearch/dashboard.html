@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Autoresearch Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-hover: #222633;
+      --border: #2a2e3d;
+      --text: #e1e4ed;
+      --text-muted: #8b90a0;
+      --accent: #6366f1;
+      --green: #22c55e;
+      --orange: #f97316;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --radius: 10px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .header {
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header h1 span { color: var(--accent); }
+
+    .status-pill {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-pill.live {
+      background: rgba(34, 197, 94, 0.12);
+      color: var(--green);
+    }
+
+    .status-pill .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .container { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .stat-card .label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-card .value {
+      font-size: 28px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-card .sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 1100px) {
+      .panels { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-header .badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: rgba(99, 102, 241, 0.15);
+      color: var(--accent);
+    }
+
+    .panel-body { padding: 20px; }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+
+    .fixture-grid { display: flex; flex-direction: column; gap: 12px; }
+
+    .fixture-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--bg);
+      border-radius: 8px;
+    }
+
+    .fixture-name {
+      font-size: 13px;
+      font-weight: 600;
+      min-width: 120px;
+    }
+
+    .fixture-bar-container {
+      flex: 1;
+      height: 8px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .fixture-bar {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s ease;
+    }
+
+    .fixture-score {
+      font-size: 13px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      min-width: 60px;
+      text-align: right;
+    }
+
+    .fixture-detail {
+      font-size: 11px;
+      color: var(--text-muted);
+      min-width: 100px;
+      text-align: right;
+    }
+
+    .table-panel { grid-column: 1 / -1; }
+
+    .table-scroll {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead th {
+      padding: 10px 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      z-index: 1;
+    }
+
+    tbody td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      font-variant-numeric: tabular-nums;
+    }
+
+    tbody tr:hover { background: var(--surface-hover); }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .status-badge.keep { background: rgba(34, 197, 94, 0.12); color: var(--green); }
+    .status-badge.discard { background: rgba(249, 115, 22, 0.12); color: var(--orange); }
+    .status-badge.crash { background: rgba(239, 68, 68, 0.12); color: var(--red); }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state h3 { font-size: 16px; margin-bottom: 8px; color: var(--text); }
+    .empty-state p { font-size: 13px; }
+
+    .table-scroll::-webkit-scrollbar { width: 6px; }
+    .table-scroll::-webkit-scrollbar-track { background: transparent; }
+    .table-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1><span>&#9670;</span> Autoresearch Dashboard</h1>
+    <div class="status-pill live" id="status-pill">
+      <div class="dot"></div>
+      <span id="status-text">Connecting...</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card">
+        <div class="label">Experiments</div>
+        <div class="value" id="stat-total">-</div>
+        <div class="sub" id="stat-breakdown">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Best Mean F1</div>
+        <div class="value" id="stat-best">-</div>
+        <div class="sub" id="stat-best-exp">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Current F1 (Live)</div>
+        <div class="value" id="stat-current">-</div>
+        <div class="sub" id="stat-current-sub">Running evaluation...</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Keep Rate</div>
+        <div class="value" id="stat-keeprate">-</div>
+        <div class="sub" id="stat-keeprate-sub">-</div>
+      </div>
+    </div>
+
+    <div class="panels">
+      <div class="panel">
+        <div class="panel-header">
+          Experiment Progress
+          <span class="badge" id="chart-badge">-</span>
+        </div>
+        <div class="panel-body">
+          <div class="chart-container">
+            <canvas id="progress-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          Per-Fixture Breakdown
+          <span class="badge" id="fixture-badge">live</span>
+        </div>
+        <div class="panel-body">
+          <div class="fixture-grid" id="fixture-grid">
+            <div class="empty-state">
+              <p>Loading evaluation...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel table-panel">
+        <div class="panel-header">
+          Experiment Log
+          <span class="badge" id="log-badge">0 rows</span>
+        </div>
+        <div class="table-scroll" id="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Status</th>
+                <th>Mean F1</th>
+                <th>Delta</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody id="log-body">
+              <tr>
+                <td colspan="5" class="empty-state">
+                  <p>No experiments yet. Run the autoresearch agent to begin.</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let chart = null;
+    let lastMtime = 0;
+    let lastRowCount = 0;
+
+    function initChart() {
+      const ctx = document.getElementById('progress-chart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+          datasets: [
+            {
+              label: 'keep',
+              data: [],
+              backgroundColor: 'rgba(34, 197, 94, 0.8)',
+              borderColor: 'rgba(34, 197, 94, 1)',
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              order: 1,
+            },
+            {
+              label: 'discard',
+              data: [],
+              backgroundColor: 'rgba(249, 115, 22, 0.7)',
+              borderColor: 'rgba(249, 115, 22, 1)',
+              pointStyle: 'crossRot',
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              order: 2,
+            },
+            {
+              label: 'crash',
+              data: [],
+              backgroundColor: 'rgba(239, 68, 68, 0.7)',
+              borderColor: 'rgba(239, 68, 68, 1)',
+              pointStyle: 'triangle',
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              order: 3,
+            },
+            {
+              label: 'running max',
+              data: [],
+              type: 'line',
+              borderColor: 'rgba(34, 197, 94, 0.5)',
+              backgroundColor: 'rgba(34, 197, 94, 0.05)',
+              borderWidth: 2,
+              fill: true,
+              pointRadius: 0,
+              stepped: 'after',
+              order: 0,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 400 },
+          scales: {
+            x: {
+              title: { display: true, text: 'Experiment #', color: '#8b90a0' },
+              grid: { color: 'rgba(42, 46, 61, 0.5)' },
+              ticks: { color: '#8b90a0' },
+            },
+            y: {
+              title: { display: true, text: 'Mean F1', color: '#8b90a0' },
+              min: 0,
+              max: 1.05,
+              grid: { color: 'rgba(42, 46, 61, 0.5)' },
+              ticks: { color: '#8b90a0' },
+            },
+          },
+          plugins: {
+            legend: {
+              labels: { color: '#8b90a0', usePointStyle: true, pointStyle: 'circle' },
+            },
+            tooltip: {
+              callbacks: {
+                label: function (ctx) {
+                  if (ctx.dataset.label === 'running max') return '';
+                  return `#${ctx.parsed.x} — F1: ${ctx.parsed.y.toFixed(6)}`;
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    function updateChart(rows) {
+      if (!chart || rows.length === 0) return;
+
+      const keep = [], discard = [], crash = [], runMax = [];
+
+      let bestF1 = 0;
+      for (const r of rows) {
+        const point = { x: r.experiment, y: r.meanF1 };
+        switch (r.status) {
+          case 'keep':
+            keep.push(point);
+            bestF1 = Math.max(bestF1, r.meanF1);
+            runMax.push({ x: r.experiment, y: bestF1 });
+            break;
+          case 'discard':
+            discard.push(point);
+            break;
+          case 'crash':
+            crash.push(point);
+            break;
+        }
+      }
+
+      chart.data.datasets[0].data = keep;
+      chart.data.datasets[1].data = discard;
+      chart.data.datasets[2].data = crash;
+      chart.data.datasets[3].data = runMax;
+      chart.update();
+    }
+
+    function updateStats(rows) {
+      const total = rows.length;
+      const kept = rows.filter(r => r.status === 'keep');
+      const discarded = rows.filter(r => r.status === 'discard').length;
+      const crashed = rows.filter(r => r.status === 'crash').length;
+
+      document.getElementById('stat-total').textContent = total || '-';
+      document.getElementById('stat-breakdown').textContent =
+        total ? `${kept.length} kept · ${discarded} discarded · ${crashed} crashed` : 'No experiments';
+
+      if (kept.length > 0) {
+        const bestRow = kept.reduce((a, b) => a.meanF1 > b.meanF1 ? a : b);
+        document.getElementById('stat-best').textContent = bestRow.meanF1.toFixed(4);
+        document.getElementById('stat-best-exp').textContent = `Experiment #${bestRow.experiment}`;
+      } else {
+        document.getElementById('stat-best').textContent = '-';
+        document.getElementById('stat-best-exp').textContent = 'No kept experiments';
+      }
+
+      if (total > 0) {
+        const rate = ((kept.length / total) * 100).toFixed(0);
+        document.getElementById('stat-keeprate').textContent = rate + '%';
+        document.getElementById('stat-keeprate-sub').textContent = `${kept.length} of ${total} experiments`;
+      } else {
+        document.getElementById('stat-keeprate').textContent = '-';
+        document.getElementById('stat-keeprate-sub').textContent = '-';
+      }
+
+      document.getElementById('chart-badge').textContent = `${total} experiments`;
+      document.getElementById('log-badge').textContent = `${total} rows`;
+    }
+
+    function updateTable(rows) {
+      const tbody = document.getElementById('log-body');
+      if (rows.length === 0) {
+        tbody.innerHTML =
+          '<tr><td colspan="5" class="empty-state"><p>No experiments yet. Run the autoresearch agent to begin.</p></td></tr>';
+        return;
+      }
+
+      const reversed = [...rows].reverse();
+      tbody.innerHTML = reversed
+        .map((r, i) => {
+          const prev = i < reversed.length - 1 ? reversed[i + 1] : null;
+          let delta = '';
+          if (prev && r.status === 'keep') {
+            const d = r.meanF1 - prev.meanF1;
+            if (d > 0) delta = `<span style="color:var(--green)">+${d.toFixed(4)}</span>`;
+            else if (d < 0) delta = `<span style="color:var(--red)">${d.toFixed(4)}</span>`;
+            else delta = `<span style="color:var(--text-muted)">0.0000</span>`;
+          }
+          return `<tr>
+            <td>${r.experiment}</td>
+            <td><span class="status-badge ${r.status}">${r.status}</span></td>
+            <td>${r.meanF1.toFixed(6)}</td>
+            <td>${delta}</td>
+            <td style="color:var(--text-muted)">${r.description}</td>
+          </tr>`;
+        })
+        .join('');
+    }
+
+    function getBarColor(f1) {
+      if (f1 >= 0.9) return 'var(--green)';
+      if (f1 >= 0.5) return 'var(--orange)';
+      return 'var(--red)';
+    }
+
+    function updateFixtures(evalData) {
+      const grid = document.getElementById('fixture-grid');
+
+      if (!evalData || evalData.fixtures.length === 0) {
+        grid.innerHTML = '<div class="empty-state"><p>No fixtures found.</p></div>';
+        return;
+      }
+
+      document.getElementById('stat-current').textContent = evalData.meanF1.toFixed(4);
+      document.getElementById('stat-current-sub').textContent =
+        `${evalData.fixtures.length} fixtures evaluated`;
+
+      grid.innerHTML = evalData.fixtures
+        .map(f => {
+          const pct = (f.f1 * 100).toFixed(0);
+          const color = getBarColor(f.f1);
+          return `<div class="fixture-row">
+            <div class="fixture-name">${f.fixture}</div>
+            <div class="fixture-bar-container">
+              <div class="fixture-bar" style="width:${pct}%;background:${color}"></div>
+            </div>
+            <div class="fixture-score" style="color:${color}">${f.f1.toFixed(4)}</div>
+            <div class="fixture-detail">TP:${f.tp} FP:${f.fp} FN:${f.fn}</div>
+          </div>`;
+        })
+        .join('');
+    }
+
+    async function fetchResults() {
+      try {
+        const res = await fetch('/api/results');
+        const data = await res.json();
+
+        if (data.mtime !== lastMtime || data.rows.length !== lastRowCount) {
+          lastMtime = data.mtime;
+          lastRowCount = data.rows.length;
+          updateStats(data.rows);
+          updateChart(data.rows);
+          updateTable(data.rows);
+        }
+      } catch (e) {
+        console.error('Failed to fetch results:', e);
+      }
+    }
+
+    async function fetchEvaluation() {
+      try {
+        const res = await fetch('/api/evaluate');
+        const data = await res.json();
+        updateFixtures(data);
+      } catch (e) {
+        console.error('Failed to fetch evaluation:', e);
+      }
+    }
+
+    function connectSSE() {
+      const source = new EventSource('/api/stream');
+
+      source.onmessage = (event) => {
+        if (event.data === 'update') {
+          fetchResults();
+          fetchEvaluation();
+        }
+      };
+
+      source.onopen = () => {
+        document.getElementById('status-text').textContent = 'Live';
+      };
+
+      source.onerror = () => {
+        document.getElementById('status-text').textContent = 'Reconnecting...';
+      };
+    }
+
+    async function init() {
+      initChart();
+      await Promise.all([fetchResults(), fetchEvaluation()]);
+      connectSSE();
+      setInterval(fetchResults, 5000);
+      setInterval(fetchEvaluation, 15000);
+    }
+
+    init();
+  </script>
+</body>
+</html>

@@ -160,6 +160,9 @@ function detectProfile(report: AnalysisReport, override?: string): MigrationMani
   return 'transactor';
 }
 
+/**
+ *
+ */
 export function registerPlanCommand(parent: Command): void {
   parent
     .command('plan')

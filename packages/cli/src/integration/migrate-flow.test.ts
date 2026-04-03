@@ -152,3 +152,72 @@ describe('integration: fixture project analysis', () => {
     expect(report.summary.estimatedEffort).toBe('medium');
   });
 });
+
+function createRawHtmlFixture(dir: string): void {
+  writeJson(path.join(dir, 'package.json'), {
+    name: 'raw-html-fixture',
+    version: '0.0.0',
+    type: 'module',
+    dependencies: { react: '^19.0.0' },
+    devDependencies: { vite: '^7.0.0' },
+  });
+
+  writeFile(path.join(dir, 'vite.config.ts'), 'export default {};');
+
+  writeFile(
+    path.join(dir, 'src', 'App.tsx'),
+    [
+      "import React, { useState } from 'react';",
+      '',
+      'export function App() {',
+      '  const [val, setVal] = useState("");',
+      '  return (',
+      '    <form>',
+      '      <label htmlFor="name">Name</label>',
+      '      <input id="name" type="text" value={val} onChange={e => setVal(e.target.value)} />',
+      '      <input type="checkbox" />',
+      '      <input type="radio" name="opt" value="a" />',
+      '      <select><option>A</option></select>',
+      '      <textarea rows={3} />',
+      '      <progress value={50} max={100} />',
+      '      <dialog open>Modal</dialog>',
+      '      <button type="submit">Go</button>',
+      '    </form>',
+      '  );',
+      '}',
+    ].join('\n')
+  );
+}
+
+describe('integration: raw HTML fixture analysis', () => {
+  it('detects raw HTML elements as OZ component targets', () => {
+    const dir = createTempDir();
+    createRawHtmlFixture(dir);
+
+    const report = analyzeProject(dir);
+    const names = report.components.map((c) => c.name).sort();
+
+    expect(names).toContain('Button');
+    expect(names).toContain('Input');
+    expect(names).toContain('Checkbox');
+    expect(names).toContain('RadioGroup');
+    expect(names).toContain('Select');
+    expect(names).toContain('Textarea');
+    expect(names).toContain('Label');
+    expect(names).toContain('Progress');
+    expect(names).toContain('Dialog');
+  });
+
+  it('marks all HTML element detections as html-elements source library', () => {
+    const dir = createTempDir();
+    createRawHtmlFixture(dir);
+
+    const report = analyzeProject(dir);
+    const htmlComponents = report.components.filter((c) => c.sourceLibrary === 'html-elements');
+
+    expect(htmlComponents.length).toBeGreaterThanOrEqual(9);
+    for (const comp of htmlComponents) {
+      expect(comp.ozTarget).not.toBeNull();
+    }
+  });
+});

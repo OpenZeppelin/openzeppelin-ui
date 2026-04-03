@@ -101,6 +101,9 @@ const PATTERNS: PatternDefinition[] = [
   },
 ];
 
+/**
+ *
+ */
 export function scanPatterns(files: ScannedFile[]): PatternMatch[] {
   const results = new Map<string, PatternMatch>();
 

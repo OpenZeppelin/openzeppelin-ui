@@ -22,6 +22,9 @@ export interface ScannedFile {
   content: string;
 }
 
+/**
+ *
+ */
 export function scanProjectFiles(projectRoot: string, scope?: string): ScannedFile[] {
   const root = scope ? path.resolve(projectRoot, scope) : projectRoot;
   if (!fs.existsSync(root)) return [];

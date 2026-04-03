@@ -1,4 +1,4 @@
-import type { ComponentCatalog, SourceLibrary } from '../catalog';
+import type { ComponentCatalog, HtmlElementLibrary, SourceLibrary } from '../catalog';
 import type { ScannedFile } from './scanner';
 
 export interface ComponentMatch {
@@ -53,6 +53,9 @@ function countJsxUsage(content: string, componentName: string): number {
   return [...content.matchAll(openTagRegex)].length;
 }
 
+/**
+ *
+ */
 export function analyzeComponents(
   files: ScannedFile[],
   catalog: ComponentCatalog,
@@ -125,6 +128,106 @@ export function analyzeComponents(
           files: [file.relativePath],
           notes,
         });
+      }
+    }
+  }
+
+  return [...matchMap.values()].sort((a, b) => b.usageCount - a.usageCount);
+}
+
+const HTML_TAG_PATTERNS: Record<string, RegExp> = {
+  button: /<button[\s>]/g,
+  select: /<select[\s>]/g,
+  textarea: /<textarea[\s>/]/g,
+  label: /<label[\s>]/g,
+  progress: /<progress[\s>]/g,
+  dialog: /<dialog[\s>]/g,
+};
+
+const INPUT_TYPE_REGEX = /<input\b([^>]*)>/g;
+
+function parseInputType(attrs: string): string {
+  const typeMatch = attrs.match(/type\s*=\s*["']([^"']+)["']/);
+  if (!typeMatch) return 'text';
+  return typeMatch[1].toLowerCase();
+}
+
+function resolveInputOzTarget(inputType: string): string | null {
+  switch (inputType) {
+    case 'text':
+    case 'password':
+    case 'email':
+    case 'url':
+    case 'tel':
+    case 'search':
+    case 'number':
+      return 'Input';
+    case 'checkbox':
+      return 'Checkbox';
+    case 'radio':
+      return 'RadioGroup';
+    default:
+      return null;
+  }
+}
+
+export function analyzeHtmlElements(
+  files: ScannedFile[],
+  htmlLib: HtmlElementLibrary
+): ComponentMatch[] {
+  const matchMap = new Map<string, ComponentMatch>();
+
+  function getOrCreate(ozTarget: string): ComponentMatch {
+    let match = matchMap.get(ozTarget);
+    if (!match) {
+      const mapping = htmlLib.mappings[ozTarget];
+      match = {
+        name: ozTarget,
+        sourceLibrary: 'html-elements',
+        sourceImport: '',
+        ozTarget,
+        effort: mapping?.effort ?? 'unknown',
+        category: 'unknown',
+        capabilities: [],
+        usageCount: 0,
+        files: [],
+        notes: mapping?.notes ?? '',
+      };
+      matchMap.set(ozTarget, match);
+    }
+    return match;
+  }
+
+  for (const file of files) {
+    for (const [, regex] of Object.entries(HTML_TAG_PATTERNS)) {
+      const tagName = regex.source.match(/<(\w+)/)?.[1];
+      if (!tagName) continue;
+
+      const ozTarget = Object.entries(htmlLib.mappings).find(([, m]) => m.source === tagName)?.[0];
+      if (!ozTarget) continue;
+
+      const freshRegex = new RegExp(regex.source, regex.flags);
+      const matches = [...file.content.matchAll(freshRegex)];
+      if (matches.length === 0) continue;
+
+      const entry = getOrCreate(ozTarget);
+      entry.usageCount += matches.length;
+      if (!entry.files.includes(file.relativePath)) {
+        entry.files.push(file.relativePath);
+      }
+    }
+
+    const freshInputRegex = new RegExp(INPUT_TYPE_REGEX.source, INPUT_TYPE_REGEX.flags);
+    for (const inputMatch of file.content.matchAll(freshInputRegex)) {
+      const attrs = inputMatch[1];
+      const inputType = parseInputType(attrs);
+      const ozTarget = resolveInputOzTarget(inputType);
+      if (!ozTarget) continue;
+
+      const entry = getOrCreate(ozTarget);
+      entry.usageCount += 1;
+      if (!entry.files.includes(file.relativePath)) {
+        entry.files.push(file.relativePath);
       }
     }
   }

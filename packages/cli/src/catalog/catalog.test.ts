@@ -48,15 +48,25 @@ describe('component-mappings.json', () => {
 describe('source-libraries/', () => {
   const librariesDir = path.resolve(__dirname, 'source-libraries');
 
-  it.each(['shadcn', 'radix', 'mui', 'chakra', 'antd'])('%s.json is valid', (libName) => {
-    const libPath = path.join(librariesDir, `${libName}.json`);
-    expect(fs.existsSync(libPath)).toBe(true);
+  it.each(['shadcn', 'radix', 'mui', 'chakra', 'antd', 'html-elements'])(
+    '%s.json is valid',
+    (libName) => {
+      const libPath = path.join(librariesDir, `${libName}.json`);
+      expect(fs.existsSync(libPath)).toBe(true);
 
+      const lib = JSON.parse(fs.readFileSync(libPath, 'utf8'));
+      expect(lib).toHaveProperty('library');
+      expect(lib).toHaveProperty('importPatterns');
+      expect(lib).toHaveProperty('mappings');
+      expect(Array.isArray(lib.importPatterns)).toBe(true);
+      expect(Object.keys(lib.mappings).length).toBeGreaterThan(0);
+    }
+  );
+
+  it('html-elements.json has htmlTags discriminant', () => {
+    const libPath = path.join(librariesDir, 'html-elements.json');
     const lib = JSON.parse(fs.readFileSync(libPath, 'utf8'));
-    expect(lib).toHaveProperty('library');
-    expect(lib).toHaveProperty('importPatterns');
-    expect(lib).toHaveProperty('mappings');
-    expect(Array.isArray(lib.importPatterns)).toBe(true);
-    expect(Object.keys(lib.mappings).length).toBeGreaterThan(0);
+    expect(lib.htmlTags).toBe(true);
+    expect(lib.importPatterns).toEqual([]);
   });
 });
