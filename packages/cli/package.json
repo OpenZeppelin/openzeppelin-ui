@@ -47,7 +47,8 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
     "evaluate": "tsx autoresearch/evaluate.ts",
-    "dashboard": "tsx autoresearch/dashboard.ts"
+    "dashboard": "tsx autoresearch/dashboard.ts",
+    "scaffold-expected": "tsx autoresearch/scaffold-expected.ts"
   },
   "keywords": [
     "openzeppelin",

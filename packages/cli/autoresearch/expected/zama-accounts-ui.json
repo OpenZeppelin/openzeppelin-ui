@@ -1,0 +1,26 @@
+{
+  "fixture": "zama-accounts-ui",
+  "description": "Real PM prototype: Zama accounts UI using shadcn-style local primitives (./ui/*) with relative imports, Radix under the hood, and raw HTML elements. Tests detection of relative shadcn patterns, compound sub-components, and false positive rejection of icon libraries.",
+  "components": [
+    { "name": "Button", "ozTarget": "Button", "sourceLibrary": "shadcn" },
+    { "name": "Alert", "ozTarget": "Alert", "sourceLibrary": "shadcn" },
+    { "name": "Card", "ozTarget": "Card", "sourceLibrary": "shadcn" },
+    { "name": "Input", "ozTarget": "Input", "sourceLibrary": "shadcn" },
+    { "name": "Tabs", "ozTarget": "Tabs", "sourceLibrary": "shadcn" },
+
+    { "name": "CardContent", "ozTarget": "Card", "sourceLibrary": "shadcn" },
+    { "name": "CardHeader", "ozTarget": "Card", "sourceLibrary": "shadcn" },
+    { "name": "CardTitle", "ozTarget": "Card", "sourceLibrary": "shadcn" },
+    { "name": "CardDescription", "ozTarget": "Card", "sourceLibrary": "shadcn" },
+
+    { "name": "AlertTitle", "ozTarget": "Alert", "sourceLibrary": "shadcn" },
+    { "name": "AlertDescription", "ozTarget": "Alert", "sourceLibrary": "shadcn" },
+
+    { "name": "TabsList", "ozTarget": "Tabs", "sourceLibrary": "shadcn" },
+    { "name": "TabsContent", "ozTarget": "Tabs", "sourceLibrary": "shadcn" },
+    { "name": "TabsTrigger", "ozTarget": "Tabs", "sourceLibrary": "shadcn" },
+
+    { "name": "Label", "ozTarget": "Label", "sourceLibrary": "html-elements" },
+    { "name": "Checkbox", "ozTarget": "Checkbox", "sourceLibrary": "html-elements" }
+  ]
+}

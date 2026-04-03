@@ -22,6 +22,69 @@ flowchart TD
 
 
 
+## Adding a new benchmark fixture
+
+To add a real project as a benchmark fixture, follow these steps:
+
+### Step 1 — Copy the source files
+
+Copy the project's source code into `autoresearch/fixtures/<name>/`. You only need the files the analyzer scans — typically `src/` and `package.json`:
+
+```bash
+mkdir -p autoresearch/fixtures/my-app
+cp -r ~/path/to/my-app/src autoresearch/fixtures/my-app/src
+cp ~/path/to/my-app/package.json autoresearch/fixtures/my-app/package.json
+```
+
+Exclude `node_modules/`, `dist/`, `vendor/`, and other non-source directories.
+
+### Step 2 — Generate a scaffold template
+
+Run the scaffold helper to see what the analyzer currently detects:
+
+```bash
+pnpm --filter @openzeppelin/ui-cli scaffold-expected my-app
+```
+
+This creates `expected/my-app.scaffold.json` with:
+
+- `**components**` — everything the analyzer currently maps (with `ozTarget != null`)
+- `**_unmapped**` — components detected but not mapped (icons, app components, etc.)
+- `**_instructions**` — inline guidance on what to review
+
+### Step 3 — Create the ground truth
+
+Open the scaffold file and edit it:
+
+1. **Remove false positives** — components from icon libraries (lucide-react), routing (react-router), or app-level components that shouldn't map to OZ
+2. **Fix incorrect mappings** — correct any `ozTarget` that points to the wrong OZ component
+3. **Set `sourceLibrary`** — use `shadcn`, `radix`, `html-elements`, etc.
+4. **Add missing components** — look at `_unmapped` for components that SHOULD have an OZ target (especially compound sub-components like `CardContent` → `Card`)
+5. **Delete metadata fields** — remove `_instructions`, `_unmapped`, and all `_review` / `_hint` markers
+
+Rename the file:
+
+```bash
+mv expected/my-app.scaffold.json expected/my-app.json
+```
+
+### Step 4 — Run the evaluation
+
+```bash
+pnpm --filter @openzeppelin/ui-cli evaluate
+```
+
+The new fixture will appear in the output with its F1 score. A low score is expected — that's the whole point. The autoresearch agent will work on improving it.
+
+### Tips for good ground truth
+
+- **Focus on UI primitives**, not app-level page components. The migration tool needs to know "this project uses shadcn Button" not "this project has a Dashboard page."
+- **Include compound sub-components** like `CardContent`, `TabsList`, `AlertTitle` — these map to their parent OZ family (e.g., `CardContent` → `Card`).
+- **Exclude icons** — lucide-react, heroicons, etc. are not UI components to migrate.
+- **Real projects are messy** — relative imports, missing aliases, re-exports. That's the value. Don't simplify the fixture.
+
+---
+
 ## Quick start
 
 ### 1. Start the dashboard
@@ -38,7 +101,7 @@ Open [http://localhost:4200](http://localhost:4200). The dashboard auto-refreshe
 pnpm --filter @openzeppelin/ui-cli evaluate
 ```
 
-Expected output: `mean_f1 ≈ 0.7556` (raw-html: 1.0, shadcn: 1.0, radix: 0.267).
+Expected output: `mean_f1 ≈ 0.8958` (raw-html: 1.0, shadcn: 1.0, radix: 1.0, zama-accounts-ui: 0.583).
 
 ### 3. Start the agent
 
@@ -57,7 +120,7 @@ When the agent finishes, review the changes it made, run `pnpm test` to verify, 
 ```mermaid
 flowchart LR
     subgraph FixedInfra ["Fixed Infrastructure"]
-        Fixtures["fixtures/\n3 benchmark apps"]
+        Fixtures["fixtures/\n4 benchmark apps"]
         Expected["expected/\n ground-truth JSON"]
         Evaluate["evaluate.ts\nF1 scoring"]
         Dashboard["dashboard.ts\nreal-time UI"]
@@ -91,17 +154,18 @@ flowchart LR
 ## File reference
 
 
-| File             | Role                                                                          | Editable by agent? |
-| ---------------- | ----------------------------------------------------------------------------- | ------------------ |
-| `program.md`     | Agent protocol — rules, editable surface, experiment format                   | No                 |
-| `evaluate.ts`    | Fixed evaluation harness — runs `analyzeProject` on all fixtures, computes F1 | No                 |
-| `dashboard.ts`   | HTTP server for the real-time dashboard                                       | No                 |
-| `dashboard.html` | Dashboard UI (Chart.js scatter plot, fixture bars, experiment log)            | No                 |
-| `fixtures/`      | 3 benchmark React apps (raw-html, shadcn, radix)                              | No                 |
-| `expected/`      | Ground-truth component detection results per fixture                          | No                 |
-| `results.tsv`    | Experiment log (appended by agent, read by dashboard)                         | Created by agent   |
-| `analysis.ipynb` | Post-hoc Python notebook for visualization                                    | No                 |
-| `pyproject.toml` | Python dependencies for the notebook                                          | No                 |
+| File                   | Role                                                                          | Editable by agent? |
+| ---------------------- | ----------------------------------------------------------------------------- | ------------------ |
+| `program.md`           | Agent protocol — rules, editable surface, experiment format                   | No                 |
+| `evaluate.ts`          | Fixed evaluation harness — runs `analyzeProject` on all fixtures, computes F1 | No                 |
+| `scaffold-expected.ts` | Helper to generate a starting template for new fixture expected.json          | No                 |
+| `dashboard.ts`         | HTTP server for the real-time dashboard                                       | No                 |
+| `dashboard.html`       | Dashboard UI (Chart.js scatter plot, fixture bars, experiment log)            | No                 |
+| `fixtures/`            | 4 benchmark React apps (raw-html, shadcn, radix, zama-accounts-ui)            | No                 |
+| `expected/`            | Ground-truth component detection results per fixture                          | No                 |
+| `results.tsv`          | Experiment log (appended by agent, read by dashboard)                         | Created by agent   |
+| `analysis.ipynb`       | Post-hoc Python notebook for visualization                                    | No                 |
+| `pyproject.toml`       | Python dependencies for the notebook                                          | No                 |
 
 
 ## Editable surface
@@ -118,12 +182,15 @@ Every experiment must pass `pnpm test` or it is reverted. The agent cannot modif
 ## Benchmark fixtures
 
 
-| Fixture        | Source library       | Files | Expected components               | Import style                                          |
-| -------------- | -------------------- | ----- | --------------------------------- | ----------------------------------------------------- |
-| `raw-html-app` | Native HTML elements | 7     | 9 (Button, Input, Checkbox, etc.) | N/A (tag detection)                                   |
-| `shadcn-app`   | shadcn/ui            | 8     | 14 (Button, Card, Dialog, etc.)   | Named: `import { X } from '@/components/ui/...'`      |
-| `radix-app`    | Radix Primitives     | 8     | 13 (11 Radix + 2 HTML)            | Namespace: `import * as X from '@radix-ui/react-...'` |
+| Fixture            | Source library       | Files | Expected components               | Import style                                           |
+| ------------------ | -------------------- | ----- | --------------------------------- | ------------------------------------------------------ |
+| `raw-html-app`     | Native HTML elements | 7     | 9 (Button, Input, Checkbox, etc.) | N/A (tag detection)                                    |
+| `shadcn-app`       | shadcn/ui            | 8     | 14 (Button, Card, Dialog, etc.)   | Named: `import { X } from '@/components/ui/...'`       |
+| `radix-app`        | Radix Primitives     | 8     | 13 (11 Radix + 2 HTML)            | Namespace: `import * as X from '@radix-ui/react-...'`  |
+| `zama-accounts-ui` | shadcn-style + HTML  | 50    | 16 (5 primary + 9 sub + 2 HTML)   | Relative: `import { X } from './ui/...'` (no @/ alias) |
 
+
+The first three are synthetic (clean, single-library). `zama-accounts-ui` is a **real PM prototype** that tests messy real-world patterns: relative imports, compound sub-components, icon library false positives.
 
 ## Evaluation metric
 
@@ -154,14 +221,17 @@ flowchart LR
         F1_raw["F1 raw-html"]
         F1_shadcn["F1 shadcn"]
         F1_radix["F1 radix"]
+        F1_zama["F1 zama-accounts-ui"]
         F1_raw --> Mean["Mean F1"]
         F1_shadcn --> Mean
         F1_radix --> Mean
+        F1_zama --> Mean
     end
 
     F1 -.-> F1_raw
     F1 -.-> F1_shadcn
     F1 -.-> F1_radix
+    F1 -.-> F1_zama
 ```
 
 
