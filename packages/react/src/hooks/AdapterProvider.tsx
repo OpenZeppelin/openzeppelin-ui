@@ -44,9 +44,19 @@ export function RuntimeProvider({ children, resolveRuntime }: RuntimeProviderPro
   const [loadingNetworks, setLoadingNetworks] = useState<Set<string>>(new Set());
   const runtimeRegistryRef = useRef(runtimeRegistry);
 
+  // Track networks whose runtime failed to load so we don't retry infinitely.
+  // Cleared when resolveRuntime changes (e.g. the host app fixes the issue).
+  const failedNetworksRef = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     runtimeRegistryRef.current = runtimeRegistry;
   }, [runtimeRegistry]);
+
+  // Reset the failure set when the resolver function changes so the host app
+  // can recover (e.g. after upgrading a broken adapter).
+  useEffect(() => {
+    failedNetworksRef.current = new Set();
+  }, [resolveRuntime]);
 
   useEffect(() => {
     return () => {
@@ -140,6 +150,18 @@ export function RuntimeProvider({ children, resolveRuntime }: RuntimeProviderPro
         };
       }
 
+      // If this network previously failed to load, don't retry.
+      if (failedNetworksRef.current.has(networkId)) {
+        logger.debug(
+          'RuntimeProvider',
+          `Runtime for network ${networkId} previously failed; skipping retry`
+        );
+        return {
+          runtime: null,
+          isLoading: false,
+        };
+      }
+
       // Start loading the runtime.
       setLoadingNetworks((prev) => {
         const newSet = new Set(prev);
@@ -176,7 +198,8 @@ export function RuntimeProvider({ children, resolveRuntime }: RuntimeProviderPro
         .catch((error) => {
           logger.error('RuntimeProvider', `Error loading runtime for network ${networkId}:`, error);
 
-          // Remove from loading networks on error
+          failedNetworksRef.current.add(networkId);
+
           setLoadingNetworks((prev) => {
             const newSet = new Set(prev);
             newSet.delete(networkId);
