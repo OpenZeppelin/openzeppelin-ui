@@ -192,6 +192,28 @@ importers:
         specifier: ^7.1.5
         version: 7.3.0(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.30.2)
 
+  packages/cli:
+    dependencies:
+      '@openzeppelin/ui-tailwind-utils':
+        specifier: workspace:*
+        version: link:../tailwind-utils
+      commander:
+        specifier: ^13.1.0
+        version: 13.1.0
+      picocolors:
+        specifier: ^1.1.1
+        version: 1.1.1
+    devDependencies:
+      '@types/node':
+        specifier: ^22.19.15
+        version: 22.19.15
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.13)(@types/node@22.19.15)(jiti@2.6.1)(jsdom@26.1.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))(lightningcss@1.30.2)
+
   packages/components:
     dependencies:
       '@openzeppelin/ui-types':
@@ -321,6 +343,9 @@ importers:
       '@clack/prompts':
         specifier: ^0.10.0
         version: 0.10.1
+      '@openzeppelin/ui-tailwind-utils':
+        specifier: workspace:*
+        version: link:../tailwind-utils
       commander:
         specifier: ^13.1.0
         version: 13.1.0
@@ -507,6 +532,18 @@ importers:
         version: 3.2.4(@types/debug@4.1.13)(@types/node@25.5.0)(jiti@2.6.1)(jsdom@26.1.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))(lightningcss@1.30.2)
 
   packages/styles: {}
+
+  packages/tailwind-utils:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.19.15
+        version: 22.19.15
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.13)(@types/node@22.19.15)(jiti@2.6.1)(jsdom@26.1.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))(lightningcss@1.30.2)
 
   packages/types:
     devDependencies:

@@ -1,11 +1,11 @@
 {
-  "name": "@openzeppelin/ui-dev-cli",
+  "name": "@openzeppelin/ui-cli",
   "private": false,
-  "version": "0.5.1",
-  "description": "Shared local development CLI for OpenZeppelin UI consumer applications.",
+  "version": "0.1.0",
+  "description": "Consumer CLI for scaffolding, migrating, and managing OpenZeppelin UI applications.",
   "type": "module",
   "bin": {
-    "oz-ui-dev": "dist/index.mjs"
+    "oz-ui": "dist/index.mjs"
   },
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
@@ -23,6 +23,8 @@
   "sideEffects": false,
   "files": [
     "dist",
+    "src/catalog",
+    "src/templates",
     "README.md"
   ],
   "publishConfig": {
@@ -31,17 +33,15 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/OpenZeppelin/openzeppelin-ui",
-    "directory": "packages/dev-cli"
+    "directory": "packages/cli"
   },
   "scripts": {
     "build": "tsdown",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "prepublishOnly": "[ \"$SKIP_PUBLISH_BUILD\" = \"true\" ] || pnpm run build",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --config vitest.config.ts --passWithNoTests",
-    "test:watch": "vitest --config vitest.config.ts",
-    "test:coverage": "vitest run --config vitest.config.ts --coverage --passWithNoTests",
-    "test:e2e": "pnpm run build && vitest run --config vitest.e2e.config.ts --passWithNoTests",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
     "lint": "eslint \"src/**/*.ts\" --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint \"src/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\"",
@@ -50,13 +50,13 @@
   "keywords": [
     "openzeppelin",
     "cli",
-    "local-development",
-    "pnpm"
+    "react",
+    "dapp",
+    "migration"
   ],
   "author": "OpenZeppelin",
   "license": "AGPL-3.0",
   "dependencies": {
-    "@clack/prompts": "^0.10.0",
     "@openzeppelin/ui-tailwind-utils": "workspace:*",
     "commander": "^13.1.0",
     "picocolors": "^1.1.1"

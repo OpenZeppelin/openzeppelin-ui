@@ -1,0 +1,25 @@
+{
+  "library": "shadcn/ui",
+  "importPatterns": ["@/components/ui/"],
+  "mappings": {
+    "Accordion": { "source": "Accordion", "effort": "low", "notes": "Near 1:1 API parity" },
+    "Alert": { "source": "Alert", "effort": "low", "notes": "Near 1:1 API parity" },
+    "Button": { "source": "Button", "effort": "low", "notes": "variant prop maps directly" },
+    "Calendar": { "source": "Calendar", "effort": "low", "notes": "Near 1:1 API parity" },
+    "Card": { "source": "Card", "effort": "low", "notes": "Near 1:1 API parity" },
+    "Checkbox": { "source": "Checkbox", "effort": "low", "notes": "Near 1:1 API parity" },
+    "Dialog": { "source": "Dialog", "effort": "low", "notes": "Near 1:1 API parity" },
+    "DropdownMenu": { "source": "DropdownMenu", "effort": "low", "notes": "Near 1:1 API parity" },
+    "Form": { "source": "Form", "effort": "medium", "notes": "OZ Form uses RenderFormSchema pattern" },
+    "Input": { "source": "Input", "effort": "low", "notes": "Near 1:1 API parity" },
+    "Label": { "source": "Label", "effort": "low", "notes": "Near 1:1 API parity" },
+    "Popover": { "source": "Popover", "effort": "low", "notes": "Near 1:1 API parity" },
+    "Progress": { "source": "Progress", "effort": "low", "notes": "Near 1:1 API parity" },
+    "RadioGroup": { "source": "RadioGroup", "effort": "low", "notes": "Near 1:1 API parity" },
+    "Select": { "source": "Select", "effort": "low", "notes": "Near 1:1 API parity" },
+    "Tabs": { "source": "Tabs", "effort": "low", "notes": "Near 1:1 API parity" },
+    "Textarea": { "source": "Textarea", "effort": "low", "notes": "Near 1:1 API parity" },
+    "Tooltip": { "source": "Tooltip", "effort": "low", "notes": "Near 1:1 API parity" },
+    "Sidebar": { "source": "Sidebar", "effort": "medium", "notes": "Layout differs, check slot pattern" }
+  }
+}

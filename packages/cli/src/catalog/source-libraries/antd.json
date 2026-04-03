@@ -1,0 +1,19 @@
+{
+  "library": "Ant Design",
+  "importPatterns": ["antd", "antd/"],
+  "mappings": {
+    "Button": { "source": "Button", "effort": "high", "notes": "type → variant, icon/loading props differ significantly" },
+    "Accordion": { "source": "Collapse", "effort": "high", "notes": "Panel → AccordionItem, activeKey → value" },
+    "Alert": { "source": "Alert", "effort": "high", "notes": "type → variant, closable → dismissible, showIcon removal" },
+    "Card": { "source": "Card", "effort": "high", "notes": "title/extra/actions → OZ compound pattern" },
+    "Checkbox": { "source": "Checkbox", "effort": "medium", "notes": "Checkbox.Group → separate component" },
+    "Dialog": { "source": "Modal", "effort": "high", "notes": "visible → open, onOk/onCancel → OZ dialog actions" },
+    "Input": { "source": "Input", "effort": "high", "notes": "Input.Search/Password → separate fields, addonBefore/After differ" },
+    "Select": { "source": "Select", "effort": "high", "notes": "options array → OZ options, mode='multiple' handling" },
+    "Tabs": { "source": "Tabs", "effort": "high", "notes": "items array → OZ Tabs compound, TabPane deprecated" },
+    "Tooltip": { "source": "Tooltip", "effort": "medium", "notes": "title → content, placement maps" },
+    "Progress": { "source": "Progress", "effort": "high", "notes": "type='circle'/'dashboard' not supported, percent → value" },
+    "RadioGroup": { "source": "Radio.Group", "effort": "high", "notes": "optionType='button' → separate component" },
+    "DateRangePicker": { "source": "DatePicker.RangePicker", "effort": "high", "notes": "moment/dayjs → native Date" }
+  }
+}

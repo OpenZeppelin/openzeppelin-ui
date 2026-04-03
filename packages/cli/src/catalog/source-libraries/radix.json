@@ -1,0 +1,17 @@
+{
+  "library": "Radix Primitives",
+  "importPatterns": ["@radix-ui/react-"],
+  "mappings": {
+    "Accordion": { "source": "Accordion", "effort": "low", "notes": "Wrap swap — OZ wraps Radix internally" },
+    "Checkbox": { "source": "Checkbox", "effort": "low", "notes": "Wrap swap" },
+    "Dialog": { "source": "Dialog", "effort": "low", "notes": "Wrap swap" },
+    "DropdownMenu": { "source": "DropdownMenu", "effort": "low", "notes": "Wrap swap" },
+    "Label": { "source": "Label", "effort": "low", "notes": "Wrap swap" },
+    "Popover": { "source": "Popover", "effort": "low", "notes": "Wrap swap" },
+    "Progress": { "source": "Progress", "effort": "low", "notes": "Wrap swap" },
+    "RadioGroup": { "source": "RadioGroup", "effort": "low", "notes": "Wrap swap" },
+    "Select": { "source": "Select", "effort": "low", "notes": "Wrap swap" },
+    "Tabs": { "source": "Tabs", "effort": "low", "notes": "Wrap swap" },
+    "Tooltip": { "source": "Tooltip", "effort": "low", "notes": "Wrap swap" }
+  }
+}
