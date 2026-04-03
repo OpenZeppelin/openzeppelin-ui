@@ -65,6 +65,11 @@
   "engines": {
     "node": ">=20.19.0"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
   "packageManager": "pnpm@10.22.0",
   "author": "OpenZeppelin",
   "license": "AGPL-3.0",
