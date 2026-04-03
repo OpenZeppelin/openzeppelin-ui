@@ -46,6 +46,7 @@ flowchart TB
         rad["radix-app"]
         zam["zama-accounts-ui (ext)"]
         acc["accounts-ui (ext)"]
+        rwa["rwa-wizard (ext)"]
     end
 
     resolver --> shared
@@ -146,7 +147,7 @@ npx tsx autoresearch/fetch-fixtures.ts --status   # show resolution status
 npx tsx autoresearch/fetch-fixtures.ts --clean    # remove fetched/linked externals
 ```
 
-Resolution priority: **already in `fixtures/`** → **local sibling path** (symlink) → **sparse clone from remote** (pinned commit).
+Resolution priority: **already in `fixtures/`** → **`FIXTURE_<NAME>_PATH` env var** → **sibling repo** (parent or grandparent of monorepo root: `../<siblingRepo>/<subPath?>`) → **sparse clone from remote** (pinned commit).
 
 ### Adding a new external fixture
 
@@ -155,18 +156,19 @@ Resolution priority: **already in `fixtures/`** → **local sibling path** (syml
 ```json
 {
   "name": "my-app",
-  "repo": "https://github.com/org/my-app",
+  "repo": "https://github.com/org/my-monorepo",
   "commit": "<pinned-sha>",
-  "localPaths": ["~/dev/repos/org/my-app"],
-  "sparsePaths": ["src/", "package.json"],
+  "siblingRepo": "my-monorepo",
+  "subPath": "packages/my-app",
+  "sparsePaths": ["packages/my-app/"],
   "description": "Brief description"
 }
 ```
 
-1. Add the name to `fixtures/.gitignore` so the resolved copy is not committed.
-2. Run `npx tsx autoresearch/fetch-fixtures.ts` to resolve it.
-3. Create ground truth in `expected/my-app.json` (detection) and `expected/patterns/my-app.json` (patterns).
-4. Run evaluation:
+2. Add the name to `fixtures/.gitignore` so the resolved copy is not committed.
+3. Run `npx tsx autoresearch/fetch-fixtures.ts` to resolve it.
+4. Create ground truth in `expected/my-app.json` (detection) and `expected/patterns/my-app.json` (patterns).
+5. Run evaluation:
 
 ```bash
 pnpm --filter @openzeppelin/ui-cli evaluate:all
@@ -219,6 +221,7 @@ autoresearch/
     shadcn-app/                  # Synthetic (committed)
     zama-accounts-ui/            # External (symlink, gitignored)
     accounts-ui/                 # External (symlink, gitignored)
+    rwa-wizard/                  # External (symlink, gitignored)
   expected/
     *.json                       # Detection ground truth
     patterns/                    # Pattern scanning ground truth

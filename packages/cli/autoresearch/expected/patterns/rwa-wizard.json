@@ -1,0 +1,12 @@
+{
+  "fixture": "rwa-wizard",
+  "patterns": [
+    {
+      "name": "sessionStorage",
+      "files": [
+        "src/components/TokenizedFundPage.tsx",
+        "src/contexts/RWAWizardContext.tsx"
+      ]
+    }
+  ]
+}

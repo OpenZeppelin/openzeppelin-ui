@@ -17,6 +17,15 @@
       "subPath": "apps/accounts-ui",
       "sparsePaths": ["apps/accounts-ui/src/", "apps/accounts-ui/package.json"],
       "description": "OZ Accounts UI — already migrated to OZ UI Kit"
+    },
+    {
+      "name": "rwa-wizard",
+      "repo": "https://github.com/pasevin/oz-oss-apps",
+      "commit": "81b93055bd0f64a266b7b87192ec32fd16df296f",
+      "siblingRepo": "oz-oss-apps",
+      "subPath": "packages/rwa-wizard",
+      "sparsePaths": ["packages/rwa-wizard/"],
+      "description": "RWA wizard app from oz-oss-apps monorepo"
     }
   ]
 }
