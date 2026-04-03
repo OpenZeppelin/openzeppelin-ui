@@ -1,6 +1,6 @@
 {
   "library": "shadcn/ui",
-  "importPatterns": ["@/components/ui/"],
+  "importPatterns": ["@/components/ui/", "/ui/"],
   "mappings": {
     "Accordion": { "source": "Accordion", "effort": "low", "notes": "Near 1:1 API parity" },
     "Alert": { "source": "Alert", "effort": "low", "notes": "Near 1:1 API parity" },
