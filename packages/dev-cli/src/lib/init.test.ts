@@ -65,6 +65,8 @@ describe('initProject', () => {
       'function resolvePackageDirectoryByName(workspaceRoot, family, packageName)'
     );
     expect(pnpmfile).toContain('(workspace fallback)');
+    expect(pnpmfile).toContain('function allowAdapterPrereleases(pkg)');
+    expect(pnpmfile).toContain('allowAdapterPrereleases(pkg)');
     expect(packageJson.devDependencies['@openzeppelin/ui-dev-cli']).toBe(
       expectedCliDependencyRange
     );
