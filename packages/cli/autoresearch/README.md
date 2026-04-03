@@ -20,6 +20,8 @@ flowchart TD
     Discard --> Analyze
 ```
 
+
+
 ## Quick start
 
 ### 1. Start the dashboard
@@ -28,7 +30,7 @@ flowchart TD
 pnpm --filter @openzeppelin/ui-cli dashboard
 ```
 
-Open http://localhost:4200. The dashboard auto-refreshes as experiments run.
+Open [http://localhost:4200](http://localhost:4200). The dashboard auto-refreshes as experiments run.
 
 ### 2. Verify the baseline
 
@@ -84,19 +86,23 @@ flowchart LR
     Evaluate -->|live scores| Dashboard
 ```
 
+
+
 ## File reference
 
-| File | Role | Editable by agent? |
-|---|---|---|
-| `program.md` | Agent protocol — rules, editable surface, experiment format | No |
-| `evaluate.ts` | Fixed evaluation harness — runs `analyzeProject` on all fixtures, computes F1 | No |
-| `dashboard.ts` | HTTP server for the real-time dashboard | No |
-| `dashboard.html` | Dashboard UI (Chart.js scatter plot, fixture bars, experiment log) | No |
-| `fixtures/` | 3 benchmark React apps (raw-html, shadcn, radix) | No |
-| `expected/` | Ground-truth component detection results per fixture | No |
-| `results.tsv` | Experiment log (appended by agent, read by dashboard) | Created by agent |
-| `analysis.ipynb` | Post-hoc Python notebook for visualization | No |
-| `pyproject.toml` | Python dependencies for the notebook | No |
+
+| File             | Role                                                                          | Editable by agent? |
+| ---------------- | ----------------------------------------------------------------------------- | ------------------ |
+| `program.md`     | Agent protocol — rules, editable surface, experiment format                   | No                 |
+| `evaluate.ts`    | Fixed evaluation harness — runs `analyzeProject` on all fixtures, computes F1 | No                 |
+| `dashboard.ts`   | HTTP server for the real-time dashboard                                       | No                 |
+| `dashboard.html` | Dashboard UI (Chart.js scatter plot, fixture bars, experiment log)            | No                 |
+| `fixtures/`      | 3 benchmark React apps (raw-html, shadcn, radix)                              | No                 |
+| `expected/`      | Ground-truth component detection results per fixture                          | No                 |
+| `results.tsv`    | Experiment log (appended by agent, read by dashboard)                         | Created by agent   |
+| `analysis.ipynb` | Post-hoc Python notebook for visualization                                    | No                 |
+| `pyproject.toml` | Python dependencies for the notebook                                          | No                 |
+
 
 ## Editable surface
 
@@ -111,11 +117,13 @@ Every experiment must pass `pnpm test` or it is reverted. The agent cannot modif
 
 ## Benchmark fixtures
 
-| Fixture | Source library | Files | Expected components | Import style |
-|---|---|---|---|---|
-| `raw-html-app` | Native HTML elements | 7 | 9 (Button, Input, Checkbox, etc.) | N/A (tag detection) |
-| `shadcn-app` | shadcn/ui | 8 | 14 (Button, Card, Dialog, etc.) | Named: `import { X } from '@/components/ui/...'` |
-| `radix-app` | Radix Primitives | 8 | 13 (11 Radix + 2 HTML) | Namespace: `import * as X from '@radix-ui/react-...'` |
+
+| Fixture        | Source library       | Files | Expected components               | Import style                                          |
+| -------------- | -------------------- | ----- | --------------------------------- | ----------------------------------------------------- |
+| `raw-html-app` | Native HTML elements | 7     | 9 (Button, Input, Checkbox, etc.) | N/A (tag detection)                                   |
+| `shadcn-app`   | shadcn/ui            | 8     | 14 (Button, Card, Dialog, etc.)   | Named: `import { X } from '@/components/ui/...'`      |
+| `radix-app`    | Radix Primitives     | 8     | 13 (11 Radix + 2 HTML)            | Namespace: `import * as X from '@radix-ui/react-...'` |
+
 
 ## Evaluation metric
 
@@ -156,9 +164,11 @@ flowchart LR
     F1 -.-> F1_radix
 ```
 
+
+
 ## Dashboard
 
-The dashboard at http://localhost:4200 shows:
+The dashboard at [http://localhost:4200](http://localhost:4200) shows:
 
 - **Stat cards** — Total experiments, best F1, current live F1, keep rate
 - **Scatter chart** — All experiments plotted with a running-maximum line
@@ -195,3 +205,4 @@ Each line in `results.tsv` is a tab-separated record:
 
 - `status`: `keep` (F1 improved), `discard` (no improvement, reverted), `crash` (tests failed, reverted)
 - `mean_f1`: score after the experiment (6 decimal places)
+
