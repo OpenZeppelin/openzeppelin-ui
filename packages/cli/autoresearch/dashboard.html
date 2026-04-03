@@ -27,9 +27,7 @@
       --yellow-bg: rgba(234, 179, 8, 0.12);
       --radius: 10px;
     }
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       background: var(--bg);
@@ -37,491 +35,193 @@
       min-height: 100vh;
     }
 
-    /* ── Tooltips ────────────────────────────────────── */
-
-    [data-tip] {
-      position: relative;
-      cursor: help;
-    }
-
+    [data-tip] { position: relative; cursor: help; }
     [data-tip]::before {
-      content: attr(data-tip);
-      position: absolute;
-      bottom: calc(100% + 8px);
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 8px 12px;
-      background: #2d3148;
-      color: var(--text);
-      font-size: 12px;
-      font-weight: 400;
-      line-height: 1.45;
-      white-space: normal;
-      width: max-content;
-      max-width: 280px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.15s ease;
-      z-index: 100;
+      content: attr(data-tip); position: absolute; bottom: calc(100% + 8px); left: 50%;
+      transform: translateX(-50%); padding: 8px 12px; background: #2d3148; color: var(--text);
+      font-size: 12px; font-weight: 400; line-height: 1.45; white-space: normal;
+      width: max-content; max-width: 280px; border-radius: 8px; border: 1px solid var(--border);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4); pointer-events: none; opacity: 0;
+      transition: opacity 0.15s ease; z-index: 100;
     }
-
     [data-tip]::after {
-      content: '';
-      position: absolute;
-      bottom: calc(100% + 2px);
-      left: 50%;
-      transform: translateX(-50%);
-      border: 6px solid transparent;
-      border-top-color: #2d3148;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.15s ease;
-      z-index: 100;
+      content: ''; position: absolute; bottom: calc(100% + 2px); left: 50%;
+      transform: translateX(-50%); border: 6px solid transparent; border-top-color: #2d3148;
+      pointer-events: none; opacity: 0; transition: opacity 0.15s ease; z-index: 100;
     }
-
-    [data-tip]:hover::before,
-    [data-tip]:hover::after {
-      opacity: 1;
-    }
-
-    /* tooltip on right for items that might clip on left edge */
-    [data-tip-right]::before {
-      left: 0;
-      transform: none;
-    }
-    [data-tip-right]::after {
-      left: 16px;
-      transform: none;
-    }
-
-    /* ── Info icon ───────────────────────────────────── */
+    [data-tip]:hover::before, [data-tip]:hover::after { opacity: 1; }
+    [data-tip-right]::before { left: 0; transform: none; }
+    [data-tip-right]::after { left: 16px; transform: none; }
 
     .info-icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: var(--border);
-      color: var(--text-muted);
-      font-size: 10px;
-      font-weight: 700;
-      cursor: help;
-      flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--border); color: var(--text-muted);
+      font-size: 10px; font-weight: 700; cursor: help; flex-shrink: 0;
     }
-
-    /* ── Header ──────────────────────────────────────── */
 
     .header {
-      padding: 24px 32px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      padding: 24px 32px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
     }
+    .header h1 { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .header h1 span.accent { color: var(--accent); }
+    .header-right { display: flex; align-items: center; gap: 12px; }
 
-    .header h1 {
-      font-size: 20px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .header h1 span { color: var(--accent); }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+    .breadcrumb a { color: var(--accent); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb .sep { color: var(--text-dim); }
 
     .status-pill {
-      font-size: 12px;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 500;
+      display: flex; align-items: center; gap: 6px;
     }
-
-    .status-pill.live {
-      background: var(--green-bg);
-      color: var(--green);
-    }
-
-    .status-pill.stale {
-      background: var(--yellow-bg);
-      color: var(--yellow);
-    }
-
-    .status-pill .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: currentColor;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-
-    /* ── Container ───────────────────────────────────── */
+    .status-pill.live { background: var(--green-bg); color: var(--green); }
+    .status-pill.stale { background: var(--yellow-bg); color: var(--yellow); }
+    .status-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
     .container { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
 
-    /* ── Stale Banner ────────────────────────────────── */
-
-    .stale-banner {
-      display: none;
-      padding: 12px 16px;
-      margin-bottom: 16px;
-      border-radius: var(--radius);
-      background: var(--yellow-bg);
-      border: 1px solid rgba(234, 179, 8, 0.25);
-      color: var(--yellow);
-      font-size: 13px;
-      align-items: center;
-      gap: 8px;
+    .refresh-btn {
+      background: var(--border); border: 1px solid var(--border); color: var(--text-muted);
+      padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 500;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.15s ease;
     }
+    .refresh-btn:hover { background: var(--surface-hover); color: var(--text); }
+    .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .refresh-btn .spin { display: inline-block; animation: rotate 1s linear infinite; }
+    @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-    .stale-banner.visible {
-      display: flex;
+    /* ── Overview Grid ──────────────────────────────── */
+
+    .overview-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px; margin-bottom: 24px;
     }
+    .cap-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 24px; cursor: pointer; transition: all 0.2s ease; position: relative;
+    }
+    .cap-card:hover { border-color: var(--accent); background: var(--surface-hover); }
+    .cap-card .cap-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; text-transform: capitalize; }
+    .cap-card .cap-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; }
+    .cap-card .cap-score { font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .cap-card .cap-meta { font-size: 12px; color: var(--text-muted); margin-top: 8px; display: flex; justify-content: space-between; }
+    .cap-card .cap-badge {
+      position: absolute; top: 16px; right: 16px;
+      font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 12px;
+      text-transform: uppercase;
+    }
+    .cap-badge.active { background: var(--green-bg); color: var(--green); }
+    .cap-badge.empty { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
 
-    .stale-banner .stale-icon { font-size: 16px; flex-shrink: 0; }
-
-    /* ── Stats Grid ──────────────────────────────────── */
+    /* ── Detail View (same as before) ───────────────── */
 
     .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px; margin-bottom: 24px;
     }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+    .stat-card .label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .stat-card .value { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .stat-card .sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
 
-    .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-      position: relative;
-    }
-
-    .stat-card .label {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .stat-card .value {
-      font-size: 28px;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .stat-card .sub {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    /* ── Refresh button ──────────────────────────────── */
-
-    .refresh-btn {
-      background: var(--border);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      padding: 4px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      transition: all 0.15s ease;
-    }
-
-    .refresh-btn:hover {
-      background: var(--surface-hover);
-      color: var(--text);
-    }
-
-    .refresh-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .refresh-btn .spin {
-      display: inline-block;
-      animation: rotate 1s linear infinite;
-    }
-
-    @keyframes rotate {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    /* ── Panels ──────────────────────────────────────── */
-
-    .panels {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    @media (max-width: 1100px) {
-      .panels { grid-template-columns: 1fr; }
-    }
-
-    .panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-
-    .panel-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      font-size: 14px;
-      font-weight: 600;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .panel-header-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .panel-header .badge {
-      font-size: 11px;
-      font-weight: 500;
-      padding: 2px 8px;
-      border-radius: 12px;
-      background: rgba(99, 102, 241, 0.15);
-      color: var(--accent);
-    }
-
+    .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    @media (max-width: 1100px) { .panels { grid-template-columns: 1fr; } }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .panel-header-left { display: flex; align-items: center; gap: 8px; }
+    .panel-header .badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 12px; background: rgba(99, 102, 241, 0.15); color: var(--accent); }
     .panel-body { padding: 20px; }
+    .chart-container { position: relative; height: 300px; }
 
-    .chart-container {
-      position: relative;
-      height: 300px;
-    }
-
-    /* ── Fixture Breakdown ───────────────────────────── */
-
-    .fixture-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .fixture-header .last-eval {
-      font-size: 11px;
-      color: var(--text-dim);
-    }
-
+    .fixture-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .fixture-header .last-eval { font-size: 11px; color: var(--text-dim); }
     .fixture-grid { display: flex; flex-direction: column; gap: 12px; }
-
-    .fixture-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      background: var(--bg);
-      border-radius: 8px;
-      transition: background 0.15s;
-    }
-
+    .fixture-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg); border-radius: 8px; transition: background 0.15s; }
     .fixture-row:hover { background: var(--surface-hover); }
-
-    .fixture-name {
-      font-size: 13px;
-      font-weight: 600;
-      min-width: 120px;
-    }
-
-    .fixture-bar-container {
-      flex: 1;
-      height: 8px;
-      background: var(--border);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    .fixture-bar {
-      height: 100%;
-      border-radius: 4px;
-      transition: width 0.6s ease;
-    }
-
-    .fixture-score {
-      font-size: 13px;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-      min-width: 60px;
-      text-align: right;
-    }
-
-    .fixture-metrics {
-      display: flex;
-      gap: 6px;
-      min-width: 160px;
-      justify-content: flex-end;
-    }
-
-    .fixture-metric-chip {
-      font-size: 10px;
-      font-weight: 600;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-variant-numeric: tabular-nums;
-    }
-
+    .fixture-name { font-size: 13px; font-weight: 600; min-width: 120px; }
+    .fixture-bar-container { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .fixture-bar { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+    .fixture-score { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; min-width: 60px; text-align: right; }
+    .fixture-metrics { display: flex; gap: 6px; min-width: 160px; justify-content: flex-end; }
+    .fixture-metric-chip { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; font-variant-numeric: tabular-nums; }
     .fixture-metric-chip.tp { background: var(--green-bg); color: var(--green); }
     .fixture-metric-chip.fp { background: var(--red-bg); color: var(--red); }
     .fixture-metric-chip.fn { background: var(--orange-bg); color: var(--orange); }
 
-    /* ── Table ───────────────────────────────────────── */
-
     .table-panel { grid-column: 1 / -1; }
-
-    .table-scroll {
-      max-height: 400px;
-      overflow-y: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    thead th {
-      padding: 10px 16px;
-      text-align: left;
-      font-weight: 600;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      background: var(--surface);
-      z-index: 1;
-    }
-
-    tbody td {
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--border);
-      font-variant-numeric: tabular-nums;
-    }
-
+    .table-scroll { max-height: 400px; overflow-y: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { padding: 10px 16px; text-align: left; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--surface); z-index: 1; }
+    tbody td { padding: 10px 16px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
     tbody tr:hover { background: var(--surface-hover); }
-
-    .status-badge {
-      display: inline-block;
-      padding: 2px 10px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
+    .status-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
     .status-badge.keep { background: var(--green-bg); color: var(--green); }
     .status-badge.discard { background: var(--orange-bg); color: var(--orange); }
     .status-badge.crash { background: var(--red-bg); color: var(--red); }
-
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--text-muted);
-    }
-
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
     .empty-state h3 { font-size: 16px; margin-bottom: 8px; color: var(--text); }
     .empty-state p { font-size: 13px; }
-
     .table-scroll::-webkit-scrollbar { width: 6px; }
     .table-scroll::-webkit-scrollbar-track { background: transparent; }
     .table-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-    /* ── Footer ──────────────────────────────────────── */
+    .footer { padding: 16px 32px; text-align: center; font-size: 11px; color: var(--text-dim); border-top: 1px solid var(--border); }
 
-    .footer {
-      padding: 16px 32px;
-      text-align: center;
-      font-size: 11px;
-      color: var(--text-dim);
-      border-top: 1px solid var(--border);
-    }
+    #overview-view, #detail-view { display: none; }
+    #overview-view.active, #detail-view.active { display: block; }
   </style>
 </head>
 <body>
   <div class="header">
     <h1>
-      <span>&#9670;</span> Autoresearch Dashboard
-      <span class="info-icon" data-tip="Monitors the autoresearch agent's experiment loop. The agent modifies detection code, runs evaluate.ts, and logs results to results.tsv. This dashboard visualizes that data in real time.">?</span>
+      <span class="accent">&#9670;</span> Autoresearch Dashboard
+      <span id="breadcrumb"></span>
     </h1>
     <div class="header-right">
-      <button class="refresh-btn" id="refresh-btn" onclick="manualRefresh()" data-tip="Re-run the evaluation harness (evaluate.ts) against the current codebase to get a fresh live F1 score.">
-        &#x21bb; Refresh Live Eval
-      </button>
-      <div class="status-pill live" id="status-pill" data-tip="Shows connection status. 'Live' means the dashboard is receiving real-time updates via Server-Sent Events when results.tsv changes.">
+      <div class="status-pill live" id="status-pill">
         <div class="dot"></div>
         <span id="status-text">Connecting...</span>
       </div>
     </div>
   </div>
 
-  <div class="container">
-
-    <div class="stale-banner" id="stale-banner">
-      <span class="stale-icon">&#9888;</span>
-      <span id="stale-message">The live evaluation score differs from the last logged experiment. The agent may have changed code since the last experiment was recorded. Click "Refresh Live Eval" to re-check.</span>
+  <!-- ── Overview View ──────────────────────────── -->
+  <div id="overview-view" class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <h2 style="font-size:18px;font-weight:600;margin-bottom:4px">Capability Scorecard</h2>
+        <p style="font-size:13px;color:var(--text-muted)">7 capabilities across the full migrate-to-oz-uikit system</p>
+      </div>
+      <button class="refresh-btn" id="overview-refresh-btn" onclick="refreshOverview()">&#x21bb; Refresh All</button>
     </div>
+    <div class="overview-grid" id="overview-grid">
+      <div class="empty-state"><p>Loading capabilities...</p></div>
+    </div>
+  </div>
 
+  <!-- ── Detail View ────────────────────────────── -->
+  <div id="detail-view" class="container">
     <div class="stats-grid" id="stats-grid">
-      <div class="stat-card" data-tip="Total number of experiments the autoresearch agent has run. Each experiment is one attempt to improve component detection accuracy." data-tip-right>
+      <div class="stat-card" data-tip="Total experiments run for this capability." data-tip-right>
         <div class="label">Experiments <span class="info-icon">?</span></div>
         <div class="value" id="stat-total">-</div>
         <div class="sub" id="stat-breakdown">-</div>
       </div>
-      <div class="stat-card" data-tip="Highest mean F1 score across all 'keep' experiments. F1 is the harmonic mean of precision and recall — 1.0 means perfect detection, 0.0 means no correct detections.">
-        <div class="label">Best Mean F1 <span class="info-icon">?</span></div>
+      <div class="stat-card" data-tip="Highest score across all kept experiments.">
+        <div class="label">Best Score <span class="info-icon">?</span></div>
         <div class="value" id="stat-best">-</div>
         <div class="sub" id="stat-best-exp">-</div>
       </div>
-      <div class="stat-card" data-tip="Live F1 score from running evaluate.ts RIGHT NOW against the current codebase. Unlike the logged results, this always reflects the latest code. Spawns a fresh process each time.">
-        <div class="label">Current F1 (Live) <span class="info-icon">?</span></div>
+      <div class="stat-card" data-tip="Live score from running the evaluator right now against current code.">
+        <div class="label">Current (Live) <span class="info-icon">?</span></div>
         <div class="value" id="stat-current">-</div>
         <div class="sub" id="stat-current-sub">Evaluating...</div>
       </div>
-      <div class="stat-card" data-tip="Percentage of experiments that improved the score and were kept. A low keep rate means most experiments failed to improve detection — this is normal for optimization.">
+      <div class="stat-card" data-tip="Percentage of experiments that improved and were kept.">
         <div class="label">Keep Rate <span class="info-icon">?</span></div>
         <div class="value" id="stat-keeprate">-</div>
         <div class="sub" id="stat-keeprate-sub">-</div>
@@ -531,16 +231,11 @@
     <div class="panels">
       <div class="panel">
         <div class="panel-header">
-          <div class="panel-header-left">
-            Experiment Progress
-            <span class="info-icon" data-tip="Scatter plot of all experiments. Green dots = kept (improved score), orange X = discarded (no improvement), red triangle = crashed. The green shaded line shows the running maximum — the best score achieved up to that point.">?</span>
-          </div>
+          <div class="panel-header-left">Experiment Progress</div>
           <span class="badge" id="chart-badge">-</span>
         </div>
         <div class="panel-body">
-          <div class="chart-container">
-            <canvas id="progress-chart"></canvas>
-          </div>
+          <div class="chart-container"><canvas id="progress-chart"></canvas></div>
         </div>
       </div>
 
@@ -548,48 +243,34 @@
         <div class="panel-header">
           <div class="panel-header-left">
             Per-Fixture Breakdown
-            <span class="info-icon" data-tip="Shows the live F1 score for each benchmark fixture. Each fixture is a sample React app (raw HTML, shadcn, Radix) that tests different detection patterns. The evaluation runs the current analyzer code against these fixtures.">?</span>
+            <button class="refresh-btn" onclick="refreshDetail()" style="font-size:11px;padding:2px 8px">&#x21bb; Re-evaluate</button>
           </div>
           <span class="badge" id="fixture-badge">live</span>
         </div>
         <div class="panel-body">
           <div class="fixture-header" id="fixture-header" style="display:none">
             <span class="last-eval" id="last-eval-time">Last evaluated: never</span>
-            <button class="refresh-btn" onclick="manualRefresh()" style="font-size:11px;padding:2px 8px">&#x21bb; Re-evaluate</button>
           </div>
           <div class="fixture-grid" id="fixture-grid">
-            <div class="empty-state">
-              <p>Loading evaluation...</p>
-            </div>
+            <div class="empty-state"><p>Loading evaluation...</p></div>
           </div>
         </div>
       </div>
 
       <div class="panel table-panel">
         <div class="panel-header">
-          <div class="panel-header-left">
-            Experiment Log
-            <span class="info-icon" data-tip="Chronological log of all experiments from results.tsv. Each row shows the experiment number, whether it was kept/discarded/crashed, its mean F1 score, the delta from the previous experiment, and what the agent changed.">?</span>
-          </div>
+          <div class="panel-header-left">Experiment Log</div>
           <span class="badge" id="log-badge">0 rows</span>
         </div>
         <div class="table-scroll" id="table-scroll">
           <table>
             <thead>
               <tr>
-                <th data-tip="Sequential experiment number assigned by the autoresearch agent.">#</th>
-                <th data-tip="Outcome of the experiment. keep = improved the score and was committed. discard = did not improve, changes reverted. crash = evaluation harness failed to run.">Status</th>
-                <th data-tip="Mean F1 score across all benchmark fixtures for this experiment. Ranges from 0 (no correct detections) to 1 (perfect detection).">Mean F1</th>
-                <th data-tip="Change in Mean F1 compared to the previous kept experiment. Green positive = improvement, red negative = regression.">Delta</th>
-                <th data-tip="Agent's description of what was changed in this experiment.">Description</th>
+                <th>#</th><th>Status</th><th>Score</th><th>Delta</th><th>Description</th>
               </tr>
             </thead>
             <tbody id="log-body">
-              <tr>
-                <td colspan="5" class="empty-state">
-                  <p>No experiments yet. Run the autoresearch agent to begin.</p>
-                </td>
-              </tr>
+              <tr><td colspan="5" class="empty-state"><p>No experiments yet.</p></td></tr>
             </tbody>
           </table>
         </div>
@@ -597,97 +278,137 @@
     </div>
   </div>
 
-  <div class="footer">
-    Autoresearch — Karpathy-style autonomous improvement loop for component detection
-  </div>
+  <div class="footer">Autoresearch — Karpathy-style autonomous improvement loop</div>
 
   <script>
+    const CAP_DESCRIPTIONS = {
+      detection: 'Component detection — identifies UI components and maps to OZ equivalents',
+      patterns: 'Pattern scanning — detects wallet libraries, storage APIs, and existing OZ packages',
+      planning: 'Plan generation — creates phased migration task lists from analysis reports',
+      init: 'Init / Setup — bootstraps projects with OZ packages, providers, and Tailwind config',
+      execution: 'Task execution — rewrites imports and JSX to use OZ components',
+      verification: 'Verification — validates migrations are correct and produces diagnostics',
+      orchestration: 'Orchestration — ensures SKILL.md correctly guides agents through migration',
+    };
+
     let chart = null;
-    let lastMtime = 0;
-    let lastRowCount = 0;
-    let lastEvalTime = null;
-    let lastLiveF1 = null;
-    let isEvaluating = false;
+    let currentCapability = null;
+    let detailState = { lastMtime: 0, lastRowCount: 0, lastEvalTime: null, lastLiveF1: null, isEvaluating: false };
+
+    function getRoute() {
+      const path = window.location.pathname;
+      const m = path.match(/^\/capability\/(\w+)/);
+      return m ? m[1] : null;
+    }
+
+    function navigate(cap) {
+      if (cap) {
+        window.history.pushState(null, '', '/capability/' + cap);
+      } else {
+        window.history.pushState(null, '', '/');
+      }
+      route();
+    }
+
+    function route() {
+      const cap = getRoute();
+      if (cap) {
+        showDetail(cap);
+      } else {
+        showOverview();
+      }
+    }
+
+    window.addEventListener('popstate', route);
+
+    function showOverview() {
+      currentCapability = null;
+      document.getElementById('overview-view').classList.add('active');
+      document.getElementById('detail-view').classList.remove('active');
+      document.getElementById('breadcrumb').innerHTML = '';
+      refreshOverview();
+    }
+
+    async function showDetail(cap) {
+      currentCapability = cap;
+      document.getElementById('overview-view').classList.remove('active');
+      document.getElementById('detail-view').classList.add('active');
+      document.getElementById('breadcrumb').innerHTML =
+        `<span class="breadcrumb"><span class="sep">/</span><a href="/" onclick="event.preventDefault();navigate(null)">overview</a><span class="sep">/</span><span>${cap}</span></span>`;
+
+      detailState = { lastMtime: 0, lastRowCount: 0, lastEvalTime: null, lastLiveF1: null, isEvaluating: false };
+
+      if (chart) { chart.destroy(); chart = null; }
+      initChart();
+      await fetchDetailResults(cap);
+      await fetchDetailEvaluation(cap);
+    }
+
+    // ── Overview ────────────────────────────────────
+
+    async function refreshOverview() {
+      const btn = document.getElementById('overview-refresh-btn');
+      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin">&#x21bb;</span> Loading...'; }
+
+      try {
+        const res = await fetch('/api/capabilities');
+        const data = await res.json();
+        renderOverview(data.capabilities);
+      } catch (e) {
+        console.error('Failed to load capabilities:', e);
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '&#x21bb; Refresh All'; }
+      }
+    }
+
+    function renderOverview(capabilities) {
+      const grid = document.getElementById('overview-grid');
+
+      grid.innerHTML = capabilities.map(cap => {
+        const desc = CAP_DESCRIPTIONS[cap.name] || '';
+        const scoreStr = cap.lastF1 !== null ? cap.lastF1.toFixed(4) : '—';
+        const scoreColor = cap.lastF1 !== null ? getBarColor(cap.lastF1) : 'var(--text-dim)';
+        const badgeClass = cap.hasResults ? 'active' : 'empty';
+        const badgeText = cap.hasResults ? `${cap.experiments} exp` : 'no data';
+        const meta = cap.hasResults
+          ? `${cap.experiments} experiments`
+          : 'No experiments yet — run the agent';
+
+        return `<div class="cap-card" onclick="navigate('${cap.name}')">
+          <span class="cap-badge ${badgeClass}">${badgeText}</span>
+          <div class="cap-name">${cap.name}</div>
+          <div class="cap-desc">${desc}</div>
+          <div class="cap-score" style="color:${scoreColor}">${scoreStr}</div>
+          <div class="cap-meta"><span>${meta}</span></div>
+        </div>`;
+      }).join('');
+    }
+
+    // ── Detail View ─────────────────────────────────
 
     function initChart() {
-      const ctx = document.getElementById('progress-chart').getContext('2d');
+      const canvas = document.getElementById('progress-chart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
       chart = new Chart(ctx, {
         type: 'scatter',
         data: {
           datasets: [
-            {
-              label: 'keep — score improved, changes committed',
-              data: [],
-              backgroundColor: 'rgba(34, 197, 94, 0.8)',
-              borderColor: 'rgba(34, 197, 94, 1)',
-              pointRadius: 5,
-              pointHoverRadius: 7,
-              order: 1,
-            },
-            {
-              label: 'discard — no improvement, reverted',
-              data: [],
-              backgroundColor: 'rgba(249, 115, 22, 0.7)',
-              borderColor: 'rgba(249, 115, 22, 1)',
-              pointStyle: 'crossRot',
-              pointRadius: 5,
-              pointHoverRadius: 7,
-              order: 2,
-            },
-            {
-              label: 'crash — evaluation failed',
-              data: [],
-              backgroundColor: 'rgba(239, 68, 68, 0.7)',
-              borderColor: 'rgba(239, 68, 68, 1)',
-              pointStyle: 'triangle',
-              pointRadius: 5,
-              pointHoverRadius: 7,
-              order: 3,
-            },
-            {
-              label: 'running max — best score so far',
-              data: [],
-              type: 'line',
-              borderColor: 'rgba(34, 197, 94, 0.5)',
-              backgroundColor: 'rgba(34, 197, 94, 0.05)',
-              borderWidth: 2,
-              fill: true,
-              pointRadius: 0,
-              stepped: 'after',
-              order: 0,
-            },
+            { label: 'keep', data: [], backgroundColor: 'rgba(34,197,94,0.8)', borderColor: 'rgba(34,197,94,1)', pointRadius: 5, pointHoverRadius: 7, order: 1 },
+            { label: 'discard', data: [], backgroundColor: 'rgba(249,115,22,0.7)', borderColor: 'rgba(249,115,22,1)', pointStyle: 'crossRot', pointRadius: 5, order: 2 },
+            { label: 'crash', data: [], backgroundColor: 'rgba(239,68,68,0.7)', borderColor: 'rgba(239,68,68,1)', pointStyle: 'triangle', pointRadius: 5, order: 3 },
+            { label: 'running max', data: [], type: 'line', borderColor: 'rgba(34,197,94,0.5)', backgroundColor: 'rgba(34,197,94,0.05)', borderWidth: 2, fill: true, pointRadius: 0, stepped: 'after', order: 0 },
           ],
         },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: { duration: 400 },
+          responsive: true, maintainAspectRatio: false, animation: { duration: 400 },
           scales: {
-            x: {
-              title: { display: true, text: 'Experiment #', color: '#8b90a0' },
-              grid: { color: 'rgba(42, 46, 61, 0.5)' },
-              ticks: { color: '#8b90a0' },
-            },
-            y: {
-              title: { display: true, text: 'Mean F1 Score', color: '#8b90a0' },
-              min: 0,
-              max: 1.05,
-              grid: { color: 'rgba(42, 46, 61, 0.5)' },
-              ticks: { color: '#8b90a0' },
-            },
+            x: { title: { display: true, text: 'Experiment #', color: '#8b90a0' }, grid: { color: 'rgba(42,46,61,0.5)' }, ticks: { color: '#8b90a0' } },
+            y: { title: { display: true, text: 'Score', color: '#8b90a0' }, min: 0, max: 1.05, grid: { color: 'rgba(42,46,61,0.5)' }, ticks: { color: '#8b90a0' } },
           },
           plugins: {
-            legend: {
-              labels: { color: '#8b90a0', usePointStyle: true, pointStyle: 'circle', padding: 16 },
-            },
-            tooltip: {
-              callbacks: {
-                label: function (ctx) {
-                  if (ctx.dataset.label.startsWith('running max')) return '';
-                  return `Experiment #${ctx.parsed.x} — F1: ${ctx.parsed.y.toFixed(6)}`;
-                },
-              },
-            },
+            legend: { labels: { color: '#8b90a0', usePointStyle: true, padding: 16 } },
+            tooltip: { callbacks: { label: (ctx) => ctx.dataset.label === 'running max' ? '' : `#${ctx.parsed.x} — ${ctx.parsed.y.toFixed(6)}` } },
           },
         },
       });
@@ -695,27 +416,14 @@
 
     function updateChart(rows) {
       if (!chart || rows.length === 0) return;
-
       const keep = [], discard = [], crash = [], runMax = [];
-
-      let bestF1 = 0;
+      let best = 0;
       for (const r of rows) {
-        const point = { x: r.experiment, y: r.meanF1 };
-        switch (r.status) {
-          case 'keep':
-            keep.push(point);
-            bestF1 = Math.max(bestF1, r.meanF1);
-            runMax.push({ x: r.experiment, y: bestF1 });
-            break;
-          case 'discard':
-            discard.push(point);
-            break;
-          case 'crash':
-            crash.push(point);
-            break;
-        }
+        const p = { x: r.experiment, y: r.meanF1 };
+        if (r.status === 'keep') { keep.push(p); best = Math.max(best, r.meanF1); runMax.push({ x: r.experiment, y: best }); }
+        else if (r.status === 'discard') discard.push(p);
+        else crash.push(p);
       }
-
       chart.data.datasets[0].data = keep;
       chart.data.datasets[1].data = discard;
       chart.data.datasets[2].data = crash;
@@ -730,251 +438,138 @@
       const crashed = rows.filter(r => r.status === 'crash').length;
 
       document.getElementById('stat-total').textContent = total || '-';
-      document.getElementById('stat-breakdown').textContent =
-        total ? `${kept.length} kept \u00b7 ${discarded} discarded \u00b7 ${crashed} crashed` : 'Waiting for experiments...';
+      document.getElementById('stat-breakdown').textContent = total ? `${kept.length} kept · ${discarded} discarded · ${crashed} crashed` : 'Waiting...';
 
       if (kept.length > 0) {
         const bestRow = kept.reduce((a, b) => a.meanF1 > b.meanF1 ? a : b);
         document.getElementById('stat-best').textContent = bestRow.meanF1.toFixed(4);
-        document.getElementById('stat-best-exp').textContent = `Achieved at experiment #${bestRow.experiment}`;
+        document.getElementById('stat-best-exp').textContent = `At experiment #${bestRow.experiment}`;
       } else {
         document.getElementById('stat-best').textContent = '-';
-        document.getElementById('stat-best-exp').textContent = 'No kept experiments yet';
+        document.getElementById('stat-best-exp').textContent = 'No kept experiments';
       }
 
       if (total > 0) {
-        const rate = ((kept.length / total) * 100).toFixed(0);
-        document.getElementById('stat-keeprate').textContent = rate + '%';
-        document.getElementById('stat-keeprate-sub').textContent = `${kept.length} of ${total} experiments kept`;
+        document.getElementById('stat-keeprate').textContent = ((kept.length / total) * 100).toFixed(0) + '%';
+        document.getElementById('stat-keeprate-sub').textContent = `${kept.length} of ${total}`;
       } else {
         document.getElementById('stat-keeprate').textContent = '-';
-        document.getElementById('stat-keeprate-sub').textContent = 'Waiting for experiments...';
+        document.getElementById('stat-keeprate-sub').textContent = 'Waiting...';
       }
 
       document.getElementById('chart-badge').textContent = `${total} experiments`;
       document.getElementById('log-badge').textContent = `${total} rows`;
-
-      checkStaleness(rows);
-    }
-
-    function checkStaleness(rows) {
-      const banner = document.getElementById('stale-banner');
-      if (lastLiveF1 === null || rows.length === 0) {
-        banner.classList.remove('visible');
-        return;
-      }
-
-      const keptRows = rows.filter(r => r.status === 'keep');
-      if (keptRows.length === 0) {
-        banner.classList.remove('visible');
-        return;
-      }
-
-      const lastKeptF1 = keptRows[keptRows.length - 1].meanF1;
-      const diff = Math.abs(lastLiveF1 - lastKeptF1);
-
-      if (diff > 0.001) {
-        document.getElementById('stale-message').textContent =
-          `Live F1 (${lastLiveF1.toFixed(4)}) differs from last logged experiment (${lastKeptF1.toFixed(4)}). ` +
-          `The agent may have modified code since the last experiment was recorded. Click "Refresh Live Eval" for a fresh evaluation.`;
-        banner.classList.add('visible');
-      } else {
-        banner.classList.remove('visible');
-      }
     }
 
     function updateTable(rows) {
       const tbody = document.getElementById('log-body');
-      if (rows.length === 0) {
-        tbody.innerHTML =
-          '<tr><td colspan="5" class="empty-state"><p>No experiments yet. Run the autoresearch agent to begin.</p></td></tr>';
-        return;
-      }
+      if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><p>No experiments yet.</p></td></tr>'; return; }
 
       const reversed = [...rows].reverse();
-
       let lastKeptF1 = null;
-      const keepScores = rows.filter(r => r.status === 'keep').map(r => r.meanF1);
       const deltas = new Map();
-      for (let i = 0; i < rows.length; i++) {
-        if (rows[i].status === 'keep') {
-          if (lastKeptF1 !== null) {
-            deltas.set(rows[i].experiment, rows[i].meanF1 - lastKeptF1);
-          }
-          lastKeptF1 = rows[i].meanF1;
+      for (const r of rows) {
+        if (r.status === 'keep') {
+          if (lastKeptF1 !== null) deltas.set(r.experiment, r.meanF1 - lastKeptF1);
+          lastKeptF1 = r.meanF1;
         }
       }
 
-      tbody.innerHTML = reversed
-        .map((r) => {
-          let delta = '';
-          if (r.status === 'keep' && deltas.has(r.experiment)) {
-            const d = deltas.get(r.experiment);
-            if (d > 0) delta = `<span style="color:var(--green)">+${d.toFixed(4)}</span>`;
-            else if (d < 0) delta = `<span style="color:var(--red)">${d.toFixed(4)}</span>`;
-            else delta = `<span style="color:var(--text-muted)">0.0000</span>`;
-          } else if (r.status === 'keep' && !deltas.has(r.experiment)) {
-            delta = `<span style="color:var(--text-dim)">baseline</span>`;
-          }
-
-          const statusTip = {
-            keep: 'This experiment improved the F1 score and its code changes were committed.',
-            discard: 'This experiment did not improve the F1 score. Code changes were reverted.',
-            crash: 'The evaluation harness failed to run for this experiment (syntax error, timeout, etc).'
-          }[r.status] || '';
-
-          return `<tr>
-            <td>${r.experiment}</td>
-            <td><span class="status-badge ${r.status}" data-tip="${statusTip}">${r.status}</span></td>
-            <td>${r.meanF1.toFixed(6)}</td>
-            <td>${delta}</td>
-            <td style="color:var(--text-muted);max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(r.description)}">${escapeHtml(r.description)}</td>
-          </tr>`;
-        })
-        .join('');
-    }
-
-    function escapeHtml(str) {
-      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    function getBarColor(f1) {
-      if (f1 >= 0.9) return 'var(--green)';
-      if (f1 >= 0.7) return 'var(--blue)';
-      if (f1 >= 0.5) return 'var(--orange)';
-      return 'var(--red)';
-    }
-
-    function getScoreLabel(f1) {
-      if (f1 >= 0.95) return 'Excellent';
-      if (f1 >= 0.9) return 'Great';
-      if (f1 >= 0.7) return 'Good';
-      if (f1 >= 0.5) return 'Fair';
-      return 'Poor';
+      tbody.innerHTML = reversed.map(r => {
+        let delta = '';
+        if (r.status === 'keep' && deltas.has(r.experiment)) {
+          const d = deltas.get(r.experiment);
+          delta = d > 0 ? `<span style="color:var(--green)">+${d.toFixed(4)}</span>` : d < 0 ? `<span style="color:var(--red)">${d.toFixed(4)}</span>` : `<span style="color:var(--text-muted)">0</span>`;
+        } else if (r.status === 'keep') {
+          delta = `<span style="color:var(--text-dim)">baseline</span>`;
+        }
+        return `<tr><td>${r.experiment}</td><td><span class="status-badge ${r.status}">${r.status}</span></td><td>${r.meanF1.toFixed(6)}</td><td>${delta}</td><td style="color:var(--text-muted);max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.description)}">${esc(r.description)}</td></tr>`;
+      }).join('');
     }
 
     function updateFixtures(evalData) {
       const grid = document.getElementById('fixture-grid');
       const header = document.getElementById('fixture-header');
 
-      if (evalData.error) {
-        grid.innerHTML = `<div class="empty-state" style="padding:20px"><p style="color:var(--red)">Evaluation failed: ${escapeHtml(evalData.error).substring(0, 200)}</p></div>`;
-        return;
-      }
+      if (evalData.error) { grid.innerHTML = `<div class="empty-state" style="padding:20px"><p style="color:var(--red)">${esc(evalData.error).substring(0, 200)}</p></div>`; return; }
+      if (!evalData || !evalData.fixtures || evalData.fixtures.length === 0) { grid.innerHTML = '<div class="empty-state"><p>No fixtures found for this capability.</p></div>'; return; }
 
-      if (!evalData || evalData.fixtures.length === 0) {
-        grid.innerHTML = '<div class="empty-state"><p>No fixtures found. Create benchmark apps in autoresearch/fixtures/</p></div>';
-        return;
-      }
-
-      lastEvalTime = new Date();
-      lastLiveF1 = evalData.meanF1;
+      detailState.lastEvalTime = new Date();
+      detailState.lastLiveF1 = evalData.meanF1;
       header.style.display = 'flex';
-      document.getElementById('last-eval-time').textContent = `Last evaluated: ${lastEvalTime.toLocaleTimeString()}`;
+      document.getElementById('last-eval-time').textContent = `Last evaluated: ${detailState.lastEvalTime.toLocaleTimeString()}`;
 
-      const currentEl = document.getElementById('stat-current');
-      currentEl.textContent = evalData.meanF1.toFixed(4);
-      currentEl.style.color = getBarColor(evalData.meanF1);
+      const el = document.getElementById('stat-current');
+      el.textContent = evalData.meanF1.toFixed(4);
+      el.style.color = getBarColor(evalData.meanF1);
+      document.getElementById('stat-current-sub').textContent = `${getScoreLabel(evalData.meanF1)} · ${evalData.fixtures.length} fixtures`;
 
-      document.getElementById('stat-current-sub').textContent =
-        `${getScoreLabel(evalData.meanF1)} \u00b7 ${evalData.fixtures.length} fixtures \u00b7 ${lastEvalTime.toLocaleTimeString()}`;
-
-      grid.innerHTML = evalData.fixtures
-        .map(f => {
-          const pct = (f.f1 * 100).toFixed(0);
-          const color = getBarColor(f.f1);
-          const precisionPct = (f.precision * 100).toFixed(0);
-          const recallPct = (f.recall * 100).toFixed(0);
-
-          return `<div class="fixture-row" data-tip="F1=${f.f1.toFixed(4)} | Precision=${precisionPct}% (of detected, how many are correct) | Recall=${recallPct}% (of expected, how many were found)">
-            <div class="fixture-name" data-tip="Benchmark fixture: a sample React app in autoresearch/fixtures/${f.fixture}/" data-tip-right>${f.fixture}</div>
-            <div class="fixture-bar-container" data-tip="Visual representation of F1 score (${pct}%). Green=90%+, Blue=70%+, Orange=50%+, Red=below 50%">
-              <div class="fixture-bar" style="width:${pct}%;background:${color}"></div>
-            </div>
-            <div class="fixture-score" style="color:${color}">${f.f1.toFixed(4)}</div>
-            <div class="fixture-metrics">
-              <span class="fixture-metric-chip tp" data-tip="True Positives: components correctly detected and mapped. ${f.matched ? f.matched.length + ' components matched.' : ''}">TP ${f.tp}</span>
-              <span class="fixture-metric-chip fp" data-tip="False Positives: components detected that shouldn't have been. These reduce precision. ${f.extra ? f.extra.join(', ') : 'None'}">FP ${f.fp}</span>
-              <span class="fixture-metric-chip fn" data-tip="False Negatives: expected components that were not detected. These reduce recall. ${f.missed ? f.missed.join(', ') : 'None'}">FN ${f.fn}</span>
-            </div>
-          </div>`;
-        })
-        .join('');
+      grid.innerHTML = evalData.fixtures.map(f => {
+        const pct = (f.f1 * 100).toFixed(0);
+        const color = getBarColor(f.f1);
+        return `<div class="fixture-row">
+          <div class="fixture-name">${f.fixture}</div>
+          <div class="fixture-bar-container"><div class="fixture-bar" style="width:${pct}%;background:${color}"></div></div>
+          <div class="fixture-score" style="color:${color}">${f.f1.toFixed(4)}</div>
+          <div class="fixture-metrics">
+            <span class="fixture-metric-chip tp" data-tip="True Positives">TP ${f.tp}</span>
+            <span class="fixture-metric-chip fp" data-tip="False Positives">FP ${f.fp}</span>
+            <span class="fixture-metric-chip fn" data-tip="False Negatives">FN ${f.fn}</span>
+          </div>
+        </div>`;
+      }).join('');
     }
 
-    async function fetchResults() {
+    async function fetchDetailResults(cap) {
       try {
-        const res = await fetch('/api/results');
+        const res = await fetch('/api/results/' + cap);
         const data = await res.json();
-
-        if (data.mtime !== lastMtime || data.rows.length !== lastRowCount) {
-          lastMtime = data.mtime;
-          lastRowCount = data.rows.length;
+        if (data.mtime !== detailState.lastMtime || data.rows.length !== detailState.lastRowCount) {
+          detailState.lastMtime = data.mtime;
+          detailState.lastRowCount = data.rows.length;
           updateStats(data.rows);
           updateChart(data.rows);
           updateTable(data.rows);
         }
-      } catch (e) {
-        console.error('Failed to fetch results:', e);
-      }
+      } catch (e) { console.error('Failed to fetch results:', e); }
     }
 
-    async function fetchEvaluation() {
-      if (isEvaluating) return;
-      isEvaluating = true;
-
-      const btn = document.getElementById('refresh-btn');
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spin">&#x21bb;</span> Evaluating...';
-
+    async function fetchDetailEvaluation(cap) {
+      if (detailState.isEvaluating) return;
+      detailState.isEvaluating = true;
       try {
-        const res = await fetch('/api/evaluate');
+        const res = await fetch('/api/evaluate/' + cap);
         const data = await res.json();
         updateFixtures(data);
-      } catch (e) {
-        console.error('Failed to fetch evaluation:', e);
-        document.getElementById('stat-current-sub').textContent = 'Evaluation request failed';
-      } finally {
-        isEvaluating = false;
-        btn.disabled = false;
-        btn.innerHTML = '&#x21bb; Refresh Live Eval';
-      }
+      } catch (e) { console.error('Failed to fetch evaluation:', e); }
+      finally { detailState.isEvaluating = false; }
     }
 
-    async function manualRefresh() {
-      await Promise.all([fetchResults(), fetchEvaluation()]);
+    async function refreshDetail() {
+      if (!currentCapability) return;
+      await fetchDetailResults(currentCapability);
+      await fetchDetailEvaluation(currentCapability);
     }
+
+    function esc(str) { return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function getBarColor(f1) { return f1 >= 0.9 ? 'var(--green)' : f1 >= 0.7 ? 'var(--blue)' : f1 >= 0.5 ? 'var(--orange)' : 'var(--red)'; }
+    function getScoreLabel(f1) { return f1 >= 0.95 ? 'Excellent' : f1 >= 0.9 ? 'Great' : f1 >= 0.7 ? 'Good' : f1 >= 0.5 ? 'Fair' : 'Poor'; }
+
+    // ── SSE ─────────────────────────────────────────
 
     function connectSSE() {
       const source = new EventSource('/api/stream');
-
       source.onmessage = (event) => {
         if (event.data === 'update') {
-          fetchResults();
-          fetchEvaluation();
+          if (currentCapability) refreshDetail();
+          else refreshOverview();
         }
       };
-
-      source.onopen = () => {
-        document.getElementById('status-text').textContent = 'Live';
-        document.getElementById('status-pill').className = 'status-pill live';
-      };
-
-      source.onerror = () => {
-        document.getElementById('status-text').textContent = 'Reconnecting...';
-        document.getElementById('status-pill').className = 'status-pill stale';
-      };
+      source.onopen = () => { document.getElementById('status-text').textContent = 'Live'; document.getElementById('status-pill').className = 'status-pill live'; };
+      source.onerror = () => { document.getElementById('status-text').textContent = 'Reconnecting...'; document.getElementById('status-pill').className = 'status-pill stale'; };
     }
 
-    async function init() {
-      initChart();
-      await fetchResults();
-      await fetchEvaluation();
-      connectSSE();
-      setInterval(fetchResults, 5000);
-      setInterval(fetchEvaluation, 30000);
-    }
-
+    function init() { connectSSE(); route(); }
     init();
   </script>
 </body>

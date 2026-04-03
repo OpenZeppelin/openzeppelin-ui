@@ -1,0 +1,10 @@
+{
+  "id": "component-replacement-Card",
+  "phase": "ui-components",
+  "type": "component-replacement",
+  "status": "pending",
+  "description": "Replace Card and all sub-components with OZ Card",
+  "file": "src/ProjectCard.tsx",
+  "sourceComponent": "Card",
+  "targetComponent": "Card"
+}

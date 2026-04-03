@@ -1,0 +1,1136 @@
+{
+  "version": "1.0.0",
+  "project": "./autoresearch/fixtures/zama-accounts-ui",
+  "framework": "vite",
+  "timestamp": "2026-04-03T17:16:12.004Z",
+  "summary": {
+    "totalFiles": 49,
+    "componentMatches": 58,
+    "mappableComponents": 16,
+    "walletPatterns": 3,
+    "storagePatterns": 2,
+    "existingOzPackages": 0,
+    "estimatedEffort": "high"
+  },
+  "components": [
+    {
+      "name": "Button",
+      "sourceLibrary": "shadcn",
+      "sourceImport": "./ui/button",
+      "ozTarget": "Button",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 91,
+      "files": [
+        "src/components/AccessMatrix.tsx",
+        "src/components/AccessTiersTab.tsx",
+        "src/components/AccountSetup.tsx",
+        "src/components/ConfidentialTransfersTab.tsx",
+        "src/components/Dashboard.tsx",
+        "src/components/DemoAccountSetup.tsx",
+        "src/components/DemoLauncher.tsx",
+        "src/components/DemoSessionPicker.tsx",
+        "src/components/learn/MultisigLearn.tsx",
+        "src/components/MultisigTab.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx",
+        "src/components/VantagePoints.tsx",
+        "src/components/WeightedMultisigTab.tsx"
+      ],
+      "notes": "variant prop maps directly"
+    },
+    {
+      "name": "Alert",
+      "sourceLibrary": "shadcn",
+      "sourceImport": "./ui/alert",
+      "ozTarget": "Alert",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 78,
+      "files": [
+        "src/components/AccessMatrix.tsx",
+        "src/components/AccessTiersTab.tsx",
+        "src/components/AccountSetup.tsx",
+        "src/components/ConfidentialTransfersTab.tsx",
+        "src/components/DemoAccountSetup.tsx",
+        "src/components/demos/FheBasicsDemo.tsx",
+        "src/components/demos/SessionKeysDemo.tsx",
+        "src/components/MultisigTab.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx",
+        "src/components/VantagePoints.tsx",
+        "src/components/WeightedMultisigTab.tsx"
+      ],
+      "notes": "Near 1:1 API parity"
+    },
+    {
+      "name": "AlertDescription",
+      "sourceLibrary": "shadcn",
+      "sourceImport": "./ui/alert",
+      "ozTarget": "Alert",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 78,
+      "files": [
+        "src/components/AccessMatrix.tsx",
+        "src/components/AccessTiersTab.tsx",
+        "src/components/AccountSetup.tsx",
+        "src/components/ConfidentialTransfersTab.tsx",
+        "src/components/DemoAccountSetup.tsx",
+        "src/components/demos/FheBasicsDemo.tsx",
+        "src/components/demos/SessionKeysDemo.tsx",
+        "src/components/MultisigTab.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx",
+        "src/components/VantagePoints.tsx",
+        "src/components/WeightedMultisigTab.tsx"
+      ],
+      "notes": "Sub-component of Alert"
+    },
+    {
+      "name": "Card",
+      "sourceLibrary": "shadcn",
+      "sourceImport": "./ui/card",
+      "ozTarget": "Card",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 52,
+      "files": [
+        "src/components/AccessMatrix.tsx",
+        "src/components/AccessTiersTab.tsx",
+        "src/components/AccountSetup.tsx",
+        "src/components/ConfidentialTransfersTab.tsx",
+        "src/components/Dashboard.tsx",
+        "src/components/DemoAccountSetup.tsx",
+        "src/components/DemoLauncher.tsx",
+        "src/components/DemoSessionPicker.tsx",
+        "src/components/LandingPage.tsx",
+        "src/components/learn/LearnHub.tsx",
+        "src/components/learn/MultisigLearn.tsx",
+        "src/components/learn/SessionsLearn.tsx",
+        "src/components/MultisigTab.tsx",
+        "src/components/NewLandingPage.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx",
+        "src/components/VantagePoints.tsx",
+        "src/components/WeightedMultisigTab.tsx"
+      ],
+      "notes": "Near 1:1 API parity"
+    },
+    {
+      "name": "CardContent",
+      "sourceLibrary": "shadcn",
+      "sourceImport": "./ui/card",
+      "ozTarget": "Card",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 52,
+      "files": [
+        "src/components/AccessMatrix.tsx",
+        "src/components/AccessTiersTab.tsx",
+        "src/components/AccountSetup.tsx",
+        "src/components/ConfidentialTransfersTab.tsx",
+        "src/components/Dashboard.tsx",
+        "src/components/DemoAccountSetup.tsx",
+        "src/components/DemoLauncher.tsx",
+        "src/components/DemoSessionPicker.tsx",
+        "src/components/LandingPage.tsx",
+        "src/components/learn/LearnHub.tsx",
+        "src/components/learn/MultisigLearn.tsx",
+        "src/components/learn/SessionsLearn.tsx",
+        "src/components/MultisigTab.tsx",
+        "src/components/NewLandingPage.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx",
+        "src/components/VantagePoints.tsx",
+        "src/components/WeightedMultisigTab.tsx"
+      ],
+      "notes": "Sub-component of Card"
+    },
+    {
+      "name": "CardHeader",
+      "sourceLibrary": "shadcn",
+      "sourceImport": "./ui/card",
+      "ozTarget": "Card",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 46,
+      "files": [
+        "src/components/AccessMatrix.tsx",
+        "src/components/AccessTiersTab.tsx",
+        "src/components/AccountSetup.tsx",
+        "src/components/ConfidentialTransfersTab.tsx",
+        "src/components/Dashboard.tsx",
+        "src/components/DemoAccountSetup.tsx",
+        "src/components/DemoLauncher.tsx",
+        "src/components/DemoSessionPicker.tsx",
+        "src/components/LandingPage.tsx",
+        "src/components/learn/LearnHub.tsx",
+        "src/components/learn/MultisigLearn.tsx",
+        "src/components/MultisigTab.tsx",
+        "src/components/NewLandingPage.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx",
+        "src/components/VantagePoints.tsx",
+        "src/components/WeightedMultisigTab.tsx"
+      ],
+      "notes": "Sub-component of Card"
+    },
+    {
+      "name": "CardTitle",
+      "sourceLibrary": "shadcn",
+      "sourceImport": "./ui/card",
+      "ozTarget": "Card",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 46,
+      "files": [
+        "src/components/AccessMatrix.tsx",
+        "src/components/AccessTiersTab.tsx",
+        "src/components/AccountSetup.tsx",
+        "src/components/ConfidentialTransfersTab.tsx",
+        "src/components/Dashboard.tsx",
+        "src/components/DemoAccountSetup.tsx",
+        "src/components/DemoLauncher.tsx",
+        "src/components/DemoSessionPicker.tsx",
+        "src/components/LandingPage.tsx",
+        "src/components/learn/LearnHub.tsx",
+        "src/components/learn/MultisigLearn.tsx",
+        "src/components/MultisigTab.tsx",
+        "src/components/NewLandingPage.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx",
+        "src/components/VantagePoints.tsx",
+        "src/components/WeightedMultisigTab.tsx"
+      ],
+      "notes": "Sub-component of Card"
+    },
+    {
+      "name": "CardDescription",
+      "sourceLibrary": "shadcn",
+      "sourceImport": "./ui/card",
+      "ozTarget": "Card",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 41,
+      "files": [
+        "src/components/AccessTiersTab.tsx",
+        "src/components/AccountSetup.tsx",
+        "src/components/ConfidentialTransfersTab.tsx",
+        "src/components/Dashboard.tsx",
+        "src/components/DemoAccountSetup.tsx",
+        "src/components/DemoLauncher.tsx",
+        "src/components/DemoSessionPicker.tsx",
+        "src/components/learn/LearnHub.tsx",
+        "src/components/MultisigTab.tsx",
+        "src/components/NewLandingPage.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx",
+        "src/components/WeightedMultisigTab.tsx"
+      ],
+      "notes": "Sub-component of Card"
+    },
+    {
+      "name": "AlertTitle",
+      "sourceLibrary": "shadcn",
+      "sourceImport": "./ui/alert",
+      "ozTarget": "Alert",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 22,
+      "files": [
+        "src/components/ConfidentialTransfersTab.tsx",
+        "src/components/demos/FheBasicsDemo.tsx",
+        "src/components/demos/SessionKeysDemo.tsx",
+        "src/components/MultisigTab.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx"
+      ],
+      "notes": "Sub-component of Alert"
+    },
+    {
+      "name": "TxHashLink",
+      "sourceLibrary": null,
+      "sourceImport": "./TxHashLink",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 19,
+      "files": [
+        "src/components/ConfidentialTransfersTab.tsx",
+        "src/components/MultisigTab.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx",
+        "src/components/WeightedMultisigTab.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "DecryptTimer",
+      "sourceLibrary": null,
+      "sourceImport": "./DecryptTimer",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 17,
+      "files": [
+        "src/components/AccessTiersTab.tsx",
+        "src/components/ConfidentialTransfersTab.tsx",
+        "src/components/MultisigTab.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "Input",
+      "sourceLibrary": "shadcn",
+      "sourceImport": "./ui/input",
+      "ozTarget": "Input",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 14,
+      "files": [
+        "src/components/AccountSetup.tsx",
+        "src/components/ConfidentialTransfersTab.tsx",
+        "src/components/MultisigTab.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx",
+        "src/components/WeightedMultisigTab.tsx"
+      ],
+      "notes": "Near 1:1 API parity"
+    },
+    {
+      "name": "AgentWallet",
+      "sourceLibrary": null,
+      "sourceImport": "@zama-accounts/sdk",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 12,
+      "files": [
+        "src/components/DemoAccountSetup.tsx",
+        "src/hooks/useMultisigWallet.tsx",
+        "src/hooks/useWallet.tsx",
+        "src/hooks/useWeightedMultisigWallet.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "Route",
+      "sourceLibrary": null,
+      "sourceImport": "react-router-dom",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 9,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "Label",
+      "sourceLibrary": "html-elements",
+      "sourceImport": "",
+      "ozTarget": "Label",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 9,
+      "files": [
+        "src/components/ConfidentialTransfersTab.tsx",
+        "src/components/MultisigTab.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx"
+      ],
+      "notes": "Map htmlFor"
+    },
+    {
+      "name": "TabsContent",
+      "sourceLibrary": "shadcn",
+      "sourceImport": "./ui/tabs",
+      "ozTarget": "Tabs",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 7,
+      "files": [
+        "src/components/Dashboard.tsx"
+      ],
+      "notes": "Sub-component of Tabs"
+    },
+    {
+      "name": "TabsTrigger",
+      "sourceLibrary": "shadcn",
+      "sourceImport": "./ui/tabs",
+      "ozTarget": "Tabs",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 7,
+      "files": [
+        "src/components/Dashboard.tsx"
+      ],
+      "notes": "Sub-component of Tabs"
+    },
+    {
+      "name": "DemoLayout",
+      "sourceLibrary": null,
+      "sourceImport": "../DemoLayout",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 6,
+      "files": [
+        "src/components/demos/FheBasicsDemo.tsx",
+        "src/components/demos/MultisigDemo.tsx",
+        "src/components/demos/SessionKeysDemo.tsx",
+        "src/components/demos/WeightedMultisigDemo.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "ConnectButton",
+      "sourceLibrary": null,
+      "sourceImport": "@rainbow-me/rainbowkit",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 5,
+      "files": [
+        "src/components/AccountSetup.tsx",
+        "src/components/Dashboard.tsx",
+        "src/components/DemoLauncher.tsx",
+        "src/components/DemoShell.tsx",
+        "src/components/LandingPage.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "PageShell",
+      "sourceLibrary": null,
+      "sourceImport": "./PageShell",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 4,
+      "files": [
+        "src/components/DemoLauncher.tsx",
+        "src/components/learn/LearnHub.tsx",
+        "src/components/learn/MultisigLearn.tsx",
+        "src/components/learn/SessionsLearn.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "DemoWalletProvider",
+      "sourceLibrary": null,
+      "sourceImport": "../../hooks/useDemoWallet",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 4,
+      "files": [
+        "src/components/demos/FheBasicsDemo.tsx",
+        "src/components/demos/MultisigDemo.tsx",
+        "src/components/demos/SessionKeysDemo.tsx",
+        "src/components/demos/WeightedMultisigDemo.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "DemoSessionPicker",
+      "sourceLibrary": null,
+      "sourceImport": "../DemoSessionPicker",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 4,
+      "files": [
+        "src/components/demos/FheBasicsDemo.tsx",
+        "src/components/demos/MultisigDemo.tsx",
+        "src/components/demos/SessionKeysDemo.tsx",
+        "src/components/demos/WeightedMultisigDemo.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "VantagePoints",
+      "sourceLibrary": null,
+      "sourceImport": "./VantagePoints",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 4,
+      "files": [
+        "src/components/MultisigTab.tsx",
+        "src/components/WeightedMultisigTab.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "TabsPrimitive",
+      "sourceLibrary": "radix",
+      "sourceImport": "@radix-ui/react-tabs",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 3,
+      "files": [
+        "src/components/ui/tabs.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "SdkCodePanel",
+      "sourceLibrary": null,
+      "sourceImport": "./SdkCodePanel",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 2,
+      "files": [
+        "src/components/AccessTiersTab.tsx",
+        "src/components/Dashboard.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "ConfidentialTransfersTab",
+      "sourceLibrary": null,
+      "sourceImport": "./ConfidentialTransfersTab",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 2,
+      "files": [
+        "src/components/Dashboard.tsx",
+        "src/components/demos/FheBasicsDemo.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "ObserversTab",
+      "sourceLibrary": null,
+      "sourceImport": "./ObserversTab",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 2,
+      "files": [
+        "src/components/Dashboard.tsx",
+        "src/components/demos/FheBasicsDemo.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "SessionKeysTab",
+      "sourceLibrary": null,
+      "sourceImport": "./SessionKeysTab",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 2,
+      "files": [
+        "src/components/Dashboard.tsx",
+        "src/components/demos/SessionKeysDemo.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "DemoAccountSetup",
+      "sourceLibrary": null,
+      "sourceImport": "../DemoAccountSetup",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 2,
+      "files": [
+        "src/components/demos/FheBasicsDemo.tsx",
+        "src/components/demos/SessionKeysDemo.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "Routes",
+      "sourceLibrary": null,
+      "sourceImport": "react-router-dom",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "NewLandingPage",
+      "sourceLibrary": null,
+      "sourceImport": "./components/NewLandingPage",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "LearnHub",
+      "sourceLibrary": null,
+      "sourceImport": "./components/learn/LearnHub",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "MultisigLearn",
+      "sourceLibrary": null,
+      "sourceImport": "./components/learn/MultisigLearn",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "SessionsLearn",
+      "sourceLibrary": null,
+      "sourceImport": "./components/learn/SessionsLearn",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "LandingPage",
+      "sourceLibrary": null,
+      "sourceImport": "./components/LandingPage",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "DemoLauncher",
+      "sourceLibrary": null,
+      "sourceImport": "./components/DemoLauncher",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "DemoShell",
+      "sourceLibrary": null,
+      "sourceImport": "./components/DemoShell",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "FheBasicsDemo",
+      "sourceLibrary": null,
+      "sourceImport": "./components/demos/FheBasicsDemo",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "SessionKeysDemo",
+      "sourceLibrary": null,
+      "sourceImport": "./components/demos/SessionKeysDemo",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "MultisigDemo",
+      "sourceLibrary": null,
+      "sourceImport": "./components/demos/MultisigDemo",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "WeightedMultisigDemo",
+      "sourceLibrary": null,
+      "sourceImport": "./components/demos/WeightedMultisigDemo",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "Tabs",
+      "sourceLibrary": "shadcn",
+      "sourceImport": "./ui/tabs",
+      "ozTarget": "Tabs",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/Dashboard.tsx"
+      ],
+      "notes": "Near 1:1 API parity"
+    },
+    {
+      "name": "TabsList",
+      "sourceLibrary": "shadcn",
+      "sourceImport": "./ui/tabs",
+      "ozTarget": "Tabs",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/Dashboard.tsx"
+      ],
+      "notes": "Sub-component of Tabs"
+    },
+    {
+      "name": "MultisigTab",
+      "sourceLibrary": null,
+      "sourceImport": "./MultisigTab",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/Dashboard.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "WeightedMultisigTab",
+      "sourceLibrary": null,
+      "sourceImport": "./WeightedMultisigTab",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/Dashboard.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "AccessTiersTab",
+      "sourceLibrary": null,
+      "sourceImport": "./AccessTiersTab",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/Dashboard.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "MultisigWalletProvider",
+      "sourceLibrary": null,
+      "sourceImport": "../../hooks/useMultisigWallet",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/demos/MultisigDemo.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "WeightedMultisigWalletProvider",
+      "sourceLibrary": null,
+      "sourceImport": "../../hooks/useWeightedMultisigWallet",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/demos/WeightedMultisigDemo.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "Breadcrumb",
+      "sourceLibrary": null,
+      "sourceImport": "./Breadcrumb",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/DemoShell.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "CliBanner",
+      "sourceLibrary": null,
+      "sourceImport": "./CliBanner",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/DemoShell.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "React",
+      "sourceLibrary": null,
+      "sourceImport": "react",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/main.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "BrowserRouter",
+      "sourceLibrary": null,
+      "sourceImport": "react-router-dom",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/main.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "WagmiProvider",
+      "sourceLibrary": null,
+      "sourceImport": "wagmi",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/main.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "QueryClientProvider",
+      "sourceLibrary": null,
+      "sourceImport": "@tanstack/react-query",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/main.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "RainbowKitProvider",
+      "sourceLibrary": null,
+      "sourceImport": "@rainbow-me/rainbowkit",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/main.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "DemoSessionProvider",
+      "sourceLibrary": null,
+      "sourceImport": "./hooks/useDemoSession",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/main.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "App",
+      "sourceLibrary": null,
+      "sourceImport": "./App",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/main.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "Checkbox",
+      "sourceLibrary": "html-elements",
+      "sourceImport": "",
+      "ozTarget": "Checkbox",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/MultisigTab.tsx"
+      ],
+      "notes": "Map checked/onChange"
+    }
+  ],
+  "patterns": [
+    {
+      "pattern": "wagmi",
+      "category": "wallet",
+      "files": [
+        "src/App.tsx",
+        "src/components/AccessTiersTab.tsx",
+        "src/components/ConfidentialTransfersTab.tsx",
+        "src/components/DemoAccountSetup.tsx",
+        "src/components/DemoLauncher.tsx",
+        "src/components/DemoSessionPicker.tsx",
+        "src/components/MultisigTab.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx",
+        "src/components/WalletIndicator.tsx",
+        "src/components/WeightedMultisigTab.tsx",
+        "src/config/wagmi.ts",
+        "src/hooks/useMultisigWallet.tsx",
+        "src/hooks/useWallet.tsx",
+        "src/hooks/useWeightedMultisigWallet.tsx",
+        "src/main.tsx"
+      ],
+      "count": 16,
+      "description": "wagmi wallet library"
+    },
+    {
+      "pattern": "viem",
+      "category": "wallet",
+      "files": [
+        "src/components/AccessMatrix.tsx",
+        "src/components/AccessTiersTab.tsx",
+        "src/components/AccountSetup.tsx",
+        "src/components/ConfidentialTransfersTab.tsx",
+        "src/components/Dashboard.tsx",
+        "src/components/DemoAccountSetup.tsx",
+        "src/components/demos/FheBasicsDemo.tsx",
+        "src/components/MultisigTab.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx",
+        "src/components/TxHashLink.tsx",
+        "src/components/WalletIndicator.tsx",
+        "src/components/WeightedMultisigTab.tsx",
+        "src/config/constants.ts",
+        "src/hooks/useDemoWallet.tsx",
+        "src/hooks/useMultisigWallet.tsx",
+        "src/hooks/useWallet.tsx",
+        "src/hooks/useWeightedMultisigWallet.tsx",
+        "src/lib/createSigner.ts"
+      ],
+      "count": 19,
+      "description": "viem Ethereum library"
+    },
+    {
+      "pattern": "rainbowkit",
+      "category": "wallet",
+      "files": [
+        "src/components/AccountSetup.tsx",
+        "src/components/Dashboard.tsx",
+        "src/components/DemoLauncher.tsx",
+        "src/components/DemoShell.tsx",
+        "src/components/LandingPage.tsx",
+        "src/config/wagmi.ts",
+        "src/main.tsx"
+      ],
+      "count": 8,
+      "description": "RainbowKit wallet UI"
+    },
+    {
+      "pattern": "localStorage",
+      "category": "storage",
+      "files": [
+        "src/components/AccountSetup.tsx",
+        "src/components/Dashboard.tsx",
+        "src/components/DemoAccountSetup.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx",
+        "src/hooks/useDemoSession.tsx",
+        "src/hooks/useMultisigWallet.tsx",
+        "src/hooks/useWallet.tsx",
+        "src/hooks/useWeightedMultisigWallet.tsx"
+      ],
+      "count": 47,
+      "description": "Browser localStorage usage"
+    },
+    {
+      "pattern": "sessionStorage",
+      "category": "storage",
+      "files": [
+        "src/hooks/useDemoSession.tsx"
+      ],
+      "count": 4,
+      "description": "Browser sessionStorage usage"
+    }
+  ],
+  "tailwind": {
+    "ok": false,
+    "projectRoot": "/Users/ghost/dev/repos/OpenZeppelin/openzeppelin-ui/packages/cli/autoresearch/fixtures/zama-accounts-ui",
+    "appRoot": "/Users/ghost/dev/repos/OpenZeppelin/openzeppelin-ui/packages/cli/autoresearch/fixtures/zama-accounts-ui",
+    "cssPath": "/Users/ghost/dev/repos/OpenZeppelin/openzeppelin-ui/packages/cli/autoresearch/fixtures/zama-accounts-ui/src/index.css",
+    "generatedCssPath": "/Users/ghost/dev/repos/OpenZeppelin/openzeppelin-ui/packages/cli/autoresearch/fixtures/zama-accounts-ui/src/oz-tailwind.generated.css",
+    "sourcePlan": {
+      "packages": [],
+      "appSources": [
+        "./",
+        "../"
+      ],
+      "workspaceSources": [],
+      "packageSources": [],
+      "imports": [
+        "@import 'tailwindcss' source(none);",
+        "@import '@openzeppelin/ui-styles/global.css';"
+      ],
+      "sources": [
+        "./",
+        "../"
+      ]
+    },
+    "issues": [
+      {
+        "scope": "tailwind",
+        "code": "missing-managed-import",
+        "severity": "warning",
+        "message": "Entry stylesheet is not using the managed Tailwind import yet.",
+        "file": "src/index.css",
+        "fixable": true,
+        "suggestedCommand": "oz-ui migrate doctor --manifest migration-manifest.json"
+      },
+      {
+        "scope": "tailwind",
+        "code": "legacy-inline-setup",
+        "severity": "warning",
+        "message": "Legacy inline Tailwind directives were detected in the entry stylesheet. Normalize them into the managed generated file.",
+        "file": "src/index.css",
+        "fixable": true,
+        "suggestedCommand": "oz-ui migrate doctor --manifest migration-manifest.json"
+      },
+      {
+        "scope": "tailwind",
+        "code": "missing-global-styles-import",
+        "severity": "error",
+        "message": "The effective Tailwind setup is missing @openzeppelin/ui-styles/global.css.",
+        "file": "src/index.css",
+        "fixable": true,
+        "suggestedCommand": "oz-ui migrate doctor --manifest migration-manifest.json"
+      }
+    ]
+  },
+  "sourceLibrary": "shadcn"
+}

@@ -1,0 +1,13 @@
+{
+  "fixture": "missing-packages",
+  "expectedStatus": "fail",
+  "diagnosticKeywords": ["Missing package"],
+  "task": {
+    "id": "setup-install-packages",
+    "phase": "setup",
+    "type": "install-packages",
+    "status": "pending",
+    "description": "Install @openzeppelin/* packages"
+  },
+  "projectDir": "broken/missing-packages/project"
+}

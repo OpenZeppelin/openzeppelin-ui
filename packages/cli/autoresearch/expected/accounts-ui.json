@@ -1,0 +1,11 @@
+{
+  "fixture": "accounts-ui",
+  "description": "Real accounts-ui app already migrated to OZ UI Kit. Tests detection of HTML elements in a codebase that already uses @openzeppelin/* packages. Key value: pattern scanning (viem, ethers, wagmi) and existing-OZ detection.",
+  "components": [
+    {
+      "name": "Button",
+      "ozTarget": "Button",
+      "sourceLibrary": "html-elements"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "fixture": "accounts-ui",
+  "analysisReport": "frozen-reports/accounts-ui.json",
+  "expectedTasks": [
+    { "type": "component-replacement", "sourceComponent": "Button", "targetComponent": "Button", "phase": "ui-components" }
+  ],
+  "forbiddenTasks": [
+    { "sourceComponent": "Route", "reason": "react-router-dom, not a UI component" }
+  ],
+  "expectedWalletTasks": [
+    { "pattern": "wagmi", "file": "src/App.tsx" },
+    { "pattern": "wagmi", "file": "src/hooks/useViemClients.ts" },
+    { "pattern": "@wagmi/core", "file": "src/hooks/useViemClients.ts" },
+    { "pattern": "viem", "file": "src/components/forms/AddressInput.tsx" },
+    { "pattern": "viem", "file": "src/components/modals/SendModal.tsx" },
+    { "pattern": "viem", "file": "src/contexts/AccountSnapshotContext.tsx" },
+    { "pattern": "viem", "file": "src/hooks/useViemClients.ts" },
+    { "pattern": "viem", "file": "src/services/AccountSnapshotService.ts" },
+    { "pattern": "viem", "file": "src/services/SmartAccountService.ts" },
+    { "pattern": "ethers", "file": "src/services/ConfidentialFheService.ts" }
+  ],
+  "forbiddenWalletFiles": [
+    { "file": "src/services/sharing-codec.ts", "reason": "Only imports viem types for encoding, not wallet interaction" },
+    { "file": "src/services/ConfidentialFheService.ts", "reason": "viem task should not be generated — file uses ethers, not viem for wallet ops" }
+  ]
+}

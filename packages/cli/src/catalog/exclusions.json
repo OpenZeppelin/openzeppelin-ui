@@ -1,0 +1,18 @@
+{
+  "excludedLibraries": [
+    "lucide-react",
+    "react-icons",
+    "@heroicons/react",
+    "@phosphor-icons/react"
+  ],
+  "excludedPatterns": [
+    "react-router",
+    "react-router-dom",
+    "react-helmet",
+    "react-helmet-async",
+    "framer-motion",
+    "next/link",
+    "next/image",
+    "next/router"
+  ]
+}

@@ -1,4 +1,4 @@
-results.tsv
+results-*.tsv
 run.log
 progress.png
 .venv/

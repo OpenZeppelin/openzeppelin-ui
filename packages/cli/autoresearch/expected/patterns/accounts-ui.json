@@ -1,0 +1,13 @@
+{
+  "fixture": "accounts-ui",
+  "patterns": [
+    { "name": "wagmi", "files": ["src/App.tsx", "src/hooks/useViemClients.ts"] },
+    { "name": "@wagmi/core", "files": ["src/hooks/useViemClients.ts"] },
+    { "name": "viem", "files": ["src/components/forms/AddressInput.tsx", "src/components/modals/SendModal.tsx", "src/contexts/AccountSnapshotContext.tsx", "src/hooks/useViemClients.ts", "src/services/AccountSnapshotService.ts", "src/services/ConfidentialFheService.ts", "src/services/sharing-codec.ts", "src/services/SmartAccountService.ts"] },
+    { "name": "ethers", "files": ["src/services/ConfidentialFheService.ts"] },
+    { "name": "react-hook-form", "files": ["src/components/forms/AddressInput.tsx", "src/components/modals/SendModal.tsx"] },
+    { "name": "localStorage", "files": ["src/App.tsx", "src/components/modals/SendModal.tsx", "src/services/AccountSnapshotService.ts", "src/services/SmartAccountService.ts"] },
+    { "name": "oz-ui-components", "files": ["src/App.tsx", "src/components/forms/AddressInput.tsx", "src/components/HomePage.tsx", "src/components/modals/SendModal.tsx", "src/components/TopNavbar.tsx"] },
+    { "name": "oz-ui-react", "files": ["src/App.tsx", "src/components/modals/SendModal.tsx", "src/contexts/WalletSyncProvider.tsx"] }
+  ]
+}

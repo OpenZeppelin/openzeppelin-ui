@@ -1,0 +1,13 @@
+{
+  "fixture": "has-providers",
+  "expectedStatus": "pass",
+  "diagnosticKeywords": [],
+  "task": {
+    "id": "setup-wire-providers",
+    "phase": "setup",
+    "type": "wire-providers",
+    "status": "pending",
+    "description": "Wire RuntimeProvider + WalletStateProvider into app entry"
+  },
+  "projectDir": "correct/has-providers/project"
+}

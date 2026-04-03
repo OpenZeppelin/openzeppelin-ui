@@ -21,6 +21,8 @@
     { "name": "TabsTrigger", "ozTarget": "Tabs", "sourceLibrary": "shadcn" },
 
     { "name": "Label", "ozTarget": "Label", "sourceLibrary": "html-elements" },
-    { "name": "Checkbox", "ozTarget": "Checkbox", "sourceLibrary": "html-elements" }
+    { "name": "Checkbox", "ozTarget": "Checkbox", "sourceLibrary": "html-elements" },
+
+    { "name": "TabsPrimitive", "ozTarget": "Tabs", "sourceLibrary": "radix", "_note": "Aspirational: import * as TabsPrimitive from @radix-ui/react-tabs should resolve to Tabs" }
   ]
 }

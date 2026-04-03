@@ -47,8 +47,15 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
     "evaluate": "tsx autoresearch/evaluate.ts",
+    "evaluate:all": "tsx autoresearch/evaluate.ts --capability all",
+    "evaluate:detection": "tsx autoresearch/evaluate.ts --capability detection",
+    "evaluate:patterns": "tsx autoresearch/evaluate.ts --capability patterns",
+    "evaluate:planning": "tsx autoresearch/evaluate.ts --capability planning",
     "dashboard": "tsx autoresearch/dashboard.ts",
-    "scaffold-expected": "tsx autoresearch/scaffold-expected.ts"
+    "scaffold-expected": "tsx autoresearch/scaffold-expected.ts",
+    "fetch-fixtures": "tsx autoresearch/fetch-fixtures.ts",
+    "fetch-fixtures:status": "tsx autoresearch/fetch-fixtures.ts --status",
+    "fetch-fixtures:clean": "tsx autoresearch/fetch-fixtures.ts --clean"
   },
   "keywords": [
     "openzeppelin",

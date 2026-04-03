@@ -1,0 +1,13 @@
+{
+  "id": "component-replacement-Button",
+  "phase": "ui-components",
+  "type": "component-replacement",
+  "status": "pending",
+  "description": "Replace Button with OZ Button including prop renames",
+  "file": "src/SubmitButton.tsx",
+  "sourceComponent": "Button",
+  "targetComponent": "Button",
+  "propMappings": {
+    "asChild": "asSlot"
+  }
+}

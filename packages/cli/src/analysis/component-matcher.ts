@@ -196,6 +196,7 @@ function resolveInputOzTarget(inputType: string): string | null {
   }
 }
 
+/** @description Matches native HTML usage in scanned files against the html-elements catalog. */
 export function analyzeHtmlElements(
   files: ScannedFile[],
   htmlLib: HtmlElementLibrary

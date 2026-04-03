@@ -22,9 +22,7 @@ export interface ScannedFile {
   content: string;
 }
 
-/**
- *
- */
+/** @description Recursively collects scannable source files under a project (or scope) with file contents. */
 export function scanProjectFiles(projectRoot: string, scope?: string): ScannedFile[] {
   const root = scope ? path.resolve(projectRoot, scope) : projectRoot;
   if (!fs.existsSync(root)) return [];

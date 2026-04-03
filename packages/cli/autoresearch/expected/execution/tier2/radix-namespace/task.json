@@ -1,0 +1,10 @@
+{
+  "id": "component-replacement-Dialog",
+  "phase": "ui-components",
+  "type": "component-replacement",
+  "status": "pending",
+  "description": "Replace Radix Dialog namespace import with OZ Dialog",
+  "file": "src/ConfirmModal.tsx",
+  "sourceComponent": "Dialog",
+  "targetComponent": "Dialog"
+}

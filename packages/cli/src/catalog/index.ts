@@ -74,6 +74,7 @@ export function loadSourceLibraries(): Record<string, SourceLibrary> {
   return libraries;
 }
 
+/** @description Loads native HTML element to OZ component mappings from the catalog. */
 export function loadHtmlElementMappings(): HtmlElementLibrary | null {
   if (cachedHtmlElements !== undefined) return cachedHtmlElements;
 
@@ -93,6 +94,7 @@ export function loadHtmlElementMappings(): HtmlElementLibrary | null {
   return cachedHtmlElements;
 }
 
+/** @description Identifies which cataloged source library matches the given import paths. */
 export function detectSourceLibrary(
   imports: string[]
 ): { key: string; library: SourceLibrary } | null {

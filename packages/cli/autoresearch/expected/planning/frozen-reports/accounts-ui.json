@@ -1,0 +1,375 @@
+{
+  "version": "1.0.0",
+  "project": "./autoresearch/fixtures/accounts-ui",
+  "framework": "unknown",
+  "timestamp": "2026-04-03T17:16:12.019Z",
+  "summary": {
+    "totalFiles": 13,
+    "componentMatches": 19,
+    "mappableComponents": 1,
+    "walletPatterns": 3,
+    "storagePatterns": 1,
+    "existingOzPackages": 2,
+    "estimatedEffort": "high"
+  },
+  "components": [
+    {
+      "name": "Button",
+      "sourceLibrary": "html-elements",
+      "sourceImport": "",
+      "ozTarget": "Button",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 4,
+      "files": [
+        "src/components/HomePage.tsx",
+        "src/components/modals/SendModal.tsx"
+      ],
+      "notes": "Direct swap, map onClick/disabled/type"
+    },
+    {
+      "name": "Route",
+      "sourceLibrary": null,
+      "sourceImport": "react-router-dom",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 2,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "BrowserRouter",
+      "sourceLibrary": null,
+      "sourceImport": "react-router-dom",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "Routes",
+      "sourceLibrary": null,
+      "sourceImport": "react-router-dom",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "AccountDetailsPage",
+      "sourceLibrary": null,
+      "sourceImport": "./components/AccountDetailsPage",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "HomePage",
+      "sourceLibrary": null,
+      "sourceImport": "./components/HomePage",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "OnboardingPage",
+      "sourceLibrary": null,
+      "sourceImport": "./components/OnboardingPage",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "UnifiedSignPage",
+      "sourceLibrary": null,
+      "sourceImport": "./components/UnifiedSignPage",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "TransactionsProvider",
+      "sourceLibrary": null,
+      "sourceImport": "./contexts/TransactionsContext",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "WalletSyncProvider",
+      "sourceLibrary": null,
+      "sourceImport": "./contexts/WalletSyncProvider",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "DemoModeProvider",
+      "sourceLibrary": null,
+      "sourceImport": "./demo/DemoModeProvider",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/App.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "Controller",
+      "sourceLibrary": null,
+      "sourceImport": "react-hook-form",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/forms/AddressInput.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "CustomTokenEntry",
+      "sourceLibrary": null,
+      "sourceImport": "../CustomTokenEntry",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/modals/SendModal.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "AddressInput",
+      "sourceLibrary": null,
+      "sourceImport": "../forms/AddressInput",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/modals/SendModal.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "AmountInput",
+      "sourceLibrary": null,
+      "sourceImport": "../forms/AmountInput",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/modals/SendModal.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "TokenSelector",
+      "sourceLibrary": null,
+      "sourceImport": "../TokenSelector",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/modals/SendModal.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "MultisigFooterActions",
+      "sourceLibrary": null,
+      "sourceImport": "./MultisigFooterActions",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/modals/SendModal.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "MultisigShareModal",
+      "sourceLibrary": null,
+      "sourceImport": "./MultisigShareModal",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/modals/SendModal.tsx"
+      ],
+      "notes": ""
+    },
+    {
+      "name": "ProposeDropdown",
+      "sourceLibrary": null,
+      "sourceImport": "./ProposeDropdown",
+      "ozTarget": null,
+      "effort": "unknown",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/modals/SendModal.tsx"
+      ],
+      "notes": ""
+    }
+  ],
+  "patterns": [
+    {
+      "pattern": "wagmi",
+      "category": "wallet",
+      "files": [
+        "src/App.tsx",
+        "src/hooks/useViemClients.ts"
+      ],
+      "count": 2,
+      "description": "wagmi wallet library"
+    },
+    {
+      "pattern": "viem",
+      "category": "wallet",
+      "files": [
+        "src/components/forms/AddressInput.tsx",
+        "src/components/modals/SendModal.tsx",
+        "src/contexts/AccountSnapshotContext.tsx",
+        "src/hooks/useViemClients.ts",
+        "src/services/AccountSnapshotService.ts",
+        "src/services/ConfidentialFheService.ts",
+        "src/services/sharing-codec.ts",
+        "src/services/SmartAccountService.ts"
+      ],
+      "count": 8,
+      "description": "viem Ethereum library"
+    },
+    {
+      "pattern": "ethers",
+      "category": "wallet",
+      "files": [
+        "src/services/ConfidentialFheService.ts"
+      ],
+      "count": 1,
+      "description": "ethers.js library"
+    },
+    {
+      "pattern": "localStorage",
+      "category": "storage",
+      "files": [
+        "src/App.tsx",
+        "src/components/modals/SendModal.tsx",
+        "src/services/AccountSnapshotService.ts",
+        "src/services/SmartAccountService.ts"
+      ],
+      "count": 42,
+      "description": "Browser localStorage usage"
+    },
+    {
+      "pattern": "oz-ui-components",
+      "category": "oz-existing",
+      "files": [
+        "src/App.tsx",
+        "src/components/forms/AddressInput.tsx",
+        "src/components/HomePage.tsx",
+        "src/components/modals/SendModal.tsx",
+        "src/components/TopNavbar.tsx"
+      ],
+      "count": 5,
+      "description": "OZ UI Components already installed"
+    },
+    {
+      "pattern": "oz-ui-react",
+      "category": "oz-existing",
+      "files": [
+        "src/App.tsx",
+        "src/components/modals/SendModal.tsx",
+        "src/contexts/WalletSyncProvider.tsx"
+      ],
+      "count": 3,
+      "description": "OZ UI React already installed"
+    }
+  ],
+  "tailwind": {
+    "ok": false,
+    "projectRoot": "/Users/ghost/dev/repos/OpenZeppelin/openzeppelin-ui/packages/cli/autoresearch/fixtures/accounts-ui",
+    "appRoot": null,
+    "cssPath": null,
+    "generatedCssPath": null,
+    "sourcePlan": null,
+    "issues": [
+      {
+        "scope": "tailwind",
+        "code": "missing-entry-stylesheet",
+        "severity": "error",
+        "message": "Could not detect a Tailwind entry stylesheet. Re-run with --css to point at one.",
+        "fixable": false
+      }
+    ]
+  },
+  "sourceLibrary": "html-elements"
+}

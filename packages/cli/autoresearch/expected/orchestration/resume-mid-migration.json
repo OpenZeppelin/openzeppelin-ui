@@ -1,0 +1,6 @@
+{
+  "name": "resume-mid-migration",
+  "description": "Resuming migration partway through. Agent should check manifest status first.",
+  "expectedCommands": ["oz-ui migrate status", "oz-ui migrate doctor"],
+  "expectedGates": ["check-status-before-continuing", "verify-phase-before-next"]
+}

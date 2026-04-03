@@ -1,0 +1,6 @@
+{
+  "name": "fresh-project-start",
+  "description": "Starting migration from scratch on a new project. Agent should begin with init.",
+  "expectedCommands": ["oz-ui migrate init", "oz-ui migrate analyze", "oz-ui migrate plan"],
+  "expectedGates": ["init-complete-before-analyze", "analyze-complete-before-plan"]
+}
