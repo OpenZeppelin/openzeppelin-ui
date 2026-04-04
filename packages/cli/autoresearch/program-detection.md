@@ -9,15 +9,19 @@ You are working inside `packages/cli/` of the `openzeppelin-ui` monorepo.
 **Evaluation metric:** Mean F1 score across benchmark fixtures, computed by `autoresearch/evaluate.ts`. Higher is better. The evaluation compares detected `(name, ozTarget)` tuples against ground truth in `autoresearch/expected/*.json`.
 
 **Run the evaluation:**
+
 ```bash
 npx tsx autoresearch/evaluate.ts --capability detection
 ```
+
 The script prints the mean F1 as a single number to stdout. Per-fixture details go to stderr.
 
 **Run the safety gate (tests):**
+
 ```bash
 pnpm test
 ```
+
 All existing tests MUST pass after every experiment. If tests fail, the experiment is **crashed** — revert and try again.
 
 **Current baseline:** mean_f1 ≈ 0.861. External fixtures are resolved from full real-world repos (not curated subsets), exposing gaps in detection coverage for large projects. Run `npx tsx autoresearch/fetch-fixtures.ts` to resolve external fixtures before evaluating.
@@ -32,9 +36,10 @@ You may ONLY modify these files:
 4. `src/analysis/component-matcher.ts` — The core detection logic (import extraction, JSX usage counting, HTML element scanning)
 
 **You MUST NOT edit:**
+
 - `autoresearch/evaluate.ts` (the evaluation harness)
 - `autoresearch/expected/*.json` (the ground truth)
-- `autoresearch/fixtures/**` (the benchmark apps)
+- `autoresearch/fixtures/`** (the benchmark apps)
 - `src/analysis/pattern-scanner.ts`
 - `src/analysis/scanner.ts`
 - `src/analysis/index.ts`
@@ -51,23 +56,26 @@ Each experiment is one atomic change. Follow this loop:
 4. **Test** — Run `pnpm test`. If tests fail → mark as **crashed**, revert all changes, and try a different approach.
 5. **Evaluate** — Run `npx tsx autoresearch/evaluate.ts`. Capture the new mean_f1.
 6. **Decision:**
-   - If mean_f1 **improved** (even slightly) → **keep** the change.
-   - If mean_f1 **stayed the same or got worse** → **discard** the change (revert).
+  - If mean_f1 **improved** (even slightly) → **keep** the change.
+  - If mean_f1 **stayed the same or got worse** → **discard** the change (revert).
 
 ## Output format
 
 After each experiment, output exactly one line in this format:
+
 ```
 <experiment_number>\t<status>\t<mean_f1>\t<description>
 ```
 
 Where:
+
 - `experiment_number`: sequential integer starting at 1
 - `status`: one of `keep`, `discard`, `crash`
 - `mean_f1`: the score AFTER the experiment (6 decimal places)
 - `description`: brief one-line description of what was tried
 
 Example:
+
 ```
 1	keep	0.850000	Add namespace import detection for import * as X patterns
 2	crash	0.850000	Attempted regex change broke extractImports for named imports
@@ -110,10 +118,10 @@ while True:
 Before changing detection behavior for any import source, classify what kind of source it is:
 
 1. **Local path aliases** — imports like `@/foo`, `~/foo`, or other aliases that resolve to the fixture's own source tree.
-2. **Workspace-local packages** — imports declared via `workspace:*`, monorepo package references, or other local package links. These are part of the migration surface and **must be analyzed and migrated** unless explicitly excluded elsewhere.
+2. **Workspace-local packages** — imports declared via `workspace:`*, monorepo package references, or other local package links. These are part of the migration surface and **must be analyzed and migrated** unless explicitly excluded elsewhere.
 3. **External libraries** — third-party dependencies that are not maintained as part of the local workspace.
 
-When the source type is not obvious, inspect the fixture's `package.json`, `tsconfig*.json`, and bundler config (`vite.config.*`, `webpack.config.*`, etc.) before forming a hypothesis.
+When the source type is not obvious, inspect the fixture's `package.json`, `tsconfig*.json`, and bundler config (`vite.config.`*, `webpack.config.*`, etc.) before forming a hypothesis.
 
 ## Guardrails for suppressions
 
@@ -128,6 +136,7 @@ Before ignoring an import source or component family, verify and document:
 ## Simplicity criterion
 
 When two approaches yield the same F1 improvement, prefer the simpler one. Complexity is measured by:
+
 - Lines of code changed (fewer is better)
 - Number of new regex patterns (fewer is better)
 - Cognitive load of the change (lower is better)
@@ -135,16 +144,19 @@ When two approaches yield the same F1 improvement, prefer the simpler one. Compl
 ## Known improvement opportunities
 
 The biggest remaining gaps are in the **zama-accounts-ui** fixture:
+
 1. **Relative shadcn imports** — components imported via `./ui/button` instead of `@/components/ui/button` are not always detected
 2. **Compound sub-component mapping** — `CardContent`, `TabsList`, `AlertTitle` etc. should map to their parent OZ component family
 3. **Icon library false positives** — lucide-react icons (e.g., `ExternalLink`) must not generate migration tasks
 4. **Radix Primitive naming**: `TabsPrimitive` from `import * as TabsPrimitive from '@radix-ui/react-tabs'` is not mapped to `Tabs`. The analyzer should strip common suffixes like Primitive/Root to resolve the underlying component name.
-5. **Workspace package imports are in scope** — local monorepo packages imported as packages (for example via `workspace:*`) must be treated as analyzable migration sources, not ignored as if they were remote third-party packages.
+5. **Workspace package imports are in scope** — local monorepo packages imported as packages (for example via `workspace:`*) must be treated as analyzable migration sources, not ignored as if they were remote third-party packages.
 
 ## NEVER STOP
 
 Keep running experiments until you reach mean_f1 = 1.000000 or you have exhausted all reasonable approaches. If stuck, try creative alternatives:
+
 - Different regex strategies for edge cases
 - Mapping file adjustments for unmapped components
 - Handling compound component patterns (X.Y notation)
 - Handling re-exports and barrel imports
+
