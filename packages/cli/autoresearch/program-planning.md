@@ -40,9 +40,72 @@ You may ONLY modify these files:
 
 ## Experimentation
 
-Follow the same loop: analyze → hypothesize → implement → test → evaluate → keep/discard.
+Each experiment is one atomic change. Follow this loop:
 
-Append each experiment line to `autoresearch/results-planning.tsv`.
+1. **Analyze** — Look at the current evaluation output and frozen reports to identify the highest-impact misses in tasks or phase ordering.
+2. **Hypothesize** — Form a single, clear hypothesis about what planning change will improve the composite score. Write it down.
+3. **Implement** — Make the smallest possible change that tests the hypothesis. Prefer focused generation or filtering adjustments over broad rewrites.
+4. **Test** — Run `pnpm test`. If tests fail → mark as **crash**, revert all changes, and try a different approach.
+5. **Evaluate** — Run `npx tsx autoresearch/evaluate.ts --capability planning`. Capture the new composite score.
+6. **Decision:**
+  - If the score **improved** (even slightly) → **keep** the change.
+  - If the score **stayed the same or got worse** → **discard** the change (revert).
+
+If `autoresearch/results-planning.tsv` is empty, your first experiment should be the baseline run with no code changes so you have a trustworthy starting score.
+
+## Output format
+
+After each experiment, output exactly one line in this format:
+
+```
+<experiment_number>\t<status>\t<score>\t<description>
+```
+
+Where:
+
+- `experiment_number`: sequential integer starting at 1
+- `status`: one of `keep`, `discard`, `crash`
+- `score`: the composite score AFTER the experiment (6 decimal places)
+- `description`: brief one-line description of what was tried
+
+Example:
+
+```
+1	keep	0.981000	Baseline
+2	keep	0.989000	Filter type-only viem imports from wallet migration tasks
+3	discard	0.989000	Broaden icon exclusions with no composite gain
+```
+
+## Logging results
+
+Append each experiment line to `autoresearch/results-planning.tsv`. The file has no header — just data rows.
+
+Before your first experiment, if `results-planning.tsv` does not exist, create it empty.
+
+## The experiment loop
+
+```
+while True:
+    analyze the current weakest planning outputs
+    form one hypothesis
+    implement the smallest change
+    if tests fail:
+        log crash, revert
+        continue
+    evaluate
+    if improved:
+        log keep
+    else:
+        log discard, revert
+```
+
+**Key principles:**
+
+1. **One change at a time.** Never bundle multiple hypotheses into a single experiment.
+2. **Prefer planner logic over benchmark hacks.** Fix general planning behavior, not fixture-shaped exceptions.
+3. **Preserve task intent.** Do not improve one sub-score by damaging task semantics somewhere else.
+4. **Tests are non-negotiable.** A crashed experiment is worse than a discarded one.
+5. **Use the score components intelligently.** Investigate whether the miss is in task recall, forbidden tasks, or phase placement before changing code.
 
 ## Source classification rules
 
@@ -64,9 +127,28 @@ Before excluding an import source or component family from planning, verify and 
 2. Why it should be excluded from migration planning as a product rule.
 3. Why a broader source-classification rule would not be more correct than a one-off exclusion.
 
+## Simplicity criterion
+
+When two approaches yield the same score improvement, prefer the simpler one. Complexity is measured by:
+
+- Lines of code changed (fewer is better)
+- Number of new branches, filters, or exclusion rules (fewer is better)
+- Cognitive load of the change (lower is better)
+
 ## Known improvement opportunities
 
 1. **Icon library filtering** — The planner currently generates tasks for lucide-react icons. The exclusions.json must be used to filter these during task generation.
 2. **React Router filtering** — Route/Link from react-router-dom should not generate component-replacement tasks.
 3. **Phase assignment** — Ensure all component replacements go to the correct phase based on the component's category.
 4. **Workspace package imports are in scope** — local monorepo packages imported as packages (for example via `workspace:*`) must generate migration tasks when they map to the OZ migration surface.
+
+## NEVER STOP
+
+Keep running experiments until you reach score = 1.000000 or you have exhausted all reasonable approaches. If stuck, try creative alternatives:
+
+- Re-read the evaluator and frozen reports to identify the exact scoring failure mode
+- Compare good and bad fixture outputs to isolate over-generation vs under-generation
+- Tighten exclusion logic before adding new task generation rules
+- Revisit near-miss experiments and combine the best compatible ideas
+
+Once the experiment loop has begun, do NOT pause to ask the human whether you should continue. Do NOT ask "should I keep going?" The human may be away from the computer and expects you to continue autonomously until interrupted.
