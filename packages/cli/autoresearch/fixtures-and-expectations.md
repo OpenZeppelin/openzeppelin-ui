@@ -112,7 +112,7 @@ File: `expected/patterns/<fixture>.json`
 
 Creating a rigorous ground truth file by hand across hundreds of files is exhausting. Using an LLM to generate it is highly recommended—**if you use the LLM correctly**.
 
-We have compiled a collection of prompt templates for the different capabilities in the [**LLM Prompts Collection**](./llm-prompts-collection.md).
+We have compiled a collection of prompt templates for the different capabilities in the **[LLM Prompts Collection](./llm-prompts-collection.md)**.
 
 These prompts use the **"Data Labeler" vs "Solver"** workflow, which ensures that the LLM deeply scans the codebase using semantic understanding to produce an *aspirational* ground truth, rather than just letting the CLI grade its own homework.
 
