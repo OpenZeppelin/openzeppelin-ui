@@ -9,11 +9,13 @@ You are working inside `packages/cli/` of the `openzeppelin-ui` monorepo.
 **Evaluation metric:** F1 score on `(pattern_name, relative_file_path)` tuples, computed by `autoresearch/evaluate.ts --capability patterns`. Higher is better.
 
 **Run the evaluation:**
+
 ```bash
 npx tsx autoresearch/evaluate.ts --capability patterns
 ```
 
 **Run the safety gate (tests):**
+
 ```bash
 pnpm test
 ```
@@ -30,8 +32,9 @@ You may ONLY modify these files:
 2. New JSON pattern definition files in `src/catalog/` (optional)
 
 **You MUST NOT edit:**
+
 - `autoresearch/evaluate.ts` or `autoresearch/capabilities/*`
-- `autoresearch/expected/**`
+- `autoresearch/expected/`**
 - `autoresearch/fixtures/**`
 - Any test files
 
@@ -53,6 +56,7 @@ If `autoresearch/results-patterns.tsv` is empty, your first experiment should be
 ## Output format
 
 After each experiment, output exactly one line in this format:
+
 ```
 <experiment_number>\t<status>\t<mean_f1>\t<description>
 ```
@@ -117,7 +121,7 @@ When two approaches yield the same F1 improvement, prefer the simpler one. Compl
 2. **Missing React Query/SWR patterns** — data fetching libraries are common and relevant to migration planning.
 3. **Sub-path imports** — `from 'viem/chains'` or `from 'wagmi/connectors'` are not detected by the current regex patterns which only match the bare module name.
 4. **Namespace and re-export patterns** — detect capabilities that are imported via barrels, aliases, or namespace access without overfitting to one fixture.
-5. **Import-family normalization** — related sources like `wagmi`, `@wagmi/core`, and `wagmi/*` should be handled consistently when they represent the same migration concern.
+5. **Import-family normalization** — related sources like `wagmi`, `@wagmi/core`, and `wagmi/`* should be handled consistently when they represent the same migration concern.
 
 ## NEVER STOP
 
