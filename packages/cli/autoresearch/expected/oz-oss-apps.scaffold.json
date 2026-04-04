@@ -1,0 +1,335 @@
+{
+  "fixture": "oz-oss-apps",
+  "description": "TODO: describe what makes this fixture interesting for the benchmark",
+  "_instructions": [
+    "Review each component below and decide:",
+    "  1. Should it be detected? Remove icons, routing, app-level components, etc.",
+    "  2. Is the ozTarget correct? Fix false positives and add missing mappings.",
+    "  3. Is the sourceLibrary correct? Set to shadcn, radix, html-elements, etc.",
+    "  4. Are there components the analyzer missed entirely? Add them manually.",
+    "When done, remove this _instructions field, the _unmapped section,",
+    "and all _review markers, then rename the file from .scaffold.json to .json"
+  ],
+  "components": [
+    {
+      "name": "Button",
+      "ozTarget": "Button",
+      "sourceLibrary": "TODO",
+      "_review": "Detected from \"@oz/ui\" (206 usages in 61 files)"
+    },
+    {
+      "name": "Label",
+      "ozTarget": "Label",
+      "sourceLibrary": "TODO",
+      "_review": "Detected from \"@oz/ui\" (105 usages in 27 files)"
+    },
+    {
+      "name": "Card",
+      "ozTarget": "Card",
+      "sourceLibrary": "TODO",
+      "_review": "Detected from \"@oz/ui\" (94 usages in 52 files)"
+    },
+    {
+      "name": "Input",
+      "ozTarget": "Input",
+      "sourceLibrary": "TODO",
+      "_review": "Detected from \"@oz/ui\" (52 usages in 22 files)"
+    },
+    {
+      "name": "Dialog",
+      "ozTarget": "Dialog",
+      "sourceLibrary": "TODO",
+      "_review": "Detected from \"@oz/ui\" (24 usages in 18 files)"
+    },
+    {
+      "name": "Select",
+      "ozTarget": "Select",
+      "sourceLibrary": "TODO",
+      "_review": "Detected from \"@oz/ui\" (16 usages in 13 files)"
+    },
+    {
+      "name": "Checkbox",
+      "ozTarget": "Checkbox",
+      "sourceLibrary": "html-elements",
+      "_review": "Detected from \"\" (9 usages in 3 files)"
+    },
+    {
+      "name": "DropdownMenu",
+      "ozTarget": "DropdownMenu",
+      "sourceLibrary": "TODO",
+      "_review": "Detected from \"@oz/ui\" (4 usages in 4 files)"
+    },
+    {
+      "name": "DropdownMenuSeparator",
+      "ozTarget": "DropdownMenu",
+      "sourceLibrary": "shadcn",
+      "_review": "Detected from \"./ui/dropdown-menu\" (3 usages in 2 files)"
+    },
+    {
+      "name": "Sidebar",
+      "ozTarget": "Sidebar",
+      "sourceLibrary": "TODO",
+      "_review": "Detected from \"@/components/Sidebar\" (3 usages in 3 files)"
+    },
+    {
+      "name": "Tabs",
+      "ozTarget": "Tabs",
+      "sourceLibrary": "TODO",
+      "_review": "Detected from \"@oz/ui\" (3 usages in 3 files)"
+    },
+    {
+      "name": "NetworkSelector",
+      "ozTarget": "NetworkSelector",
+      "sourceLibrary": "TODO",
+      "_review": "Detected from \"@oz/ui\" (2 usages in 2 files)"
+    },
+    {
+      "name": "RadioGroup",
+      "ozTarget": "RadioGroup",
+      "sourceLibrary": "html-elements",
+      "_review": "Detected from \"\" (1 usages in 1 files)"
+    }
+  ],
+  "_unmapped": [
+    {
+      "name": "Badge",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 126,
+      "files": 39,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "CardContent",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 89,
+      "files": 52,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "TableCell",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 81,
+      "files": 9,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "CardHeader",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 72,
+      "files": 41,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "CardTitle",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 67,
+      "files": 41,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "CardDescription",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 60,
+      "files": 39,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "TableRow",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 43,
+      "files": 9,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "SelectItem",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 35,
+      "files": 13,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "DialogTitle",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 28,
+      "files": 18,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "DialogHeader",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 26,
+      "files": 16,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "TableHead",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 26,
+      "files": 7,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "DialogContent",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 24,
+      "files": 18,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "TemplateUpdatedTag",
+      "ozTarget": null,
+      "sourceImport": "../TemplateUpdatedTag",
+      "usageCount": 18,
+      "files": 14,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "Table",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 17,
+      "files": 9,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "TableBody",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 17,
+      "files": 9,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "SelectContent",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 16,
+      "files": 13,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "SelectTrigger",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 16,
+      "files": 13,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "SelectValue",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 14,
+      "files": 11,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "Switch",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 14,
+      "files": 6,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "DialogDescription",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 13,
+      "files": 7,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "DropdownMenuItem",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 13,
+      "files": 4,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "Separator",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 12,
+      "files": 4,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "DialogFooter",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 10,
+      "files": 4,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "ResourceTile",
+      "ozTarget": null,
+      "sourceImport": "@/components/ResourceTile",
+      "usageCount": 9,
+      "files": 2,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "TableHeader",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 7,
+      "files": 7,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "TabsSection",
+      "ozTarget": null,
+      "sourceImport": "@/components/sections/TabsSection",
+      "usageCount": 7,
+      "files": 5,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "App",
+      "ozTarget": null,
+      "sourceImport": "./App.tsx",
+      "usageCount": 6,
+      "files": 6,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "NetworkItem",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 6,
+      "files": 3,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "TabsContent",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 6,
+      "files": 3,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    },
+    {
+      "name": "TabsTrigger",
+      "ozTarget": null,
+      "sourceImport": "@oz/ui",
+      "usageCount": 6,
+      "files": 3,
+      "_hint": "Should this component map to an OZ target? If yes, add it to components above."
+    }
+  ]
+}

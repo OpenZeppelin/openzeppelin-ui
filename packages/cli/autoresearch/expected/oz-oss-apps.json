@@ -1,71 +1,51 @@
 {
   "fixture": "oz-oss-apps",
-  "description": "oz-oss-apps monorepo (full tree; Tailwind entry pinned to packages/rwa-wizard)",
+  "description": "Monorepo snapshot using the local @oz/ui shadcn-on-Radix kit across RWA wizard, portal, console, open-accounts, and access-manager, excluding routing icons and native checkbox/radio false positives.",
   "components": [
-    {
-      "name": "Button",
-      "ozTarget": "Button",
-      "sourceLibrary": "unknown"
-    },
-    {
-      "name": "Label",
-      "ozTarget": "Label",
-      "sourceLibrary": "unknown"
-    },
-    {
-      "name": "Card",
-      "ozTarget": "Card",
-      "sourceLibrary": "unknown"
-    },
-    {
-      "name": "Input",
-      "ozTarget": "Input",
-      "sourceLibrary": "unknown"
-    },
-    {
-      "name": "Dialog",
-      "ozTarget": "Dialog",
-      "sourceLibrary": "unknown"
-    },
-    {
-      "name": "Select",
-      "ozTarget": "Select",
-      "sourceLibrary": "unknown"
-    },
-    {
-      "name": "Checkbox",
-      "ozTarget": "Checkbox",
-      "sourceLibrary": "html-elements"
-    },
-    {
-      "name": "DropdownMenu",
-      "ozTarget": "DropdownMenu",
-      "sourceLibrary": "unknown"
-    },
-    {
-      "name": "Sidebar",
-      "ozTarget": "Sidebar",
-      "sourceLibrary": "unknown"
-    },
-    {
-      "name": "Tabs",
-      "ozTarget": "Tabs",
-      "sourceLibrary": "unknown"
-    },
-    {
-      "name": "DropdownMenuSeparator",
-      "ozTarget": "DropdownMenu",
-      "sourceLibrary": "shadcn"
-    },
-    {
-      "name": "NetworkSelector",
-      "ozTarget": "NetworkSelector",
-      "sourceLibrary": "unknown"
-    },
-    {
-      "name": "RadioGroup",
-      "ozTarget": "RadioGroup",
-      "sourceLibrary": "html-elements"
-    }
+    { "name": "AccountItem", "ozTarget": "AccountItem", "sourceLibrary": "@oz/ui" },
+    { "name": "AccountSwitcher", "ozTarget": "AccountSwitcher", "sourceLibrary": "@oz/ui" },
+    { "name": "AddAccountModal", "ozTarget": "AddAccountModal", "sourceLibrary": "@oz/ui" },
+    { "name": "Badge", "ozTarget": "Badge", "sourceLibrary": "shadcn" },
+    { "name": "Button", "ozTarget": "Button", "sourceLibrary": "@radix-ui/react-slot" },
+    { "name": "Card", "ozTarget": "Card", "sourceLibrary": "shadcn" },
+    { "name": "CardContent", "ozTarget": "Card", "sourceLibrary": "shadcn" },
+    { "name": "CardDescription", "ozTarget": "Card", "sourceLibrary": "shadcn" },
+    { "name": "CardHeader", "ozTarget": "Card", "sourceLibrary": "shadcn" },
+    { "name": "CardTitle", "ozTarget": "Card", "sourceLibrary": "shadcn" },
+    { "name": "Dialog", "ozTarget": "Dialog", "sourceLibrary": "@radix-ui/react-dialog" },
+    { "name": "DialogContent", "ozTarget": "Dialog", "sourceLibrary": "@radix-ui/react-dialog" },
+    { "name": "DialogDescription", "ozTarget": "Dialog", "sourceLibrary": "@radix-ui/react-dialog" },
+    { "name": "DialogFooter", "ozTarget": "Dialog", "sourceLibrary": "@radix-ui/react-dialog" },
+    { "name": "DialogHeader", "ozTarget": "Dialog", "sourceLibrary": "@radix-ui/react-dialog" },
+    { "name": "DialogTitle", "ozTarget": "Dialog", "sourceLibrary": "@radix-ui/react-dialog" },
+    { "name": "DropdownMenu", "ozTarget": "DropdownMenu", "sourceLibrary": "@radix-ui/react-dropdown-menu" },
+    { "name": "DropdownMenuContent", "ozTarget": "DropdownMenu", "sourceLibrary": "@radix-ui/react-dropdown-menu" },
+    { "name": "DropdownMenuItem", "ozTarget": "DropdownMenu", "sourceLibrary": "@radix-ui/react-dropdown-menu" },
+    { "name": "DropdownMenuSeparator", "ozTarget": "DropdownMenu", "sourceLibrary": "@radix-ui/react-dropdown-menu" },
+    { "name": "DropdownMenuTrigger", "ozTarget": "DropdownMenu", "sourceLibrary": "@radix-ui/react-dropdown-menu" },
+    { "name": "Input", "ozTarget": "Input", "sourceLibrary": "html-elements" },
+    { "name": "Label", "ozTarget": "Label", "sourceLibrary": "@radix-ui/react-label" },
+    { "name": "Logo", "ozTarget": "Logo", "sourceLibrary": "@oz/ui" },
+    { "name": "NetworkItem", "ozTarget": "NetworkItem", "sourceLibrary": "@oz/ui" },
+    { "name": "NetworkSelector", "ozTarget": "NetworkSelector", "sourceLibrary": "@oz/ui" },
+    { "name": "Select", "ozTarget": "Select", "sourceLibrary": "@radix-ui/react-select" },
+    { "name": "SelectContent", "ozTarget": "Select", "sourceLibrary": "@radix-ui/react-select" },
+    { "name": "SelectItem", "ozTarget": "Select", "sourceLibrary": "@radix-ui/react-select" },
+    { "name": "SelectTrigger", "ozTarget": "Select", "sourceLibrary": "@radix-ui/react-select" },
+    { "name": "SelectValue", "ozTarget": "Select", "sourceLibrary": "@radix-ui/react-select" },
+    { "name": "Separator", "ozTarget": "Separator", "sourceLibrary": "@radix-ui/react-separator" },
+    { "name": "Switch", "ozTarget": "Switch", "sourceLibrary": "@radix-ui/react-switch" },
+    { "name": "Table", "ozTarget": "Table", "sourceLibrary": "html-elements" },
+    { "name": "TableBody", "ozTarget": "Table", "sourceLibrary": "html-elements" },
+    { "name": "TableCell", "ozTarget": "Table", "sourceLibrary": "html-elements" },
+    { "name": "TableHead", "ozTarget": "Table", "sourceLibrary": "html-elements" },
+    { "name": "TableHeader", "ozTarget": "Table", "sourceLibrary": "html-elements" },
+    { "name": "TableRow", "ozTarget": "Table", "sourceLibrary": "html-elements" },
+    { "name": "Tabs", "ozTarget": "Tabs", "sourceLibrary": "@radix-ui/react-tabs" },
+    { "name": "TabsContent", "ozTarget": "Tabs", "sourceLibrary": "@radix-ui/react-tabs" },
+    { "name": "TabsList", "ozTarget": "Tabs", "sourceLibrary": "@radix-ui/react-tabs" },
+    { "name": "TabsTrigger", "ozTarget": "Tabs", "sourceLibrary": "@radix-ui/react-tabs" },
+    { "name": "Toaster", "ozTarget": "Toaster", "sourceLibrary": "@radix-ui/react-toast" },
+    { "name": "WalletWidget", "ozTarget": "WalletWidget", "sourceLibrary": "@oz/ui" }
   ]
 }
