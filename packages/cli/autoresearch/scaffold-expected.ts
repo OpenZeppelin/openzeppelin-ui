@@ -23,6 +23,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { analyzeProject } from '../src/analysis/index.ts';
+import { getExternalFixtureDefinition } from './capabilities/fixture-resolver.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -55,7 +56,8 @@ function main(): void {
   }
 
   console.error(`Analyzing fixture: ${fixtureName}...`);
-  const report = analyzeProject(fixtureDir);
+  const ext = getExternalFixtureDefinition(fixtureName);
+  const report = analyzeProject(fixtureDir, undefined, ext?.tailwindCssPath);
 
   const mapped = report.components.filter((c) => c.ozTarget !== null);
   const unmapped = report.components.filter((c) => c.ozTarget === null);

@@ -7,6 +7,7 @@
 
 import { analyzeProject } from '../../src/analysis/index.js';
 
+import { getExternalFixtureDefinition } from './fixture-resolver.js';
 import {
   type CapabilityEvaluator,
   type EvaluationResult,
@@ -34,8 +35,9 @@ interface ExpectedResult {
 function evaluateFixture(fixtureName: string): FixtureScore {
   const fixtureDir = getFixturePath(fixtureName);
   const expected = loadExpectedFile<ExpectedResult>(fixtureName);
+  const ext = getExternalFixtureDefinition(fixtureName);
 
-  const report = analyzeProject(fixtureDir);
+  const report = analyzeProject(fixtureDir, undefined, ext?.tailwindCssPath);
 
   const expectedSet = new Set(
     expected.components.map((c) => `${c.name}::${c.ozTarget}`)

@@ -1,0 +1,16 @@
+{
+  "fixture": "oz-oss-apps",
+  "patterns": [
+    {
+      "name": "sessionStorage",
+      "files": [
+        "packages/rwa-wizard/src/components/TokenizedFundPage.tsx",
+        "packages/rwa-wizard/src/contexts/RWAWizardContext.tsx"
+      ]
+    },
+    {
+      "name": "localStorage",
+      "files": ["packages/ui/src/contexts/AccountsContext.tsx"]
+    }
+  ]
+}

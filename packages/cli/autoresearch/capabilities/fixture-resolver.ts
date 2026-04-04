@@ -25,6 +25,7 @@ interface ExternalFixture {
   siblingRepo: string;
   subPath?: string;
   sparsePaths?: string[];
+  tailwindCssPath?: string;
   description?: string;
 }
 
@@ -148,6 +149,12 @@ export function resolveFixturePath(name: string): string | null {
 export function listMissingExternalFixtures(): ExternalFixture[] {
   const manifest = loadManifest();
   return manifest.fixtures.filter((f) => resolveExternalFixture(f) === null);
+}
+
+/** Manifest entry for an external fixture, if `name` is defined in `_external.json`. */
+export function getExternalFixtureDefinition(name: string): ExternalFixture | undefined {
+  const manifest = loadManifest();
+  return manifest.fixtures.find((f) => f.name === name);
 }
 
 export { type ExternalFixture, type ExternalManifest };

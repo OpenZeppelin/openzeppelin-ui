@@ -19,13 +19,12 @@
       "description": "OZ Accounts UI — already migrated to OZ UI Kit"
     },
     {
-      "name": "rwa-wizard",
+      "name": "oz-oss-apps",
       "repo": "https://github.com/pasevin/oz-oss-apps",
-      "commit": "81b93055bd0f64a266b7b87192ec32fd16df296f",
+      "commit": "f1bdab54906a60bc3136bc606d95d184c08f1a62",
       "siblingRepo": "oz-oss-apps",
-      "subPath": "packages/rwa-wizard",
-      "sparsePaths": ["packages/rwa-wizard/"],
-      "description": "RWA wizard app from oz-oss-apps monorepo"
+      "tailwindCssPath": "packages/rwa-wizard/src/index.css",
+      "description": "oz-oss-apps monorepo (full tree); Tailwind doctor pinned to packages/rwa-wizard"
     }
   ]
 }

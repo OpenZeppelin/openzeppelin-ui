@@ -31,6 +31,8 @@ interface ExternalFixture {
   siblingRepo: string;
   subPath?: string;
   sparsePaths?: string[];
+  /** Relative to repo root; disambiguates Tailwind when multiple packages have entry CSS */
+  tailwindCssPath?: string;
   description?: string;
 }
 

@@ -46,7 +46,7 @@ flowchart TB
         rad["radix-app"]
         zam["zama-accounts-ui (ext)"]
         acc["accounts-ui (ext)"]
-        rwa["rwa-wizard (ext)"]
+        oss["oz-oss-apps (ext)"]
     end
 
     resolver --> shared
@@ -221,7 +221,7 @@ autoresearch/
     shadcn-app/                  # Synthetic (committed)
     zama-accounts-ui/            # External (symlink, gitignored)
     accounts-ui/                 # External (symlink, gitignored)
-    rwa-wizard/                  # External (symlink, gitignored)
+    oz-oss-apps/                 # External (symlink, gitignored)
   expected/
     *.json                       # Detection ground truth
     patterns/                    # Pattern scanning ground truth

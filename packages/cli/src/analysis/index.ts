@@ -41,9 +41,14 @@ function estimateEffort(
 }
 
 /**
- *
+ * @param tailwindCssPath - Optional path to the Tailwind entry stylesheet, relative to `projectRoot`.
+ *   Use when multiple workspace packages expose Tailwind (monorepos); forwarded to `doctorTailwindProject`.
  */
-export function analyzeProject(projectRoot: string, scope?: string): AnalysisReport {
+export function analyzeProject(
+  projectRoot: string,
+  scope?: string,
+  tailwindCssPath?: string
+): AnalysisReport {
   const framework = detectFramework(projectRoot);
   const catalog = loadCatalog();
   const sourceLibraries = loadSourceLibraries();
@@ -61,7 +66,7 @@ export function analyzeProject(projectRoot: string, scope?: string): AnalysisRep
   const components = [...mergedMap.values()].sort((a, b) => b.usageCount - a.usageCount);
 
   const patterns = scanPatterns(files);
-  const tailwind = doctorTailwindProject(projectRoot, CLI_FAMILIES, CLI_BRANDING);
+  const tailwind = doctorTailwindProject(projectRoot, CLI_FAMILIES, CLI_BRANDING, tailwindCssPath);
 
   const detectedLibrary = components.find((c) => c.sourceLibrary)?.sourceLibrary ?? null;
   const mappableComponents = components.filter((c) => c.ozTarget !== null).length;
