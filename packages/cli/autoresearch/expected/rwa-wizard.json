@@ -31,6 +31,11 @@
       "name": "Dialog",
       "ozTarget": "Dialog",
       "sourceLibrary": "unknown"
+    },
+    {
+      "name": "Tabs",
+      "ozTarget": "Tabs",
+      "sourceLibrary": "unknown"
     }
   ]
 }

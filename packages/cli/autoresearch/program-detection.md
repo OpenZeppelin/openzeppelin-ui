@@ -105,6 +105,26 @@ while True:
 4. **Tests are non-negotiable.** A crashed experiment is worse than a discarded one.
 5. **Git as memory.** Consider creating experiment branches for complex changes so you can cleanly revert.
 
+## Source classification rules
+
+Before changing detection behavior for any import source, classify what kind of source it is:
+
+1. **Local path aliases** — imports like `@/foo`, `~/foo`, or other aliases that resolve to the fixture's own source tree.
+2. **Workspace-local packages** — imports declared via `workspace:*`, monorepo package references, or other local package links. These are part of the migration surface and **must be analyzed and migrated** unless explicitly excluded elsewhere.
+3. **External libraries** — third-party dependencies that are not maintained as part of the local workspace.
+
+When the source type is not obvious, inspect the fixture's `package.json`, `tsconfig*.json`, and bundler config (`vite.config.*`, `webpack.config.*`, etc.) before forming a hypothesis.
+
+## Guardrails for suppressions
+
+Do not add fixture-shaped suppressions such as `source === 'X' && specifier === 'Y'` unless the rule reflects a real product invariant rather than a benchmark optimization.
+
+Before ignoring an import source or component family, verify and document:
+
+1. Whether it is a local alias, workspace-local package, or external library.
+2. Why it should be excluded from migration analysis as a product rule.
+3. Why a broader source-classification rule would not be more correct than a one-off suppression.
+
 ## Simplicity criterion
 
 When two approaches yield the same F1 improvement, prefer the simpler one. Complexity is measured by:
@@ -119,6 +139,7 @@ The biggest remaining gaps are in the **zama-accounts-ui** fixture:
 2. **Compound sub-component mapping** — `CardContent`, `TabsList`, `AlertTitle` etc. should map to their parent OZ component family
 3. **Icon library false positives** — lucide-react icons (e.g., `ExternalLink`) must not generate migration tasks
 4. **Radix Primitive naming**: `TabsPrimitive` from `import * as TabsPrimitive from '@radix-ui/react-tabs'` is not mapped to `Tabs`. The analyzer should strip common suffixes like Primitive/Root to resolve the underlying component name.
+5. **Workspace package imports are in scope** — local monorepo packages imported as packages (for example via `workspace:*`) must be treated as analyzable migration sources, not ignored as if they were remote third-party packages.
 
 ## NEVER STOP
 

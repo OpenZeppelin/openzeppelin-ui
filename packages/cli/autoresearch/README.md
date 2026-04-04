@@ -147,7 +147,7 @@ npx tsx autoresearch/fetch-fixtures.ts --status   # show resolution status
 npx tsx autoresearch/fetch-fixtures.ts --clean    # remove fetched/linked externals
 ```
 
-Resolution priority: **already in `fixtures/`** → **`FIXTURE_<NAME>_PATH` env var** → **sibling repo** (parent or grandparent of monorepo root: `../<siblingRepo>/<subPath?>`) → **sparse clone from remote** (pinned commit).
+Resolution priority: **already in `fixtures/`** → `**FIXTURE_<NAME>_PATH` env var** → **sibling repo** (parent or grandparent of monorepo root: `../<siblingRepo>/<subPath?>`) → **sparse clone from remote** (pinned commit).
 
 ### Adding a new external fixture
 
@@ -165,10 +165,10 @@ Resolution priority: **already in `fixtures/`** → **`FIXTURE_<NAME>_PATH` env 
 }
 ```
 
-2. Add the name to `fixtures/.gitignore` so the resolved copy is not committed.
-3. Run `npx tsx autoresearch/fetch-fixtures.ts` to resolve it.
-4. Create ground truth in `expected/my-app.json` (detection) and `expected/patterns/my-app.json` (patterns).
-5. Run evaluation:
+1. Add the name to `fixtures/.gitignore` so the resolved copy is not committed.
+2. Run `npx tsx autoresearch/fetch-fixtures.ts` to resolve it.
+3. Create ground truth in `expected/my-app.json` (detection) and `expected/patterns/my-app.json` (patterns).
+4. Run evaluation:
 
 ```bash
 pnpm --filter @openzeppelin/ui-cli evaluate:all
