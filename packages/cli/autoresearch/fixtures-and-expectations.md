@@ -138,9 +138,9 @@ flowchart TD
 
 **If you skip the Data Labeler and just copy the CLI's current output into the expectations file, the Solver agent will immediately score 1.0 and stop, learning nothing about its blind spots.**
 
-### Example Prompt for the Data Labeler
+### Example Prompt for Patterns Data Labeling
 
-Open a new LLM chat (or Cursor context) with the fixture's codebase and run this prompt.
+Open a new LLM chat (or Cursor context) with the fixture's codebase and run this prompt. This prompt is **specifically for the Patterns capability**. Other capabilities (like Detection or Planning) require different prompts because their JSON schemas differ.
 
 ```text
 You are acting as an expert "Data Labeler" to build the absolute ground truth for a code migration benchmark.
@@ -173,6 +173,35 @@ Fixture name to scan: <FIXTURE_NAME>
 ```
 
 Replace `<FIXTURE_NAME>` and provide the LLM with access to the fixture's files and `patterns.json`.
+
+### Example Prompt for Detection Data Labeling
+
+The Detection capability looks for specific UI components (like Buttons or Address fields). Because the mapping catalog is complex, we have a helper script to generate a first draft.
+
+1. Run `npx tsx autoresearch/scaffold-expected.ts <FIXTURE_NAME>` to generate a scaffold file.
+2. Give the LLM access to the fixture's codebase and the scaffold file.
+3. Use this prompt to refine it:
+
+```text
+You are an expert "Data Labeler" building the absolute ground truth for our component detection benchmark.
+
+Context:
+- We have a scaffolded JSON file containing UI components our dumb regex scanner found in this codebase.
+- The file maps components found in the code to their "ozTarget" (the OpenZeppelin UI component they should migrate to).
+
+Task:
+1. Review the provided scaffold JSON file against the fixture's actual source code.
+2. Identify components the dumb scanner missed (e.g., heavily aliased imports, components wrapped in higher-order functions, or weird HTML usage).
+3. Identify false positives the scanner hallucinates (e.g., a variable named "Button" that isn't actually a UI component).
+4. Output the final, corrected JSON.
+
+Rules:
+- Be aspirational: find the edge cases!
+- Do not change the JSON schema.
+- Output MUST be valid JSON only. No markdown fences.
+```
+
+*Note: For other capabilities like Planning, Execution, or Verification, the expected artifacts are more complex. Read their respective `program-*.md` files to understand what ground truth they require before prompting an LLM.*
 
 ---
 
