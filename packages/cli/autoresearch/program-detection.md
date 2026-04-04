@@ -121,7 +121,7 @@ Before changing detection behavior for any import source, classify what kind of 
 2. **Workspace-local packages** — imports declared via `workspace:`*, monorepo package references, or other local package links. These are part of the migration surface and **must be analyzed and migrated** unless explicitly excluded elsewhere.
 3. **External libraries** — third-party dependencies that are not maintained as part of the local workspace.
 
-When the source type is not obvious, inspect the fixture's `package.json`, `tsconfig*.json`, and bundler config (`vite.config.`*, `webpack.config.*`, etc.) before forming a hypothesis.
+When the source type is not obvious, inspect the fixture's `package.json`, `tsconfig*.json`, and bundler config (`vite.config.*`, `webpack.config.*`, etc.) before forming a hypothesis.
 
 ## Guardrails for suppressions
 

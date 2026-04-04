@@ -1,6 +1,8 @@
 {
   "library": "Radix Primitives",
   "importPatterns": ["@radix-ui/react-"],
+  "namespaceImportStrategy": "package-name",
+  "namespaceReportName": "target",
   "mappings": {
     "Accordion": { "source": "Accordion", "effort": "low", "notes": "Wrap swap — OZ wraps Radix internally" },
     "Checkbox": { "source": "Checkbox", "effort": "low", "notes": "Wrap swap" },
@@ -12,6 +14,7 @@
     "RadioGroup": { "source": "RadioGroup", "effort": "low", "notes": "Wrap swap" },
     "Select": { "source": "Select", "effort": "low", "notes": "Wrap swap" },
     "Tabs": { "source": "Tabs", "effort": "low", "notes": "Wrap swap" },
+    "TabsPrimitive": { "source": "Tabs", "effort": "low", "notes": "Namespace import from @radix-ui/react-tabs", "reportName": "target" },
     "Tooltip": { "source": "Tooltip", "effort": "low", "notes": "Wrap swap" }
   }
 }

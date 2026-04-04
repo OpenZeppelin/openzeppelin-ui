@@ -14,6 +14,7 @@ export interface SourceLibraryMapping {
   source: string;
   effort: 'low' | 'medium' | 'high';
   notes: string;
+  reportName?: 'imported' | 'target';
   propMappings?: Record<string, string>;
   variantMap?: Record<string, string>;
   incompatible?: string[];
@@ -22,6 +23,8 @@ export interface SourceLibraryMapping {
 export interface SourceLibrary {
   library: string;
   importPatterns: string[];
+  namespaceImportStrategy?: 'binding' | 'package-name';
+  namespaceReportName?: 'imported' | 'target';
   mappings: Record<string, SourceLibraryMapping>;
 }
 

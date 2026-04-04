@@ -14,6 +14,18 @@ const MOCK_CATALOG: ComponentCatalog = {
       category: 'ui',
       capabilities: [],
     },
+    Card: {
+      package: '@openzeppelin/ui-components',
+      importPath: 'ui/card',
+      category: 'ui',
+      capabilities: [],
+    },
+    Tabs: {
+      package: '@openzeppelin/ui-components',
+      importPath: 'ui/tabs',
+      category: 'ui',
+      capabilities: [],
+    },
     AddressField: {
       package: '@openzeppelin/ui-components',
       importPath: 'fields',
@@ -24,13 +36,40 @@ const MOCK_CATALOG: ComponentCatalog = {
   capabilities: ['AddressingCapability'],
 };
 
-const MOCK_SHADCN: Record<string, SourceLibrary> = {
+const MOCK_SOURCE_LIBRARIES: Record<string, SourceLibrary> = {
   shadcn: {
     library: 'shadcn/ui',
     importPatterns: ['@/components/ui/'],
     mappings: {
       Button: { source: 'Button', effort: 'low', notes: 'Near 1:1 parity' },
       Card: { source: 'Card', effort: 'low', notes: 'Near 1:1 parity' },
+      CardHeader: {
+        source: 'Card',
+        effort: 'low',
+        notes: 'Compound maps to Card family',
+        reportName: 'target',
+      },
+      CardTitle: {
+        source: 'Card',
+        effort: 'low',
+        notes: 'Compound maps to Card family',
+        reportName: 'target',
+      },
+    },
+  },
+  radix: {
+    library: 'Radix Primitives',
+    importPatterns: ['@radix-ui/react-'],
+    namespaceImportStrategy: 'package-name',
+    namespaceReportName: 'target',
+    mappings: {
+      Tabs: { source: 'Tabs', effort: 'low', notes: 'Wrap swap' },
+      TabsPrimitive: {
+        source: 'Tabs',
+        effort: 'low',
+        notes: 'Namespace import from @radix-ui/react-tabs',
+        reportName: 'target',
+      },
     },
   },
 };
@@ -51,7 +90,7 @@ describe('analyzeComponents', () => {
       },
     ];
 
-    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SHADCN);
+    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES);
 
     expect(matches).toHaveLength(1);
     expect(matches[0]).toEqual(
@@ -80,7 +119,7 @@ describe('analyzeComponents', () => {
       },
     ];
 
-    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SHADCN);
+    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES);
 
     expect(matches[0].usageCount).toBe(3);
     expect(matches[0].files).toEqual(['src/A.tsx', 'src/B.tsx']);
@@ -95,7 +134,7 @@ describe('analyzeComponents', () => {
       },
     ];
 
-    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SHADCN);
+    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES);
     expect(matches).toHaveLength(0);
   });
 
@@ -109,8 +148,102 @@ describe('analyzeComponents', () => {
       },
     ];
 
-    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SHADCN);
+    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES);
     expect(matches).toHaveLength(0);
+  });
+
+  it('rolls shadcn compound imports up to their parent OZ target', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/Card.tsx',
+        relativePath: 'src/Card.tsx',
+        content: [
+          "import { CardHeader, CardTitle } from '@/components/ui/card';",
+          '',
+          'export function CardView() {',
+          '  return (',
+          '    <>',
+          '      <CardHeader />',
+          '      <CardTitle>Summary</CardTitle>',
+          '    </>',
+          '  );',
+          '}',
+        ].join('\n'),
+      },
+    ];
+
+    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES);
+
+    expect(matches).toHaveLength(1);
+    expect(matches[0]).toEqual(
+      expect.objectContaining({
+        name: 'Card',
+        sourceLibrary: 'shadcn',
+        ozTarget: 'Card',
+        usageCount: 2,
+        files: ['src/Card.tsx'],
+      })
+    );
+  });
+
+  it('tracks aliased named imports using the imported component name', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/App.tsx',
+        relativePath: 'src/App.tsx',
+        content: [
+          "import { Button as PrimaryButton } from '@/components/ui/button';",
+          '',
+          'export function App() {',
+          '  return <PrimaryButton />;',
+          '}',
+        ].join('\n'),
+      },
+    ];
+
+    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES);
+
+    expect(matches).toHaveLength(1);
+    expect(matches[0]).toEqual(
+      expect.objectContaining({
+        name: 'Button',
+        ozTarget: 'Button',
+        usageCount: 1,
+      })
+    );
+  });
+
+  it('maps Radix namespace imports from the package path instead of the alias text', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/Tabs.tsx',
+        relativePath: 'src/Tabs.tsx',
+        content: [
+          "import * as Tabs from '@radix-ui/react-tabs';",
+          '',
+          'export function TabView() {',
+          '  return (',
+          '    <Tabs.Root>',
+          '      <Tabs.List />',
+          '      <Tabs.Trigger />',
+          '    </Tabs.Root>',
+          '  );',
+          '}',
+        ].join('\n'),
+      },
+    ];
+
+    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES);
+
+    expect(matches).toHaveLength(1);
+    expect(matches[0]).toEqual(
+      expect.objectContaining({
+        name: 'Tabs',
+        sourceLibrary: 'radix',
+        ozTarget: 'Tabs',
+        usageCount: 3,
+      })
+    );
   });
 });
 
@@ -223,5 +356,42 @@ describe('analyzeHtmlElements', () => {
     const btn = matches.find((m) => m.name === 'Button');
     expect(btn!.usageCount).toBe(3);
     expect(btn!.files).toEqual(['src/A.tsx', 'src/B.tsx']);
+  });
+
+  it('only suppresses native inputs in files that already import OZ UI components', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/Migrated.tsx',
+        relativePath: 'src/Migrated.tsx',
+        content: [
+          "import { Button } from '@openzeppelin/ui-components';",
+          'export function Migrated() {',
+          '  return (',
+          '    <>',
+          '      <input type="text" />',
+          '      <button>Keep counting button</button>',
+          '      <Button />',
+          '    </>',
+          '  );',
+          '}',
+        ].join('\n'),
+      },
+      {
+        absolutePath: '/project/src/Legacy.tsx',
+        relativePath: 'src/Legacy.tsx',
+        content: 'export function Legacy() { return <input type="text" />; }',
+      },
+    ];
+
+    const matches = analyzeHtmlElements(files, MOCK_HTML_LIB);
+    const input = matches.find((m) => m.name === 'Input');
+    const button = matches.find((m) => m.name === 'Button');
+
+    expect(input).toBeDefined();
+    expect(input!.usageCount).toBe(1);
+    expect(input!.files).toEqual(['src/Legacy.tsx']);
+    expect(button).toBeDefined();
+    expect(button!.usageCount).toBe(1);
+    expect(button!.files).toEqual(['src/Migrated.tsx']);
   });
 });
