@@ -805,11 +805,31 @@
         evalFixtures: null,
       };
 
+      resetDetailUI();
       if (chart) { chart.destroy(); chart = null; }
       initChart();
       setFixtureBadge('evaluating');
-      await fetchDetailResults(cap);
+      await fetchDetailResults(cap, true);
       await fetchDetailEvaluation(cap);
+    }
+
+    function resetDetailUI() {
+      document.getElementById('stat-total').textContent = '-';
+      document.getElementById('stat-breakdown').textContent = 'Loading...';
+      document.getElementById('stat-best').textContent = '-';
+      document.getElementById('stat-best-exp').textContent = '-';
+      document.getElementById('stat-current').textContent = '-';
+      document.getElementById('stat-current').style.color = '';
+      document.getElementById('stat-current-sub').textContent = 'Evaluating...';
+      document.getElementById('stat-keeprate').textContent = '-';
+      document.getElementById('stat-keeprate-sub').textContent = '-';
+      document.getElementById('chart-badge').textContent = '-';
+      document.getElementById('log-badge').textContent = '0 rows';
+      document.getElementById('log-body').innerHTML =
+        '<tr><td colspan="5" class="empty-state"><p>Loading experiments...</p></td></tr>';
+      document.getElementById('fixture-grid').innerHTML =
+        '<div class="empty-state"><p>Loading evaluation...</p></div>';
+      document.getElementById('fixture-header').style.display = 'none';
     }
 
     // ── Overview ────────────────────────────────────
@@ -1209,16 +1229,18 @@
       document.body.style.overflow = '';
     }
 
-    async function fetchDetailResults(cap) {
+    async function fetchDetailResults(cap, force) {
       try {
         const res = await fetch('/api/results/' + cap);
+        if (currentCapability !== cap) return;
         const data = await res.json();
-        if (data.mtime !== detailState.lastMtime || data.rows.length !== detailState.lastRowCount) {
+        if (force || data.mtime !== detailState.lastMtime || data.rows.length !== detailState.lastRowCount) {
           detailState.lastMtime = data.mtime;
           detailState.lastRowCount = data.rows.length;
-          updateStats(data.rows);
-          updateChart(data.rows);
-          updateTable(data.rows);
+          const rows = data.rows;
+          updateStats(rows);
+          try { updateChart(rows); } catch (e) { console.error('Chart update failed:', e); }
+          updateTable(rows);
         }
       } catch (e) { console.error('Failed to fetch results:', e); }
     }
@@ -1229,11 +1251,12 @@
       setFixtureBadge('evaluating');
       try {
         const res = await fetch('/api/evaluate/' + cap);
+        if (currentCapability !== cap) return;
         const data = await res.json();
         updateFixtures(data);
       } catch (e) {
         console.error('Failed to fetch evaluation:', e);
-        setFixtureBadge('error');
+        if (currentCapability === cap) setFixtureBadge('error');
       } finally {
         detailState.isEvaluating = false;
       }

@@ -89,15 +89,16 @@ function parseResults(capability: string): ResultRow[] {
   const content = fs.readFileSync(resultsPath, 'utf8').trim();
   if (!content) return [];
 
-  return content.split('\n').map((line) => {
+  const lines = content.split('\n');
+  const rows: ResultRow[] = [];
+  for (const line of lines) {
     const [exp, status, f1, ...descParts] = line.split('\t');
-    return {
-      experiment: parseInt(exp, 10),
-      status,
-      meanF1: parseFloat(f1),
-      description: descParts.join('\t'),
-    };
-  });
+    const experiment = parseInt(exp, 10);
+    const meanF1 = parseFloat(f1);
+    if (Number.isNaN(experiment) || Number.isNaN(meanF1)) continue;
+    rows.push({ experiment, status, meanF1, description: descParts.join('\t') });
+  }
+  return rows;
 }
 
 async function runLiveEvaluation(
