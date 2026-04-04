@@ -32,7 +32,36 @@ flowchart TD
 
 ---
 
-## 1. Patterns Capability
+## 1. Detection Capability
+
+The Detection capability looks for specific UI components (like Buttons or Address fields). Because the mapping catalog is complex, we have a helper script to generate a first draft.
+
+1. Run `npx tsx autoresearch/scaffold-expected.ts <FIXTURE_NAME>` to generate a scaffold file.
+2. Give the LLM access to the fixture's codebase and the scaffold file.
+3. Use this prompt to refine it:
+
+```text
+You are an expert "Data Labeler" building the absolute ground truth for our component detection benchmark.
+
+Context:
+- We have a scaffolded JSON file containing UI components our dumb regex scanner found in this codebase.
+- The file maps components found in the code to their "ozTarget" (the OpenZeppelin UI component they should migrate to).
+
+Task:
+1. Review the provided scaffold JSON file against the fixture's actual source code.
+2. Identify components the dumb scanner missed (e.g., heavily aliased imports, components wrapped in higher-order functions, or weird HTML usage).
+3. Identify false positives the scanner hallucinates (e.g., a variable named "Button" that isn't actually a UI component).
+4. Output the final, corrected JSON.
+
+Rules:
+- Be aspirational: find the edge cases!
+- Do not change the JSON schema.
+- Output MUST be valid JSON only. No markdown fences.
+```
+
+---
+
+## 2. Patterns Capability
 
 Open a new LLM chat (or Cursor context) with the fixture's codebase and run this prompt.
 
@@ -67,35 +96,6 @@ Fixture name to scan: <FIXTURE_NAME>
 ```
 
 *Instructions:* Replace `<FIXTURE_NAME>` and provide the LLM with access to the fixture's files and `packages/cli/src/catalog/patterns.json`.
-
----
-
-## 2. Detection Capability
-
-The Detection capability looks for specific UI components (like Buttons or Address fields). Because the mapping catalog is complex, we have a helper script to generate a first draft.
-
-1. Run `npx tsx autoresearch/scaffold-expected.ts <FIXTURE_NAME>` to generate a scaffold file.
-2. Give the LLM access to the fixture's codebase and the scaffold file.
-3. Use this prompt to refine it:
-
-```text
-You are an expert "Data Labeler" building the absolute ground truth for our component detection benchmark.
-
-Context:
-- We have a scaffolded JSON file containing UI components our dumb regex scanner found in this codebase.
-- The file maps components found in the code to their "ozTarget" (the OpenZeppelin UI component they should migrate to).
-
-Task:
-1. Review the provided scaffold JSON file against the fixture's actual source code.
-2. Identify components the dumb scanner missed (e.g., heavily aliased imports, components wrapped in higher-order functions, or weird HTML usage).
-3. Identify false positives the scanner hallucinates (e.g., a variable named "Button" that isn't actually a UI component).
-4. Output the final, corrected JSON.
-
-Rules:
-- Be aspirational: find the edge cases!
-- Do not change the JSON schema.
-- Output MUST be valid JSON only. No markdown fences.
-```
 
 ---
 
