@@ -134,6 +134,8 @@ Each capability has its own program file:
 
 ## Fixture management
 
+**Adding or updating a fixture?** Read **[fixtures-and-expectations.md](./fixtures-and-expectations.md)** first. It explains what expectation files are for, how they differ from “shaping” scores, the full checklist (source + `expected/` + config), and includes an **example LLM prompt** for drafting pattern ground truth.
+
 Fixtures come from two sources:
 
 - **Synthetic** (committed) — small, purpose-built test apps in `fixtures/` (e.g., `radix-app`, `shadcn-app`, `raw-html-app`)
@@ -151,44 +153,23 @@ Resolution priority: **already in `fixtures/`** → `**FIXTURE_<NAME>_PATH` env 
 
 ### Adding a new external fixture
 
-1. Add an entry to `fixtures/_external.json`:
-
-```json
-{
-  "name": "my-app",
-  "repo": "https://github.com/org/my-monorepo",
-  "commit": "<pinned-sha>",
-  "siblingRepo": "my-monorepo",
-  "subPath": "packages/my-app",
-  "sparsePaths": ["packages/my-app/"],
-  "description": "Brief description"
-}
-```
-
-1. Add the name to `fixtures/.gitignore` so the resolved copy is not committed.
-2. Run `npx tsx autoresearch/fetch-fixtures.ts` to resolve it.
-3. Create ground truth in `expected/my-app.json` (detection) and `expected/patterns/my-app.json` (patterns).
-4. Run evaluation:
-
-```bash
-pnpm --filter @openzeppelin/ui-cli evaluate:all
-```
+1. Add an entry to `fixtures/_external.json` (see [fixtures-and-expectations.md](./fixtures-and-expectations.md) for fields and pitfalls).
+2. Add the fixture directory to `fixtures/.gitignore` when the resolved tree must not be committed.
+3. Run `npx tsx autoresearch/fetch-fixtures.ts` to resolve it.
+4. Register splits/tags in `config/detection-fixtures.json` and/or `config/pattern-fixtures.json` if this fixture should score on those capabilities.
+5. **Author ground truth** under `expected/` (detection, patterns, planning, etc.—not only the fixture source). See the full checklist and LLM prompt template in **[fixtures-and-expectations.md](./fixtures-and-expectations.md)**.
+6. Run `pnpm --filter @openzeppelin/ui-cli evaluate:all` (or single-capability `evaluate.ts`).
 
 ### Adding a synthetic fixture
 
-For small, targeted test scenarios, add directly to `fixtures/`:
-
-```bash
-mkdir -p autoresearch/fixtures/my-test-app/src
-# add source files...
-```
-
-These are committed to git and always available.
+For small, targeted test scenarios, add under `autoresearch/fixtures/<name>/` and commit. You still need the same `**expected/`** and **config** updates as for external fixtures if the benchmark should include this app—see **[fixtures-and-expectations.md](./fixtures-and-expectations.md)**.
 
 ## Directory structure
 
 ```
 autoresearch/
+  README.md
+  fixtures-and-expectations.md   # How to add fixtures + author expected/* ground truth (incl. LLM prompt)
   evaluate.ts                    # Unified harness with --capability flag
   fetch-fixtures.ts              # Resolves external fixtures (symlink or clone)
   capabilities/

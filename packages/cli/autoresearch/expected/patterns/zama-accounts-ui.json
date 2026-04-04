@@ -1,15 +1,95 @@
 {
   "fixture": "zama-accounts-ui",
   "patterns": [
-    { "name": "wagmi", "files": ["src/App.tsx", "src/components/AccessTiersTab.tsx", "src/components/ConfidentialTransfersTab.tsx", "src/components/DemoAccountSetup.tsx", "src/components/DemoLauncher.tsx", "src/components/DemoSessionPicker.tsx", "src/components/MultisigTab.tsx", "src/components/ObserversTab.tsx", "src/components/SessionKeysTab.tsx", "src/components/WalletIndicator.tsx", "src/components/WeightedMultisigTab.tsx", "src/config/wagmi.ts", "src/hooks/useMultisigWallet.tsx", "src/hooks/useWallet.tsx", "src/hooks/useWeightedMultisigWallet.tsx", "src/main.tsx"] },
-    { "name": "wagmi/chains", "files": ["src/components/AccessTiersTab.tsx", "src/components/Dashboard.tsx", "src/components/DemoAccountSetup.tsx", "src/components/MultisigTab.tsx", "src/components/ObserversTab.tsx", "src/components/SessionKeysTab.tsx", "src/components/WeightedMultisigTab.tsx", "src/config/wagmi.ts", "src/hooks/useMultisigWallet.tsx", "src/hooks/useWallet.tsx", "src/hooks/useWeightedMultisigWallet.tsx"] },
-    { "name": "viem", "files": ["src/components/AccessMatrix.tsx", "src/components/AccessTiersTab.tsx", "src/components/AccountSetup.tsx", "src/components/ConfidentialTransfersTab.tsx", "src/components/Dashboard.tsx", "src/components/DemoAccountSetup.tsx", "src/components/demos/FheBasicsDemo.tsx", "src/components/MultisigTab.tsx", "src/components/ObserversTab.tsx", "src/components/SessionKeysTab.tsx", "src/components/TxHashLink.tsx", "src/components/WalletIndicator.tsx", "src/components/WeightedMultisigTab.tsx", "src/config/constants.ts", "src/hooks/useDemoWallet.tsx", "src/hooks/useMultisigWallet.tsx", "src/hooks/useWallet.tsx", "src/hooks/useWeightedMultisigWallet.tsx", "src/lib/createSigner.ts"] },
-    { "name": "viem/accounts", "files": ["src/components/MultisigTab.tsx", "src/components/SessionKeysTab.tsx", "src/components/WeightedMultisigTab.tsx", "src/hooks/useMultisigWallet.tsx", "src/hooks/useWeightedMultisigWallet.tsx"] },
-    { "name": "rainbowkit", "files": ["src/components/AccountSetup.tsx", "src/components/Dashboard.tsx", "src/components/DemoLauncher.tsx", "src/components/DemoShell.tsx", "src/components/LandingPage.tsx", "src/config/wagmi.ts", "src/main.tsx"] },
-    { "name": "localStorage", "files": ["src/components/AccountSetup.tsx", "src/components/Dashboard.tsx", "src/components/DemoAccountSetup.tsx", "src/components/ObserversTab.tsx", "src/components/SessionKeysTab.tsx", "src/hooks/useDemoSession.tsx", "src/hooks/useMultisigWallet.tsx", "src/hooks/useWallet.tsx", "src/hooks/useWeightedMultisigWallet.tsx"] },
-    { "name": "sessionStorage", "files": ["src/hooks/useDemoSession.tsx"] },
-    { "name": "tailwind-merge", "files": ["src/lib/utils.ts"] },
-    { "name": "clsx", "files": ["src/lib/utils.ts"] },
-    { "name": "@tanstack/react-query", "files": ["src/main.tsx"] }
+    {
+      "name": "localStorage",
+      "files": [
+        "src/components/AccountSetup.tsx",
+        "src/components/Dashboard.tsx",
+        "src/components/DemoAccountSetup.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx",
+        "src/hooks/useDemoSession.tsx",
+        "src/hooks/useMultisigWallet.tsx",
+        "src/hooks/useWallet.tsx",
+        "src/hooks/useWeightedMultisigWallet.tsx"
+      ]
+    },
+    {
+      "name": "rainbowkit",
+      "files": [
+        "src/components/AccountSetup.tsx",
+        "src/components/Dashboard.tsx",
+        "src/components/DemoLauncher.tsx",
+        "src/components/DemoShell.tsx",
+        "src/components/LandingPage.tsx",
+        "src/config/wagmi.ts",
+        "src/main.tsx"
+      ]
+    },
+    {
+      "name": "sessionStorage",
+      "files": [
+        "src/hooks/useDemoSession.tsx"
+      ]
+    },
+    {
+      "name": "viem",
+      "files": [
+        "src/components/AccessMatrix.tsx",
+        "src/components/AccessTiersTab.tsx",
+        "src/components/AccountSetup.tsx",
+        "src/components/ConfidentialTransfersTab.tsx",
+        "src/components/Dashboard.tsx",
+        "src/components/DemoAccountSetup.tsx",
+        "src/components/demos/FheBasicsDemo.tsx",
+        "src/components/MultisigTab.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx",
+        "src/components/TxHashLink.tsx",
+        "src/components/WalletIndicator.tsx",
+        "src/components/WeightedMultisigTab.tsx",
+        "src/config/constants.ts",
+        "src/hooks/useDemoWallet.tsx",
+        "src/hooks/useMultisigWallet.tsx",
+        "src/hooks/useWallet.tsx",
+        "src/hooks/useWeightedMultisigWallet.tsx",
+        "src/lib/createSigner.ts",
+        "vendor/oaf-sdk/erc1967.utils.js",
+        "vendor/oaf-sdk/erc7579-account.js",
+        "vendor/oaf-sdk/erc7579.actions.js",
+        "vendor/oaf-sdk/erc7579.utils.js",
+        "vendor/oaf-sdk/open-account.js",
+        "vendor/oaf-sdk/test/erc7579.actions.test.js",
+        "vendor/oaf-sdk/test/erc7579.utils.test.js",
+        "vendor/oaf-sdk/test/helpers/accounts.js",
+        "vendor/oaf-sdk/test/helpers/erc7579.modules.js",
+        "vendor/oaf-sdk/test/helpers/setup.js",
+        "vendor/oaf-sdk/test/helpers/signers.js",
+        "vendor/oaf-sdk/test/open-account.test.js"
+      ]
+    },
+    {
+      "name": "wagmi",
+      "files": [
+        "src/App.tsx",
+        "src/components/AccessTiersTab.tsx",
+        "src/components/ConfidentialTransfersTab.tsx",
+        "src/components/Dashboard.tsx",
+        "src/components/DemoAccountSetup.tsx",
+        "src/components/DemoLauncher.tsx",
+        "src/components/DemoSessionPicker.tsx",
+        "src/components/MultisigTab.tsx",
+        "src/components/ObserversTab.tsx",
+        "src/components/SessionKeysTab.tsx",
+        "src/components/WalletIndicator.tsx",
+        "src/components/WeightedMultisigTab.tsx",
+        "src/config/wagmi.ts",
+        "src/hooks/useMultisigWallet.tsx",
+        "src/hooks/useWallet.tsx",
+        "src/hooks/useWeightedMultisigWallet.tsx",
+        "src/main.tsx"
+      ]
+    }
   ]
 }
