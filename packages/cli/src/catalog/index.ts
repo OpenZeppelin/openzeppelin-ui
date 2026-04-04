@@ -32,6 +32,47 @@ export interface HtmlElementLibrary extends SourceLibrary {
   htmlTags: true;
 }
 
+export type PatternCategory =
+  | 'wallet'
+  | 'storage'
+  | 'tailwind'
+  | 'oz-existing'
+  | 'data-fetching'
+  | 'form'
+  | 'utility';
+
+export type PatternRuleKind = 'import' | 'content';
+
+export type PatternRuleConfidence = 'high' | 'medium' | 'low';
+
+export interface PatternImportMatcher {
+  packages: string[];
+  matchMode?: 'exact' | 'package-or-subpath';
+}
+
+export interface PatternContentMatcher {
+  regex: string;
+  flags?: string;
+}
+
+export interface PatternRule {
+  id: string;
+  displayName: string;
+  canonicalPattern: string;
+  category: PatternCategory;
+  kind: PatternRuleKind;
+  description: string;
+  confidence?: PatternRuleConfidence;
+  migrationRelevance?: string;
+  matcher: PatternImportMatcher | PatternContentMatcher;
+}
+
+export interface PatternCatalog {
+  catalogVersion: string;
+  generatedAt: string;
+  rules: PatternRule[];
+}
+
 export interface ComponentCatalog {
   catalogVersion: string;
   generatedAt: string;
@@ -42,6 +83,7 @@ export interface ComponentCatalog {
 let cachedCatalog: ComponentCatalog | null = null;
 let cachedSourceLibraries: Record<string, SourceLibrary> | null = null;
 let cachedHtmlElements: HtmlElementLibrary | null | undefined = undefined;
+let cachedPatternCatalog: PatternCatalog | null = null;
 
 /**
  *
@@ -75,6 +117,15 @@ export function loadSourceLibraries(): Record<string, SourceLibrary> {
 
   cachedSourceLibraries = libraries;
   return libraries;
+}
+
+/** @description Loads migration-relevant pattern scanning rules from the catalog. */
+export function loadPatternCatalog(): PatternCatalog {
+  if (cachedPatternCatalog) return cachedPatternCatalog;
+
+  const catalogPath = path.join(getCatalogPath(), 'patterns.json');
+  cachedPatternCatalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8')) as PatternCatalog;
+  return cachedPatternCatalog;
 }
 
 /** @description Loads native HTML element to OZ component mappings from the catalog. */

@@ -62,6 +62,8 @@ function main(): void {
       const r = results[0];
       const jsonFixtures = r.scores.map((s) => ({
         fixture: s.fixture,
+        split: s.split,
+        tags: s.tags,
         precision: s.precision,
         recall: s.recall,
         f1: s.f1,
@@ -71,23 +73,29 @@ function main(): void {
         matched: s.details.matched,
         missed: s.details.missed,
         extra: s.details.extra,
+        metadata: s.metadata,
       }));
       console.log(JSON.stringify({
         capability: r.capability,
         fixtures: jsonFixtures,
         meanF1: r.aggregate,
+        metadata: r.metadata,
       }));
     } else {
       const summary = results.map((r) => ({
         capability: r.capability,
         aggregate: r.aggregate,
         fixtureCount: r.scores.length,
+        metadata: r.metadata,
         fixtures: r.scores.map((s) => ({
           fixture: s.fixture,
+          split: s.split,
+          tags: s.tags,
           f1: s.f1,
           tp: s.truePositives,
           fp: s.falsePositives,
           fn: s.falseNegatives,
+          metadata: s.metadata,
         })),
       }));
       const overallMean =
@@ -109,6 +117,11 @@ function main(): void {
 
     for (const score of r.scores) {
       console.error(`--- ${score.fixture} ---`);
+      if (score.split || (score.tags && score.tags.length > 0)) {
+        console.error(
+          `  split=${score.split ?? 'n/a'}${score.tags && score.tags.length > 0 ? `  tags=${score.tags.join(',')}` : ''}`
+        );
+      }
       console.error(
         `  F1=${score.f1.toFixed(4)}  P=${score.precision.toFixed(4)}  R=${score.recall.toFixed(4)}  TP=${score.truePositives} FP=${score.falsePositives} FN=${score.falseNegatives}`
       );
@@ -121,6 +134,9 @@ function main(): void {
     }
 
     console.error(`  aggregate=${r.aggregate.toFixed(4)}  (${r.scores.length} fixtures)`);
+    if (r.metadata) {
+      console.error(`  metadata=${JSON.stringify(r.metadata)}`);
+    }
   }
 
   if (results.length === 1) {

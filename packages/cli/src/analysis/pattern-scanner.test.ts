@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { scanPatterns } from './pattern-scanner';
+import { scanCanonicalPatterns, scanPatternObservations, scanPatterns } from './pattern-scanner';
 import type { ScannedFile } from './scanner';
 
 describe('scanPatterns', () => {
@@ -19,6 +19,25 @@ describe('scanPatterns', () => {
     expect(wagmi).toBeDefined();
     expect(wagmi!.count).toBe(1);
     expect(wagmi!.category).toBe('wallet');
+  });
+
+  it('normalizes subpath imports into canonical families', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/config.ts',
+        relativePath: 'src/config.ts',
+        content: [
+          "import { mainnet } from 'wagmi/chains';",
+          "import { createConfig } from '@wagmi/core';",
+          "import { privateKeyToAccount } from 'viem/accounts';",
+        ].join('\n'),
+      },
+    ];
+
+    const patterns = scanCanonicalPatterns(files);
+
+    expect(patterns.find((p) => p.pattern === 'wagmi')?.files).toEqual(['src/config.ts']);
+    expect(patterns.find((p) => p.pattern === 'viem')?.files).toEqual(['src/config.ts']);
   });
 
   it('detects localStorage usage', () => {
@@ -69,5 +88,31 @@ describe('scanPatterns', () => {
 
     const patterns = scanPatterns(files);
     expect(patterns).toHaveLength(0);
+  });
+
+  it('returns rich observations with evidence', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/App.tsx',
+        relativePath: 'src/App.tsx',
+        content: [
+          "import { Button } from '@openzeppelin/ui-components';",
+          "localStorage.setItem('key', 'value');",
+        ].join('\n'),
+      },
+    ];
+
+    const observations = scanPatternObservations(files);
+    const ozObservation = observations.find(
+      (observation) => observation.pattern === 'oz-ui-components'
+    );
+    const storageObservation = observations.find(
+      (observation) => observation.pattern === 'localStorage'
+    );
+
+    expect(observations).toHaveLength(2);
+    expect(ozObservation?.evidences[0]?.snippet).toContain('@openzeppelin/ui-components');
+    expect(storageObservation?.evidences[0]?.matchedValue).toContain('localStorage.setItem');
+    expect(storageObservation?.migrationRelevance).toBeTruthy();
   });
 });

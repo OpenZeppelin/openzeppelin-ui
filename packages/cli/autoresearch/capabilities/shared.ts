@@ -15,6 +15,8 @@ export const EXPECTED_DIR = path.join(AUTORESEARCH_DIR, 'expected');
 
 export interface FixtureScore {
   fixture: string;
+  split?: string;
+  tags?: string[];
   precision: number;
   recall: number;
   f1: number;
@@ -26,12 +28,14 @@ export interface FixtureScore {
     missed: string[];
     extra: string[];
   };
+  metadata?: Record<string, unknown>;
 }
 
 export interface EvaluationResult {
   capability: string;
   scores: FixtureScore[];
   aggregate: number;
+  metadata?: Record<string, unknown>;
 }
 
 export interface CapabilityEvaluator {
