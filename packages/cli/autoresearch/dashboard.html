@@ -14,7 +14,13 @@
       --text: #e1e4ed;
       --text-muted: #8b90a0;
       --text-dim: #5d6175;
-      --accent: #6366f1;
+      /* UI accent — muted green (links, badges, primary actions) */
+      --accent: #5dae7a;
+      --accent-soft: #8fd4a4;
+      --accent-softer: #b8e8c9;
+      --accent-faint: rgba(93, 174, 122, 0.14);
+      --accent-faint-mid: rgba(93, 174, 122, 0.18);
+      --accent-faint-strong: rgba(93, 174, 122, 0.24);
       --green: #22c55e;
       --green-bg: rgba(34, 197, 94, 0.12);
       --orange: #f97316;
@@ -28,11 +34,15 @@
       --radius: 10px;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html {
+      overflow-x: clip;
+    }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
+      overflow-x: clip;
     }
 
     [data-tip] { position: relative; cursor: help; }
@@ -52,6 +62,19 @@
     [data-tip]:hover::before, [data-tip]:hover::after { opacity: 1; }
     [data-tip-right]::before { left: 0; transform: none; }
     [data-tip-right]::after { left: 16px; transform: none; }
+    /* Right-aligned chips: anchor tooltip to the chip’s right edge so it grows left into the viewport
+       (data-tip-right + left:0 would extend off-screen and widen the document). */
+    .fixture-metric-chip[data-tip]::before {
+      left: auto;
+      right: 0;
+      transform: none;
+      max-width: min(320px, calc(100vw - 24px));
+    }
+    .fixture-metric-chip[data-tip]::after {
+      left: auto;
+      right: 10px;
+      transform: none;
+    }
 
     .info-icon {
       display: inline-flex; align-items: center; justify-content: center;
@@ -84,6 +107,32 @@
 
     .container { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
 
+    .start-autoresearch-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 20px; border-radius: 10px;
+      font-size: 14px; font-weight: 600; letter-spacing: 0.01em; cursor: pointer;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--accent-soft);
+      box-shadow: none;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+    .start-autoresearch-btn:hover {
+      background: var(--accent-faint);
+      border-color: var(--accent-softer);
+      color: #e8e9ef;
+    }
+    .start-autoresearch-btn:active {
+      background: var(--accent-faint-mid);
+      border-color: var(--accent-soft);
+    }
+    .start-autoresearch-btn:focus-visible {
+      outline: 2px solid var(--accent-soft); outline-offset: 3px;
+    }
+    .start-autoresearch-btn--compact {
+      padding: 7px 14px; font-size: 12px; border-radius: 8px;
+    }
+
     .refresh-btn {
       background: var(--border); border: 1px solid var(--border); color: var(--text-muted);
       padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 500;
@@ -115,7 +164,7 @@
       text-transform: uppercase;
     }
     .cap-badge.active { background: var(--green-bg); color: var(--green); }
-    .cap-badge.empty { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+    .cap-badge.empty { background: var(--accent-faint-strong); color: var(--accent); }
 
     /* ── Detail View (same as before) ───────────────── */
 
@@ -131,18 +180,170 @@
     .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
     @media (max-width: 1100px) { .panels { grid-template-columns: 1fr; } }
     .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    /* Allow [data-tip] ::before bubbles to escape (default .panel overflow:hidden clips them). */
+    .panel.panel--overflow-visible { overflow: visible; }
     .panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-    .panel-header-left { display: flex; align-items: center; gap: 8px; }
-    .panel-header .badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 12px; background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+    .panel-header-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .panel-header-right { display: flex; align-items: center; gap: 12px; margin-left: auto; flex-shrink: 0; }
+    .panel-header .badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 12px; background: var(--accent-faint-strong); color: var(--accent); }
+    .panel-header .badge.badge-evaluating { background: var(--accent-faint-strong); color: var(--accent-soft); }
+    .panel-header .badge.badge-ready { background: var(--green-bg); color: var(--green); }
+    .panel-header .badge.badge-error { background: var(--red-bg); color: var(--red); }
+    .panel-header .badge.badge-idle { background: rgba(93, 97, 117, 0.2); color: var(--text-muted); }
     .panel-body { padding: 20px; }
     .chart-container { position: relative; height: 300px; }
+
+    .chart-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+    .chart-legend-row {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 12px 20px;
+      align-items: start;
+    }
+    @media (max-width: 640px) {
+      .chart-legend-row { grid-template-columns: 1fr; gap: 6px; }
+      .chart-legend-label { padding-top: 0; }
+    }
+    .chart-legend-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      padding-top: 3px;
+    }
+    .chart-legend-text { margin: 0; }
+    .chart-legend-markers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 24px;
+      align-items: center;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .chart-legend-markers li {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-muted);
+    }
+    .chart-swatch {
+      flex-shrink: 0;
+      width: 12px;
+      height: 12px;
+    }
+    .chart-swatch--keep {
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px rgba(34, 197, 94, 0.35);
+    }
+    .chart-swatch--discard {
+      position: relative;
+      width: 14px;
+      height: 14px;
+      background: transparent;
+    }
+    .chart-swatch--discard::before,
+    .chart-swatch--discard::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 16px;
+      height: 2px;
+      border-radius: 1px;
+      background: var(--red);
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+    .chart-swatch--discard::after {
+      transform: translate(-50%, -50%) rotate(-45deg);
+    }
+    .chart-swatch--crash {
+      width: 14px;
+      height: 12px;
+      background: var(--red);
+      clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+      border-radius: 0;
+    }
+    .chart-legend-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .chart-legend-line-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .chart-line-sample {
+      flex-shrink: 0;
+      width: 28px;
+      height: 0;
+      border-top: 2px solid var(--text-muted);
+      opacity: 0.65;
+    }
+    .chart-line-sample--dashed {
+      border-top-style: dashed;
+      border-color: rgba(34, 197, 94, 0.75);
+      opacity: 1;
+    }
 
     .fixture-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
     .fixture-header .last-eval { font-size: 11px; color: var(--text-dim); }
     .fixture-grid { display: flex; flex-direction: column; gap: 12px; }
-    .fixture-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg); border-radius: 8px; transition: background 0.15s; }
+    .fixture-row {
+      display: flex; flex-direction: column; align-items: stretch; gap: 8px;
+      padding: 12px 16px; background: var(--bg); border-radius: 8px; transition: background 0.15s;
+    }
     .fixture-row:hover { background: var(--surface-hover); }
-    .fixture-name { font-size: 13px; font-weight: 600; min-width: 120px; }
+    .fixture-row-main { display: flex; align-items: center; gap: 12px; width: 100%; min-width: 0; }
+    .fixture-name {
+      font-size: 13px; font-weight: 600; min-width: 120px; max-width: 200px; flex-shrink: 0;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .fixture-local-path {
+      width: 100%; box-sizing: border-box; margin: 0; padding: 0;
+      font-size: 10px; line-height: 1.45; color: var(--text-dim);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      overflow-wrap: anywhere; word-break: break-all; white-space: normal;
+    }
+    .fixture-repo-cell {
+      width: 36px; min-width: 36px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .fixture-repo-icon,
+    .fixture-detail-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 8px;
+      color: var(--text-muted); border: 1px solid transparent;
+      transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+    .fixture-repo-icon { text-decoration: none; }
+    .fixture-detail-btn {
+      padding: 0; margin: 0; cursor: pointer; font-family: inherit;
+      background: transparent; appearance: none; -webkit-appearance: none;
+    }
+    .fixture-repo-icon:hover,
+    .fixture-detail-btn:hover { color: var(--text); background: var(--surface-hover); border-color: var(--border); }
+    .fixture-repo-icon:focus-visible,
+    .fixture-detail-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .fixture-repo-icon-svg,
+    .fixture-detail-btn-svg { width: 18px; height: 18px; display: block; }
+    .fixture-repo-placeholder { display: block; width: 32px; height: 32px; flex-shrink: 0; }
     .fixture-bar-container { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
     .fixture-bar { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
     .fixture-score { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; min-width: 60px; text-align: right; }
@@ -151,6 +352,105 @@
     .fixture-metric-chip.tp { background: var(--green-bg); color: var(--green); }
     .fixture-metric-chip.fp { background: var(--red-bg); color: var(--red); }
     .fixture-metric-chip.fn { background: var(--orange-bg); color: var(--orange); }
+    .fixture-detail-cell {
+      width: 36px; min-width: 36px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .fxd-summary { font-size: 12px; line-height: 1.55; color: var(--text-muted); margin: 0 0 14px; }
+    .fxd-metrics {
+      display: flex; flex-wrap: wrap; gap: 10px 18px; font-variant-numeric: tabular-nums;
+      font-size: 12px; margin-bottom: 18px; color: var(--text-muted);
+    }
+    .fxd-section { margin-bottom: 18px; }
+    .fxd-section:last-child { margin-bottom: 0; }
+    .fxd-h {
+      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+      color: var(--text-dim); margin: 0 0 6px;
+    }
+    .fxd-desc { font-size: 12px; color: var(--text-muted); margin: 0 0 8px; line-height: 1.45; }
+    .fxd-ul { margin: 0; padding-left: 18px; color: var(--text); font-size: 12px; line-height: 1.55; }
+    .fxd-ul li { margin-bottom: 4px; }
+    .fxd-ul code { font-size: 11px; background: var(--bg); padding: 2px 5px; border-radius: 4px; word-break: break-all; }
+    .fxd-empty { font-size: 12px; color: var(--text-dim); font-style: italic; margin: 0; }
+
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 2000;
+      background: rgba(8, 9, 12, 0.72); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center; padding: 24px;
+    }
+    .modal-overlay.is-open { display: flex; }
+    .modal-dialog {
+      width: min(720px, 100%); max-height: min(92vh, 900px); overflow: hidden;
+      display: flex; flex-direction: column;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      box-shadow: 0 24px 48px rgba(0,0,0,0.45);
+    }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+    }
+    .modal-header h2 { font-size: 16px; font-weight: 600; margin: 0; }
+    .modal-close {
+      background: transparent; border: none; color: var(--text-muted);
+      font-size: 22px; line-height: 1; cursor: pointer; padding: 4px 8px; border-radius: 6px;
+    }
+    .modal-close:hover { color: var(--text); background: var(--surface-hover); }
+    .modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 14px; }
+    .modal-intro { font-size: 12px; line-height: 1.5; color: var(--text-muted); margin: 0; }
+    .aff-form { display: grid; gap: 10px; }
+    /* `hidden` alone can lose to `.aff-form { display: grid }` (same specificity, author order). */
+    #sap-capability-field[hidden] {
+      display: none !important;
+    }
+    .aff-field { display: flex; flex-direction: column; gap: 4px; }
+    .aff-field label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim); }
+    .aff-field input, .aff-field select, .aff-field textarea {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+      color: var(--text); font-size: 13px; padding: 8px 10px; font-family: inherit;
+    }
+    /* Native macOS select ignores extra padding-right for the system chevron; draw our own. */
+    #sap-capability,
+    #aff-type {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      padding: 8px 2.75rem 8px 10px;
+      background-color: var(--bg);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238b90a0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.7rem center;
+      background-size: 16px 16px;
+      cursor: pointer;
+    }
+    .aff-field textarea { min-height: 56px; resize: vertical; }
+    .aff-caps { display: flex; flex-wrap: wrap; gap: 10px 16px; }
+    .aff-caps label { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: none; letter-spacing: normal; cursor: pointer; }
+    .aff-caps input { accent-color: var(--accent); }
+    .aff-prompt-wrap { display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; }
+    .aff-prompt-wrap label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim); }
+    #aff-prompt, #sap-prompt {
+      width: 100%; flex: 1; min-height: 220px; box-sizing: border-box;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text-muted); font-size: 12px; line-height: 1.5; padding: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      resize: vertical;
+    }
+    #sap-prompt { min-height: 200px; }
+    .modal-footer {
+      display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end;
+      padding: 14px 20px; border-top: 1px solid var(--border); background: rgba(15,17,23,0.35);
+    }
+    .modal-footer .btn-primary {
+      background: var(--accent); color: #fff; border: none; font-weight: 600; font-size: 13px;
+      padding: 8px 16px; border-radius: 8px; cursor: pointer;
+    }
+    .modal-footer .btn-primary:hover { filter: brightness(1.08); }
+    .modal-footer .btn-secondary {
+      background: var(--border); color: var(--text); border: 1px solid var(--border);
+      font-weight: 500; font-size: 13px; padding: 8px 14px; border-radius: 8px; cursor: pointer;
+    }
+    .modal-footer .btn-secondary:hover { background: var(--surface-hover); }
 
     .table-panel { grid-column: 1 / -1; }
     .table-scroll { max-height: 400px; overflow-y: auto; }
@@ -196,7 +496,10 @@
         <h2 style="font-size:18px;font-weight:600;margin-bottom:4px">Capability Scorecard</h2>
         <p style="font-size:13px;color:var(--text-muted)">7 capabilities across the full migrate-to-oz-uikit system</p>
       </div>
-      <button class="refresh-btn" id="overview-refresh-btn" onclick="refreshOverview()">&#x21bb; Refresh All</button>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button type="button" class="start-autoresearch-btn" onclick="openStartAgentModal()">Start autoresearch</button>
+        <button type="button" class="refresh-btn" id="overview-refresh-btn" onclick="refreshOverview()">&#x21bb; Refresh All</button>
+      </div>
     </div>
     <div class="overview-grid" id="overview-grid">
       <div class="empty-state"><p>Loading capabilities...</p></div>
@@ -232,20 +535,53 @@
       <div class="panel">
         <div class="panel-header">
           <div class="panel-header-left">Experiment Progress</div>
-          <span class="badge" id="chart-badge">-</span>
+          <div class="panel-header-right">
+            <span class="badge" id="chart-badge">-</span>
+            <button type="button" class="start-autoresearch-btn start-autoresearch-btn--compact" onclick="openStartAgentModal()">Start autoresearch</button>
+          </div>
         </div>
         <div class="panel-body">
+          <div class="chart-legend" aria-label="Chart legend">
+            <div class="chart-legend-row">
+              <span class="chart-legend-label">Trajectory</span>
+              <p class="chart-legend-text">
+                Solid gray line connects every experiment in time order (each vertex is one run).
+              </p>
+            </div>
+            <div class="chart-legend-row">
+              <span class="chart-legend-label">Markers</span>
+              <ul class="chart-legend-markers">
+                <li><span class="chart-swatch chart-swatch--keep" aria-hidden="true"></span> Kept</li>
+                <li><span class="chart-swatch chart-swatch--discard" aria-hidden="true"></span> Discarded</li>
+                <li><span class="chart-swatch chart-swatch--crash" aria-hidden="true"></span> Crashed</li>
+              </ul>
+            </div>
+            <div class="chart-legend-row">
+              <span class="chart-legend-label">Lines</span>
+              <div class="chart-legend-lines">
+                <div class="chart-legend-line-item">
+                  <span class="chart-line-sample chart-line-sample--dashed" aria-hidden="true"></span>
+                  <span><strong>Best kept so far</strong> — dashed green; best score among <strong>kept</strong> runs only. Steps up when a new keep beats the previous best.</span>
+                </div>
+                <div class="chart-legend-line-item">
+                  <span class="chart-line-sample" aria-hidden="true"></span>
+                  <span><strong>Score each run</strong> — solid gray path through all scores.</span>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="chart-container"><canvas id="progress-chart"></canvas></div>
         </div>
       </div>
 
-      <div class="panel">
+      <div class="panel panel--overflow-visible">
         <div class="panel-header">
           <div class="panel-header-left">
             Per-Fixture Breakdown
-            <button class="refresh-btn" onclick="refreshDetail()" style="font-size:11px;padding:2px 8px">&#x21bb; Re-evaluate</button>
+            <button type="button" class="refresh-btn" onclick="refreshDetail()" style="font-size:11px;padding:2px 8px">&#x21bb; Re-evaluate</button>
+            <button type="button" class="refresh-btn" onclick="openAddFixtureModal()" style="font-size:11px;padding:2px 8px">+ Add fixture</button>
           </div>
-          <span class="badge" id="fixture-badge">live</span>
+          <span class="badge badge-idle" id="fixture-badge">Pending</span>
         </div>
         <div class="panel-body">
           <div class="fixture-header" id="fixture-header" style="display:none">
@@ -280,6 +616,123 @@
 
   <div class="footer">Autoresearch — Karpathy-style autonomous improvement loop</div>
 
+  <div id="start-agent-modal" class="modal-overlay" aria-hidden="true" onclick="if(event.target===this)closeStartAgentModal()">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="start-agent-title" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 id="start-agent-title">Start autoresearch in an LLM</h2>
+        <button type="button" class="modal-close" onclick="closeStartAgentModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body" id="start-agent-body" onchange="scheduleStartAgentPromptSync()">
+        <p class="modal-intro" id="sap-intro-with-picker">
+          Same starter text as <code>packages/cli/autoresearch/README.md</code> (§ “Start an agent”). Pick the capability, then copy the prompt into a new agent chat. Working directory for the agent should be <code>packages/cli</code> inside this monorepo.
+        </p>
+        <p class="modal-intro" id="sap-intro-locked" hidden>
+          Same starter text as <code>packages/cli/autoresearch/README.md</code> (§ “Start an agent”). You opened this from the <strong id="sap-locked-cap-label">detection</strong> capability page — the prompt below uses that program only. Copy it into a new agent chat. Working directory for the agent should be <code>packages/cli</code> inside this monorepo.
+        </p>
+        <div class="aff-form" id="sap-capability-field">
+          <div class="aff-field">
+            <label for="sap-capability">Capability</label>
+            <select id="sap-capability">
+              <option value="detection">Detection — program-detection.md</option>
+              <option value="patterns">Patterns — program-patterns.md</option>
+              <option value="planning">Planning — program-planning.md</option>
+              <option value="init">Init — program-init.md</option>
+              <option value="execution">Execution — program-execution.md</option>
+              <option value="verification">Verification — program-verification.md</option>
+              <option value="orchestration">Orchestration — program-orchestration.md</option>
+            </select>
+          </div>
+        </div>
+        <div class="aff-prompt-wrap">
+          <label for="sap-prompt">Prompt to paste</label>
+          <textarea id="sap-prompt" readonly spellcheck="false"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="syncStartAgentPrompt()">Regenerate prompt</button>
+        <button type="button" class="btn-primary" id="sap-copy-btn" onclick="copyStartAgentPrompt()">Copy prompt</button>
+        <button type="button" class="btn-secondary" onclick="closeStartAgentModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="add-fixture-modal" class="modal-overlay" aria-hidden="true" onclick="if(event.target===this)closeAddFixtureModal()">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="add-fixture-title" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 id="add-fixture-title">Add a new fixture</h2>
+        <button type="button" class="modal-close" onclick="closeAddFixtureModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body" id="add-fixture-body" oninput="scheduleAffPromptSync()" onchange="scheduleAffPromptSync()">
+        <p class="modal-intro">
+          Fill in what you already know, then copy the prompt into your coding agent. The agent should edit the repo — this dashboard does not write files.
+        </p>
+        <div class="aff-form">
+          <div class="aff-field">
+            <label for="aff-type">Fixture type</label>
+            <select id="aff-type">
+              <option value="external">External (real repo — manifest + sibling or fetch)</option>
+              <option value="synthetic">Synthetic (committed under fixtures/)</option>
+            </select>
+          </div>
+          <div class="aff-field">
+            <label for="aff-name">Short name (slug, e.g. <code>my-app</code>)</label>
+            <input id="aff-name" type="text" placeholder="my-app" autocomplete="off" />
+          </div>
+          <div class="aff-field aff-external-only">
+            <label for="aff-repo">Git repository URL</label>
+            <input id="aff-repo" type="url" placeholder="https://github.com/org/repo" autocomplete="off" />
+          </div>
+          <div class="aff-field aff-external-only">
+            <label for="aff-sibling">Sibling directory name (next to monorepo root)</label>
+            <input id="aff-sibling" type="text" placeholder="repo" autocomplete="off" />
+          </div>
+          <div class="aff-field aff-external-only">
+            <label for="aff-subpath">Optional subpath inside repo (e.g. <code>apps/web</code>)</label>
+            <input id="aff-subpath" type="text" placeholder="" autocomplete="off" />
+          </div>
+          <div class="aff-field">
+            <label for="aff-description">Notes for the agent</label>
+            <textarea id="aff-description" placeholder="Why this fixture exists, what it should stress-test…"></textarea>
+          </div>
+          <div class="aff-field">
+            <label>Capabilities to support (expected JSON must exist per capability you check)</label>
+            <div class="aff-caps" id="aff-caps">
+              <label><input type="checkbox" name="aff-cap" value="detection" checked /> detection</label>
+              <label><input type="checkbox" name="aff-cap" value="patterns" checked /> patterns</label>
+              <label><input type="checkbox" name="aff-cap" value="planning" checked /> planning</label>
+              <label><input type="checkbox" name="aff-cap" value="init" checked /> init</label>
+              <label><input type="checkbox" name="aff-cap" value="execution" checked /> execution</label>
+              <label><input type="checkbox" name="aff-cap" value="verification" checked /> verification</label>
+              <label><input type="checkbox" name="aff-cap" value="orchestration" checked /> orchestration</label>
+            </div>
+          </div>
+        </div>
+        <div class="aff-prompt-wrap">
+          <label for="aff-prompt">Prompt to paste into an LLM</label>
+          <textarea id="aff-prompt" readonly spellcheck="false"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="syncAddFixturePrompt()">Regenerate prompt</button>
+        <button type="button" class="btn-primary" id="aff-copy-btn" onclick="copyAddFixturePrompt()">Copy prompt</button>
+        <button type="button" class="btn-secondary" onclick="closeAddFixtureModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="fixture-detail-modal" class="modal-overlay" aria-hidden="true" onclick="if(event.target===this)closeFixtureDetailModal()">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="fixture-detail-title" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 id="fixture-detail-title">Fixture</h2>
+        <button type="button" class="modal-close" onclick="closeFixtureDetailModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body" id="fixture-detail-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeFixtureDetailModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const CAP_DESCRIPTIONS = {
       detection: 'Component detection — identifies UI components and maps to OZ equivalents',
@@ -293,7 +746,14 @@
 
     let chart = null;
     let currentCapability = null;
-    let detailState = { lastMtime: 0, lastRowCount: 0, lastEvalTime: null, lastLiveF1: null, isEvaluating: false };
+    let detailState = {
+      lastMtime: 0,
+      lastRowCount: 0,
+      lastEvalTime: null,
+      lastLiveF1: null,
+      isEvaluating: false,
+      evalFixtures: null,
+    };
 
     function getRoute() {
       const path = window.location.pathname;
@@ -336,10 +796,18 @@
       document.getElementById('breadcrumb').innerHTML =
         `<span class="breadcrumb"><span class="sep">/</span><a href="/" onclick="event.preventDefault();navigate(null)">overview</a><span class="sep">/</span><span>${cap}</span></span>`;
 
-      detailState = { lastMtime: 0, lastRowCount: 0, lastEvalTime: null, lastLiveF1: null, isEvaluating: false };
+      detailState = {
+        lastMtime: 0,
+        lastRowCount: 0,
+        lastEvalTime: null,
+        lastLiveF1: null,
+        isEvaluating: false,
+        evalFixtures: null,
+      };
 
       if (chart) { chart.destroy(); chart = null; }
       initChart();
+      setFixtureBadge('evaluating');
       await fetchDetailResults(cap);
       await fetchDetailEvaluation(cap);
     }
@@ -391,24 +859,72 @@
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
       chart = new Chart(ctx, {
-        type: 'scatter',
+        type: 'line',
         data: {
           datasets: [
-            { label: 'keep', data: [], backgroundColor: 'rgba(34,197,94,0.8)', borderColor: 'rgba(34,197,94,1)', pointRadius: 5, pointHoverRadius: 7, order: 1 },
-            { label: 'discard', data: [], backgroundColor: 'rgba(249,115,22,0.7)', borderColor: 'rgba(249,115,22,1)', pointStyle: 'crossRot', pointRadius: 5, order: 2 },
-            { label: 'crash', data: [], backgroundColor: 'rgba(239,68,68,0.7)', borderColor: 'rgba(239,68,68,1)', pointStyle: 'triangle', pointRadius: 5, order: 3 },
-            { label: 'running max', data: [], type: 'line', borderColor: 'rgba(34,197,94,0.5)', backgroundColor: 'rgba(34,197,94,0.05)', borderWidth: 2, fill: true, pointRadius: 0, stepped: 'after', order: 0 },
+            {
+              label: 'Best kept so far',
+              data: [],
+              stepped: 'after',
+              borderColor: 'rgba(34,197,94,0.65)',
+              backgroundColor: 'transparent',
+              borderWidth: 2,
+              borderDash: [6, 4],
+              fill: false,
+              pointRadius: 0,
+              pointHoverRadius: 0,
+              tension: 0,
+              order: 0,
+            },
+            {
+              label: 'Score each run',
+              data: [],
+              borderColor: 'rgba(139,144,160,0.55)',
+              backgroundColor: 'transparent',
+              borderWidth: 1.5,
+              fill: false,
+              tension: 0,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              pointBorderWidth: 2,
+              order: 1,
+            },
           ],
         },
         options: {
           responsive: true, maintainAspectRatio: false, animation: { duration: 400 },
+          interaction: { mode: 'nearest', intersect: false, axis: 'x' },
           scales: {
-            x: { title: { display: true, text: 'Experiment #', color: '#8b90a0' }, grid: { color: 'rgba(42,46,61,0.5)' }, ticks: { color: '#8b90a0' } },
-            y: { title: { display: true, text: 'Score', color: '#8b90a0' }, min: 0, max: 1.05, grid: { color: 'rgba(42,46,61,0.5)' }, ticks: { color: '#8b90a0' } },
+            x: {
+              type: 'linear',
+              title: { display: true, text: 'Experiment #', color: '#8b90a0' },
+              grid: { color: 'rgba(42,46,61,0.5)' },
+              ticks: { color: '#8b90a0' },
+            },
+            y: {
+              title: { display: true, text: 'Score', color: '#8b90a0' },
+              min: 0,
+              suggestedMax: 1.05,
+              grid: { color: 'rgba(42,46,61,0.5)' },
+              ticks: { color: '#8b90a0' },
+            },
           },
           plugins: {
-            legend: { labels: { color: '#8b90a0', usePointStyle: true, padding: 16 } },
-            tooltip: { callbacks: { label: (ctx) => ctx.dataset.label === 'running max' ? '' : `#${ctx.parsed.x} — ${ctx.parsed.y.toFixed(6)}` } },
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label(ctx) {
+                  const y = ctx.parsed.y;
+                  if (y == null) return '';
+                  if (ctx.datasetIndex === 0) {
+                    return `Best kept to date: ${y.toFixed(4)}`;
+                  }
+                  const meta = chart.$trailMeta && chart.$trailMeta[ctx.dataIndex];
+                  const status = meta ? meta.status : '';
+                  return [`#${ctx.parsed.x} — ${y.toFixed(4)}`, status ? `Outcome: ${status}` : ''];
+                },
+              },
+            },
           },
         },
       });
@@ -416,18 +932,46 @@
 
     function updateChart(rows) {
       if (!chart || rows.length === 0) return;
-      const keep = [], discard = [], crash = [], runMax = [];
+      const sorted = [...rows].sort((a, b) => a.experiment - b.experiment);
+      chart.$trailMeta = sorted.map((r) => ({ status: r.status }));
+
+      const trajectory = sorted.map((r) => ({ x: r.experiment, y: r.meanF1 }));
+      const green = 'rgba(34,197,94,1)';
+      const red = 'rgba(239,68,68,1)';
+      const redFill = 'rgba(239,68,68,0.92)';
+      const pointBg = sorted.map((r) =>
+        r.status === 'keep' ? green : redFill,
+      );
+      // crossRot / triangle are stroked with pointBorderColor; a global dark border made ✕/▲ look gray
+      const pointBorder = sorted.map((r) =>
+        r.status === 'keep' ? '#0f1117' : red,
+      );
+      const pointBorderWidth = sorted.map((r) =>
+        r.status === 'discard' || r.status === 'crash' ? 2.5 : 2,
+      );
+      const pointStyle = sorted.map((r) =>
+        r.status === 'discard' ? 'crossRot' : r.status === 'crash' ? 'triangle' : 'circle',
+      );
+
       let best = 0;
-      for (const r of rows) {
-        const p = { x: r.experiment, y: r.meanF1 };
-        if (r.status === 'keep') { keep.push(p); best = Math.max(best, r.meanF1); runMax.push({ x: r.experiment, y: best }); }
-        else if (r.status === 'discard') discard.push(p);
-        else crash.push(p);
+      const runMax = [];
+      for (const r of sorted) {
+        if (r.status === 'keep') {
+          best = Math.max(best, r.meanF1);
+          runMax.push({ x: r.experiment, y: best });
+        }
       }
-      chart.data.datasets[0].data = keep;
-      chart.data.datasets[1].data = discard;
-      chart.data.datasets[2].data = crash;
-      chart.data.datasets[3].data = runMax;
+
+      const ds0 = chart.data.datasets[0];
+      const ds1 = chart.data.datasets[1];
+      ds0.data = runMax;
+      ds1.data = trajectory;
+      ds1.pointBackgroundColor = pointBg;
+      ds1.pointBorderColor = pointBorder;
+      ds1.pointBorderWidth = pointBorderWidth;
+      ds1.pointHoverBackgroundColor = pointBg;
+      ds1.pointHoverBorderColor = pointBorder;
+      ds1.pointStyle = pointStyle;
       chart.update();
     }
 
@@ -487,37 +1031,182 @@
       }).join('');
     }
 
+    function setFixtureBadge(kind, customText) {
+      const el = document.getElementById('fixture-badge');
+      if (!el) return;
+      el.className = 'badge';
+      if (kind === 'evaluating') {
+        el.textContent = 'Evaluating…';
+        el.classList.add('badge-evaluating');
+      } else if (kind === 'ready') {
+        el.textContent = 'Updated';
+        el.classList.add('badge-ready');
+      } else if (kind === 'error') {
+        el.textContent = 'Error';
+        el.classList.add('badge-error');
+      } else {
+        el.textContent = customText || 'Pending';
+        el.classList.add('badge-idle');
+      }
+    }
+
     function updateFixtures(evalData) {
       const grid = document.getElementById('fixture-grid');
       const header = document.getElementById('fixture-header');
 
-      if (evalData.error) { grid.innerHTML = `<div class="empty-state" style="padding:20px"><p style="color:var(--red)">${esc(evalData.error).substring(0, 200)}</p></div>`; return; }
-      if (!evalData || !evalData.fixtures || evalData.fixtures.length === 0) { grid.innerHTML = '<div class="empty-state"><p>No fixtures found for this capability.</p></div>'; return; }
+      if (evalData.error) {
+        detailState.evalFixtures = null;
+        setFixtureBadge('error');
+        grid.innerHTML = `<div class="empty-state" style="padding:20px"><p style="color:var(--red)">${esc(evalData.error).substring(0, 200)}</p></div>`;
+        return;
+      }
+      if (!evalData || !evalData.fixtures || evalData.fixtures.length === 0) {
+        detailState.evalFixtures = null;
+        setFixtureBadge('idle', 'No fixtures');
+        grid.innerHTML = '<div class="empty-state"><p>No fixtures found for this capability.</p></div>';
+        return;
+      }
 
       detailState.lastEvalTime = new Date();
       detailState.lastLiveF1 = evalData.meanF1;
       header.style.display = 'flex';
-      document.getElementById('last-eval-time').textContent = `Last evaluated: ${detailState.lastEvalTime.toLocaleTimeString()}`;
+      document.getElementById('last-eval-time').textContent = `Last evaluated: ${detailState.lastEvalTime.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'medium' })}`;
 
       const el = document.getElementById('stat-current');
       el.textContent = evalData.meanF1.toFixed(4);
       el.style.color = getBarColor(evalData.meanF1);
       document.getElementById('stat-current-sub').textContent = `${getScoreLabel(evalData.meanF1)} · ${evalData.fixtures.length} fixtures`;
 
-      grid.innerHTML = evalData.fixtures.map(f => {
+      const githubIconSvg =
+        '<svg class="fixture-repo-icon-svg" viewBox="0 0 16 16" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">' +
+        '<path fill="currentColor" fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>' +
+        '</svg>';
+
+      const metricTipTp = escAttr(
+        'True positives: items that appear in both the golden (expected) set and what the evaluator got from this fixture. Larger means more correct matches.'
+      );
+      const metricTipFp = escAttr(
+        'False positives: items the run reported that are not in the golden set (extras or spurious). They hurt precision; lower is better.'
+      );
+      const metricTipFn = escAttr(
+        'False negatives: golden items the run did not produce (missed). They hurt recall; lower is better.'
+      );
+
+      detailState.evalFixtures = evalData.fixtures;
+
+      const fixtureDetailIconSvg =
+        '<svg class="fixture-detail-btn-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">' +
+        '<path fill="currentColor" d="M5.5 6.25a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5zm0 4.5a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5zm0 4.5a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5z"/>' +
+        '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M10.5 7.25h9m-9 5h9m-9 5h7"/>' +
+        '</svg>';
+
+      grid.innerHTML = evalData.fixtures.map((f, i) => {
         const pct = (f.f1 * 100).toFixed(0);
         const color = getBarColor(f.f1);
+        const repoHref = safeHttpUrl(f.repoUrl);
+        const label = `Open ${f.fixture} repository on GitHub`;
+        const repoCell = repoHref
+          ? `<div class="fixture-repo-cell"><a class="fixture-repo-icon" href="${escAttr(repoHref)}" target="_blank" rel="noopener noreferrer" aria-label="${escAttr(label)}" title="Open on GitHub">${githubIconSvg}</a></div>`
+          : '<div class="fixture-repo-cell"><span class="fixture-repo-placeholder" aria-hidden="true"></span></div>';
+        const pathStr = f.localPath && typeof f.localPath === 'string' ? f.localPath : '';
+        const pathLine = pathStr
+          ? `<div class="fixture-local-path" title="${escAttr(pathStr)}">${esc(pathStr)}</div>`
+          : '';
         return `<div class="fixture-row">
-          <div class="fixture-name">${f.fixture}</div>
-          <div class="fixture-bar-container"><div class="fixture-bar" style="width:${pct}%;background:${color}"></div></div>
-          <div class="fixture-score" style="color:${color}">${f.f1.toFixed(4)}</div>
-          <div class="fixture-metrics">
-            <span class="fixture-metric-chip tp" data-tip="True Positives">TP ${f.tp}</span>
-            <span class="fixture-metric-chip fp" data-tip="False Positives">FP ${f.fp}</span>
-            <span class="fixture-metric-chip fn" data-tip="False Negatives">FN ${f.fn}</span>
+          <div class="fixture-row-main">
+            <div class="fixture-name" title="${escAttr(f.fixture)}">${esc(f.fixture)}</div>
+            <div class="fixture-bar-container"><div class="fixture-bar" style="width:${pct}%;background:${color}"></div></div>
+            <div class="fixture-score" style="color:${color}">${f.f1.toFixed(4)}</div>
+            <div class="fixture-metrics">
+              <span class="fixture-metric-chip tp" data-tip="${metricTipTp}" title="${metricTipTp}">TP ${f.tp}</span>
+              <span class="fixture-metric-chip fp" data-tip="${metricTipFp}" title="${metricTipFp}">FP ${f.fp}</span>
+              <span class="fixture-metric-chip fn" data-tip="${metricTipFn}" title="${metricTipFn}">FN ${f.fn}</span>
+            </div>
+            <div class="fixture-detail-cell">
+              <button type="button" class="fixture-detail-btn" onclick="openFixtureDetailModal(${i})" aria-label="Evaluation breakdown" title="Evaluation breakdown">${fixtureDetailIconSvg}</button>
+            </div>
+            ${repoCell}
           </div>
+          ${pathLine}
         </div>`;
       }).join('');
+      setFixtureBadge('ready');
+    }
+
+    function asEvalStringList(v) {
+      if (!Array.isArray(v)) return [];
+      return v.map((x) => String(x)).filter((s) => s.length > 0);
+    }
+
+    function renderFixtureDetailSection(title, desc, items) {
+      const list =
+        items.length > 0
+          ? `<ul class="fxd-ul">${items.map((x) => `<li><code>${esc(x)}</code></li>`).join('')}</ul>`
+          : `<p class="fxd-empty">None — nothing listed for this category.</p>`;
+      return `<section class="fxd-section"><h3 class="fxd-h">${esc(title)}</h3><p class="fxd-desc">${esc(desc)}</p>${list}</section>`;
+    }
+
+    function renderFixtureDetailSections(f) {
+      return (
+        renderFixtureDetailSection(
+          'Matched (true positives)',
+          'Present in both the golden expected set and the evaluator output for this capability.',
+          asEvalStringList(f.matched)
+        ) +
+        renderFixtureDetailSection(
+          'Missed (false negatives)',
+          'Expected for this fixture but absent from the evaluator output.',
+          asEvalStringList(f.missed)
+        ) +
+        renderFixtureDetailSection(
+          'Extra (false positives)',
+          'Returned by the evaluator but not in the golden expected set.',
+          asEvalStringList(f.extra)
+        )
+      );
+    }
+
+    function openFixtureDetailModal(index) {
+      closeStartAgentModal();
+      closeAddFixtureModal();
+      const list = detailState.evalFixtures;
+      if (!Array.isArray(list) || index < 0 || index >= list.length) return;
+      const f = list[index];
+      const name = typeof f.fixture === 'string' ? f.fixture : '(unknown)';
+      const cap = currentCapability || 'this capability';
+      const p =
+        typeof f.precision === 'number' && !Number.isNaN(f.precision) ? f.precision.toFixed(4) : '—';
+      const r = typeof f.recall === 'number' && !Number.isNaN(f.recall) ? f.recall.toFixed(4) : '—';
+      const f1 = typeof f.f1 === 'number' && !Number.isNaN(f.f1) ? f.f1.toFixed(4) : '—';
+      const tp = f.tp != null && f.tp !== '' ? String(f.tp) : '—';
+      const fp = f.fp != null && f.fp !== '' ? String(f.fp) : '—';
+      const fn = f.fn != null && f.fn !== '' ? String(f.fn) : '—';
+
+      document.getElementById('fixture-detail-title').textContent = name;
+      document.getElementById('fixture-detail-body').innerHTML =
+        `<p class="fxd-summary">Latest <strong>${esc(cap)}</strong> evaluation. F1 is low when there are missed items, extras, or both (see lists below). Some capabilities use the same labels for slightly different checks — the lists are always the source of truth.</p>` +
+        `<div class="fxd-metrics"><span>Precision <strong>${esc(p)}</strong></span><span>Recall <strong>${esc(r)}</strong></span><span>F1 <strong>${esc(f1)}</strong></span><span>TP <strong>${esc(tp)}</strong></span><span>FP <strong>${esc(fp)}</strong></span><span>FN <strong>${esc(fn)}</strong></span></div>` +
+        renderFixtureDetailSections(f);
+
+      const m = document.getElementById('fixture-detail-modal');
+      if (!m) return;
+      m.classList.add('is-open');
+      m.setAttribute('aria-hidden', 'false');
+      document.addEventListener('keydown', onFixtureDetailModalKeydown);
+      document.body.style.overflow = 'hidden';
+    }
+
+    function onFixtureDetailModalKeydown(e) {
+      if (e.key === 'Escape') closeFixtureDetailModal();
+    }
+
+    function closeFixtureDetailModal() {
+      const m = document.getElementById('fixture-detail-modal');
+      if (!m) return;
+      m.classList.remove('is-open');
+      m.setAttribute('aria-hidden', 'true');
+      document.removeEventListener('keydown', onFixtureDetailModalKeydown);
+      document.body.style.overflow = '';
     }
 
     async function fetchDetailResults(cap) {
@@ -537,12 +1226,17 @@
     async function fetchDetailEvaluation(cap) {
       if (detailState.isEvaluating) return;
       detailState.isEvaluating = true;
+      setFixtureBadge('evaluating');
       try {
         const res = await fetch('/api/evaluate/' + cap);
         const data = await res.json();
         updateFixtures(data);
-      } catch (e) { console.error('Failed to fetch evaluation:', e); }
-      finally { detailState.isEvaluating = false; }
+      } catch (e) {
+        console.error('Failed to fetch evaluation:', e);
+        setFixtureBadge('error');
+      } finally {
+        detailState.isEvaluating = false;
+      }
     }
 
     async function refreshDetail() {
@@ -552,8 +1246,273 @@
     }
 
     function esc(str) { return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function escAttr(str) { return String(str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+    function safeHttpUrl(url) {
+      if (!url || typeof url !== 'string') return null;
+      try {
+        const u = new URL(url.trim());
+        if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+        return u.href;
+      } catch { return null; }
+    }
     function getBarColor(f1) { return f1 >= 0.9 ? 'var(--green)' : f1 >= 0.7 ? 'var(--blue)' : f1 >= 0.5 ? 'var(--orange)' : 'var(--red)'; }
     function getScoreLabel(f1) { return f1 >= 0.95 ? 'Excellent' : f1 >= 0.9 ? 'Great' : f1 >= 0.7 ? 'Good' : f1 >= 0.5 ? 'Fair' : 'Poor'; }
+
+    // ── Add fixture → LLM prompt modal ───────────────
+
+    let affPromptTimer = null;
+    function scheduleAffPromptSync() {
+      if (affPromptTimer) clearTimeout(affPromptTimer);
+      affPromptTimer = setTimeout(() => {
+        syncAddFixturePrompt();
+        affPromptTimer = null;
+      }, 120);
+    }
+
+    function updateAffExternalFieldsVisibility() {
+      const sel = document.getElementById('aff-type');
+      if (!sel) return;
+      const show = sel.value === 'external';
+      document.querySelectorAll('.aff-external-only').forEach((el) => {
+        el.style.display = show ? 'flex' : 'none';
+      });
+    }
+
+    function getAffSelectedCapabilities() {
+      return Array.from(document.querySelectorAll('#aff-caps input[name="aff-cap"]:checked')).map((el) => el.value);
+    }
+
+    function syncAddFixturePrompt() {
+      updateAffExternalFieldsVisibility();
+      const type = document.getElementById('aff-type')?.value || 'external';
+      const name = document.getElementById('aff-name')?.value.trim() || '(fill slug, e.g. my-app)';
+      const repo = document.getElementById('aff-repo')?.value.trim() || '(Git URL if external)';
+      const sibling = document.getElementById('aff-sibling')?.value.trim() || '(sibling folder name if external)';
+      const subpath = document.getElementById('aff-subpath')?.value.trim() || '(optional — leave empty if not needed)';
+      const description = document.getElementById('aff-description')?.value.trim() || '(describe purpose / what to stress-test)';
+      const caps = getAffSelectedCapabilities();
+      const capsText = caps.length ? caps.join(', ') : '(none — select capabilities above)';
+      const dashCap = currentCapability || 'overview';
+      const dashNote = currentCapability
+        ? `The human had the **${currentCapability}** capability open in the autoresearch dashboard (${CAP_DESCRIPTIONS[currentCapability] || 'see README'}). Prioritize expected artifacts for that capability, but scaffold every capability they checked below.`
+        : 'The human was on the dashboard overview; use the checked capabilities list below.';
+
+      const typeSpecific =
+        type === 'external'
+          ? [
+              '### If external',
+              '- Append a correctly shaped entry to `packages/cli/autoresearch/fixtures/_external.json` (pin a specific `commit`; set `siblingRepo`; add `subPath` / `sparsePaths` / `tailwindCssPath` only when needed).',
+              '- Do **not** vendor huge trees; prefer `sparsePaths` consistent with existing manifest entries.',
+            ]
+          : [
+              '### If synthetic',
+              '- Add `packages/cli/autoresearch/fixtures/<slug>/` with a minimal realistic project tree, mirroring fixtures like `radix-app` / `shadcn-app`.',
+            ];
+
+      const lines = [
+        'You are a coding agent working in the OpenZeppelin `openzeppelin-ui` git repository.',
+        '',
+        '## Goal',
+        'Add a **new autoresearch evaluation fixture** so it is discovered by the harness and scored like existing fixtures.',
+        '',
+        '## Dashboard context',
+        `- Active route focus: **${dashCap}**`,
+        dashNote,
+        '',
+        '## Fixture draft (from human — correct after you inspect the repo)',
+        `- **Type**: ${type === 'external' ? 'external (manifest + sibling repo or fetch)' : 'synthetic (committed under packages/cli/autoresearch/fixtures/)'}`,
+        `- **Short name / slug**: ${name}`,
+      ];
+      if (type === 'external') {
+        lines.push(
+          `- **Git repository URL**: ${repo}`,
+          `- **Sibling directory name** (folder next to monorepo root): ${sibling}`,
+          `- **Optional subpath inside that repo** (monorepo package path): ${subpath}`,
+        );
+      }
+      lines.push(
+        `- **Capabilities this fixture must participate in** (expected JSON / structure required for each): ${capsText}`,
+        `- **Human notes**: ${description}`,
+        '',
+        '## Read first',
+        '1. `packages/cli/autoresearch/README.md`',
+        '2. `packages/cli/autoresearch/fixtures/_external.json`',
+        '3. `packages/cli/autoresearch/capabilities/fixture-resolver.ts`',
+        '4. `packages/cli/autoresearch/fetch-fixtures.ts`',
+        '5. `packages/cli/autoresearch/expected/` (note subdirs: `planning/`, `patterns/`, `verification/`, …)',
+        '6. `packages/cli/autoresearch/capabilities/*.ts` — see how each evaluator loads expectations',
+        '',
+        '## Implement',
+        ...typeSpecific,
+        '',
+        '- Create or update **`expected/`** artifacts so evaluation succeeds for every capability checked above (`fixtureHasExpected` and evaluator-specific paths).',
+        '- Keep the diff focused: **no unrelated refactors**; do not break existing fixtures.',
+        '',
+        '## Verify',
+        '- From `packages/cli`, run `npx tsx autoresearch/fetch-fixtures.ts` when needed for external resolution.',
+        '- Run `npx tsx autoresearch/evaluate.ts --capability <name> --json` per capability, or `pnpm --filter @openzeppelin/ui-cli evaluate:all` if appropriate.',
+        '- Run package tests if the repo expects them after CLI changes.',
+        '',
+        '## Report',
+        '- List files changed.',
+        '- Call out anything the human must still do locally (e.g. choose commit SHA, run fetch).',
+      );
+
+      const ta = document.getElementById('aff-prompt');
+      if (ta) ta.value = lines.join('\n');
+    }
+
+    function openAddFixtureModal() {
+      closeStartAgentModal();
+      const m = document.getElementById('add-fixture-modal');
+      if (!m) return;
+      m.classList.add('is-open');
+      m.setAttribute('aria-hidden', 'false');
+      updateAffExternalFieldsVisibility();
+      syncAddFixturePrompt();
+      document.addEventListener('keydown', onAddFixtureModalKeydown);
+      document.body.style.overflow = 'hidden';
+    }
+
+    function onAddFixtureModalKeydown(e) {
+      if (e.key === 'Escape') closeAddFixtureModal();
+    }
+
+    function closeAddFixtureModal() {
+      const m = document.getElementById('add-fixture-modal');
+      if (!m) return;
+      m.classList.remove('is-open');
+      m.setAttribute('aria-hidden', 'true');
+      document.removeEventListener('keydown', onAddFixtureModalKeydown);
+      document.body.style.overflow = '';
+    }
+
+    async function copyAddFixturePrompt() {
+      const ta = document.getElementById('aff-prompt');
+      const btn = document.getElementById('aff-copy-btn');
+      if (!ta || !btn) return;
+      try {
+        await navigator.clipboard.writeText(ta.value);
+        const prev = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = prev; }, 2000);
+      } catch {
+        ta.focus();
+        ta.select();
+        const prev = btn.textContent;
+        btn.textContent = 'Select text & copy';
+        setTimeout(() => { btn.textContent = prev; }, 2800);
+      }
+    }
+
+    // ── Start autoresearch → LLM prompt (README §5) ───
+
+    const PROGRAM_FILE_BY_CAP = {
+      detection: 'program-detection.md',
+      patterns: 'program-patterns.md',
+      planning: 'program-planning.md',
+      init: 'program-init.md',
+      execution: 'program-execution.md',
+      verification: 'program-verification.md',
+      orchestration: 'program-orchestration.md',
+    };
+
+    let sapPromptTimer = null;
+    function scheduleStartAgentPromptSync() {
+      if (sapPromptTimer) clearTimeout(sapPromptTimer);
+      sapPromptTimer = setTimeout(() => {
+        syncStartAgentPrompt();
+        sapPromptTimer = null;
+      }, 80);
+    }
+
+    function getSapEffectiveCapability() {
+      if (currentCapability && PROGRAM_FILE_BY_CAP[currentCapability]) {
+        return currentCapability;
+      }
+      const sel = document.getElementById('sap-capability');
+      return sel?.value && PROGRAM_FILE_BY_CAP[sel.value] ? sel.value : 'detection';
+    }
+
+    function syncStartAgentPrompt() {
+      const cap = getSapEffectiveCapability();
+      const programFile = PROGRAM_FILE_BY_CAP[cap];
+      const protocolPath = `packages/cli/autoresearch/${programFile}`;
+      const desc = CAP_DESCRIPTIONS[cap] || '';
+
+      const lines = [
+        'You are an autonomous research agent. Read and follow the protocol in `' + protocolPath + '` exactly. Your working directory is `packages/cli`. Begin the experiment loop now.',
+        '',
+        'Context: you are improving the **' + cap + '** capability' + (desc ? ' — ' + desc : '') + '.',
+      ];
+
+      const ta = document.getElementById('sap-prompt');
+      if (ta) ta.value = lines.join('\n');
+    }
+
+    function openStartAgentModal() {
+      closeAddFixtureModal();
+      const locked = !!(currentCapability && PROGRAM_FILE_BY_CAP[currentCapability]);
+      const field = document.getElementById('sap-capability-field');
+      const introPick = document.getElementById('sap-intro-with-picker');
+      const introLocked = document.getElementById('sap-intro-locked');
+      const labelEl = document.getElementById('sap-locked-cap-label');
+      const sel = document.getElementById('sap-capability');
+
+      if (locked) {
+        if (sel) sel.value = currentCapability;
+        if (field) field.hidden = true;
+        if (introPick) introPick.hidden = true;
+        if (introLocked) introLocked.hidden = false;
+        if (labelEl) {
+          labelEl.textContent =
+            currentCapability.charAt(0).toUpperCase() + currentCapability.slice(1);
+        }
+      } else {
+        if (field) field.hidden = false;
+        if (introPick) introPick.hidden = false;
+        if (introLocked) introLocked.hidden = true;
+      }
+
+      const m = document.getElementById('start-agent-modal');
+      if (!m) return;
+      syncStartAgentPrompt();
+      m.classList.add('is-open');
+      m.setAttribute('aria-hidden', 'false');
+      document.addEventListener('keydown', onStartAgentModalKeydown);
+      document.body.style.overflow = 'hidden';
+    }
+
+    function onStartAgentModalKeydown(e) {
+      if (e.key === 'Escape') closeStartAgentModal();
+    }
+
+    function closeStartAgentModal() {
+      const m = document.getElementById('start-agent-modal');
+      if (!m) return;
+      m.classList.remove('is-open');
+      m.setAttribute('aria-hidden', 'true');
+      document.removeEventListener('keydown', onStartAgentModalKeydown);
+      document.body.style.overflow = '';
+    }
+
+    async function copyStartAgentPrompt() {
+      const ta = document.getElementById('sap-prompt');
+      const btn = document.getElementById('sap-copy-btn');
+      if (!ta || !btn) return;
+      try {
+        await navigator.clipboard.writeText(ta.value);
+        const prev = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = prev; }, 2000);
+      } catch {
+        ta.focus();
+        ta.select();
+        const prev = btn.textContent;
+        btn.textContent = 'Select text & copy';
+        setTimeout(() => { btn.textContent = prev; }, 2800);
+      }
+    }
 
     // ── SSE ─────────────────────────────────────────
 

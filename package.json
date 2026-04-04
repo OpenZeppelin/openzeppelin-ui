@@ -68,7 +68,11 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"
-    ]
+    ],
+    "supportedArchitectures": {
+      "os": ["current"],
+      "cpu": ["arm64", "x64"]
+    }
   },
   "packageManager": "pnpm@10.22.0",
   "author": "OpenZeppelin",

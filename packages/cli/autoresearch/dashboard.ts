@@ -19,9 +19,51 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
+import { resolveFixturePath } from './capabilities/fixture-resolver.js';
+
 const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_PORT = 4200;
+const EXTERNAL_MANIFEST_PATH = path.join(__dirname, 'fixtures', '_external.json');
+
+function loadExternalRepoByName(): Record<string, string> {
+  try {
+    const raw = JSON.parse(fs.readFileSync(EXTERNAL_MANIFEST_PATH, 'utf8')) as {
+      fixtures?: { name: string; repo: string }[];
+    };
+    const out: Record<string, string> = {};
+    for (const f of raw.fixtures ?? []) {
+      if (f?.name && f?.repo) out[f.name] = f.repo;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+type EvalApiPayload = {
+  capability: string;
+  fixtures: Array<Record<string, unknown>>;
+  meanF1: number;
+  error?: string;
+};
+
+function enrichEvaluationForDashboard(payload: EvalApiPayload): EvalApiPayload {
+  if (payload.error || !Array.isArray(payload.fixtures)) return payload;
+  const repos = loadExternalRepoByName();
+  return {
+    ...payload,
+    fixtures: payload.fixtures.map((fx) => {
+      const name = typeof fx.fixture === 'string' ? fx.fixture : '';
+      const resolved = resolveFixturePath(name);
+      return {
+        ...fx,
+        repoUrl: repos[name] ?? null,
+        localPath: resolved ?? null,
+      };
+    }),
+  };
+}
 
 const CAPABILITY_NAMES = [
   'detection',
@@ -70,7 +112,7 @@ async function runLiveEvaluation(
       [evalScript, '--capability', capability, '--json'],
       { cwd: path.join(__dirname, '..'), timeout: 60_000 }
     );
-    const parsed = JSON.parse(stdout.trim());
+    const parsed = JSON.parse(stdout.trim()) as EvalApiPayload;
     return { capability, ...parsed };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
@@ -190,7 +232,7 @@ function main(): void {
       if (segments[1] === 'evaluate' && segments[2]) {
         const cap = segments[2];
         const evalResult = await runLiveEvaluation(cap);
-        serveJson(res, evalResult);
+        serveJson(res, enrichEvaluationForDashboard(evalResult));
         return;
       }
     }

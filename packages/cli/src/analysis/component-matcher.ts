@@ -1,8 +1,6 @@
 import type { ComponentCatalog, HtmlElementLibrary, SourceLibrary } from '../catalog';
 import type { ScannedFile } from './scanner';
 
-const IGNORED_IMPORT_SOURCES = ['lucide-react', 'react-icons', '@heroicons/'];
-
 export interface ComponentMatch {
   name: string;
   sourceLibrary: string | null;
@@ -54,18 +52,6 @@ function extractImports(content: string): ImportInfo[] {
   return imports;
 }
 
-function findParentComponent(
-  specifier: string,
-  mappings: Record<string, { source: string; effort: string }>
-): { source: string; effort: ComponentMatch['effort'] } | null {
-  for (const [name, mapping] of Object.entries(mappings)) {
-    if (specifier.startsWith(name) && specifier !== name) {
-      return mapping as { source: string; effort: ComponentMatch['effort'] };
-    }
-  }
-  return null;
-}
-
 function countJsxUsage(content: string, componentName: string): number {
   const openTagRegex = new RegExp(`<${componentName}[\\s/.>]`, 'g');
   return [...content.matchAll(openTagRegex)].length;
@@ -85,8 +71,8 @@ export function analyzeComponents(
     const imports = extractImports(file.content);
 
     for (const imp of imports) {
+      // Skip OZ imports (already migrated)
       if (imp.source.startsWith('@openzeppelin/')) continue;
-      if (IGNORED_IMPORT_SOURCES.some((p) => imp.source.includes(p))) continue;
 
       for (const specifier of imp.specifiers) {
         const usageCount = countJsxUsage(file.content, specifier);
@@ -127,16 +113,9 @@ export function analyzeComponents(
           sourceLibrary = libKey;
           const mapping = library.mappings[specifier];
           if (mapping) {
-            ozTarget = mapping.source;
+            ozTarget = specifier;
             effort = mapping.effort;
             notes = mapping.notes;
-          } else if (imp.source.startsWith('.')) {
-            const parent = findParentComponent(specifier, library.mappings);
-            if (parent) {
-              ozTarget = parent.source;
-              effort = parent.effort;
-              notes = `Sub-component of ${ozTarget}`;
-            }
           }
           break;
         }
@@ -196,7 +175,6 @@ function resolveInputOzTarget(inputType: string): string | null {
   }
 }
 
-/** @description Matches native HTML usage in scanned files against the html-elements catalog. */
 export function analyzeHtmlElements(
   files: ScannedFile[],
   htmlLib: HtmlElementLibrary
