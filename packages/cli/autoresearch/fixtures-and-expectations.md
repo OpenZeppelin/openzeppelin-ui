@@ -131,7 +131,7 @@ These prompts use the **"Data Labeler" vs "Solver"** workflow, which ensures tha
 
 ## Related tools
 
-- **Detection scaffold:** `npx tsx autoresearch/scaffold-expected.ts <fixture-name>` generates a starting `expected/<fixture>.scaffold.json` from current detection output (still requires human review before renaming to `.json`). See comments in that script.
+- **Detection scaffold:** `npx tsx autoresearch/scaffold-expected.ts <fixture-name>` (from `packages/cli`) generates `expected/<fixture>.scaffold.json` from current detection output. The [LLM Prompts Collection](./llm-prompts-collection.md) detection prompt tells the agent to run this as step 1, then refine into `expected/<fixture>.json`. See comments in `scaffold-expected.ts`.
 
 ---
 
