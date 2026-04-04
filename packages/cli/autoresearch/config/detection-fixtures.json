@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "defaultSplit": "train",
+  "fixtures": [
+    {
+      "name": "accounts-ui",
+      "split": "train",
+      "tags": ["real-world", "oz-migrated", "html-fallback", "monorepo"]
+    },
+    {
+      "name": "zama-accounts-ui",
+      "split": "validation",
+      "tags": ["real-world", "shadcn", "radix", "html-fallback"]
+    },
+    {
+      "name": "shadcn-app",
+      "split": "train",
+      "tags": ["synthetic", "shadcn", "component-library"]
+    },
+    {
+      "name": "radix-app",
+      "split": "train",
+      "tags": ["synthetic", "radix", "namespace-imports", "html-fallback"]
+    },
+    {
+      "name": "raw-html-app",
+      "split": "holdout",
+      "tags": ["synthetic", "html-fallback", "negative-library-control"]
+    }
+  ]
+}

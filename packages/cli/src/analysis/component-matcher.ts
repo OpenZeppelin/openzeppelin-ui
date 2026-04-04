@@ -9,8 +9,55 @@ import type {
 import { isExcludedLibrary, isExcludedPattern } from '../catalog/exclusions';
 import type { ScannedFile } from './scanner';
 
+export type ComponentDetectorKind =
+  | 'catalog-direct'
+  | 'library-mapping'
+  | 'namespace-mapping'
+  | 'html-fallback';
+
+export type ComponentDetectionConfidence = 'high' | 'medium' | 'low';
+
+export interface ComponentEvidence {
+  kind:
+    | 'default-import'
+    | 'named-import'
+    | 'namespace-import'
+    | 'jsx-component-usage'
+    | 'jsx-namespace-usage'
+    | 'html-tag-usage'
+    | 'html-input-type';
+  file: string;
+  usageCount: number;
+  sourceImport: string;
+  importedName: string | null;
+  localName: string | null;
+  intrinsicTag: string | null;
+  inputType: string | null;
+}
+
+export interface ComponentObservation {
+  rawName: string;
+  reportName: string;
+  canonicalFamily: string | null;
+  sourceLibrary: string | null;
+  sourceImport: string;
+  ozTarget: string | null;
+  effort: 'low' | 'medium' | 'high' | 'unknown';
+  category: 'ui' | 'field' | 'unknown';
+  capabilities: string[];
+  usageCount: number;
+  file: string;
+  notes: string;
+  detectorKind: ComponentDetectorKind;
+  confidence: ComponentDetectionConfidence;
+  evidences: ComponentEvidence[];
+}
+
 export interface ComponentMatch {
   name: string;
+  reportName: string;
+  canonicalFamily: string | null;
+  rawNames: string[];
   sourceLibrary: string | null;
   sourceImport: string;
   ozTarget: string | null;
@@ -20,6 +67,9 @@ export interface ComponentMatch {
   usageCount: number;
   files: string[];
   notes: string;
+  detectorKinds: ComponentDetectorKind[];
+  confidence: ComponentDetectionConfidence;
+  evidences: ComponentEvidence[];
 }
 
 interface ImportBinding {
@@ -53,6 +103,19 @@ function getScriptKind(filePath: string): ts.ScriptKind {
 
 function incrementCount(map: Map<string, number>, key: string): void {
   map.set(key, (map.get(key) ?? 0) + 1);
+}
+
+function mergeConfidence(
+  current: ComponentDetectionConfidence,
+  next: ComponentDetectionConfidence
+): ComponentDetectionConfidence {
+  const rank: Record<ComponentDetectionConfidence, number> = {
+    low: 0,
+    medium: 1,
+    high: 2,
+  };
+
+  return rank[next] < rank[current] ? next : current;
 }
 
 function toPascalCase(input: string): string {
@@ -315,41 +378,249 @@ function findExistingMatchByName(
   return [...matchMap.values()].find((candidate) => candidate.name === matchName);
 }
 
-function mergeMatchUsage(match: ComponentMatch, usageCount: number, filePath: string): void {
-  match.usageCount += usageCount;
-  if (!match.files.includes(filePath)) {
-    match.files.push(filePath);
-  }
-}
-
 function applyResolvedMatch(
   match: ComponentMatch,
   sourceLibrary: string | null,
   sourceImport: string,
+  canonicalFamily: string | null,
   ozTarget: string | null,
   effort: ComponentMatch['effort'],
   category: ComponentMatch['category'],
   capabilities: string[],
-  notes: string
+  notes: string,
+  confidence: ComponentDetectionConfidence
 ): void {
   match.sourceLibrary = sourceLibrary;
   match.sourceImport = sourceImport;
+  match.canonicalFamily = canonicalFamily;
   match.ozTarget = ozTarget;
   match.effort = effort;
   match.category = category;
   match.capabilities = capabilities;
   match.notes = notes;
+  match.confidence = mergeConfidence(match.confidence, confidence);
 }
 
-/**
- *
- */
-export function analyzeComponents(
+function determineObservationConfidence(
+  detectorKind: ComponentDetectorKind,
+  ozTarget: string | null
+): ComponentDetectionConfidence {
+  if (!ozTarget) return 'low';
+  if (detectorKind === 'html-fallback') return 'medium';
+  return 'high';
+}
+
+function createImportEvidences(
+  file: ScannedFile,
+  binding: ImportBinding,
+  sourceImport: string,
+  usageCount: number
+): ComponentEvidence[] {
+  const importKind: ComponentEvidence['kind'] =
+    binding.kind === 'default'
+      ? 'default-import'
+      : binding.kind === 'namespace'
+        ? 'namespace-import'
+        : 'named-import';
+
+  const jsxKind: ComponentEvidence['kind'] =
+    binding.kind === 'namespace' ? 'jsx-namespace-usage' : 'jsx-component-usage';
+
+  return [
+    {
+      kind: importKind,
+      file: file.relativePath,
+      usageCount,
+      sourceImport,
+      importedName: binding.importedName,
+      localName: binding.localName,
+      intrinsicTag: null,
+      inputType: null,
+    },
+    {
+      kind: jsxKind,
+      file: file.relativePath,
+      usageCount,
+      sourceImport,
+      importedName: binding.importedName,
+      localName: binding.localName,
+      intrinsicTag: null,
+      inputType: null,
+    },
+  ];
+}
+
+function collectImportObservation(
+  file: ScannedFile,
+  facts: ParsedFileFacts,
+  catalog: ComponentCatalog,
+  sourceLibraries: Record<string, SourceLibrary>,
+  imp: ImportInfo,
+  binding: ImportBinding
+): ComponentObservation | null {
+  const importedName = binding.importedName;
+  const usageCount =
+    binding.kind === 'namespace'
+      ? (facts.namespaceUsages.get(binding.localName) ?? 0)
+      : (facts.componentUsages.get(binding.localName) ?? 0);
+
+  if (usageCount === 0) return null;
+
+  if (
+    importedName.endsWith('Primitive') &&
+    imp.source.startsWith('@radix-ui/') &&
+    file.relativePath.split(/[/\\]/).includes('packages')
+  ) {
+    return null;
+  }
+
+  let reportName = importedName;
+  let canonicalFamily: string | null = null;
+  let ozTarget: string | null = null;
+  let effort: ComponentMatch['effort'] = 'unknown';
+  let category: ComponentMatch['category'] = 'unknown';
+  let capabilities: string[] = [];
+  let notes = '';
+  let sourceLibrary: string | null = null;
+  let detectorKind: ComponentDetectorKind = 'catalog-direct';
+
+  // Direct OZ catalog matches are a useful fallback when the import source is not a local file path.
+  if (canDirectMatchCatalogImport(imp.source) && catalog.components[importedName]) {
+    const ozComp = catalog.components[importedName];
+    ozTarget = importedName;
+    canonicalFamily = importedName;
+    effort = 'low';
+    notes = 'Direct name match in OZ catalog';
+    category = ozComp.category;
+    capabilities = ozComp.capabilities;
+  }
+
+  for (const [libKey, library] of Object.entries(sourceLibraries)) {
+    const isFromLibrary = library.importPatterns.some((pattern) => imp.source.includes(pattern));
+    if (!isFromLibrary) continue;
+
+    sourceLibrary = libKey;
+    const mapping = resolveLibraryMapping(library, importedName, imp.source, binding.kind);
+    if (mapping) {
+      reportName = resolveMatchName(importedName, mapping, library, binding.kind, imp.source);
+      canonicalFamily = mapping.source;
+      ozTarget = mapping.source;
+      effort = mapping.effort;
+      notes = mapping.notes;
+      detectorKind = binding.kind === 'namespace' ? 'namespace-mapping' : 'library-mapping';
+    }
+    break;
+  }
+
+  if (ozTarget) {
+    const ozComp = catalog.components[ozTarget];
+    if (ozComp) {
+      category = ozComp.category;
+      capabilities = ozComp.capabilities;
+    }
+  }
+
+  return {
+    rawName: importedName,
+    reportName,
+    canonicalFamily,
+    sourceLibrary,
+    sourceImport: imp.source,
+    ozTarget,
+    effort,
+    category,
+    capabilities,
+    usageCount,
+    file: file.relativePath,
+    notes,
+    detectorKind,
+    confidence: determineObservationConfidence(detectorKind, ozTarget),
+    evidences: createImportEvidences(file, binding, imp.source, usageCount),
+  };
+}
+
+function mergeObservationIntoMatch(match: ComponentMatch, observation: ComponentObservation): void {
+  match.usageCount += observation.usageCount;
+  if (!match.files.includes(observation.file)) {
+    match.files.push(observation.file);
+  }
+  if (!match.rawNames.includes(observation.rawName)) {
+    match.rawNames.push(observation.rawName);
+  }
+  if (!match.detectorKinds.includes(observation.detectorKind)) {
+    match.detectorKinds.push(observation.detectorKind);
+  }
+  match.evidences.push(...observation.evidences);
+  match.confidence = mergeConfidence(match.confidence, observation.confidence);
+}
+
+function createMatchFromObservation(observation: ComponentObservation): ComponentMatch {
+  return {
+    name: observation.reportName,
+    reportName: observation.reportName,
+    canonicalFamily: observation.canonicalFamily,
+    rawNames: [observation.rawName],
+    sourceLibrary: observation.sourceLibrary,
+    sourceImport: observation.sourceImport,
+    ozTarget: observation.ozTarget,
+    effort: observation.effort,
+    category: observation.category,
+    capabilities: observation.capabilities,
+    usageCount: observation.usageCount,
+    files: [observation.file],
+    notes: observation.notes,
+    detectorKinds: [observation.detectorKind],
+    confidence: observation.confidence,
+    evidences: [...observation.evidences],
+  };
+}
+
+function aggregateComponentObservations(observations: ComponentObservation[]): ComponentMatch[] {
+  const matchMap = new Map<string, ComponentMatch>();
+
+  for (const observation of observations) {
+    const matchKey = `${observation.sourceLibrary ?? observation.sourceImport}:${observation.reportName}`;
+    const existing = matchMap.get(matchKey);
+
+    if (existing) {
+      mergeObservationIntoMatch(existing, observation);
+      continue;
+    }
+
+    const existingWithSameName = findExistingMatchByName(matchMap, observation.reportName);
+    if (existingWithSameName) {
+      mergeObservationIntoMatch(existingWithSameName, observation);
+
+      if (!existingWithSameName.ozTarget && observation.ozTarget) {
+        applyResolvedMatch(
+          existingWithSameName,
+          observation.sourceLibrary,
+          observation.sourceImport,
+          observation.canonicalFamily,
+          observation.ozTarget,
+          observation.effort,
+          observation.category,
+          observation.capabilities,
+          observation.notes,
+          observation.confidence
+        );
+      }
+      continue;
+    }
+
+    matchMap.set(matchKey, createMatchFromObservation(observation));
+  }
+
+  return [...matchMap.values()].sort((a, b) => b.usageCount - a.usageCount);
+}
+
+/** @description Collects raw component observations before deduping them into report rows. */
+export function collectComponentObservations(
   files: ScannedFile[],
   catalog: ComponentCatalog,
   sourceLibraries: Record<string, SourceLibrary>
-): ComponentMatch[] {
-  const matchMap = new Map<string, ComponentMatch>();
+): ComponentObservation[] {
+  const observations: ComponentObservation[] = [];
 
   for (const file of files) {
     const facts = parseFileFacts(file);
@@ -360,107 +631,26 @@ export function analyzeComponents(
       if (isExcludedLibrary(imp.source) || isExcludedPattern(imp.source)) continue;
 
       for (const binding of imp.bindings) {
-        const importedName = binding.importedName;
-        const usageCount =
-          binding.kind === 'namespace'
-            ? (facts.namespaceUsages.get(binding.localName) ?? 0)
-            : (facts.componentUsages.get(binding.localName) ?? 0);
-        if (usageCount === 0) continue;
-
-        if (
-          importedName.endsWith('Primitive') &&
-          imp.source.startsWith('@radix-ui/') &&
-          file.relativePath.split(/[/\\]/).includes('packages')
-        ) {
-          continue;
-        }
-
-        let ozTarget: string | null = null;
-        let effort: ComponentMatch['effort'] = 'unknown';
-        let category: ComponentMatch['category'] = 'unknown';
-        let capabilities: string[] = [];
-        let notes = '';
-        let sourceLibrary: string | null = null;
-        let matchName = importedName;
-
-        // Check against OZ catalog (skip for local modules — local modules are not published OZ packages)
-        if (canDirectMatchCatalogImport(imp.source) && catalog.components[importedName]) {
-          const ozComp = catalog.components[importedName];
-          ozTarget = importedName;
-          effort = 'low';
-          notes = 'Direct name match in OZ catalog';
-          category = ozComp.category;
-          capabilities = ozComp.capabilities;
-        }
-
-        // Check source library mappings
-        for (const [libKey, library] of Object.entries(sourceLibraries)) {
-          const isFromLibrary = library.importPatterns.some((p) => imp.source.includes(p));
-          if (!isFromLibrary) continue;
-
-          sourceLibrary = libKey;
-          const mapping = resolveLibraryMapping(library, importedName, imp.source, binding.kind);
-          if (mapping) {
-            matchName = resolveMatchName(importedName, mapping, library, binding.kind, imp.source);
-            ozTarget = mapping.source;
-            effort = mapping.effort;
-            notes = mapping.notes;
-          }
-          break;
-        }
-
-        if (ozTarget) {
-          const ozComp = catalog.components[ozTarget];
-          if (ozComp) {
-            category = ozComp.category;
-            capabilities = ozComp.capabilities;
-          }
-        }
-
-        const matchKey = `${sourceLibrary ?? imp.source}:${matchName}`;
-        const existing = matchMap.get(matchKey);
-
-        if (existing) {
-          mergeMatchUsage(existing, usageCount, file.relativePath);
-          continue;
-        }
-
-        const existingWithSameName = findExistingMatchByName(matchMap, matchName);
-        if (existingWithSameName) {
-          mergeMatchUsage(existingWithSameName, usageCount, file.relativePath);
-
-          if (!existingWithSameName.ozTarget && ozTarget) {
-            applyResolvedMatch(
-              existingWithSameName,
-              sourceLibrary,
-              imp.source,
-              ozTarget,
-              effort,
-              category,
-              capabilities,
-              notes
-            );
-          }
-          continue;
-        }
-
-        matchMap.set(matchKey, {
-          name: matchName,
-          sourceLibrary,
-          sourceImport: imp.source,
-          ozTarget,
-          effort,
-          category,
-          capabilities,
-          usageCount,
-          files: [file.relativePath],
-          notes,
-        });
+        const observation = collectImportObservation(
+          file,
+          facts,
+          catalog,
+          sourceLibraries,
+          imp,
+          binding
+        );
+        if (observation) observations.push(observation);
       }
     }
   }
 
-  return [...matchMap.values()].sort((a, b) => b.usageCount - a.usageCount);
+  return observations.sort((a, b) => {
+    if (a.reportName === b.reportName) {
+      return a.file.localeCompare(b.file);
+    }
+
+    return a.reportName.localeCompare(b.reportName);
+  });
 }
 
 const HTML_TAGS = ['button', 'select', 'textarea', 'label', 'progress', 'dialog'] as const;
@@ -484,33 +674,23 @@ function resolveInputOzTarget(inputType: string): string | null {
   }
 }
 
-export function analyzeHtmlElements(
+/** @description Aggregates import-based observations into the existing component report format. */
+export function analyzeComponents(
+  files: ScannedFile[],
+  catalog: ComponentCatalog,
+  sourceLibraries: Record<string, SourceLibrary>
+): ComponentMatch[] {
+  return aggregateComponentObservations(
+    collectComponentObservations(files, catalog, sourceLibraries)
+  );
+}
+
+/** @description Collects native HTML element observations before aggregating them. */
+export function collectHtmlElementObservations(
   files: ScannedFile[],
   htmlLib: HtmlElementLibrary
-): ComponentMatch[] {
-  const matchMap = new Map<string, ComponentMatch>();
-
-  function getOrCreate(ozTarget: string): ComponentMatch {
-    let match = matchMap.get(ozTarget);
-    if (!match) {
-      const mapping = htmlLib.mappings[ozTarget];
-      match = {
-        name: ozTarget,
-        sourceLibrary: 'html-elements',
-        sourceImport: '',
-        ozTarget,
-        effort: mapping?.effort ?? 'unknown',
-        category: 'unknown',
-        capabilities: [],
-        usageCount: 0,
-        files: [],
-        notes: mapping?.notes ?? '',
-      };
-      matchMap.set(ozTarget, match);
-    }
-    return match;
-  }
-
+): ComponentObservation[] {
+  const observations: ComponentObservation[] = [];
   for (const file of files) {
     const facts = parseFileFacts(file);
     const fileHasOzKitImport = facts.hasOzUiComponentsImport;
@@ -524,11 +704,35 @@ export function analyzeHtmlElements(
       const usageCount = facts.htmlTagUsages.get(tagName) ?? 0;
       if (usageCount === 0) continue;
 
-      const entry = getOrCreate(ozTarget);
-      entry.usageCount += usageCount;
-      if (!entry.files.includes(file.relativePath)) {
-        entry.files.push(file.relativePath);
-      }
+      const mapping = htmlLib.mappings[ozTarget];
+      observations.push({
+        rawName: ozTarget,
+        reportName: ozTarget,
+        canonicalFamily: ozTarget,
+        sourceLibrary: 'html-elements',
+        sourceImport: '',
+        ozTarget,
+        effort: mapping?.effort ?? 'unknown',
+        category: 'unknown',
+        capabilities: [],
+        usageCount,
+        file: file.relativePath,
+        notes: mapping?.notes ?? '',
+        detectorKind: 'html-fallback',
+        confidence: determineObservationConfidence('html-fallback', ozTarget),
+        evidences: [
+          {
+            kind: 'html-tag-usage',
+            file: file.relativePath,
+            usageCount,
+            sourceImport: '',
+            importedName: null,
+            localName: null,
+            intrinsicTag: tagName,
+            inputType: null,
+          },
+        ],
+      });
     }
 
     if (!fileHasOzKitImport) {
@@ -536,14 +740,51 @@ export function analyzeHtmlElements(
         const ozTarget = resolveInputOzTarget(inputType);
         if (!ozTarget) continue;
 
-        const entry = getOrCreate(ozTarget);
-        entry.usageCount += usageCount;
-        if (!entry.files.includes(file.relativePath)) {
-          entry.files.push(file.relativePath);
-        }
+        const mapping = htmlLib.mappings[ozTarget];
+        observations.push({
+          rawName: ozTarget,
+          reportName: ozTarget,
+          canonicalFamily: ozTarget,
+          sourceLibrary: 'html-elements',
+          sourceImport: '',
+          ozTarget,
+          effort: mapping?.effort ?? 'unknown',
+          category: 'unknown',
+          capabilities: [],
+          usageCount,
+          file: file.relativePath,
+          notes: mapping?.notes ?? '',
+          detectorKind: 'html-fallback',
+          confidence: determineObservationConfidence('html-fallback', ozTarget),
+          evidences: [
+            {
+              kind: 'html-input-type',
+              file: file.relativePath,
+              usageCount,
+              sourceImport: '',
+              importedName: null,
+              localName: null,
+              intrinsicTag: 'input',
+              inputType,
+            },
+          ],
+        });
       }
     }
   }
 
-  return [...matchMap.values()].sort((a, b) => b.usageCount - a.usageCount);
+  return observations.sort((a, b) => {
+    if (a.reportName === b.reportName) {
+      return a.file.localeCompare(b.file);
+    }
+
+    return a.reportName.localeCompare(b.reportName);
+  });
+}
+
+export function analyzeHtmlElements(
+  files: ScannedFile[],
+  htmlLib: HtmlElementLibrary
+): ComponentMatch[] {
+  return aggregateComponentObservations(collectHtmlElementObservations(files, htmlLib));
 }

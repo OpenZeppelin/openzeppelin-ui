@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import type { ComponentCatalog, HtmlElementLibrary, SourceLibrary } from '../catalog';
-import { analyzeComponents, analyzeHtmlElements } from './component-matcher';
+import {
+  analyzeComponents,
+  analyzeHtmlElements,
+  collectComponentObservations,
+  collectHtmlElementObservations,
+} from './component-matcher';
 import type { ScannedFile } from './scanner';
 
 const MOCK_CATALOG: ComponentCatalog = {
@@ -319,6 +324,39 @@ describe('analyzeComponents', () => {
     );
   });
 
+  it('emits component observations with raw and canonical names', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/Card.tsx',
+        relativePath: 'src/Card.tsx',
+        content: [
+          "import { CardHeader } from '@/components/ui/card';",
+          '',
+          'export function CardView() {',
+          '  return <CardHeader />;',
+          '}',
+        ].join('\n'),
+      },
+    ];
+
+    const observations = collectComponentObservations(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES);
+
+    expect(observations).toHaveLength(1);
+    expect(observations[0]).toEqual(
+      expect.objectContaining({
+        rawName: 'CardHeader',
+        reportName: 'Card',
+        canonicalFamily: 'Card',
+        ozTarget: 'Card',
+        detectorKind: 'library-mapping',
+      })
+    );
+    expect(observations[0]?.evidences.map((evidence) => evidence.kind)).toEqual([
+      'named-import',
+      'jsx-component-usage',
+    ]);
+  });
+
   it('prefers mapped alias catalog matches over unmapped duplicates with the same name', () => {
     const files: ScannedFile[] = [
       {
@@ -508,5 +546,34 @@ describe('analyzeHtmlElements', () => {
     expect(button).toBeDefined();
     expect(button!.usageCount).toBe(1);
     expect(button!.files).toEqual(['src/Migrated.tsx']);
+  });
+
+  it('emits html observations with detector metadata', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/Form.tsx',
+        relativePath: 'src/Form.tsx',
+        content: '<input type="checkbox" />',
+      },
+    ];
+
+    const observations = collectHtmlElementObservations(files, MOCK_HTML_LIB);
+
+    expect(observations).toHaveLength(1);
+    expect(observations[0]).toEqual(
+      expect.objectContaining({
+        reportName: 'Checkbox',
+        canonicalFamily: 'Checkbox',
+        detectorKind: 'html-fallback',
+        confidence: 'medium',
+      })
+    );
+    expect(observations[0]?.evidences[0]).toEqual(
+      expect.objectContaining({
+        kind: 'html-input-type',
+        intrinsicTag: 'input',
+        inputType: 'checkbox',
+      })
+    );
   });
 });
