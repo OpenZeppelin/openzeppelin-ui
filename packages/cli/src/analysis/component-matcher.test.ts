@@ -26,6 +26,12 @@ const MOCK_CATALOG: ComponentCatalog = {
       category: 'ui',
       capabilities: [],
     },
+    Sidebar: {
+      package: '@openzeppelin/ui-components',
+      importPath: 'ui/sidebar',
+      category: 'ui',
+      capabilities: [],
+    },
     AddressField: {
       package: '@openzeppelin/ui-components',
       importPath: 'fields',
@@ -39,7 +45,7 @@ const MOCK_CATALOG: ComponentCatalog = {
 const MOCK_SOURCE_LIBRARIES: Record<string, SourceLibrary> = {
   shadcn: {
     library: 'shadcn/ui',
-    importPatterns: ['@/components/ui/'],
+    importPatterns: ['@/components/ui/', '/ui/'],
     mappings: {
       Button: { source: 'Button', effort: 'low', notes: 'Near 1:1 parity' },
       Card: { source: 'Card', effort: 'low', notes: 'Near 1:1 parity' },
@@ -50,6 +56,12 @@ const MOCK_SOURCE_LIBRARIES: Record<string, SourceLibrary> = {
         reportName: 'target',
       },
       CardTitle: {
+        source: 'Card',
+        effort: 'low',
+        notes: 'Compound maps to Card family',
+        reportName: 'target',
+      },
+      CardContent: {
         source: 'Card',
         effort: 'low',
         notes: 'Compound maps to Card family',
@@ -242,6 +254,109 @@ describe('analyzeComponents', () => {
         sourceLibrary: 'radix',
         ozTarget: 'Tabs',
         usageCount: 3,
+      })
+    );
+  });
+
+  it('preserves relative shadcn compound names while keeping the parent OZ target', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/views/CardView.tsx',
+        relativePath: 'src/views/CardView.tsx',
+        content: [
+          "import { CardContent } from '../ui/card';",
+          '',
+          'export function CardView() {',
+          '  return <CardContent />;',
+          '}',
+        ].join('\n'),
+      },
+    ];
+
+    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES);
+
+    expect(matches).toHaveLength(1);
+    expect(matches[0]).toEqual(
+      expect.objectContaining({
+        name: 'CardContent',
+        sourceLibrary: 'shadcn',
+        ozTarget: 'Card',
+        usageCount: 1,
+      })
+    );
+  });
+
+  it('preserves Primitive suffix for Radix namespace aliases', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/TabsPrimitive.tsx',
+        relativePath: 'src/TabsPrimitive.tsx',
+        content: [
+          "import * as TabsPrimitive from '@radix-ui/react-tabs';",
+          '',
+          'export function TabView() {',
+          '  return (',
+          '    <TabsPrimitive.Root>',
+          '      <TabsPrimitive.List />',
+          '      <TabsPrimitive.Trigger />',
+          '    </TabsPrimitive.Root>',
+          '  );',
+          '}',
+        ].join('\n'),
+      },
+    ];
+
+    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES);
+
+    expect(matches).toHaveLength(1);
+    expect(matches[0]).toEqual(
+      expect.objectContaining({
+        name: 'TabsPrimitive',
+        sourceLibrary: 'radix',
+        ozTarget: 'Tabs',
+        usageCount: 3,
+      })
+    );
+  });
+
+  it('prefers mapped alias catalog matches over unmapped duplicates with the same name', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/packages/app/src/App.tsx',
+        relativePath: 'packages/app/src/App.tsx',
+        content: [
+          "import Sidebar from '@/components/Sidebar';",
+          '',
+          'export function App() {',
+          '  return <Sidebar />;',
+          '}',
+        ].join('\n'),
+      },
+      {
+        absolutePath: '/project/packages/app/src/pages/Details.tsx',
+        relativePath: 'packages/app/src/pages/Details.tsx',
+        content: [
+          "import Sidebar from './Sidebar';",
+          '',
+          'export function Details() {',
+          '  return <Sidebar />;',
+          '}',
+        ].join('\n'),
+      },
+    ];
+
+    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES);
+    const sidebar = matches.find((match) => match.name === 'Sidebar');
+
+    expect(matches).toHaveLength(1);
+    expect(sidebar).toEqual(
+      expect.objectContaining({
+        name: 'Sidebar',
+        sourceLibrary: null,
+        sourceImport: '@/components/Sidebar',
+        ozTarget: 'Sidebar',
+        usageCount: 2,
+        files: ['packages/app/src/App.tsx', 'packages/app/src/pages/Details.tsx'],
       })
     );
   });

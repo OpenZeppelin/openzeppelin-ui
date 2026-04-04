@@ -63,13 +63,8 @@ function toPascalCase(input: string): string {
     .join('');
 }
 
-function isLocalModuleImport(source: string): boolean {
-  return (
-    source.startsWith('.') ||
-    source.startsWith('/') ||
-    source.startsWith('@/') ||
-    source.startsWith('~/')
-  );
+function canDirectMatchCatalogImport(source: string): boolean {
+  return !source.startsWith('.') && !source.startsWith('/');
 }
 
 function getJsxIdentifierText(
@@ -269,15 +264,81 @@ function resolveMatchName(
   importedName: string,
   mapping: SourceLibraryMapping | undefined,
   library: SourceLibrary | undefined,
-  kind: ImportBinding['kind']
+  kind: ImportBinding['kind'],
+  sourceImport: string
 ): string {
   if (!mapping) return importedName;
+
+  if (shouldPreserveNamespaceImportName(importedName, library, kind)) {
+    return importedName;
+  }
 
   if (kind === 'namespace' && library?.namespaceReportName === 'target') {
     return mapping.source;
   }
 
+  if (shouldPreserveRelativeShadcnCompoundName(sourceImport, library, mapping)) {
+    return importedName;
+  }
+
   return mapping.reportName === 'target' ? mapping.source : importedName;
+}
+
+function shouldPreserveNamespaceImportName(
+  importedName: string,
+  library: SourceLibrary | undefined,
+  kind: ImportBinding['kind']
+): boolean {
+  return (
+    kind === 'namespace' &&
+    library?.namespaceReportName === 'target' &&
+    importedName.endsWith('Primitive')
+  );
+}
+
+function shouldPreserveRelativeShadcnCompoundName(
+  sourceImport: string,
+  library: SourceLibrary | undefined,
+  mapping: SourceLibraryMapping
+): boolean {
+  return (
+    library?.library === 'shadcn/ui' &&
+    sourceImport.startsWith('.') &&
+    mapping.reportName === 'target'
+  );
+}
+
+function findExistingMatchByName(
+  matchMap: Map<string, ComponentMatch>,
+  matchName: string
+): ComponentMatch | undefined {
+  return [...matchMap.values()].find((candidate) => candidate.name === matchName);
+}
+
+function mergeMatchUsage(match: ComponentMatch, usageCount: number, filePath: string): void {
+  match.usageCount += usageCount;
+  if (!match.files.includes(filePath)) {
+    match.files.push(filePath);
+  }
+}
+
+function applyResolvedMatch(
+  match: ComponentMatch,
+  sourceLibrary: string | null,
+  sourceImport: string,
+  ozTarget: string | null,
+  effort: ComponentMatch['effort'],
+  category: ComponentMatch['category'],
+  capabilities: string[],
+  notes: string
+): void {
+  match.sourceLibrary = sourceLibrary;
+  match.sourceImport = sourceImport;
+  match.ozTarget = ozTarget;
+  match.effort = effort;
+  match.category = category;
+  match.capabilities = capabilities;
+  match.notes = notes;
 }
 
 /**
@@ -323,7 +384,7 @@ export function analyzeComponents(
         let matchName = importedName;
 
         // Check against OZ catalog (skip for local modules — local modules are not published OZ packages)
-        if (!isLocalModuleImport(imp.source) && catalog.components[importedName]) {
+        if (canDirectMatchCatalogImport(imp.source) && catalog.components[importedName]) {
           const ozComp = catalog.components[importedName];
           ozTarget = importedName;
           effort = 'low';
@@ -340,7 +401,7 @@ export function analyzeComponents(
           sourceLibrary = libKey;
           const mapping = resolveLibraryMapping(library, importedName, imp.source, binding.kind);
           if (mapping) {
-            matchName = resolveMatchName(importedName, mapping, library, binding.kind);
+            matchName = resolveMatchName(importedName, mapping, library, binding.kind, imp.source);
             ozTarget = mapping.source;
             effort = mapping.effort;
             notes = mapping.notes;
@@ -360,9 +421,25 @@ export function analyzeComponents(
         const existing = matchMap.get(matchKey);
 
         if (existing) {
-          existing.usageCount += usageCount;
-          if (!existing.files.includes(file.relativePath)) {
-            existing.files.push(file.relativePath);
+          mergeMatchUsage(existing, usageCount, file.relativePath);
+          continue;
+        }
+
+        const existingWithSameName = findExistingMatchByName(matchMap, matchName);
+        if (existingWithSameName) {
+          mergeMatchUsage(existingWithSameName, usageCount, file.relativePath);
+
+          if (!existingWithSameName.ozTarget && ozTarget) {
+            applyResolvedMatch(
+              existingWithSameName,
+              sourceLibrary,
+              imp.source,
+              ozTarget,
+              effort,
+              category,
+              capabilities,
+              notes
+            );
           }
           continue;
         }
