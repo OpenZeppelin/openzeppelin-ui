@@ -92,6 +92,65 @@ interface ParsedFileFacts {
   hasOzUiComponentsImport: boolean;
 }
 
+/** OZ packages included in migration component inventory (other `@openzeppelin/*` imports stay ignored). */
+const OZ_UI_COMPONENTS_PKG = '@openzeppelin/ui-components';
+/** Mappings-only: catalog-direct disabled so non-mapped exports (e.g. Badge) do not false-match. */
+const ACCOUNTS_UI_COMPONENTS_PKG = '@openzeppelin/accounts-ui-components';
+
+const OZ_UI_INVENTORY_PACKAGES = new Set<string>([
+  OZ_UI_COMPONENTS_PKG,
+  ACCOUNTS_UI_COMPONENTS_PKG,
+]);
+
+/**
+ * Sub-components of `@openzeppelin/ui-components` only. Kept out of `shadcn.json` so relative
+ * `./ui/*` re-exports (e.g. in workspace UI shells) do not pick up extra compound tuples.
+ */
+const OZ_UI_COMPONENTS_COMPOUND_MAPPINGS: Record<
+  string,
+  Pick<SourceLibraryMapping, 'source' | 'effort' | 'notes'>
+> = {
+  DialogContent: { source: 'Dialog', effort: 'low', notes: 'Compound maps to Dialog family' },
+  DialogDescription: { source: 'Dialog', effort: 'low', notes: 'Compound maps to Dialog family' },
+  DialogHeader: { source: 'Dialog', effort: 'low', notes: 'Compound maps to Dialog family' },
+  DialogTitle: { source: 'Dialog', effort: 'low', notes: 'Compound maps to Dialog family' },
+  DropdownMenuContent: {
+    source: 'DropdownMenu',
+    effort: 'low',
+    notes: 'Compound maps to DropdownMenu family',
+  },
+  DropdownMenuGroup: {
+    source: 'DropdownMenu',
+    effort: 'low',
+    notes: 'Compound maps to DropdownMenu family',
+  },
+  DropdownMenuItem: {
+    source: 'DropdownMenu',
+    effort: 'low',
+    notes: 'Compound maps to DropdownMenu family',
+  },
+  DropdownMenuLabel: {
+    source: 'DropdownMenu',
+    effort: 'low',
+    notes: 'Compound maps to DropdownMenu family',
+  },
+  DropdownMenuTrigger: {
+    source: 'DropdownMenu',
+    effort: 'low',
+    notes: 'Compound maps to DropdownMenu family',
+  },
+  SelectContent: { source: 'Select', effort: 'low', notes: 'Compound maps to Select family' },
+  SelectItem: { source: 'Select', effort: 'low', notes: 'Compound maps to Select family' },
+  SelectTrigger: { source: 'Select', effort: 'low', notes: 'Compound maps to Select family' },
+  SelectValue: { source: 'Select', effort: 'low', notes: 'Compound maps to Select family' },
+  SidebarButton: { source: 'Sidebar', effort: 'medium', notes: 'Compound maps to Sidebar family' },
+  SidebarLayout: { source: 'Sidebar', effort: 'medium', notes: 'Compound maps to Sidebar family' },
+  SidebarSection: { source: 'Sidebar', effort: 'medium', notes: 'Compound maps to Sidebar family' },
+  TooltipContent: { source: 'Tooltip', effort: 'low', notes: 'Compound maps to Tooltip family' },
+  TooltipProvider: { source: 'Tooltip', effort: 'low', notes: 'Compound maps to Tooltip family' },
+  TooltipTrigger: { source: 'Tooltip', effort: 'low', notes: 'Compound maps to Tooltip family' },
+};
+
 function getScriptKind(filePath: string): ts.ScriptKind {
   if (filePath.endsWith('.tsx')) return ts.ScriptKind.TSX;
   if (filePath.endsWith('.jsx')) return ts.ScriptKind.JSX;
@@ -128,6 +187,16 @@ function toPascalCase(input: string): string {
 
 function canDirectMatchCatalogImport(source: string): boolean {
   return !source.startsWith('.') && !source.startsWith('/');
+}
+
+/** Local `./Sidebar` (or `.../Sidebar`) default export wrapping OZ sidebar primitives. */
+function isLocalDefaultSidebarShell(imp: ImportInfo, binding: ImportBinding): boolean {
+  if (binding.kind !== 'default' || binding.importedName !== 'Sidebar') return false;
+  return (
+    imp.source === './Sidebar' ||
+    imp.source.endsWith('/Sidebar') ||
+    imp.source.endsWith('\\Sidebar')
+  );
 }
 
 function getJsxIdentifierText(
@@ -340,7 +409,7 @@ function resolveMatchName(
     return mapping.source;
   }
 
-  if (shouldPreserveRelativeShadcnCompoundName(sourceImport, library, mapping)) {
+  if (shouldPreserveShadcnCompoundReportName(sourceImport, library, mapping)) {
     return importedName;
   }
 
@@ -359,16 +428,16 @@ function shouldPreserveNamespaceImportName(
   );
 }
 
-function shouldPreserveRelativeShadcnCompoundName(
+function shouldPreserveShadcnCompoundReportName(
   sourceImport: string,
   library: SourceLibrary | undefined,
   mapping: SourceLibraryMapping
 ): boolean {
-  return (
-    library?.library === 'shadcn/ui' &&
-    sourceImport.startsWith('.') &&
-    mapping.reportName === 'target'
-  );
+  if (library?.library !== 'shadcn/ui' || mapping.reportName !== 'target') {
+    return false;
+  }
+  if (sourceImport.startsWith('.')) return true;
+  return sourceImport === OZ_UI_COMPONENTS_PKG;
 }
 
 function findExistingMatchByName(
@@ -485,14 +554,21 @@ function collectImportObservation(
   let detectorKind: ComponentDetectorKind = 'catalog-direct';
 
   // Direct OZ catalog matches are a useful fallback when the import source is not a local file path.
-  if (canDirectMatchCatalogImport(imp.source) && catalog.components[importedName]) {
-    const ozComp = catalog.components[importedName];
-    ozTarget = importedName;
-    canonicalFamily = importedName;
-    effort = 'low';
-    notes = 'Direct name match in OZ catalog';
-    category = ozComp.category;
-    capabilities = ozComp.capabilities;
+  if (imp.source !== ACCOUNTS_UI_COMPONENTS_PKG && catalog.components[importedName]) {
+    const fromPackage = canDirectMatchCatalogImport(imp.source);
+    const fromLocalSidebarShell =
+      importedName === 'Sidebar' && isLocalDefaultSidebarShell(imp, binding);
+    if (fromPackage || fromLocalSidebarShell) {
+      const ozComp = catalog.components[importedName];
+      ozTarget = importedName;
+      canonicalFamily = importedName;
+      effort = 'low';
+      notes = fromLocalSidebarShell
+        ? 'Local Sidebar shell maps to OZ Sidebar family'
+        : 'Direct name match in OZ catalog';
+      category = ozComp.category;
+      capabilities = ozComp.capabilities;
+    }
   }
 
   for (const [libKey, library] of Object.entries(sourceLibraries)) {
@@ -510,6 +586,18 @@ function collectImportObservation(
       detectorKind = binding.kind === 'namespace' ? 'namespace-mapping' : 'library-mapping';
     }
     break;
+  }
+
+  if (!ozTarget && imp.source === OZ_UI_COMPONENTS_PKG) {
+    const ozCompound = OZ_UI_COMPONENTS_COMPOUND_MAPPINGS[importedName];
+    if (ozCompound) {
+      reportName = importedName;
+      canonicalFamily = ozCompound.source;
+      ozTarget = ozCompound.source;
+      effort = ozCompound.effort;
+      notes = ozCompound.notes;
+      detectorKind = 'library-mapping';
+    }
   }
 
   if (ozTarget) {
@@ -627,7 +715,9 @@ export function collectComponentObservations(
 
     for (const imp of facts.imports) {
       // Skip OZ imports (already migrated)
-      if (imp.source.startsWith('@openzeppelin/')) continue;
+      if (imp.source.startsWith('@openzeppelin/') && !OZ_UI_INVENTORY_PACKAGES.has(imp.source)) {
+        continue;
+      }
       if (isExcludedLibrary(imp.source) || isExcludedPattern(imp.source)) continue;
 
       for (const binding of imp.bindings) {

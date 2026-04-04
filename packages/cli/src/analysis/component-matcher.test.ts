@@ -155,13 +155,60 @@ describe('analyzeComponents', () => {
     expect(matches).toHaveLength(0);
   });
 
-  it('skips @openzeppelin imports (already migrated)', () => {
+  it('includes @openzeppelin/ui-components in migration inventory', () => {
     const files: ScannedFile[] = [
       {
         absolutePath: '/project/src/A.tsx',
         relativePath: 'src/A.tsx',
         content:
           "import { Button } from '@openzeppelin/ui-components';\nexport function A() { return <Button />; }",
+      },
+    ];
+
+    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES);
+    expect(matches).toHaveLength(1);
+    expect(matches[0]).toEqual(
+      expect.objectContaining({
+        name: 'Button',
+        ozTarget: 'Button',
+        usageCount: 1,
+        sourceImport: '@openzeppelin/ui-components',
+      })
+    );
+  });
+
+  it('maps default import Sidebar from ./Sidebar to OZ Sidebar (local shell)', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/App.tsx',
+        relativePath: 'src/App.tsx',
+        content: [
+          "import Sidebar from './Sidebar';",
+          'export function App() { return <Sidebar />; }',
+        ].join('\n'),
+      },
+    ];
+
+    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES);
+    expect(matches).toHaveLength(1);
+    expect(matches[0]).toEqual(
+      expect.objectContaining({
+        name: 'Sidebar',
+        ozTarget: 'Sidebar',
+        sourceImport: './Sidebar',
+      })
+    );
+  });
+
+  it('skips @openzeppelin packages outside the UI inventory list', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/A.tsx',
+        relativePath: 'src/A.tsx',
+        content: [
+          "import { Button } from '@openzeppelin/ui-react';",
+          'export function A() { return <Button />; }',
+        ].join('\n'),
       },
     ];
 

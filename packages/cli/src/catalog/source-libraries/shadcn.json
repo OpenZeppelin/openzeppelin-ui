@@ -1,6 +1,11 @@
 {
   "library": "shadcn/ui",
-  "importPatterns": ["@/components/ui/", "/ui/"],
+  "importPatterns": [
+    "@/components/ui/",
+    "/ui/",
+    "@openzeppelin/ui-components",
+    "@openzeppelin/accounts-ui-components"
+  ],
   "mappings": {
     "Accordion": { "source": "Accordion", "effort": "low", "notes": "Near 1:1 API parity" },
     "Alert": { "source": "Alert", "effort": "low", "notes": "Near 1:1 API parity" },
@@ -30,6 +35,8 @@
     "TabsTrigger": { "source": "Tabs", "effort": "low", "notes": "Compound maps to Tabs family", "reportName": "target" },
     "Textarea": { "source": "Textarea", "effort": "low", "notes": "Near 1:1 API parity" },
     "Tooltip": { "source": "Tooltip", "effort": "low", "notes": "Near 1:1 API parity" },
-    "Sidebar": { "source": "Sidebar", "effort": "medium", "notes": "Layout differs, check slot pattern" }
+    "Sidebar": { "source": "Sidebar", "effort": "medium", "notes": "Layout differs, check slot pattern" },
+    "CopyableAddress": { "source": "AddressDisplay", "effort": "low", "notes": "Accounts UI helper maps to AddressDisplay" },
+    "NetworkSelector": { "source": "NetworkSelector", "effort": "low", "notes": "Near 1:1 API parity" }
   }
 }
