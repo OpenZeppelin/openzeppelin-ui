@@ -1,0 +1,100 @@
+{
+  "fixture": "oz-oss-apps",
+  "analysisReport": "frozen-reports/oz-oss-apps.json",
+  "expectedTasks": [
+    { "type": "component-replacement", "sourceComponent": "Button", "targetComponent": "Button", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Badge", "targetComponent": "Badge", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Label", "targetComponent": "Label", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Card", "targetComponent": "Card", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "CardContent", "targetComponent": "Card", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "CardHeader", "targetComponent": "Card", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "CardTitle", "targetComponent": "Card", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "CardDescription", "targetComponent": "Card", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Input", "targetComponent": "Input", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Select", "targetComponent": "Select", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "SelectItem", "targetComponent": "Select", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "SelectContent", "targetComponent": "Select", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "SelectTrigger", "targetComponent": "Select", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "SelectValue", "targetComponent": "Select", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Dialog", "targetComponent": "Dialog", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "DialogTitle", "targetComponent": "Dialog", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "DialogHeader", "targetComponent": "Dialog", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "DialogContent", "targetComponent": "Dialog", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "DialogDescription", "targetComponent": "Dialog", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "DialogFooter", "targetComponent": "Dialog", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Table", "targetComponent": "Table", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "TableCell", "targetComponent": "Table", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "TableRow", "targetComponent": "Table", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "TableHead", "targetComponent": "Table", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "TableBody", "targetComponent": "Table", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "TableHeader", "targetComponent": "Table", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Switch", "targetComponent": "Switch", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Separator", "targetComponent": "Separator", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "DropdownMenu", "targetComponent": "DropdownMenu", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "DropdownMenuItem", "targetComponent": "DropdownMenu", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "DropdownMenuContent", "targetComponent": "DropdownMenu", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "DropdownMenuTrigger", "targetComponent": "DropdownMenu", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "DropdownMenuSeparator", "targetComponent": "DropdownMenu", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Tabs", "targetComponent": "Tabs", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "TabsContent", "targetComponent": "Tabs", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "TabsTrigger", "targetComponent": "Tabs", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "TabsList", "targetComponent": "Tabs", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Toaster", "targetComponent": "Toaster", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "AddAccountModal", "targetComponent": "AddAccountModal", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Logo", "targetComponent": "Logo", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "WalletWidget", "targetComponent": "WalletWidget", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "AccountSwitcher", "targetComponent": "AccountSwitcher", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "AccountItem", "targetComponent": "AccountItem", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "NetworkSelector", "targetComponent": "NetworkSelector", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "NetworkItem", "targetComponent": "NetworkItem", "phase": "ui-components" }
+  ],
+  "forbiddenTasks": [
+    {
+      "sourceComponent": "ToastPrimitives",
+      "reason": "Underlying @radix-ui/react-toast namespace import; frozen report marks ozTarget as null (not mappable). The OZ migration target is Toaster, not the raw Radix primitive."
+    },
+    {
+      "sourceComponent": "SwitchPrimitives",
+      "reason": "Underlying @radix-ui/react-switch namespace import; frozen report marks ozTarget as null (not mappable). The OZ migration target is Switch, not the raw Radix primitive."
+    },
+    {
+      "sourceComponent": "TopNavbar",
+      "reason": "Local application navigation wrapper component present in multiple packages; not a source-library primitive in the frozen report"
+    },
+    {
+      "sourceComponent": "Sidebar",
+      "reason": "Local application sidebar layout component present in multiple packages; not a source-library primitive in the frozen report"
+    },
+    {
+      "sourceComponent": "Dashboard",
+      "reason": "Local application page component in access-manager; not a source-library primitive in the frozen report"
+    },
+    {
+      "sourceComponent": "AccountsProvider",
+      "reason": "React context provider exported from @oz/ui for account state management; not a UI component migration target"
+    },
+    {
+      "sourceComponent": "EcosystemLandingPage",
+      "reason": "Local application page component in the portal package; not a source-library primitive in the frozen report"
+    },
+    {
+      "sourceComponent": "ServiceCard",
+      "reason": "Local presentation tile component in the portal package; not a source-library primitive in the frozen report"
+    },
+    {
+      "sourceComponent": "ProductTile",
+      "reason": "Local display tile component in the console package; not a source-library primitive in the frozen report"
+    },
+    {
+      "sourceComponent": "App",
+      "reason": "Application root component, not an OZ-mappable source-library primitive"
+    }
+  ],
+  "expectedWalletTasks": [],
+  "forbiddenWalletFiles": [
+    {
+      "file": "packages/ui/src/components/WalletWidget.tsx",
+      "reason": "Mock wallet UI component with no real wallet library imports; wallet provider names appear only as string literals and an etherscan URL is a plain string — no wagmi, viem, ethers, or WalletConnect SDK imports present. This file needs a component-replacement task (WalletWidget → WalletWidget from @openzeppelin/ui-components), not a wallet-adapter migration task."
+    }
+  ]
+}
