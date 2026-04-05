@@ -172,6 +172,8 @@ autoresearch/
   fixtures-and-expectations.md   # How to add fixtures + author expected/* ground truth (incl. LLM prompt)
   evaluate.ts                    # Unified harness with --capability flag
   fetch-fixtures.ts              # Resolves external fixtures (symlink or clone)
+  lint-detection.ts              # Structural lint gate for detection (prevents hardcoded fixture names)
+  generate-adversarial-fixture.ts # Generates randomized adversarial fixture for generalization testing
   capabilities/
     shared.ts                    # F1 computation, checklist scoring, utilities
     fixture-resolver.ts          # Multi-source fixture resolution
@@ -194,12 +196,16 @@ autoresearch/
   ...
   dashboard.ts                   # Route-based HTTP server
   dashboard.html                 # Overview + detail pages
+  config/
+    detection-fixtures.json      # Detection splits/tags (incl. adversarial)
+    pattern-fixtures.json        # Pattern splits/tags
   fixtures/
     _external.json               # External fixture manifest (committed)
     .gitignore                   # Ignores resolved external fixture dirs
     radix-app/                   # Synthetic (committed)
     raw-html-app/                # Synthetic (committed)
     shadcn-app/                  # Synthetic (committed)
+    adversarial-app/             # Auto-generated adversarial (regenerated per run)
     zama-accounts-ui/            # External (symlink, gitignored)
     accounts-ui/                 # External (symlink, gitignored)
     oz-oss-apps/                 # External (symlink, gitignored)
@@ -224,7 +230,7 @@ autoresearch/
 
 | Capability    | Editable files                                                      |
 | ------------- | ------------------------------------------------------------------- |
-| Detection     | `component-matcher.ts`, `source-libraries/*.json`                   |
+| Detection     | `component-matcher.ts`, `import-classifier.ts`, `import-resolver.ts`, `source-libraries/*.json` |
 | Patterns      | `pattern-scanner.ts`, optional JSON pattern files                   |
 | Planning      | `planning/generate.ts`, `catalog/exclusions.json`                   |
 | Init          | `init/setup.ts`, `templates/**`                                     |
@@ -248,8 +254,22 @@ The route-based dashboard at [http://localhost:4200](http://localhost:4200):
 
 Each capability has a separate `results-<capability>.tsv`:
 
+**Default format (most capabilities):**
 ```
 <experiment_number>\t<status>\t<score>\t<description>
 ```
 
-Status: `keep` (improved), `discard` (no improvement, reverted), `crash` (tests failed, reverted)
+**Detection format (6 columns — includes generalization tracking):**
+```
+<experiment_number>\t<status>\t<mean_f1>\t<adversarial_f1>\t<why>\t<description>
+```
+
+Status: `keep` (improved), `discard` (no improvement, reverted), `crash` (tests/lint failed, reverted), `rework` (F1 improved but lint violation — needs refactoring)
+
+## Detection guardrails
+
+The detection capability has additional safety mechanisms to prevent overfitting:
+
+- **Structural lint gate** (`lint-detection.ts`) — automatically extracts fixture-specific identifiers and blocks them from appearing in editable TypeScript code. Self-updating: adding a new fixture extends the lint.
+- **Adversarial fixture** (`generate-adversarial-fixture.ts`) — generates a synthetic project with real OZ component names but randomized package names, path aliases, and directory structures. Regenerated after each accepted experiment to catch name-dependent detection.
+- **Structural quality invariants** — defined in `program-detection.md`, enforced alongside F1 maximization.

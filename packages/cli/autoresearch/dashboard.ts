@@ -79,9 +79,18 @@ interface ResultRow {
   experiment: number;
   status: string;
   meanF1: number;
+  adversarialF1: number | null;
+  why: string | null;
   description: string;
 }
 
+/**
+ * Parses results TSV which may be in two formats:
+ *   Default (4 cols): experiment \t status \t score \t description
+ *   Detection (6 cols): experiment \t status \t mean_f1 \t adversarial_f1 \t why \t description
+ *
+ * Auto-detects by checking if column 4 parses as a number (adversarial_f1).
+ */
 function parseResults(capability: string): ResultRow[] {
   const resultsPath = path.join(__dirname, `results-${capability}.tsv`);
   if (!fs.existsSync(resultsPath)) return [];
@@ -92,11 +101,36 @@ function parseResults(capability: string): ResultRow[] {
   const lines = content.split('\n');
   const rows: ResultRow[] = [];
   for (const line of lines) {
-    const [exp, status, f1, ...descParts] = line.split('\t');
-    const experiment = parseInt(exp, 10);
-    const meanF1 = parseFloat(f1);
+    const cols = line.split('\t');
+    const experiment = parseInt(cols[0], 10);
+    const status = cols[1] ?? '';
+    const meanF1 = parseFloat(cols[2]);
     if (Number.isNaN(experiment) || Number.isNaN(meanF1)) continue;
-    rows.push({ experiment, status, meanF1, description: descParts.join('\t') });
+
+    // Detect 6-column format: col[3] is adversarial_f1 (number or "n/a")
+    const col3 = cols[3] ?? '';
+    const col3AsNum = parseFloat(col3);
+    const isSixCol = cols.length >= 6 && (!Number.isNaN(col3AsNum) || col3 === 'n/a');
+
+    if (isSixCol) {
+      rows.push({
+        experiment,
+        status,
+        meanF1,
+        adversarialF1: col3 === 'n/a' ? null : (Number.isNaN(col3AsNum) ? null : col3AsNum),
+        why: cols[4] ?? null,
+        description: cols.slice(5).join('\t'),
+      });
+    } else {
+      rows.push({
+        experiment,
+        status,
+        meanF1,
+        adversarialF1: null,
+        why: null,
+        description: cols.slice(3).join('\t'),
+      });
+    }
   }
   return rows;
 }

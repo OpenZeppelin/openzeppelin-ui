@@ -462,6 +462,8 @@
     .status-badge.keep { background: var(--green-bg); color: var(--green); }
     .status-badge.discard { background: var(--orange-bg); color: var(--orange); }
     .status-badge.crash { background: var(--red-bg); color: var(--red); }
+    .status-badge.rework { background: var(--yellow-bg); color: var(--yellow); }
+    .status-badge.suspect { background: var(--blue-bg); color: var(--blue); }
     .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
     .empty-state h3 { font-size: 16px; margin-bottom: 8px; color: var(--text); }
     .empty-state p { font-size: 13px; }
@@ -601,7 +603,7 @@
         <div class="table-scroll" id="table-scroll">
           <table>
             <thead>
-              <tr>
+              <tr id="log-thead-row">
                 <th>#</th><th>Status</th><th>Score</th><th>Delta</th><th>Description</th>
               </tr>
             </thead>
@@ -1027,7 +1029,17 @@
 
     function updateTable(rows) {
       const tbody = document.getElementById('log-body');
-      if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><p>No experiments yet.</p></td></tr>'; return; }
+      const theadRow = document.getElementById('log-thead-row');
+      const hasExtendedFormat = rows.some(r => r.adversarialF1 !== null && r.adversarialF1 !== undefined);
+      const colSpan = hasExtendedFormat ? 7 : 5;
+
+      if (theadRow) {
+        theadRow.innerHTML = hasExtendedFormat
+          ? '<th>#</th><th>Status</th><th>Score</th><th>Adv F1</th><th>Delta</th><th>Why</th><th>Description</th>'
+          : '<th>#</th><th>Status</th><th>Score</th><th>Delta</th><th>Description</th>';
+      }
+
+      if (rows.length === 0) { tbody.innerHTML = `<tr><td colspan="${colSpan}" class="empty-state"><p>No experiments yet.</p></td></tr>`; return; }
 
       const reversed = [...rows].reverse();
       let lastKeptF1 = null;
@@ -1047,7 +1059,15 @@
         } else if (r.status === 'keep') {
           delta = `<span style="color:var(--text-dim)">baseline</span>`;
         }
-        return `<tr><td>${r.experiment}</td><td><span class="status-badge ${r.status}">${r.status}</span></td><td>${r.meanF1.toFixed(6)}</td><td>${delta}</td><td style="color:var(--text-muted);max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.description)}">${esc(r.description)}</td></tr>`;
+
+        const descCell = `<td style="color:var(--text-muted);max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.description)}">${esc(r.description)}</td>`;
+
+        if (hasExtendedFormat) {
+          const advF1 = r.adversarialF1 != null ? `<span style="color:${getBarColor(r.adversarialF1)}">${r.adversarialF1.toFixed(4)}</span>` : '<span style="color:var(--text-dim)">n/a</span>';
+          const whyText = r.why || '';
+          return `<tr><td>${r.experiment}</td><td><span class="status-badge ${r.status}">${r.status}</span></td><td>${r.meanF1.toFixed(6)}</td><td>${advF1}</td><td>${delta}</td><td style="color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(whyText)}">${esc(whyText)}</td>${descCell}</tr>`;
+        }
+        return `<tr><td>${r.experiment}</td><td><span class="status-badge ${r.status}">${r.status}</span></td><td>${r.meanF1.toFixed(6)}</td><td>${delta}</td>${descCell}</tr>`;
       }).join('');
     }
 

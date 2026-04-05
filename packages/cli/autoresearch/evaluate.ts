@@ -134,6 +134,9 @@ function main(): void {
     }
 
     console.error(`  aggregate=${r.aggregate.toFixed(4)}  (${r.scores.length} fixtures)`);
+    if (r.metadata && typeof r.metadata === 'object' && 'adversarialF1' in r.metadata && r.metadata.adversarialF1 != null) {
+      console.error(`  adversarial_f1=${(r.metadata.adversarialF1 as number).toFixed(4)}`);
+    }
     if (r.metadata) {
       console.error(`  metadata=${JSON.stringify(r.metadata)}`);
     }

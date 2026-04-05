@@ -49,7 +49,7 @@ Evaluators that care about train/holdout/validation read small config files:
 - `[config/detection-fixtures.json](./config/detection-fixtures.json)` — detection splits/tags.
 - `[config/pattern-fixtures.json](./config/pattern-fixtures.json)` — patterns splits/tags.
 
-Add a `{ "name": "<fixture>", "split": "train" | "holdout" | "validation", "tags": [...] }` entry when that fixture should participate in that capability’s scoring.
+Add a `{ "name": "<fixture>", "split": "train" | "holdout" | "validation", "tags": [...] }` entry when that fixture should participate in that capability’s scoring. The `adversarial` split is excluded from the primary mean F1 aggregate and tracked separately as a generalization metric.
 
 ### 4. Add **all** expectation artifacts the fixture needs
 
@@ -120,6 +120,25 @@ These prompts use the **"Data Labeler" vs "Solver"** workflow, which ensures tha
 
 ---
 
+## Adversarial fixture (detection)
+
+The detection capability includes an auto-generated **adversarial fixture** that stress-tests generalization. It uses real OZ component names but randomized structural context (package scopes, path aliases, directory layouts).
+
+- **Generate/regenerate:** `npx tsx autoresearch/generate-adversarial-fixture.ts`
+- **Scored under the `adversarial` split** — excluded from the primary mean F1 but visible in the dashboard and evaluation output.
+- The fixture is regenerated after each accepted detection experiment. If the adversarial score drops significantly (below 0.8 F1), the experiment is flagged as potentially overfitting.
+
+## Structural lint gate (detection)
+
+The detection protocol includes a hard lint gate (`lint-detection.ts`) that automatically prevents fixture-specific hardcoding in the editable TypeScript surface:
+
+- **Run:** `npx tsx autoresearch/lint-detection.ts`
+- Extracts fixture names, workspace package specifiers, and external manifest identifiers at runtime from whatever fixtures exist on disk.
+- Checks `component-matcher.ts`, `import-classifier.ts`, and `import-resolver.ts` for string literal references to those identifiers.
+- Self-updating: adding a new fixture automatically extends the lint.
+
+---
+
 ## Anti-patterns
 
 - **Fixture without expectations** — Breaks or skips evaluation; defeats autoresearch.
@@ -132,6 +151,11 @@ These prompts use the **"Data Labeler" vs "Solver"** workflow, which ensures tha
 ## Related tools
 
 - **Detection scaffold:** `npx tsx autoresearch/scaffold-expected.ts <fixture-name>` (from `packages/cli`) generates `expected/<fixture>.scaffold.json` from current detection output. The [LLM Prompts Collection](./llm-prompts-collection.md) detection prompt tells the agent to run this as step 1, then refine into `expected/<fixture>.json`. See comments in `scaffold-expected.ts`.
+
+---
+
+- **Adversarial fixture generator:** `npx tsx autoresearch/generate-adversarial-fixture.ts` (from `packages/cli`) creates `fixtures/adversarial-app/` and `expected/adversarial-app.json` with randomized structural context. Regenerated after each accepted detection experiment.
+- **Structural lint gate:** `npx tsx autoresearch/lint-detection.ts` (from `packages/cli`) checks the detection editable surface for fixture-specific hardcoding. Required to pass as part of the detection safety gate.
 
 ---
 
