@@ -120,22 +120,51 @@ These prompts use the **"Data Labeler" vs "Solver"** workflow, which ensures tha
 
 ---
 
-## Adversarial fixture (detection)
+## Adversarial fixtures
 
-The detection capability includes an auto-generated **adversarial fixture** that stress-tests generalization. It uses real OZ component names but randomized structural context (package scopes, path aliases, directory layouts).
+Multiple capabilities include auto-generated **adversarial fixtures** that stress-test generalization by randomizing names, paths, and structural context on each run.
+
+### Detection adversarial fixture
+
+Uses real OZ component names but randomized package scopes, path aliases, and directory layouts.
 
 - **Generate/regenerate:** `npx tsx autoresearch/generate-adversarial-fixture.ts`
 - **Scored under the `adversarial` split** — included in the primary mean F1 aggregate, so the agent cannot declare victory without solving it.
-- The fixture is regenerated after each accepted detection experiment. If the adversarial score drops significantly (below 0.8 F1), the experiment is flagged as potentially overfitting.
+- Regenerated after each accepted detection experiment.
 
-## Structural lint gate (detection)
+### Execution adversarial fixtures
 
-The detection protocol includes a hard lint gate (`lint-detection.ts`) that automatically prevents fixture-specific hardcoding in the editable TypeScript surface:
+Generates synthetic `before.tsx` / `task.json` / `after.tsx` triples with fully randomized component names, import paths, and prop names.
 
-- **Run:** `npx tsx autoresearch/lint-detection.ts`
+- **Generate/regenerate:** `npx tsx autoresearch/generate-adversarial-execution.ts`
+- Output placed at `expected/execution/adversarial/` — discovered automatically by the evaluator.
+- Tests that the rewriter operates from `MigrationTask` properties, not hardcoded component names.
+
+### Verification adversarial fixtures
+
+Generates synthetic verification scenarios (pass/fail) with randomized component names and import sources.
+
+- **Generate/regenerate:** `npx tsx autoresearch/generate-adversarial-verification.ts`
+- Output placed at `expected/verification/adversarial/` — discovered automatically by the evaluator.
+- Creates 4 scenarios: correct migration (pass), orphaned old import (fail), wrong OZ package (fail), missing OZ import (fail).
+
+## Structural lint gates
+
+Five capabilities have hard lint gates that automatically prevent fixture-specific hardcoding in their editable TypeScript surfaces. All share infrastructure from `lint-shared.ts`.
+
+| Capability   | Lint command                                   | Editable surface checked                                |
+| ------------ | ---------------------------------------------- | ------------------------------------------------------- |
+| Detection    | `npx tsx autoresearch/lint-detection.ts`       | `component-matcher.ts`, `import-classifier.ts`, `import-resolver.ts` |
+| Patterns     | `npx tsx autoresearch/lint-patterns.ts`        | `pattern-scanner.ts`                                    |
+| Planning     | `npx tsx autoresearch/lint-planning.ts`        | `plan.ts`, `generate.ts`, `exclusions.json`             |
+| Execution    | `npx tsx autoresearch/lint-execution.ts`       | `rewriteFile.ts`                                        |
+| Verification | `npx tsx autoresearch/lint-verification.ts`    | `checker.ts`                                            |
+
+Each lint gate:
 - Extracts fixture names, workspace package specifiers, and external manifest identifiers at runtime from whatever fixtures exist on disk.
-- Checks `component-matcher.ts`, `import-classifier.ts`, and `import-resolver.ts` for string literal references to those identifiers.
-- Self-updating: adding a new fixture automatically extends the lint.
+- Checks the capability's editable files for string literal references to those identifiers.
+- Self-updating: adding a new fixture automatically extends the lint coverage.
+- Adds capability-specific checks (e.g., detection checks for inline component allowlists; planning checks `exclusions.json` for fixture-shaped entries).
 
 ---
 
@@ -154,8 +183,16 @@ The detection protocol includes a hard lint gate (`lint-detection.ts`) that auto
 
 ---
 
-- **Adversarial fixture generator:** `npx tsx autoresearch/generate-adversarial-fixture.ts` (from `packages/cli`) creates `fixtures/adversarial-app/` and `expected/adversarial-app.json` with randomized structural context. Regenerated after each accepted detection experiment.
-- **Structural lint gate:** `npx tsx autoresearch/lint-detection.ts` (from `packages/cli`) checks the detection editable surface for fixture-specific hardcoding. Required to pass as part of the detection safety gate.
+- **Adversarial generators** (run from `packages/cli`):
+  - `npx tsx autoresearch/generate-adversarial-fixture.ts` — detection adversarial fixture
+  - `npx tsx autoresearch/generate-adversarial-execution.ts` — execution adversarial fixtures
+  - `npx tsx autoresearch/generate-adversarial-verification.ts` — verification adversarial fixtures
+- **Structural lint gates** (run from `packages/cli`):
+  - `npx tsx autoresearch/lint-detection.ts` — detection lint
+  - `npx tsx autoresearch/lint-patterns.ts` — patterns lint
+  - `npx tsx autoresearch/lint-planning.ts` — planning lint
+  - `npx tsx autoresearch/lint-execution.ts` — execution lint
+  - `npx tsx autoresearch/lint-verification.ts` — verification lint
 
 ---
 

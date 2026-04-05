@@ -172,8 +172,15 @@ autoresearch/
   fixtures-and-expectations.md   # How to add fixtures + author expected/* ground truth (incl. LLM prompt)
   evaluate.ts                    # Unified harness with --capability flag
   fetch-fixtures.ts              # Resolves external fixtures (symlink or clone)
-  lint-detection.ts              # Structural lint gate for detection (prevents hardcoded fixture names)
-  generate-adversarial-fixture.ts # Generates randomized adversarial fixture for generalization testing
+  lint-shared.ts                 # Shared lint infrastructure (fixture ID extraction, string-literal checks)
+  lint-detection.ts              # Structural lint gate for detection
+  lint-patterns.ts               # Structural lint gate for patterns
+  lint-planning.ts               # Structural lint gate for planning
+  lint-verification.ts           # Structural lint gate for verification
+  lint-execution.ts              # Structural lint gate for execution
+  generate-adversarial-fixture.ts   # Adversarial fixture for detection generalization testing
+  generate-adversarial-execution.ts # Adversarial fixtures for execution generalization testing
+  generate-adversarial-verification.ts # Adversarial fixtures for verification generalization testing
   capabilities/
     shared.ts                    # F1 computation, checklist scoring, utilities
     fixture-resolver.ts          # Multi-source fixture resolution
@@ -219,9 +226,11 @@ autoresearch/
       tier1/
       tier2/
       tier3/
+      adversarial/               # Auto-generated adversarial (randomized per run)
     verification/                # Doctor verification fixtures
       correct/
       broken/
+      adversarial/               # Auto-generated adversarial (randomized per run)
     orchestration/               # Orchestration scenario fixtures
 ```
 
@@ -254,22 +263,50 @@ The route-based dashboard at [http://localhost:4200](http://localhost:4200):
 
 Each capability has a separate `results-<capability>.tsv`:
 
-**Default format (most capabilities):**
+**Standard format (6 columns — includes generalization tracking):**
+```
+<experiment_number>\t<status>\t<score>\t<adversarial_score|n/a>\t<why>\t<description>
+```
+
+Used by: detection, patterns, planning, execution, verification.
+
+**Legacy format (4 columns — init, orchestration):**
 ```
 <experiment_number>\t<status>\t<score>\t<description>
 ```
 
-**Detection format (6 columns — includes generalization tracking):**
-```
-<experiment_number>\t<status>\t<mean_f1>\t<adversarial_f1>\t<why>\t<description>
-```
+Status: `keep` (improved), `discard` (no improvement, reverted), `crash` (tests/lint failed, reverted), `rework` (score improved but lint violation — needs refactoring)
 
-Status: `keep` (improved), `discard` (no improvement, reverted), `crash` (tests/lint failed, reverted), `rework` (F1 improved but lint violation — needs refactoring)
+The dashboard auto-detects 4-column vs 6-column format per capability.
 
-## Detection guardrails
+## Autoresearch guardrails
 
-The detection capability has additional safety mechanisms to prevent overfitting:
+Five capabilities (detection, patterns, planning, execution, verification) have structural safety mechanisms to prevent overfitting:
 
-- **Structural lint gate** (`lint-detection.ts`) — automatically extracts fixture-specific identifiers and blocks them from appearing in editable TypeScript code. Self-updating: adding a new fixture extends the lint.
-- **Adversarial fixture** (`generate-adversarial-fixture.ts`) — generates a synthetic project with real OZ component names but randomized package names, path aliases, and directory structures. Regenerated after each accepted experiment to catch name-dependent detection.
-- **Structural quality invariants** — defined in `program-detection.md`, enforced alongside F1 maximization.
+### Structural lint gates
+
+Each capability has a dedicated lint script that automatically extracts fixture-specific identifiers and blocks them from appearing in editable TypeScript code. Self-updating: adding a new fixture extends the lint.
+
+| Capability   | Lint script            | Editable surface checked                       |
+| ------------ | ---------------------- | ---------------------------------------------- |
+| Detection    | `lint-detection.ts`    | `component-matcher.ts`, `import-classifier.ts`, `import-resolver.ts` |
+| Patterns     | `lint-patterns.ts`     | `pattern-scanner.ts`                           |
+| Planning     | `lint-planning.ts`     | `plan.ts`, `generate.ts`, `exclusions.json`    |
+| Execution    | `lint-execution.ts`    | `rewriteFile.ts`                               |
+| Verification | `lint-verification.ts` | `checker.ts`                                   |
+
+All lint scripts share infrastructure from `lint-shared.ts` (fixture ID extraction, string-literal checking) and add capability-specific checks on top.
+
+### Adversarial fixtures
+
+Capabilities with adversarial fixtures have auto-generated synthetic test cases with randomized names/structures:
+
+| Capability   | Generator script                        | What it randomizes                                    |
+| ------------ | --------------------------------------- | ----------------------------------------------------- |
+| Detection    | `generate-adversarial-fixture.ts`       | Package scopes, path aliases, directory structures    |
+| Execution    | `generate-adversarial-execution.ts`     | Component names, import paths, prop names             |
+| Verification | `generate-adversarial-verification.ts`  | Component names, import sources, project structures   |
+
+### Structural quality invariants
+
+Each capability protocol (`program-*.md`) defines explicit structural quality invariants that must be satisfied alongside score maximization. The "why" field in experiment logs forces the agent to articulate how each change generalizes beyond the benchmark.
