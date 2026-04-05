@@ -26,15 +26,15 @@ Both commands MUST pass after every experiment. If either fails, the experiment 
 
 The structural lint gate (`lint-detection.ts`) automatically extracts fixture-specific identifiers (package names, workspace specifiers, fixture names) from the benchmark apps and verifies they do not appear as hardcoded strings in the editable TypeScript surface. This gate is self-updating — adding a new fixture automatically extends the lint coverage.
 
-**Run the adversarial generalization check:**
+**Regenerate the adversarial fixture before evaluating:**
 
 ```bash
-npx tsx autoresearch/generate-adversarial-fixture.ts && npx tsx autoresearch/evaluate.ts --capability detection
+npx tsx autoresearch/generate-adversarial-fixture.ts
 ```
 
-After each accepted experiment, regenerate the adversarial fixture and re-evaluate. If the adversarial fixture score drops significantly (below 0.8 F1), treat the experiment as **suspect** — the change may be overfitting to benchmark naming conventions.
+The adversarial fixture (`adversarial-app`) uses real OZ component names but randomized package scopes, path aliases, and directory structures. It is **included in the mean F1 aggregate** — you cannot reach 1.0 without also solving the adversarial fixture. Regenerate it before each evaluation to ensure the names stay randomized.
 
-**Current baseline:** mean_f1 ≈ 0.996. External fixtures are resolved from full real-world repos (not curated subsets), exposing gaps in detection coverage for large projects. Run `npx tsx autoresearch/fetch-fixtures.ts` to resolve external fixtures before evaluating.
+**Current baseline:** mean_f1 ≈ 0.900. External fixtures are resolved from full real-world repos (not curated subsets), exposing gaps in detection coverage for large projects. The adversarial fixture currently scores ~0.35, which is the main driver of the gap. Run `npx tsx autoresearch/fetch-fixtures.ts` to resolve external fixtures before evaluating.
 
 ## Structural Quality Invariants
 
@@ -83,13 +83,12 @@ Each experiment is one atomic change. Follow this loop:
 2. **Hypothesize** — Form a single, clear hypothesis about what change will improve detection. Write it down.
 3. **Implement** — Make the smallest possible change that tests the hypothesis. Prefer modifying JSON mappings before modifying TypeScript code. When modifying TypeScript, prefer adding new functions over changing existing ones.
 4. **Safety gate** — Run `pnpm test && npx tsx autoresearch/lint-detection.ts`. If either fails → mark as **crashed**, revert all changes, and try a different approach.
-5. **Evaluate** — Run `npx tsx autoresearch/evaluate.ts`. Capture the new mean_f1.
-6. **Adversarial check** — Run `npx tsx autoresearch/generate-adversarial-fixture.ts && npx tsx autoresearch/evaluate.ts`. Check the adversarial fixture score.
+5. **Regenerate adversarial fixture** — Run `npx tsx autoresearch/generate-adversarial-fixture.ts` to randomize the adversarial app's structural context before evaluation.
+6. **Evaluate** — Run `npx tsx autoresearch/evaluate.ts --capability detection`. Capture the new mean_f1. The adversarial fixture is included in the aggregate — you cannot reach 1.0 without also passing it.
 7. **Decision:**
-   - If mean_f1 **improved** AND lint passes AND adversarial score ≥ 0.8 → **keep** the change.
+   - If mean_f1 **improved** AND lint passes → **keep** the change.
    - If mean_f1 **stayed the same or got worse** → **discard** the change (revert).
    - If mean_f1 improved but lint fails → **rework** — the approach is correct but the implementation is too coupled to fixtures. Refactor to use catalog JSON or structural inference.
-   - If mean_f1 improved but adversarial score dropped → **suspect** — the change may be overfitting. Verify generalizability before keeping.
 
 ## Output format
 
@@ -127,20 +126,18 @@ Before your first experiment, if `results-detection.tsv` does not exist, create 
 
 ```
 while True:
-    analyze the current weakest fixture/component
+    analyze the current weakest fixture/component (including adversarial-app)
     form hypothesis
     implement smallest change
     if tests fail OR lint fails:
         log crash, revert
         continue
-    evaluate F1
-    run adversarial check
-    if improved AND generalizes:
+    regenerate adversarial fixture
+    evaluate F1 (adversarial is in the aggregate)
+    if improved:
         log keep (with why)
     elif improved but lint violation:
         log rework, refactor to satisfy invariants
-    elif improved but adversarial drops:
-        log suspect, verify generalizability
     else:
         log discard, revert
 ```

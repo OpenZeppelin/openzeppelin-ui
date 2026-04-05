@@ -456,6 +456,7 @@ describe('analyzeComponents', () => {
     const ctx: AnalysisContext = {
       designSystemIndicators: ['@openzeppelin/ui-components'],
       workspacePackages: [],
+      externalLibraryPatterns: ['@openzeppelin/ui-components'],
     };
 
     const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES, ctx);
@@ -509,6 +510,7 @@ describe('analyzeComponents', () => {
     const ctx: AnalysisContext = {
       designSystemIndicators: ['@radix-ui/react-'],
       workspacePackages: [{ name: '@acme/ui', rootDir: 'packages/ui', isDesignSystem: true }],
+      externalLibraryPatterns: ['@radix-ui/react-'],
     };
 
     const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES, ctx);
@@ -543,6 +545,7 @@ describe('analyzeComponents', () => {
     const ctx: AnalysisContext = {
       designSystemIndicators: ['@openzeppelin/ui-components'],
       workspacePackages: [],
+      externalLibraryPatterns: ['@openzeppelin/ui-components'],
     };
 
     const matches = analyzeComponents(
@@ -696,6 +699,7 @@ describe('analyzeHtmlElements', () => {
     const ctx: AnalysisContext = {
       designSystemIndicators: ['@openzeppelin/ui-components'],
       workspacePackages: [],
+      externalLibraryPatterns: [],
     };
 
     const matches = analyzeHtmlElements(files, MOCK_HTML_LIB, ctx);
@@ -754,6 +758,7 @@ describe('analyzeHtmlElements', () => {
     const ctx: AnalysisContext = {
       designSystemIndicators: ['@radix-ui/react-'],
       workspacePackages: [{ name: '@acme/ui', rootDir: 'packages/ui', isDesignSystem: true }],
+      externalLibraryPatterns: ['@radix-ui/react-'],
     };
 
     const matches = analyzeHtmlElements(files, MOCK_HTML_LIB, ctx);

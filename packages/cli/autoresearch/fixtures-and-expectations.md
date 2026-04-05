@@ -49,7 +49,7 @@ Evaluators that care about train/holdout/validation read small config files:
 - `[config/detection-fixtures.json](./config/detection-fixtures.json)` — detection splits/tags.
 - `[config/pattern-fixtures.json](./config/pattern-fixtures.json)` — patterns splits/tags.
 
-Add a `{ "name": "<fixture>", "split": "train" | "holdout" | "validation", "tags": [...] }` entry when that fixture should participate in that capability’s scoring. The `adversarial` split is excluded from the primary mean F1 aggregate and tracked separately as a generalization metric.
+Add a `{ "name": "<fixture>", "split": "train" | "holdout" | "validation", "tags": [...] }` entry when that fixture should participate in that capability’s scoring. The `adversarial` split is **included in the primary mean F1 aggregate** — the agent cannot reach 1.0 without also passing the adversarial fixture.
 
 ### 4. Add **all** expectation artifacts the fixture needs
 
@@ -125,7 +125,7 @@ These prompts use the **"Data Labeler" vs "Solver"** workflow, which ensures tha
 The detection capability includes an auto-generated **adversarial fixture** that stress-tests generalization. It uses real OZ component names but randomized structural context (package scopes, path aliases, directory layouts).
 
 - **Generate/regenerate:** `npx tsx autoresearch/generate-adversarial-fixture.ts`
-- **Scored under the `adversarial` split** — excluded from the primary mean F1 but visible in the dashboard and evaluation output.
+- **Scored under the `adversarial` split** — included in the primary mean F1 aggregate, so the agent cannot declare victory without solving it.
 - The fixture is regenerated after each accepted detection experiment. If the adversarial score drops significantly (below 0.8 F1), the experiment is flagged as potentially overfitting.
 
 ## Structural lint gate (detection)

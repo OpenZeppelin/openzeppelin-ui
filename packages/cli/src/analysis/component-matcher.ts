@@ -16,7 +16,6 @@ import {
 import {
   findWorkspacePackageForImport,
   isFileInDesignSystemPackage,
-  moduleImportsDesignSystem,
   resolveLocalImportToFile,
   type WorkspacePackageInfo,
 } from './import-resolver';
@@ -129,12 +128,54 @@ interface MatchResult {
 export interface AnalysisContext {
   designSystemIndicators: string[];
   workspacePackages: WorkspacePackageInfo[];
+  /** Substrings from catalog `importPatterns` only — excludes workspace package names. */
+  externalLibraryPatterns: string[];
 }
 
 const DEFAULT_ANALYSIS_CONTEXT: AnalysisContext = {
   designSystemIndicators: [],
   workspacePackages: [],
+  externalLibraryPatterns: [],
 };
+
+const LOCAL_DS_WRAPPER_MAX_DEPTH = 8;
+
+/**
+ * True when `start` or any module reachable from it via local-relative / alias
+ * imports (within `files`) contains a known third-party UI library import
+ * pattern. Workspace package names are intentionally excluded so app shells
+ * that only compose `@acme/ui` are not treated as shadcn/Radix wrappers.
+ */
+function localModuleTransitivelyImportsExternalLibrary(
+  start: ScannedFile,
+  files: ScannedFile[],
+  externalPatterns: readonly string[]
+): boolean {
+  if (externalPatterns.length === 0) return false;
+
+  const visited = new Set<string>();
+
+  function walk(file: ScannedFile, depth: number): boolean {
+    if (depth > LOCAL_DS_WRAPPER_MAX_DEPTH) return false;
+    const key = file.relativePath;
+    if (visited.has(key)) return false;
+    visited.add(key);
+
+    if (externalPatterns.some((p) => file.content.includes(p))) return true;
+
+    const facts = parseFileFacts(file);
+    for (const imp of facts.imports) {
+      if (isExcludedLibrary(imp.source) || isExcludedPattern(imp.source)) continue;
+      const sk = classifyImportSource(imp.source);
+      if (!isLocalImport(sk)) continue;
+      const resolved = resolveLocalImportToFile(file.relativePath, imp.source, files);
+      if (resolved && walk(resolved, depth + 1)) return true;
+    }
+    return false;
+  }
+
+  return walk(start, 0);
+}
 
 // ---------------------------------------------------------------------------
 // Product configuration — OZ packages that form the migration inventory
@@ -577,6 +618,18 @@ function tryDesignSystemInferredMatch(
  * Strategy 4: weak fallback — the imported component name happens to match
  * an entry in the OZ catalog. Used only when no stronger signal is available.
  */
+function isCatalogOrLibraryMappedName(
+  name: string,
+  catalog: ComponentCatalog,
+  sourceLibraries: Record<string, SourceLibrary>
+): boolean {
+  if (catalog.components[name]) return true;
+  for (const library of Object.values(sourceLibraries)) {
+    if (library.mappings[name]) return true;
+  }
+  return false;
+}
+
 function tryCatalogFallback(importedName: string, catalog: ComponentCatalog): MatchResult | null {
   if (catalog.components[importedName]) {
     const entry = catalog.components[importedName];
@@ -729,8 +782,22 @@ function collectImportObservation(
   // app-level wrappers (e.g. TabsSection would falsely match Tabs).
   if (isLocalImport(sourceKind)) {
     const resolved = resolveLocalImportToFile(file.relativePath, imp.source, files);
-    if (resolved && moduleImportsDesignSystem(resolved, ctx.designSystemIndicators)) {
-      const localResult = tryCatalogFallback(binding.importedName, catalog);
+    if (
+      resolved &&
+      localModuleTransitivelyImportsExternalLibrary(resolved, files, ctx.externalLibraryPatterns)
+    ) {
+      let localResult = tryCatalogFallback(binding.importedName, catalog);
+      if (
+        !localResult &&
+        isCatalogOrLibraryMappedName(binding.importedName, catalog, sourceLibraries)
+      ) {
+        localResult = tryDesignSystemInferredMatch(
+          binding.importedName,
+          catalog,
+          catalogFamilies,
+          true
+        );
+      }
       if (localResult) return buildObservation(file, imp, binding, usageCount, localResult);
     }
   }

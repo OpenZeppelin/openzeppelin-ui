@@ -1,6 +1,6 @@
-import { Button } from '~/vault/pulse/action-button';
-import { Card, CardContent, CardHeader, CardTitle } from '~/vault/pulse/info-card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '~/vault/pulse/tab-set';
+import { Button } from '~/block/frame/action-button';
+import { Card, CardContent, CardHeader, CardTitle } from '~/block/frame/info-card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '~/block/frame/tab-set';
 
 export function Overview() {
   return (

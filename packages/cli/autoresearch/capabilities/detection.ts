@@ -188,11 +188,6 @@ export const detectionEvaluator: CapabilityEvaluator = {
     );
     const scores = fixtureResults.map((result) => result.score);
 
-    // Primary aggregate excludes adversarial-split fixtures — those are
-    // tracked separately as a generalization metric.
-    const primaryScores = scores.filter((s) => s.split !== 'adversarial');
-    const adversarialScores = scores.filter((s) => s.split === 'adversarial');
-
     const splitScores = new Map<DetectionFixtureSplit, FixtureScore[]>();
     const perSourceLibraryExpected = new Map<string, Set<string>>();
     const perSourceLibraryActual = new Map<string, Set<string>>();
@@ -302,9 +297,8 @@ export const detectionEvaluator: CapabilityEvaluator = {
     return {
       capability: 'detection',
       scores,
-      aggregate: meanScore(primaryScores),
+      aggregate: meanScore(scores),
       metadata: {
-        adversarialF1: adversarialScores.length > 0 ? meanScore(adversarialScores) : null,
         fixtureSplits: splitAggregate,
         perSourceLibrary,
         perTarget,

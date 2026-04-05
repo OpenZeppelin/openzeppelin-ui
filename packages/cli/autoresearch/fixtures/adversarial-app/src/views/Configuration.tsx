@@ -1,9 +1,9 @@
-import { Dialog, DialogContent, DialogTrigger } from '~/vault/pulse/modal';
-import { Select, SelectTrigger, SelectContent, SelectItem } from '~/vault/pulse/picker';
-import { Alert, AlertTitle, AlertDescription } from '~/vault/pulse/notice';
-import { Button } from '~/vault/pulse/action-button';
-import { Checkbox } from '~/vault/pulse/tick-box';
-import { Tooltip } from '~/vault/pulse/hint';
+import { Dialog, DialogContent, DialogTrigger } from '~/block/frame/modal';
+import { Select, SelectTrigger, SelectContent, SelectItem } from '~/block/frame/picker';
+import { Alert, AlertTitle, AlertDescription } from '~/block/frame/notice';
+import { Button } from '~/block/frame/action-button';
+import { Checkbox } from '~/block/frame/tick-box';
+import { Tooltip } from '~/block/frame/hint';
 
 export function Configuration() {
   return (

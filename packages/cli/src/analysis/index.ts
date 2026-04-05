@@ -66,7 +66,11 @@ export function analyzeProject(
     knownLibraryPatterns,
     workspacePackages
   );
-  const ctx = { designSystemIndicators, workspacePackages };
+  const ctx = {
+    designSystemIndicators,
+    workspacePackages,
+    externalLibraryPatterns: knownLibraryPatterns,
+  };
 
   const importComponents = analyzeComponents(files, catalog, sourceLibraries, ctx);
   const htmlComponents = htmlLib ? analyzeHtmlElements(files, htmlLib, ctx) : [];

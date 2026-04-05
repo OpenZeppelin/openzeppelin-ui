@@ -6,6 +6,7 @@
   ],
   "mappings": {
     "Accordion": { "source": "Accordion", "effort": "low", "notes": "Near 1:1 API parity" },
+    "AccountItem": { "source": "AccountItem", "effort": "low", "notes": "Account list row / switcher item (kit-specific)" },
     "Alert": { "source": "Alert", "effort": "low", "notes": "Near 1:1 API parity" },
     "AlertTitle": { "source": "Alert", "effort": "low", "notes": "Compound maps to Alert family", "reportName": "target" },
     "AlertDescription": { "source": "Alert", "effort": "low", "notes": "Compound maps to Alert family", "reportName": "target" },
