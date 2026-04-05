@@ -1,0 +1,471 @@
+{
+  "version": "1.0.0",
+  "project": "/Users/ghost/dev/repos/OpenZeppelin/openzeppelin-ui/packages/cli/autoresearch/fixtures/raw-html-app",
+  "framework": "vite",
+  "timestamp": "2026-04-05T21:59:53.685Z",
+  "summary": {
+    "totalFiles": 9,
+    "componentMatches": 9,
+    "mappableComponents": 9,
+    "walletPatterns": 0,
+    "storagePatterns": 0,
+    "existingOzPackages": 0,
+    "estimatedEffort": "low"
+  },
+  "components": [
+    {
+      "name": "Button",
+      "reportName": "Button",
+      "canonicalFamily": "Button",
+      "rawNames": [
+        "Button"
+      ],
+      "sourceLibrary": "html-elements",
+      "sourceImport": "",
+      "ozTarget": "Button",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 9,
+      "files": [
+        "src/App.tsx",
+        "src/components/FeedbackDialog.tsx",
+        "src/components/LoginForm.tsx",
+        "src/components/TaskList.tsx",
+        "src/pages/SettingsPage.tsx"
+      ],
+      "notes": "Direct swap, map onClick/disabled/type",
+      "detectorKinds": [
+        "html-fallback"
+      ],
+      "confidence": "medium",
+      "evidences": [
+        {
+          "kind": "html-tag-usage",
+          "file": "src/App.tsx",
+          "usageCount": 3,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "button",
+          "inputType": null
+        },
+        {
+          "kind": "html-tag-usage",
+          "file": "src/components/FeedbackDialog.tsx",
+          "usageCount": 3,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "button",
+          "inputType": null
+        },
+        {
+          "kind": "html-tag-usage",
+          "file": "src/components/LoginForm.tsx",
+          "usageCount": 1,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "button",
+          "inputType": null
+        },
+        {
+          "kind": "html-tag-usage",
+          "file": "src/components/TaskList.tsx",
+          "usageCount": 1,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "button",
+          "inputType": null
+        },
+        {
+          "kind": "html-tag-usage",
+          "file": "src/pages/SettingsPage.tsx",
+          "usageCount": 1,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "button",
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "Label",
+      "reportName": "Label",
+      "canonicalFamily": "Label",
+      "rawNames": [
+        "Label"
+      ],
+      "sourceLibrary": "html-elements",
+      "sourceImport": "",
+      "ozTarget": "Label",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 9,
+      "files": [
+        "src/components/LoginForm.tsx",
+        "src/components/ProgressIndicator.tsx",
+        "src/components/TaskList.tsx",
+        "src/pages/SettingsPage.tsx"
+      ],
+      "notes": "Map htmlFor",
+      "detectorKinds": [
+        "html-fallback"
+      ],
+      "confidence": "medium",
+      "evidences": [
+        {
+          "kind": "html-tag-usage",
+          "file": "src/components/LoginForm.tsx",
+          "usageCount": 2,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "label",
+          "inputType": null
+        },
+        {
+          "kind": "html-tag-usage",
+          "file": "src/components/ProgressIndicator.tsx",
+          "usageCount": 1,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "label",
+          "inputType": null
+        },
+        {
+          "kind": "html-tag-usage",
+          "file": "src/components/TaskList.tsx",
+          "usageCount": 1,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "label",
+          "inputType": null
+        },
+        {
+          "kind": "html-tag-usage",
+          "file": "src/pages/SettingsPage.tsx",
+          "usageCount": 5,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "label",
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "Input",
+      "reportName": "Input",
+      "canonicalFamily": "Input",
+      "rawNames": [
+        "Input"
+      ],
+      "sourceLibrary": "html-elements",
+      "sourceImport": "",
+      "ozTarget": "Input",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 3,
+      "files": [
+        "src/components/LoginForm.tsx",
+        "src/components/TaskList.tsx"
+      ],
+      "notes": "type=text or no type attr",
+      "detectorKinds": [
+        "html-fallback"
+      ],
+      "confidence": "medium",
+      "evidences": [
+        {
+          "kind": "html-input-type",
+          "file": "src/components/LoginForm.tsx",
+          "usageCount": 1,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "input",
+          "inputType": "email"
+        },
+        {
+          "kind": "html-input-type",
+          "file": "src/components/LoginForm.tsx",
+          "usageCount": 1,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "input",
+          "inputType": "password"
+        },
+        {
+          "kind": "html-input-type",
+          "file": "src/components/TaskList.tsx",
+          "usageCount": 1,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "input",
+          "inputType": "text"
+        }
+      ]
+    },
+    {
+      "name": "Checkbox",
+      "reportName": "Checkbox",
+      "canonicalFamily": "Checkbox",
+      "rawNames": [
+        "Checkbox"
+      ],
+      "sourceLibrary": "html-elements",
+      "sourceImport": "",
+      "ozTarget": "Checkbox",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 2,
+      "files": [
+        "src/components/TaskList.tsx",
+        "src/pages/SettingsPage.tsx"
+      ],
+      "notes": "Map checked/onChange",
+      "detectorKinds": [
+        "html-fallback"
+      ],
+      "confidence": "medium",
+      "evidences": [
+        {
+          "kind": "html-input-type",
+          "file": "src/components/TaskList.tsx",
+          "usageCount": 1,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "input",
+          "inputType": "checkbox"
+        },
+        {
+          "kind": "html-input-type",
+          "file": "src/pages/SettingsPage.tsx",
+          "usageCount": 1,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "input",
+          "inputType": "checkbox"
+        }
+      ]
+    },
+    {
+      "name": "RadioGroup",
+      "reportName": "RadioGroup",
+      "canonicalFamily": "RadioGroup",
+      "rawNames": [
+        "RadioGroup"
+      ],
+      "sourceLibrary": "html-elements",
+      "sourceImport": "",
+      "ozTarget": "RadioGroup",
+      "effort": "medium",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 2,
+      "files": [
+        "src/pages/SettingsPage.tsx"
+      ],
+      "notes": "Requires grouping by name attr",
+      "detectorKinds": [
+        "html-fallback"
+      ],
+      "confidence": "medium",
+      "evidences": [
+        {
+          "kind": "html-input-type",
+          "file": "src/pages/SettingsPage.tsx",
+          "usageCount": 2,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "input",
+          "inputType": "radio"
+        }
+      ]
+    },
+    {
+      "name": "Textarea",
+      "reportName": "Textarea",
+      "canonicalFamily": "Textarea",
+      "rawNames": [
+        "Textarea"
+      ],
+      "sourceLibrary": "html-elements",
+      "sourceImport": "",
+      "ozTarget": "Textarea",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 2,
+      "files": [
+        "src/components/FeedbackDialog.tsx",
+        "src/pages/SettingsPage.tsx"
+      ],
+      "notes": "Direct swap",
+      "detectorKinds": [
+        "html-fallback"
+      ],
+      "confidence": "medium",
+      "evidences": [
+        {
+          "kind": "html-tag-usage",
+          "file": "src/components/FeedbackDialog.tsx",
+          "usageCount": 1,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "textarea",
+          "inputType": null
+        },
+        {
+          "kind": "html-tag-usage",
+          "file": "src/pages/SettingsPage.tsx",
+          "usageCount": 1,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "textarea",
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "Dialog",
+      "reportName": "Dialog",
+      "canonicalFamily": "Dialog",
+      "rawNames": [
+        "Dialog"
+      ],
+      "sourceLibrary": "html-elements",
+      "sourceImport": "",
+      "ozTarget": "Dialog",
+      "effort": "medium",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/FeedbackDialog.tsx"
+      ],
+      "notes": "Map open attr, showModal pattern",
+      "detectorKinds": [
+        "html-fallback"
+      ],
+      "confidence": "medium",
+      "evidences": [
+        {
+          "kind": "html-tag-usage",
+          "file": "src/components/FeedbackDialog.tsx",
+          "usageCount": 1,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "dialog",
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "Progress",
+      "reportName": "Progress",
+      "canonicalFamily": "Progress",
+      "rawNames": [
+        "Progress"
+      ],
+      "sourceLibrary": "html-elements",
+      "sourceImport": "",
+      "ozTarget": "Progress",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/components/ProgressIndicator.tsx"
+      ],
+      "notes": "Map value/max",
+      "detectorKinds": [
+        "html-fallback"
+      ],
+      "confidence": "medium",
+      "evidences": [
+        {
+          "kind": "html-tag-usage",
+          "file": "src/components/ProgressIndicator.tsx",
+          "usageCount": 1,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "progress",
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "Select",
+      "reportName": "Select",
+      "canonicalFamily": "Select",
+      "rawNames": [
+        "Select"
+      ],
+      "sourceLibrary": "html-elements",
+      "sourceImport": "",
+      "ozTarget": "Select",
+      "effort": "medium",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/pages/SettingsPage.tsx"
+      ],
+      "notes": "Map option children to OZ Select items",
+      "detectorKinds": [
+        "html-fallback"
+      ],
+      "confidence": "medium",
+      "evidences": [
+        {
+          "kind": "html-tag-usage",
+          "file": "src/pages/SettingsPage.tsx",
+          "usageCount": 1,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "select",
+          "inputType": null
+        }
+      ]
+    }
+  ],
+  "patterns": [],
+  "tailwind": {
+    "ok": false,
+    "projectRoot": "/Users/ghost/dev/repos/OpenZeppelin/openzeppelin-ui/packages/cli/autoresearch/fixtures/raw-html-app",
+    "appRoot": null,
+    "cssPath": null,
+    "generatedCssPath": null,
+    "sourcePlan": null,
+    "issues": [
+      {
+        "scope": "tailwind",
+        "code": "missing-entry-stylesheet",
+        "severity": "error",
+        "message": "Could not detect a Tailwind entry stylesheet. Re-run with --css to point at one.",
+        "fixable": false
+      }
+    ]
+  },
+  "sourceLibrary": "html-elements"
+}

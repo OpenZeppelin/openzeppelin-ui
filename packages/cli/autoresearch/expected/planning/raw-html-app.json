@@ -1,0 +1,27 @@
+{
+  "fixture": "raw-html-app",
+  "analysisReport": "frozen-reports/raw-html-app.json",
+  "expectedTasks": [
+    { "type": "component-replacement", "sourceComponent": "Button", "targetComponent": "Button", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Checkbox", "targetComponent": "Checkbox", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Dialog", "targetComponent": "Dialog", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Input", "targetComponent": "Input", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Label", "targetComponent": "Label", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Progress", "targetComponent": "Progress", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "RadioGroup", "targetComponent": "RadioGroup", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Select", "targetComponent": "Select", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Textarea", "targetComponent": "Textarea", "phase": "ui-components" }
+  ],
+  "forbiddenTasks": [
+    { "sourceComponent": "App", "reason": "application shell with local state-based navigation, not an OZ-mappable primitive from the frozen report" },
+    { "sourceComponent": "FeedbackDialog", "reason": "local feature component wrapping native dialog; migration targets the intrinsic Dialog/Button/Textarea families, not this wrapper" },
+    { "sourceComponent": "LoginForm", "reason": "local page-level form composition, not a source-library component in the frozen report" },
+    { "sourceComponent": "ProgressIndicator", "reason": "local presentation wrapper; frozen report maps native progress/label usage, not this component name" },
+    { "sourceComponent": "React", "reason": "framework import namespace, not a UI migration target" },
+    { "sourceComponent": "SettingsPage", "reason": "local page component, not an OZ-mappable source-library primitive" },
+    { "sourceComponent": "TaskList", "reason": "local feature component, not an OZ-mappable source-library primitive" },
+    { "sourceComponent": "useFormState", "reason": "custom React hook / form-state helper, not a replaceable UI primitive" }
+  ],
+  "expectedWalletTasks": [],
+  "forbiddenWalletFiles": []
+}
