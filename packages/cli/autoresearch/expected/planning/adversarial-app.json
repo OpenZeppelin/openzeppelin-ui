@@ -1,0 +1,41 @@
+{
+  "fixture": "adversarial-app",
+  "analysisReport": "frozen-reports/adversarial-app.json",
+  "expectedTasks": [
+    { "type": "component-replacement", "sourceComponent": "Button", "targetComponent": "Button", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "SelectItem", "targetComponent": "Select", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "TabsContent", "targetComponent": "Tabs", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "TabsTrigger", "targetComponent": "Tabs", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Alert", "targetComponent": "Alert", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "AlertDescription", "targetComponent": "Alert", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "AlertTitle", "targetComponent": "Alert", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Card", "targetComponent": "Card", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "CardContent", "targetComponent": "Card", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "CardHeader", "targetComponent": "Card", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "CardTitle", "targetComponent": "Card", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Checkbox", "targetComponent": "Checkbox", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Dialog", "targetComponent": "Dialog", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "DialogContent", "targetComponent": "Dialog", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "DialogTrigger", "targetComponent": "Dialog", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Input", "targetComponent": "Input", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Select", "targetComponent": "Select", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "SelectContent", "targetComponent": "Select", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "SelectTrigger", "targetComponent": "Select", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Tabs", "targetComponent": "Tabs", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "TabsList", "targetComponent": "Tabs", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Tooltip", "targetComponent": "Tooltip", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Label", "targetComponent": "Label", "phase": "ui-components" },
+    { "type": "component-replacement", "sourceComponent": "Textarea", "targetComponent": "Textarea", "phase": "ui-components" }
+  ],
+  "forbiddenTasks": [
+    { "sourceComponent": "App", "reason": "application root component, not an OZ-mappable source-library primitive" },
+    { "sourceComponent": "Overview", "reason": "local page component, not an OZ-mappable source-library primitive" },
+    { "sourceComponent": "Configuration", "reason": "local page component, not an OZ-mappable source-library primitive" },
+    { "sourceComponent": "LegacyForm", "reason": "local form feature component, not an OZ-mappable source-library primitive" },
+    { "sourceComponent": "AppInput", "reason": "local wrapper around Input, not the migration target component itself" },
+    { "sourceComponent": "CardFooter", "reason": "local wrapper export that is not surfaced by the frozen report input and should not create a task" },
+    { "sourceComponent": "React", "reason": "React namespace import, not a UI migration target" }
+  ],
+  "expectedWalletTasks": [],
+  "forbiddenWalletFiles": []
+}

@@ -48,6 +48,19 @@ function loadExternalRepoByName(): Record<string, string> {
   }
 }
 
+/** Relative Tailwind entry CSS from fixtures/_external.json (required for multi-package monorepo fixtures). */
+function loadExternalTailwindCssByFixture(fixtureName: string): string | undefined {
+  try {
+    const raw = JSON.parse(fs.readFileSync(EXTERNAL_MANIFEST_PATH, 'utf8')) as {
+      fixtures?: { name: string; tailwindCssPath?: string }[];
+    };
+    const p = (raw.fixtures ?? []).find((f) => f?.name === fixtureName)?.tailwindCssPath?.trim();
+    return p || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 type EvalApiPayload = {
   capability: string;
   fixtures: Array<Record<string, unknown>>;
@@ -176,7 +189,8 @@ async function regenerateFrozenReport(
 
   try {
     fs.mkdirSync(FROZEN_REPORTS_DIR, { recursive: true });
-    const report = analyzeProject(fixturePath);
+    const twCss = loadExternalTailwindCssByFixture(fixtureName);
+    const report = analyzeProject(fixturePath, undefined, twCss);
     fs.writeFileSync(outputPath, JSON.stringify(report, null, 2) + '\n');
     return { ok: true, outputPath };
   } catch (err: unknown) {
@@ -427,7 +441,11 @@ async function addFixture(body: AddFixtureRequest): Promise<AddFixtureResult> {
   const fixturePath = resolveFixturePath(name);
   if (fixturePath) {
     try {
-      const report = analyzeProject(fixturePath);
+      const twCss =
+        body.type === 'external' && body.tailwindCssPath?.trim()
+          ? body.tailwindCssPath.trim()
+          : loadExternalTailwindCssByFixture(name);
+      const report = analyzeProject(fixturePath, undefined, twCss);
       fs.mkdirSync(FROZEN_REPORTS_DIR, { recursive: true });
       fs.writeFileSync(
         path.join(FROZEN_REPORTS_DIR, `${name}.json`),
