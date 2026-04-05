@@ -4,6 +4,11 @@ import { CLI_BRANDING, CLI_FAMILIES } from '../branding';
 import { loadCatalog, loadHtmlElementMappings, loadSourceLibraries } from '../catalog';
 import { detectFramework, type Framework } from '../utils/framework';
 import { analyzeComponents, analyzeHtmlElements, type ComponentMatch } from './component-matcher';
+import {
+  buildDesignSystemIndicators,
+  collectKnownLibraryPatterns,
+  discoverWorkspacePackages,
+} from './import-resolver';
 import { scanPatterns, type PatternMatch } from './pattern-scanner';
 import { scanProjectFiles } from './scanner';
 
@@ -55,8 +60,16 @@ export function analyzeProject(
   const htmlLib = loadHtmlElementMappings();
   const files = scanProjectFiles(projectRoot, scope);
 
-  const importComponents = analyzeComponents(files, catalog, sourceLibraries);
-  const htmlComponents = htmlLib ? analyzeHtmlElements(files, htmlLib) : [];
+  const knownLibraryPatterns = collectKnownLibraryPatterns(sourceLibraries);
+  const workspacePackages = discoverWorkspacePackages(projectRoot, files, knownLibraryPatterns);
+  const designSystemIndicators = buildDesignSystemIndicators(
+    knownLibraryPatterns,
+    workspacePackages
+  );
+  const ctx = { designSystemIndicators, workspacePackages };
+
+  const importComponents = analyzeComponents(files, catalog, sourceLibraries, ctx);
+  const htmlComponents = htmlLib ? analyzeHtmlElements(files, htmlLib, ctx) : [];
 
   const mergedMap = new Map<string, ComponentMatch>();
   for (const c of importComponents) mergedMap.set(c.name, c);

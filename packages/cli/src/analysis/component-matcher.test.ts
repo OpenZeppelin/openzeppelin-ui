@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { ComponentCatalog, HtmlElementLibrary, SourceLibrary } from '../catalog';
+import type { AnalysisContext } from './component-matcher';
 import {
   analyzeComponents,
   analyzeHtmlElements,
@@ -28,6 +29,12 @@ const MOCK_CATALOG: ComponentCatalog = {
     Tabs: {
       package: '@openzeppelin/ui-components',
       importPath: 'ui/tabs',
+      category: 'ui',
+      capabilities: [],
+    },
+    Dialog: {
+      package: '@openzeppelin/ui-components',
+      importPath: 'ui/dialog',
       category: 'ui',
       capabilities: [],
     },
@@ -88,6 +95,12 @@ const MOCK_SOURCE_LIBRARIES: Record<string, SourceLibrary> = {
         reportName: 'target',
       },
     },
+  },
+  'oz-ui': {
+    library: 'OZ UI Kit',
+    importPatterns: ['@openzeppelin/ui-components'],
+    catalogFallback: true,
+    mappings: {},
   },
 };
 
@@ -155,7 +168,7 @@ describe('analyzeComponents', () => {
     expect(matches).toHaveLength(0);
   });
 
-  it('includes @openzeppelin/ui-components in migration inventory', () => {
+  it('detects components from source libraries with catalogFallback', () => {
     const files: ScannedFile[] = [
       {
         absolutePath: '/project/src/A.tsx',
@@ -177,7 +190,7 @@ describe('analyzeComponents', () => {
     );
   });
 
-  it('maps default import Sidebar from ./Sidebar to OZ Sidebar (local shell)', () => {
+  it('does not match local imports by name alone without design system evidence', () => {
     const files: ScannedFile[] = [
       {
         absolutePath: '/project/src/App.tsx',
@@ -190,30 +203,30 @@ describe('analyzeComponents', () => {
     ];
 
     const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES);
-    expect(matches).toHaveLength(1);
-    expect(matches[0]).toEqual(
-      expect.objectContaining({
-        name: 'Sidebar',
-        ozTarget: 'Sidebar',
-        sourceImport: './Sidebar',
-      })
-    );
+    expect(matches).toHaveLength(0);
   });
 
-  it('skips @openzeppelin packages outside the UI inventory list', () => {
+  it('falls back to catalog match for unknown external packages', () => {
     const files: ScannedFile[] = [
       {
         absolutePath: '/project/src/A.tsx',
         relativePath: 'src/A.tsx',
         content: [
-          "import { Button } from '@openzeppelin/ui-react';",
+          "import { Button } from '@acme/some-ui-lib';",
           'export function A() { return <Button />; }',
         ].join('\n'),
       },
     ];
 
     const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES);
-    expect(matches).toHaveLength(0);
+    expect(matches).toHaveLength(1);
+    expect(matches[0]).toEqual(
+      expect.objectContaining({
+        name: 'Button',
+        ozTarget: 'Button',
+        confidence: 'low',
+      })
+    );
   });
 
   it('rolls shadcn compound imports up to their parent OZ target', () => {
@@ -404,7 +417,16 @@ describe('analyzeComponents', () => {
     ]);
   });
 
-  it('prefers mapped alias catalog matches over unmapped duplicates with the same name', () => {
+  it('merges local design-system wrapper imports from multiple sources', () => {
+    const wrapperFile: ScannedFile = {
+      absolutePath: '/project/packages/app/src/components/Sidebar.tsx',
+      relativePath: 'packages/app/src/components/Sidebar.tsx',
+      content: [
+        "import { Sidebar as BaseSidebar } from '@openzeppelin/ui-components';",
+        'export default function Sidebar() { return <BaseSidebar />; }',
+      ].join('\n'),
+    };
+
     const files: ScannedFile[] = [
       {
         absolutePath: '/project/packages/app/src/App.tsx',
@@ -428,22 +450,110 @@ describe('analyzeComponents', () => {
           '}',
         ].join('\n'),
       },
+      wrapperFile,
     ];
 
-    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES);
+    const ctx: AnalysisContext = {
+      designSystemIndicators: ['@openzeppelin/ui-components'],
+      workspacePackages: [],
+    };
+
+    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES, ctx);
     const sidebar = matches.find((match) => match.name === 'Sidebar');
 
-    expect(matches).toHaveLength(1);
+    expect(sidebar).toBeDefined();
     expect(sidebar).toEqual(
       expect.objectContaining({
         name: 'Sidebar',
-        sourceLibrary: null,
-        sourceImport: '@/components/Sidebar',
         ozTarget: 'Sidebar',
         usageCount: 2,
-        files: ['packages/app/src/App.tsx', 'packages/app/src/pages/Details.tsx'],
       })
     );
+  });
+
+  it('resolves OZ compound imports via generic naming inference', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/App.tsx',
+        relativePath: 'src/App.tsx',
+        content: [
+          "import { DialogContent, SidebarButton } from '@openzeppelin/ui-components';",
+          '',
+          'export function App() { return <><DialogContent /><SidebarButton /></>; }',
+        ].join('\n'),
+      },
+    ];
+
+    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES);
+    const dialog = matches.find((m) => m.ozTarget === 'Dialog');
+    const sidebar = matches.find((m) => m.ozTarget === 'Sidebar');
+
+    expect(dialog).toBeDefined();
+    expect(dialog!.rawNames).toContain('DialogContent');
+    expect(sidebar).toBeDefined();
+    expect(sidebar!.rawNames).toContain('SidebarButton');
+  });
+
+  it('detects components from a design-system workspace package', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/App.tsx',
+        relativePath: 'src/App.tsx',
+        content: [
+          "import { Card, MyWidget } from '@acme/ui';",
+          'export function App() { return <><Card /><MyWidget /></>; }',
+        ].join('\n'),
+      },
+    ];
+
+    const ctx: AnalysisContext = {
+      designSystemIndicators: ['@radix-ui/react-'],
+      workspacePackages: [{ name: '@acme/ui', rootDir: 'packages/ui', isDesignSystem: true }],
+    };
+
+    const matches = analyzeComponents(files, MOCK_CATALOG, MOCK_SOURCE_LIBRARIES, ctx);
+    const card = matches.find((m) => m.name === 'Card');
+    const widget = matches.find((m) => m.name === 'MyWidget');
+
+    expect(card).toBeDefined();
+    expect(card!.ozTarget).toBe('Card');
+    expect(widget).toBeDefined();
+    expect(widget!.ozTarget).toBe('MyWidget');
+  });
+
+  it('resolves local wrapper that imports from a design system', () => {
+    const wrapperFile: ScannedFile = {
+      absolutePath: '/project/src/components/Sidebar.tsx',
+      relativePath: 'src/components/Sidebar.tsx',
+      content: [
+        "import { Sidebar as BaseSidebar } from '@openzeppelin/ui-components';",
+        'export default function Sidebar() { return <BaseSidebar />; }',
+      ].join('\n'),
+    };
+
+    const consumerFile: ScannedFile = {
+      absolutePath: '/project/src/App.tsx',
+      relativePath: 'src/App.tsx',
+      content: [
+        "import Sidebar from './components/Sidebar';",
+        'export function App() { return <Sidebar />; }',
+      ].join('\n'),
+    };
+
+    const ctx: AnalysisContext = {
+      designSystemIndicators: ['@openzeppelin/ui-components'],
+      workspacePackages: [],
+    };
+
+    const matches = analyzeComponents(
+      [consumerFile, wrapperFile],
+      MOCK_CATALOG,
+      MOCK_SOURCE_LIBRARIES,
+      ctx
+    );
+    const sidebar = matches.find((m) => m.name === 'Sidebar');
+    expect(sidebar).toBeDefined();
+    expect(sidebar!.ozTarget).toBe('Sidebar');
   });
 });
 
@@ -558,7 +668,7 @@ describe('analyzeHtmlElements', () => {
     expect(btn!.files).toEqual(['src/A.tsx', 'src/B.tsx']);
   });
 
-  it('only suppresses native inputs in files that already import OZ UI components', () => {
+  it('detects HTML tags in files that also import a design system', () => {
     const files: ScannedFile[] = [
       {
         absolutePath: '/project/src/Migrated.tsx',
@@ -583,13 +693,18 @@ describe('analyzeHtmlElements', () => {
       },
     ];
 
-    const matches = analyzeHtmlElements(files, MOCK_HTML_LIB);
+    const ctx: AnalysisContext = {
+      designSystemIndicators: ['@openzeppelin/ui-components'],
+      workspacePackages: [],
+    };
+
+    const matches = analyzeHtmlElements(files, MOCK_HTML_LIB, ctx);
     const input = matches.find((m) => m.name === 'Input');
     const button = matches.find((m) => m.name === 'Button');
 
     expect(input).toBeDefined();
-    expect(input!.usageCount).toBe(1);
-    expect(input!.files).toEqual(['src/Legacy.tsx']);
+    expect(input!.usageCount).toBe(2);
+    expect(input!.files).toEqual(['src/Legacy.tsx', 'src/Migrated.tsx']);
     expect(button).toBeDefined();
     expect(button!.usageCount).toBe(1);
     expect(button!.files).toEqual(['src/Migrated.tsx']);
@@ -622,5 +737,26 @@ describe('analyzeHtmlElements', () => {
         inputType: 'checkbox',
       })
     );
+  });
+
+  it('skips all HTML fallbacks inside design-system implementation packages', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/packages/ui/src/components/switch.tsx',
+        relativePath: 'packages/ui/src/components/switch.tsx',
+        content: [
+          "import * as SwitchPrimitive from '@radix-ui/react-switch';",
+          'export function Switch() { return <input type="checkbox" />; }',
+        ].join('\n'),
+      },
+    ];
+
+    const ctx: AnalysisContext = {
+      designSystemIndicators: ['@radix-ui/react-'],
+      workspacePackages: [{ name: '@acme/ui', rootDir: 'packages/ui', isDesignSystem: true }],
+    };
+
+    const matches = analyzeHtmlElements(files, MOCK_HTML_LIB, ctx);
+    expect(matches).toHaveLength(0);
   });
 });

@@ -7,7 +7,24 @@ import type {
   SourceLibraryMapping,
 } from '../catalog';
 import { isExcludedLibrary, isExcludedPattern } from '../catalog/exclusions';
+import {
+  classifyImportSource,
+  inferCompoundFamily,
+  isLocalImport,
+  type ImportSourceKind,
+} from './import-classifier';
+import {
+  findWorkspacePackageForImport,
+  isFileInDesignSystemPackage,
+  moduleImportsDesignSystem,
+  resolveLocalImportToFile,
+  type WorkspacePackageInfo,
+} from './import-resolver';
 import type { ScannedFile } from './scanner';
+
+// ---------------------------------------------------------------------------
+// Public types
+// ---------------------------------------------------------------------------
 
 export type ComponentDetectorKind =
   | 'catalog-direct'
@@ -72,6 +89,10 @@ export interface ComponentMatch {
   evidences: ComponentEvidence[];
 }
 
+// ---------------------------------------------------------------------------
+// Internal types
+// ---------------------------------------------------------------------------
+
 interface ImportBinding {
   importedName: string;
   localName: string;
@@ -89,67 +110,39 @@ interface ParsedFileFacts {
   namespaceUsages: Map<string, number>;
   htmlTagUsages: Map<string, number>;
   inputTypeUsages: Map<string, number>;
-  hasOzUiComponentsImport: boolean;
 }
 
-/** OZ packages included in migration component inventory (other `@openzeppelin/*` imports stay ignored). */
-const OZ_UI_COMPONENTS_PKG = '@openzeppelin/ui-components';
-/** Mappings-only: catalog-direct disabled so non-mapped exports (e.g. Badge) do not false-match. */
-const ACCOUNTS_UI_COMPONENTS_PKG = '@openzeppelin/accounts-ui-components';
+interface MatchResult {
+  reportName: string;
+  canonicalFamily: string | null;
+  ozTarget: string | null;
+  effort: ComponentMatch['effort'];
+  category: ComponentMatch['category'];
+  capabilities: string[];
+  notes: string;
+  sourceLibrary: string | null;
+  detectorKind: ComponentDetectorKind;
+  confidence: ComponentDetectionConfidence;
+}
 
-const OZ_UI_INVENTORY_PACKAGES = new Set<string>([
-  OZ_UI_COMPONENTS_PKG,
-  ACCOUNTS_UI_COMPONENTS_PKG,
-]);
+/** Shared context threaded through the detection pipeline. */
+export interface AnalysisContext {
+  designSystemIndicators: string[];
+  workspacePackages: WorkspacePackageInfo[];
+}
 
-/**
- * Sub-components of `@openzeppelin/ui-components` only. Kept out of `shadcn.json` so relative
- * `./ui/*` re-exports (e.g. in workspace UI shells) do not pick up extra compound tuples.
- */
-const OZ_UI_COMPONENTS_COMPOUND_MAPPINGS: Record<
-  string,
-  Pick<SourceLibraryMapping, 'source' | 'effort' | 'notes'>
-> = {
-  DialogContent: { source: 'Dialog', effort: 'low', notes: 'Compound maps to Dialog family' },
-  DialogDescription: { source: 'Dialog', effort: 'low', notes: 'Compound maps to Dialog family' },
-  DialogHeader: { source: 'Dialog', effort: 'low', notes: 'Compound maps to Dialog family' },
-  DialogTitle: { source: 'Dialog', effort: 'low', notes: 'Compound maps to Dialog family' },
-  DropdownMenuContent: {
-    source: 'DropdownMenu',
-    effort: 'low',
-    notes: 'Compound maps to DropdownMenu family',
-  },
-  DropdownMenuGroup: {
-    source: 'DropdownMenu',
-    effort: 'low',
-    notes: 'Compound maps to DropdownMenu family',
-  },
-  DropdownMenuItem: {
-    source: 'DropdownMenu',
-    effort: 'low',
-    notes: 'Compound maps to DropdownMenu family',
-  },
-  DropdownMenuLabel: {
-    source: 'DropdownMenu',
-    effort: 'low',
-    notes: 'Compound maps to DropdownMenu family',
-  },
-  DropdownMenuTrigger: {
-    source: 'DropdownMenu',
-    effort: 'low',
-    notes: 'Compound maps to DropdownMenu family',
-  },
-  SelectContent: { source: 'Select', effort: 'low', notes: 'Compound maps to Select family' },
-  SelectItem: { source: 'Select', effort: 'low', notes: 'Compound maps to Select family' },
-  SelectTrigger: { source: 'Select', effort: 'low', notes: 'Compound maps to Select family' },
-  SelectValue: { source: 'Select', effort: 'low', notes: 'Compound maps to Select family' },
-  SidebarButton: { source: 'Sidebar', effort: 'medium', notes: 'Compound maps to Sidebar family' },
-  SidebarLayout: { source: 'Sidebar', effort: 'medium', notes: 'Compound maps to Sidebar family' },
-  SidebarSection: { source: 'Sidebar', effort: 'medium', notes: 'Compound maps to Sidebar family' },
-  TooltipContent: { source: 'Tooltip', effort: 'low', notes: 'Compound maps to Tooltip family' },
-  TooltipProvider: { source: 'Tooltip', effort: 'low', notes: 'Compound maps to Tooltip family' },
-  TooltipTrigger: { source: 'Tooltip', effort: 'low', notes: 'Compound maps to Tooltip family' },
+const DEFAULT_ANALYSIS_CONTEXT: AnalysisContext = {
+  designSystemIndicators: [],
+  workspacePackages: [],
 };
+
+// ---------------------------------------------------------------------------
+// Product configuration — OZ packages that form the migration inventory
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// AST helpers — parsing TypeScript / JSX into structured facts
+// ---------------------------------------------------------------------------
 
 function getScriptKind(filePath: string): ts.ScriptKind {
   if (filePath.endsWith('.tsx')) return ts.ScriptKind.TSX;
@@ -164,19 +157,6 @@ function incrementCount(map: Map<string, number>, key: string): void {
   map.set(key, (map.get(key) ?? 0) + 1);
 }
 
-function mergeConfidence(
-  current: ComponentDetectionConfidence,
-  next: ComponentDetectionConfidence
-): ComponentDetectionConfidence {
-  const rank: Record<ComponentDetectionConfidence, number> = {
-    low: 0,
-    medium: 1,
-    high: 2,
-  };
-
-  return rank[next] < rank[current] ? next : current;
-}
-
 function toPascalCase(input: string): string {
   return input
     .split(/[^a-zA-Z0-9]+/)
@@ -185,35 +165,17 @@ function toPascalCase(input: string): string {
     .join('');
 }
 
-function canDirectMatchCatalogImport(source: string): boolean {
-  return !source.startsWith('.') && !source.startsWith('/');
-}
-
-/** Local `./Sidebar` (or `.../Sidebar`) default export wrapping OZ sidebar primitives. */
-function isLocalDefaultSidebarShell(imp: ImportInfo, binding: ImportBinding): boolean {
-  if (binding.kind !== 'default' || binding.importedName !== 'Sidebar') return false;
-  return (
-    imp.source === './Sidebar' ||
-    imp.source.endsWith('/Sidebar') ||
-    imp.source.endsWith('\\Sidebar')
-  );
-}
-
 function getJsxIdentifierText(
   tagName: ts.JsxTagNameExpression
 ): { kind: 'component'; name: string } | { kind: 'namespace'; namespace: string } | null {
   if (ts.isIdentifier(tagName)) {
     const text = tagName.text;
-    if (text && text[0] === text[0]?.toLowerCase()) {
-      return null;
-    }
+    if (text && text[0] === text[0]?.toLowerCase()) return null;
     return { kind: 'component', name: text };
   }
-
   if (ts.isPropertyAccessExpression(tagName) && ts.isIdentifier(tagName.expression)) {
     return { kind: 'namespace', namespace: tagName.expression.text };
   }
-
   return null;
 }
 
@@ -229,23 +191,17 @@ function parseInputTypeFromAttributes(attributes: ts.JsxAttributes): string {
       !ts.isJsxAttribute(attribute) ||
       !ts.isIdentifier(attribute.name) ||
       attribute.name.text !== 'type'
-    ) {
+    )
       continue;
-    }
-
     if (!attribute.initializer) return 'text';
-    if (ts.isStringLiteral(attribute.initializer)) {
-      return attribute.initializer.text.toLowerCase();
-    }
+    if (ts.isStringLiteral(attribute.initializer)) return attribute.initializer.text.toLowerCase();
     if (
       ts.isJsxExpression(attribute.initializer) &&
       attribute.initializer.expression &&
       ts.isStringLiteral(attribute.initializer.expression)
-    ) {
+    )
       return attribute.initializer.expression.text.toLowerCase();
-    }
   }
-
   return 'text';
 }
 
@@ -254,38 +210,32 @@ function collectJsxFacts(
   attributes: ts.JsxAttributes,
   facts: ParsedFileFacts
 ): void {
-  const componentReference = getJsxIdentifierText(tagName);
-  if (componentReference?.kind === 'component') {
-    incrementCount(facts.componentUsages, componentReference.name);
+  const ref = getJsxIdentifierText(tagName);
+  if (ref?.kind === 'component') {
+    incrementCount(facts.componentUsages, ref.name);
     return;
   }
-  if (componentReference?.kind === 'namespace') {
-    incrementCount(facts.namespaceUsages, componentReference.namespace);
+  if (ref?.kind === 'namespace') {
+    incrementCount(facts.namespaceUsages, ref.namespace);
     return;
   }
 
-  const intrinsicTag = getIntrinsicJsxTagName(tagName);
-  if (!intrinsicTag) return;
-
-  incrementCount(facts.htmlTagUsages, intrinsicTag);
-  if (intrinsicTag === 'input') {
+  const tag = getIntrinsicJsxTagName(tagName);
+  if (!tag) return;
+  incrementCount(facts.htmlTagUsages, tag);
+  if (tag === 'input')
     incrementCount(facts.inputTypeUsages, parseInputTypeFromAttributes(attributes));
-  }
 }
 
 function extractImports(sourceFile: ts.SourceFile): ImportInfo[] {
   const imports: ImportInfo[] = [];
-
   for (const statement of sourceFile.statements) {
-    if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier)) {
+    if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier))
       continue;
-    }
-
     const clause = statement.importClause;
     if (!clause) continue;
 
     const bindings: ImportBinding[] = [];
-
     if (clause.name) {
       bindings.push({
         importedName: clause.name.text,
@@ -293,13 +243,12 @@ function extractImports(sourceFile: ts.SourceFile): ImportInfo[] {
         kind: 'default',
       });
     }
-
     if (clause.namedBindings) {
       if (ts.isNamedImports(clause.namedBindings)) {
-        for (const element of clause.namedBindings.elements) {
+        for (const el of clause.namedBindings.elements) {
           bindings.push({
-            importedName: element.propertyName?.text ?? element.name.text,
-            localName: element.name.text,
+            importedName: el.propertyName?.text ?? el.name.text,
+            localName: el.name.text,
             kind: 'named',
           });
         }
@@ -311,13 +260,8 @@ function extractImports(sourceFile: ts.SourceFile): ImportInfo[] {
         });
       }
     }
-
-    imports.push({
-      source: statement.moduleSpecifier.text,
-      bindings,
-    });
+    imports.push({ source: statement.moduleSpecifier.text, bindings });
   }
-
   return imports;
 }
 
@@ -336,37 +280,26 @@ function parseFileFacts(file: ScannedFile): ParsedFileFacts {
     namespaceUsages: new Map(),
     htmlTagUsages: new Map(),
     inputTypeUsages: new Map(),
-    hasOzUiComponentsImport: false,
   };
 
-  for (const imp of facts.imports) {
-    if (imp.source === '@openzeppelin/ui-components') {
-      facts.hasOzUiComponentsImport = true;
-    }
-  }
-
   function visit(node: ts.Node): void {
-    if (ts.isJsxSelfClosingElement(node)) {
-      collectJsxFacts(node.tagName, node.attributes, facts);
-    } else if (ts.isJsxOpeningElement(node)) {
-      collectJsxFacts(node.tagName, node.attributes, facts);
-    }
-
+    if (ts.isJsxSelfClosingElement(node)) collectJsxFacts(node.tagName, node.attributes, facts);
+    else if (ts.isJsxOpeningElement(node)) collectJsxFacts(node.tagName, node.attributes, facts);
     ts.forEachChild(node, visit);
   }
-
   visit(sourceFile);
   return facts;
 }
 
+// ---------------------------------------------------------------------------
+// Library mapping helpers
+// ---------------------------------------------------------------------------
+
 function getNamespaceMappingKey(importSource: string): string | null {
-  const packageSegment = importSource.split('/').pop();
-  if (!packageSegment) return null;
-
-  const baseName = toPascalCase(packageSegment);
-  if (!baseName) return null;
-
-  return `${baseName}Primitive`;
+  const segment = importSource.split('/').pop();
+  if (!segment) return null;
+  const base = toPascalCase(segment);
+  return base ? `${base}Primitive` : null;
 }
 
 function resolveLibraryMapping(
@@ -374,100 +307,54 @@ function resolveLibraryMapping(
   importedName: string,
   source: string,
   kind: ImportBinding['kind']
-) {
+): SourceLibraryMapping | undefined {
   if (kind !== 'namespace' || library.namespaceImportStrategy !== 'package-name') {
     return library.mappings[importedName];
   }
-
-  const namespaceKey = getNamespaceMappingKey(source);
-  if (namespaceKey && library.mappings[namespaceKey]) {
-    return library.mappings[namespaceKey];
-  }
-
-  const packageKey = namespaceKey?.replace(/Primitive$/, '');
-  if (packageKey && library.mappings[packageKey]) {
-    return library.mappings[packageKey];
-  }
-
+  const nsKey = getNamespaceMappingKey(source);
+  if (nsKey && library.mappings[nsKey]) return library.mappings[nsKey];
+  const pkgKey = nsKey?.replace(/Primitive$/, '');
+  if (pkgKey && library.mappings[pkgKey]) return library.mappings[pkgKey];
   return library.mappings[importedName];
 }
 
-function resolveMatchName(
+/**
+ * Determines the report name for a library-matched component.
+ * Compounds collapse to family only for non-relative direct library imports.
+ */
+function resolveLibraryReportName(
   importedName: string,
-  mapping: SourceLibraryMapping | undefined,
-  library: SourceLibrary | undefined,
-  kind: ImportBinding['kind'],
-  sourceImport: string
+  mapping: SourceLibraryMapping,
+  library: SourceLibrary,
+  bindingKind: ImportBinding['kind'],
+  sourceKind: ImportSourceKind
 ): string {
-  if (!mapping) return importedName;
-
-  if (shouldPreserveNamespaceImportName(importedName, library, kind)) {
+  if (
+    bindingKind === 'namespace' &&
+    library.namespaceReportName === 'target' &&
+    importedName.endsWith('Primitive')
+  ) {
     return importedName;
   }
-
-  if (kind === 'namespace' && library?.namespaceReportName === 'target') {
+  if (bindingKind === 'namespace' && library.namespaceReportName === 'target') {
     return mapping.source;
   }
-
-  if (shouldPreserveShadcnCompoundReportName(sourceImport, library, mapping)) {
-    return importedName;
+  if (mapping.reportName === 'target' && sourceKind !== 'local-relative') {
+    return mapping.source;
   }
-
-  return mapping.reportName === 'target' ? mapping.source : importedName;
+  return importedName;
 }
 
-function shouldPreserveNamespaceImportName(
-  importedName: string,
-  library: SourceLibrary | undefined,
-  kind: ImportBinding['kind']
-): boolean {
-  return (
-    kind === 'namespace' &&
-    library?.namespaceReportName === 'target' &&
-    importedName.endsWith('Primitive')
-  );
-}
+// ---------------------------------------------------------------------------
+// Confidence helpers
+// ---------------------------------------------------------------------------
 
-function shouldPreserveShadcnCompoundReportName(
-  sourceImport: string,
-  library: SourceLibrary | undefined,
-  mapping: SourceLibraryMapping
-): boolean {
-  if (library?.library !== 'shadcn/ui' || mapping.reportName !== 'target') {
-    return false;
-  }
-  if (sourceImport.startsWith('.')) return true;
-  return sourceImport === OZ_UI_COMPONENTS_PKG;
-}
-
-function findExistingMatchByName(
-  matchMap: Map<string, ComponentMatch>,
-  matchName: string
-): ComponentMatch | undefined {
-  return [...matchMap.values()].find((candidate) => candidate.name === matchName);
-}
-
-function applyResolvedMatch(
-  match: ComponentMatch,
-  sourceLibrary: string | null,
-  sourceImport: string,
-  canonicalFamily: string | null,
-  ozTarget: string | null,
-  effort: ComponentMatch['effort'],
-  category: ComponentMatch['category'],
-  capabilities: string[],
-  notes: string,
-  confidence: ComponentDetectionConfidence
-): void {
-  match.sourceLibrary = sourceLibrary;
-  match.sourceImport = sourceImport;
-  match.canonicalFamily = canonicalFamily;
-  match.ozTarget = ozTarget;
-  match.effort = effort;
-  match.category = category;
-  match.capabilities = capabilities;
-  match.notes = notes;
-  match.confidence = mergeConfidence(match.confidence, confidence);
+function mergeConfidence(
+  current: ComponentDetectionConfidence,
+  next: ComponentDetectionConfidence
+): ComponentDetectionConfidence {
+  const rank: Record<ComponentDetectionConfidence, number> = { low: 0, medium: 1, high: 2 };
+  return rank[next] < rank[current] ? next : current;
 }
 
 function determineObservationConfidence(
@@ -478,6 +365,241 @@ function determineObservationConfidence(
   if (detectorKind === 'html-fallback') return 'medium';
   return 'high';
 }
+
+// ---------------------------------------------------------------------------
+// Match strategies
+// ---------------------------------------------------------------------------
+
+/**
+ * Builds the set of known component families for compound inference.
+ * Includes OZ catalog keys AND unique OZ target names from source library
+ * mappings (e.g. shadcn mapping `TableBody→Table` implies `Table` is a family
+ * even if it's not in the catalog).
+ */
+function buildKnownFamilies(
+  catalog: ComponentCatalog,
+  sourceLibraries: Record<string, SourceLibrary>
+): ReadonlySet<string> {
+  const families = new Set(Object.keys(catalog.components));
+  for (const library of Object.values(sourceLibraries)) {
+    for (const mapping of Object.values(library.mappings)) {
+      if (mapping.source) families.add(mapping.source);
+    }
+  }
+  return families;
+}
+
+function enrichWithCatalog(result: MatchResult, catalog: ComponentCatalog): void {
+  if (!result.ozTarget) return;
+  const entry = catalog.components[result.ozTarget];
+  if (entry) {
+    result.category = entry.category;
+    result.capabilities = entry.capabilities;
+  }
+}
+
+/**
+ * Strategy 1: the import source directly matches a known external library's
+ * import patterns. Applies the library's explicit mapping (if any).
+ *
+ * When a library matches but has no specific mapping for the imported name,
+ * libraries with `catalogFallback: true` get a catalog-direct + compound
+ * inference check before falling back to an unresolved result. This lets
+ * packages like `@openzeppelin/ui-components` auto-resolve their components
+ * without needing exhaustive per-component JSON entries.
+ */
+function tryExternalLibraryMatch(
+  imp: ImportInfo,
+  binding: ImportBinding,
+  sourceKind: ImportSourceKind,
+  sourceLibraries: Record<string, SourceLibrary>,
+  catalog: ComponentCatalog,
+  catalogFamilies: ReadonlySet<string>
+): MatchResult | null {
+  for (const [libKey, library] of Object.entries(sourceLibraries)) {
+    if (!library.importPatterns.some((p) => imp.source.includes(p))) continue;
+
+    const mapping = resolveLibraryMapping(library, binding.importedName, imp.source, binding.kind);
+    if (mapping) {
+      const reportName = resolveLibraryReportName(
+        binding.importedName,
+        mapping,
+        library,
+        binding.kind,
+        sourceKind
+      );
+      const detectorKind: ComponentDetectorKind =
+        binding.kind === 'namespace' ? 'namespace-mapping' : 'library-mapping';
+      const result: MatchResult = {
+        reportName,
+        canonicalFamily: mapping.source,
+        ozTarget: mapping.source,
+        effort: mapping.effort,
+        category: 'unknown',
+        capabilities: [],
+        notes: mapping.notes,
+        sourceLibrary: libKey,
+        detectorKind,
+        confidence: 'high',
+      };
+      enrichWithCatalog(result, catalog);
+      return result;
+    }
+
+    if (library.catalogFallback) {
+      if (catalog.components[binding.importedName]) {
+        const entry = catalog.components[binding.importedName];
+        return {
+          reportName: binding.importedName,
+          canonicalFamily: binding.importedName,
+          ozTarget: binding.importedName,
+          effort: 'low',
+          category: entry.category,
+          capabilities: entry.capabilities,
+          notes: 'Catalog-direct via library with catalogFallback',
+          sourceLibrary: libKey,
+          detectorKind: 'catalog-direct',
+          confidence: 'high',
+        };
+      }
+
+      const family = inferCompoundFamily(binding.importedName, catalogFamilies);
+      if (family) {
+        const entry = catalog.components[family];
+        return {
+          reportName: binding.importedName,
+          canonicalFamily: family,
+          ozTarget: family,
+          effort: 'low',
+          category: entry?.category ?? 'unknown',
+          capabilities: entry?.capabilities ?? [],
+          notes: `Compound maps to ${family} family`,
+          sourceLibrary: libKey,
+          detectorKind: 'library-mapping',
+          confidence: 'high',
+        };
+      }
+
+      return null;
+    }
+
+    // Library matched but no mapping for this specific import name
+    return {
+      reportName: binding.importedName,
+      canonicalFamily: null,
+      ozTarget: null,
+      effort: 'unknown',
+      category: 'unknown',
+      capabilities: [],
+      notes: '',
+      sourceLibrary: libKey,
+      detectorKind: 'library-mapping',
+      confidence: 'low',
+    };
+  }
+  return null;
+}
+
+const NON_UI_IDENTITY_SUFFIXES = ['Provider', 'Context'] as const;
+
+/**
+ * Checks a component name against compound inference and the OZ catalog.
+ * Shared logic for strategies 3 and 4.
+ *
+ * Does NOT iterate source library mappings — those are import-source-specific
+ * and applying them to a different package would map names incorrectly
+ * (e.g. antd key "Dialog" → source "Modal" would pollute a workspace DS
+ * export named Dialog).
+ *
+ * When `allowIdentityFallback` is true (workspace DS packages only), any
+ * used PascalCase export is reported even without a known mapping, unless
+ * the name matches a non-UI pattern (e.g. *Provider, *Context).
+ */
+function tryDesignSystemInferredMatch(
+  importedName: string,
+  catalog: ComponentCatalog,
+  catalogFamilies: ReadonlySet<string>,
+  allowIdentityFallback: boolean
+): MatchResult | null {
+  const family = inferCompoundFamily(importedName, catalogFamilies);
+  if (family) {
+    const entry = catalog.components[family];
+    return {
+      reportName: importedName,
+      canonicalFamily: family,
+      ozTarget: family,
+      effort: 'low',
+      category: entry?.category ?? 'unknown',
+      capabilities: entry?.capabilities ?? [],
+      notes: `Compound maps to ${family} family`,
+      sourceLibrary: null,
+      detectorKind: 'library-mapping',
+      confidence: 'high',
+    };
+  }
+
+  if (catalog.components[importedName]) {
+    const entry = catalog.components[importedName];
+    return {
+      reportName: importedName,
+      canonicalFamily: importedName,
+      ozTarget: importedName,
+      effort: 'low',
+      category: entry.category,
+      capabilities: entry.capabilities,
+      notes: 'Direct name match in OZ catalog',
+      sourceLibrary: null,
+      detectorKind: 'catalog-direct',
+      confidence: 'high',
+    };
+  }
+
+  if (allowIdentityFallback) {
+    if (NON_UI_IDENTITY_SUFFIXES.some((s) => importedName.endsWith(s))) return null;
+    return {
+      reportName: importedName,
+      canonicalFamily: importedName,
+      ozTarget: importedName,
+      effort: 'unknown',
+      category: 'unknown',
+      capabilities: [],
+      notes: 'Design system workspace export',
+      sourceLibrary: null,
+      detectorKind: 'library-mapping',
+      confidence: 'medium',
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Strategy 4: weak fallback — the imported component name happens to match
+ * an entry in the OZ catalog. Used only when no stronger signal is available.
+ */
+function tryCatalogFallback(importedName: string, catalog: ComponentCatalog): MatchResult | null {
+  if (catalog.components[importedName]) {
+    const entry = catalog.components[importedName];
+    return {
+      reportName: importedName,
+      canonicalFamily: importedName,
+      ozTarget: importedName,
+      effort: 'low',
+      category: entry.category,
+      capabilities: entry.capabilities,
+      notes: 'Direct name match in OZ catalog',
+      sourceLibrary: null,
+      detectorKind: 'catalog-direct',
+      confidence: 'low',
+    };
+  }
+
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Observation building
+// ---------------------------------------------------------------------------
 
 function createImportEvidences(
   file: ScannedFile,
@@ -491,7 +613,6 @@ function createImportEvidences(
       : binding.kind === 'namespace'
         ? 'namespace-import'
         : 'named-import';
-
   const jsxKind: ComponentEvidence['kind'] =
     binding.kind === 'namespace' ? 'jsx-namespace-usage' : 'jsx-component-usage';
 
@@ -519,229 +640,153 @@ function createImportEvidences(
   ];
 }
 
+function buildObservation(
+  file: ScannedFile,
+  imp: ImportInfo,
+  binding: ImportBinding,
+  usageCount: number,
+  result: MatchResult
+): ComponentObservation {
+  return {
+    rawName: binding.importedName,
+    reportName: result.reportName,
+    canonicalFamily: result.canonicalFamily,
+    sourceLibrary: result.sourceLibrary,
+    sourceImport: imp.source,
+    ozTarget: result.ozTarget,
+    effort: result.effort,
+    category: result.category,
+    capabilities: result.capabilities,
+    usageCount,
+    file: file.relativePath,
+    notes: result.notes,
+    detectorKind: result.detectorKind,
+    confidence: result.confidence,
+    evidences: createImportEvidences(file, binding, imp.source, usageCount),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Observation collection — orchestrator
+// ---------------------------------------------------------------------------
+
+function getBindingUsageCount(binding: ImportBinding, facts: ParsedFileFacts): number {
+  return binding.kind === 'namespace'
+    ? (facts.namespaceUsages.get(binding.localName) ?? 0)
+    : (facts.componentUsages.get(binding.localName) ?? 0);
+}
+
 function collectImportObservation(
   file: ScannedFile,
   facts: ParsedFileFacts,
   catalog: ComponentCatalog,
   sourceLibraries: Record<string, SourceLibrary>,
   imp: ImportInfo,
-  binding: ImportBinding
+  binding: ImportBinding,
+  files: ScannedFile[],
+  ctx: AnalysisContext,
+  catalogFamilies: ReadonlySet<string>
 ): ComponentObservation | null {
-  const importedName = binding.importedName;
-  const usageCount =
-    binding.kind === 'namespace'
-      ? (facts.namespaceUsages.get(binding.localName) ?? 0)
-      : (facts.componentUsages.get(binding.localName) ?? 0);
-
+  const usageCount = getBindingUsageCount(binding, facts);
   if (usageCount === 0) return null;
 
+  const sourceKind = classifyImportSource(imp.source);
+
+  // Skip namespace primitive imports inside design-system implementation files
   if (
-    importedName.endsWith('Primitive') &&
-    imp.source.startsWith('@radix-ui/') &&
-    file.relativePath.split(/[/\\]/).includes('packages')
+    binding.importedName.endsWith('Primitive') &&
+    binding.kind === 'namespace' &&
+    isFileInDesignSystemPackage(file, ctx.workspacePackages)
   ) {
     return null;
   }
 
-  let reportName = importedName;
-  let canonicalFamily: string | null = null;
-  let ozTarget: string | null = null;
-  let effort: ComponentMatch['effort'] = 'unknown';
-  let category: ComponentMatch['category'] = 'unknown';
-  let capabilities: string[] = [];
-  let notes = '';
-  let sourceLibrary: string | null = null;
-  let detectorKind: ComponentDetectorKind = 'catalog-direct';
+  // --- Strategy 1: direct external library pattern match ---
+  const libResult = tryExternalLibraryMatch(
+    imp,
+    binding,
+    sourceKind,
+    sourceLibraries,
+    catalog,
+    catalogFamilies
+  );
+  if (libResult) return buildObservation(file, imp, binding, usageCount, libResult);
 
-  // Direct OZ catalog matches are a useful fallback when the import source is not a local file path.
-  if (imp.source !== ACCOUNTS_UI_COMPONENTS_PKG && catalog.components[importedName]) {
-    const fromPackage = canDirectMatchCatalogImport(imp.source);
-    const fromLocalSidebarShell =
-      importedName === 'Sidebar' && isLocalDefaultSidebarShell(imp, binding);
-    if (fromPackage || fromLocalSidebarShell) {
-      const ozComp = catalog.components[importedName];
-      ozTarget = importedName;
-      canonicalFamily = importedName;
-      effort = 'low';
-      notes = fromLocalSidebarShell
-        ? 'Local Sidebar shell maps to OZ Sidebar family'
-        : 'Direct name match in OZ catalog';
-      category = ozComp.category;
-      capabilities = ozComp.capabilities;
+  // --- Strategy 2: workspace design-system package (generic) ---
+  const wsPackage = findWorkspacePackageForImport(imp.source, ctx.workspacePackages);
+  if (wsPackage?.isDesignSystem) {
+    const wsResult = tryDesignSystemInferredMatch(
+      binding.importedName,
+      catalog,
+      catalogFamilies,
+      true
+    );
+    if (wsResult) return buildObservation(file, imp, binding, usageCount, wsResult);
+  }
+
+  // --- Strategy 3: local import that wraps a design system ---
+  // Only catalog-direct match — compound inference is too aggressive for
+  // app-level wrappers (e.g. TabsSection would falsely match Tabs).
+  if (isLocalImport(sourceKind)) {
+    const resolved = resolveLocalImportToFile(file.relativePath, imp.source, files);
+    if (resolved && moduleImportsDesignSystem(resolved, ctx.designSystemIndicators)) {
+      const localResult = tryCatalogFallback(binding.importedName, catalog);
+      if (localResult) return buildObservation(file, imp, binding, usageCount, localResult);
     }
   }
 
-  for (const [libKey, library] of Object.entries(sourceLibraries)) {
-    const isFromLibrary = library.importPatterns.some((pattern) => imp.source.includes(pattern));
-    if (!isFromLibrary) continue;
-
-    sourceLibrary = libKey;
-    const mapping = resolveLibraryMapping(library, importedName, imp.source, binding.kind);
-    if (mapping) {
-      reportName = resolveMatchName(importedName, mapping, library, binding.kind, imp.source);
-      canonicalFamily = mapping.source;
-      ozTarget = mapping.source;
-      effort = mapping.effort;
-      notes = mapping.notes;
-      detectorKind = binding.kind === 'namespace' ? 'namespace-mapping' : 'library-mapping';
-    }
-    break;
+  // --- Strategy 4: weak catalog-name fallback (non-local imports only) ---
+  if (!isLocalImport(sourceKind)) {
+    const fallback = tryCatalogFallback(binding.importedName, catalog);
+    if (fallback) return buildObservation(file, imp, binding, usageCount, fallback);
   }
 
-  if (!ozTarget && imp.source === OZ_UI_COMPONENTS_PKG) {
-    const ozCompound = OZ_UI_COMPONENTS_COMPOUND_MAPPINGS[importedName];
-    if (ozCompound) {
-      reportName = importedName;
-      canonicalFamily = ozCompound.source;
-      ozTarget = ozCompound.source;
-      effort = ozCompound.effort;
-      notes = ozCompound.notes;
-      detectorKind = 'library-mapping';
-    }
-  }
-
-  if (ozTarget) {
-    const ozComp = catalog.components[ozTarget];
-    if (ozComp) {
-      category = ozComp.category;
-      capabilities = ozComp.capabilities;
-    }
-  }
-
-  return {
-    rawName: importedName,
-    reportName,
-    canonicalFamily,
-    sourceLibrary,
-    sourceImport: imp.source,
-    ozTarget,
-    effort,
-    category,
-    capabilities,
-    usageCount,
-    file: file.relativePath,
-    notes,
-    detectorKind,
-    confidence: determineObservationConfidence(detectorKind, ozTarget),
-    evidences: createImportEvidences(file, binding, imp.source, usageCount),
-  };
+  return null;
 }
 
-function mergeObservationIntoMatch(match: ComponentMatch, observation: ComponentObservation): void {
-  match.usageCount += observation.usageCount;
-  if (!match.files.includes(observation.file)) {
-    match.files.push(observation.file);
-  }
-  if (!match.rawNames.includes(observation.rawName)) {
-    match.rawNames.push(observation.rawName);
-  }
-  if (!match.detectorKinds.includes(observation.detectorKind)) {
-    match.detectorKinds.push(observation.detectorKind);
-  }
-  match.evidences.push(...observation.evidences);
-  match.confidence = mergeConfidence(match.confidence, observation.confidence);
-}
-
-function createMatchFromObservation(observation: ComponentObservation): ComponentMatch {
-  return {
-    name: observation.reportName,
-    reportName: observation.reportName,
-    canonicalFamily: observation.canonicalFamily,
-    rawNames: [observation.rawName],
-    sourceLibrary: observation.sourceLibrary,
-    sourceImport: observation.sourceImport,
-    ozTarget: observation.ozTarget,
-    effort: observation.effort,
-    category: observation.category,
-    capabilities: observation.capabilities,
-    usageCount: observation.usageCount,
-    files: [observation.file],
-    notes: observation.notes,
-    detectorKinds: [observation.detectorKind],
-    confidence: observation.confidence,
-    evidences: [...observation.evidences],
-  };
-}
-
-function aggregateComponentObservations(observations: ComponentObservation[]): ComponentMatch[] {
-  const matchMap = new Map<string, ComponentMatch>();
-
-  for (const observation of observations) {
-    const matchKey = `${observation.sourceLibrary ?? observation.sourceImport}:${observation.reportName}`;
-    const existing = matchMap.get(matchKey);
-
-    if (existing) {
-      mergeObservationIntoMatch(existing, observation);
-      continue;
-    }
-
-    const existingWithSameName = findExistingMatchByName(matchMap, observation.reportName);
-    if (existingWithSameName) {
-      mergeObservationIntoMatch(existingWithSameName, observation);
-
-      if (!existingWithSameName.ozTarget && observation.ozTarget) {
-        applyResolvedMatch(
-          existingWithSameName,
-          observation.sourceLibrary,
-          observation.sourceImport,
-          observation.canonicalFamily,
-          observation.ozTarget,
-          observation.effort,
-          observation.category,
-          observation.capabilities,
-          observation.notes,
-          observation.confidence
-        );
-      }
-      continue;
-    }
-
-    matchMap.set(matchKey, createMatchFromObservation(observation));
-  }
-
-  return [...matchMap.values()].sort((a, b) => b.usageCount - a.usageCount);
-}
-
-/** @description Collects raw component observations before deduping them into report rows. */
+/** Collects raw component observations before deduping them into report rows. */
 export function collectComponentObservations(
   files: ScannedFile[],
   catalog: ComponentCatalog,
-  sourceLibraries: Record<string, SourceLibrary>
+  sourceLibraries: Record<string, SourceLibrary>,
+  ctx: AnalysisContext = DEFAULT_ANALYSIS_CONTEXT
 ): ComponentObservation[] {
+  const catalogFamilies = buildKnownFamilies(catalog, sourceLibraries);
   const observations: ComponentObservation[] = [];
 
   for (const file of files) {
     const facts = parseFileFacts(file);
 
     for (const imp of facts.imports) {
-      // Skip OZ imports (already migrated)
-      if (imp.source.startsWith('@openzeppelin/') && !OZ_UI_INVENTORY_PACKAGES.has(imp.source)) {
-        continue;
-      }
       if (isExcludedLibrary(imp.source) || isExcludedPattern(imp.source)) continue;
 
       for (const binding of imp.bindings) {
-        const observation = collectImportObservation(
+        const obs = collectImportObservation(
           file,
           facts,
           catalog,
           sourceLibraries,
           imp,
-          binding
+          binding,
+          files,
+          ctx,
+          catalogFamilies
         );
-        if (observation) observations.push(observation);
+        if (obs) observations.push(obs);
       }
     }
   }
 
-  return observations.sort((a, b) => {
-    if (a.reportName === b.reportName) {
-      return a.file.localeCompare(b.file);
-    }
-
-    return a.reportName.localeCompare(b.reportName);
-  });
+  return observations.sort((a, b) =>
+    a.reportName === b.reportName
+      ? a.file.localeCompare(b.file)
+      : a.reportName.localeCompare(b.reportName)
+  );
 }
+
+// ---------------------------------------------------------------------------
+// HTML element observations
+// ---------------------------------------------------------------------------
 
 const HTML_TAGS = ['button', 'select', 'textarea', 'label', 'progress', 'dialog'] as const;
 
@@ -764,30 +809,22 @@ function resolveInputOzTarget(inputType: string): string | null {
   }
 }
 
-/** @description Aggregates import-based observations into the existing component report format. */
-export function analyzeComponents(
-  files: ScannedFile[],
-  catalog: ComponentCatalog,
-  sourceLibraries: Record<string, SourceLibrary>
-): ComponentMatch[] {
-  return aggregateComponentObservations(
-    collectComponentObservations(files, catalog, sourceLibraries)
-  );
-}
-
-/** @description Collects native HTML element observations before aggregating them. */
+/** Collects native HTML element observations before aggregating them. */
 export function collectHtmlElementObservations(
   files: ScannedFile[],
-  htmlLib: HtmlElementLibrary
+  htmlLib: HtmlElementLibrary,
+  ctx: AnalysisContext = DEFAULT_ANALYSIS_CONTEXT
 ): ComponentObservation[] {
   const observations: ComponentObservation[] = [];
+
   for (const file of files) {
+    // Files inside a design-system workspace package are implementing
+    // UI components — their native HTML is not a migration signal.
+    if (isFileInDesignSystemPackage(file, ctx.workspacePackages)) continue;
+
     const facts = parseFileFacts(file);
-    const fileHasOzKitImport = facts.hasOzUiComponentsImport;
 
     for (const tagName of HTML_TAGS) {
-      if (fileHasOzKitImport && tagName !== 'button') continue;
-
       const ozTarget = Object.entries(htmlLib.mappings).find(([, m]) => m.source === tagName)?.[0];
       if (!ozTarget) continue;
 
@@ -825,56 +862,150 @@ export function collectHtmlElementObservations(
       });
     }
 
-    if (!fileHasOzKitImport) {
-      for (const [inputType, usageCount] of facts.inputTypeUsages.entries()) {
-        const ozTarget = resolveInputOzTarget(inputType);
-        if (!ozTarget) continue;
+    for (const [inputType, usageCount] of facts.inputTypeUsages.entries()) {
+      const ozTarget = resolveInputOzTarget(inputType);
+      if (!ozTarget) continue;
 
-        const mapping = htmlLib.mappings[ozTarget];
-        observations.push({
-          rawName: ozTarget,
-          reportName: ozTarget,
-          canonicalFamily: ozTarget,
-          sourceLibrary: 'html-elements',
-          sourceImport: '',
-          ozTarget,
-          effort: mapping?.effort ?? 'unknown',
-          category: 'unknown',
-          capabilities: [],
-          usageCount,
-          file: file.relativePath,
-          notes: mapping?.notes ?? '',
-          detectorKind: 'html-fallback',
-          confidence: determineObservationConfidence('html-fallback', ozTarget),
-          evidences: [
-            {
-              kind: 'html-input-type',
-              file: file.relativePath,
-              usageCount,
-              sourceImport: '',
-              importedName: null,
-              localName: null,
-              intrinsicTag: 'input',
-              inputType,
-            },
-          ],
-        });
-      }
+      const mapping = htmlLib.mappings[ozTarget];
+      observations.push({
+        rawName: ozTarget,
+        reportName: ozTarget,
+        canonicalFamily: ozTarget,
+        sourceLibrary: 'html-elements',
+        sourceImport: '',
+        ozTarget,
+        effort: mapping?.effort ?? 'unknown',
+        category: 'unknown',
+        capabilities: [],
+        usageCount,
+        file: file.relativePath,
+        notes: mapping?.notes ?? '',
+        detectorKind: 'html-fallback',
+        confidence: determineObservationConfidence('html-fallback', ozTarget),
+        evidences: [
+          {
+            kind: 'html-input-type',
+            file: file.relativePath,
+            usageCount,
+            sourceImport: '',
+            importedName: null,
+            localName: null,
+            intrinsicTag: 'input',
+            inputType,
+          },
+        ],
+      });
     }
   }
 
-  return observations.sort((a, b) => {
-    if (a.reportName === b.reportName) {
-      return a.file.localeCompare(b.file);
+  return observations.sort((a, b) =>
+    a.reportName === b.reportName
+      ? a.file.localeCompare(b.file)
+      : a.reportName.localeCompare(b.reportName)
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Aggregation — merging observations into the final report
+// ---------------------------------------------------------------------------
+
+function findExistingMatchByName(
+  matchMap: Map<string, ComponentMatch>,
+  matchName: string
+): ComponentMatch | undefined {
+  return [...matchMap.values()].find((candidate) => candidate.name === matchName);
+}
+
+function applyResolvedMatch(match: ComponentMatch, observation: ComponentObservation): void {
+  match.sourceLibrary = observation.sourceLibrary;
+  match.sourceImport = observation.sourceImport;
+  match.canonicalFamily = observation.canonicalFamily;
+  match.ozTarget = observation.ozTarget;
+  match.effort = observation.effort;
+  match.category = observation.category;
+  match.capabilities = observation.capabilities;
+  match.notes = observation.notes;
+  match.confidence = mergeConfidence(match.confidence, observation.confidence);
+}
+
+function mergeObservationIntoMatch(match: ComponentMatch, observation: ComponentObservation): void {
+  match.usageCount += observation.usageCount;
+  if (!match.files.includes(observation.file)) match.files.push(observation.file);
+  if (!match.rawNames.includes(observation.rawName)) match.rawNames.push(observation.rawName);
+  if (!match.detectorKinds.includes(observation.detectorKind))
+    match.detectorKinds.push(observation.detectorKind);
+  match.evidences.push(...observation.evidences);
+  match.confidence = mergeConfidence(match.confidence, observation.confidence);
+}
+
+function createMatchFromObservation(observation: ComponentObservation): ComponentMatch {
+  return {
+    name: observation.reportName,
+    reportName: observation.reportName,
+    canonicalFamily: observation.canonicalFamily,
+    rawNames: [observation.rawName],
+    sourceLibrary: observation.sourceLibrary,
+    sourceImport: observation.sourceImport,
+    ozTarget: observation.ozTarget,
+    effort: observation.effort,
+    category: observation.category,
+    capabilities: observation.capabilities,
+    usageCount: observation.usageCount,
+    files: [observation.file],
+    notes: observation.notes,
+    detectorKinds: [observation.detectorKind],
+    confidence: observation.confidence,
+    evidences: [...observation.evidences],
+  };
+}
+
+function aggregateComponentObservations(observations: ComponentObservation[]): ComponentMatch[] {
+  const matchMap = new Map<string, ComponentMatch>();
+
+  for (const observation of observations) {
+    const matchKey = `${observation.sourceLibrary ?? observation.sourceImport}:${observation.reportName}`;
+    const existing = matchMap.get(matchKey);
+
+    if (existing) {
+      mergeObservationIntoMatch(existing, observation);
+      continue;
     }
 
-    return a.reportName.localeCompare(b.reportName);
-  });
+    const sameNameMatch = findExistingMatchByName(matchMap, observation.reportName);
+    if (sameNameMatch) {
+      mergeObservationIntoMatch(sameNameMatch, observation);
+      if (!sameNameMatch.ozTarget && observation.ozTarget) {
+        applyResolvedMatch(sameNameMatch, observation);
+      }
+      continue;
+    }
+
+    matchMap.set(matchKey, createMatchFromObservation(observation));
+  }
+
+  return [...matchMap.values()].sort((a, b) => b.usageCount - a.usageCount);
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+/** Aggregates import-based observations into the component report format. */
+export function analyzeComponents(
+  files: ScannedFile[],
+  catalog: ComponentCatalog,
+  sourceLibraries: Record<string, SourceLibrary>,
+  ctx?: AnalysisContext
+): ComponentMatch[] {
+  return aggregateComponentObservations(
+    collectComponentObservations(files, catalog, sourceLibraries, ctx)
+  );
 }
 
 export function analyzeHtmlElements(
   files: ScannedFile[],
-  htmlLib: HtmlElementLibrary
+  htmlLib: HtmlElementLibrary,
+  ctx?: AnalysisContext
 ): ComponentMatch[] {
-  return aggregateComponentObservations(collectHtmlElementObservations(files, htmlLib));
+  return aggregateComponentObservations(collectHtmlElementObservations(files, htmlLib, ctx));
 }

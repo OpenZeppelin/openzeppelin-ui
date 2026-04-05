@@ -25,6 +25,7 @@ export interface SourceLibrary {
   importPatterns: string[];
   namespaceImportStrategy?: 'binding' | 'package-name';
   namespaceReportName?: 'imported' | 'target';
+  catalogFallback?: boolean;
   mappings: Record<string, SourceLibraryMapping>;
 }
 
