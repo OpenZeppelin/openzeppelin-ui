@@ -60,6 +60,41 @@
       pointer-events: none; opacity: 0; transition: opacity 0.15s ease; z-index: 100;
     }
     [data-tip]:hover::before, [data-tip]:hover::after { opacity: 1; }
+    /* Log cells use overflow:hidden for ellipsis — that clips CSS ::before tooltips. Use #log-floating-tip (fixed) instead. */
+    .log-cell-tip {
+      display: block;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .log-cell-tip[data-log-tip] { cursor: help; }
+    .log-cell-tip--why { max-width: 200px; }
+    .log-cell-tip--desc { max-width: 400px; }
+    #log-floating-tip {
+      position: fixed;
+      z-index: 5000;
+      max-width: min(420px, calc(100vw - 24px));
+      padding: 8px 12px;
+      background: #2d3148;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.12s ease, visibility 0.12s ease;
+    }
+    #log-floating-tip.is-visible {
+      opacity: 1;
+      visibility: visible;
+    }
     [data-tip-right]::before { left: 0; transform: none; }
     [data-tip-right]::after { left: 16px; transform: none; }
     /* Right-aligned chips: anchor tooltip to the chip’s right edge so it grows left into the viewport
@@ -595,7 +630,7 @@
         </div>
       </div>
 
-      <div class="panel table-panel">
+      <div class="panel table-panel panel--overflow-visible">
         <div class="panel-header">
           <div class="panel-header-left">Experiment Log</div>
           <span class="badge" id="log-badge">0 rows</span>
@@ -617,6 +652,8 @@
   </div>
 
   <div class="footer">Autoresearch — Karpathy-style autonomous improvement loop</div>
+
+  <div id="log-floating-tip" role="tooltip" aria-hidden="true"></div>
 
   <div id="start-agent-modal" class="modal-overlay" aria-hidden="true" onclick="if(event.target===this)closeStartAgentModal()">
     <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="start-agent-title" onclick="event.stopPropagation()">
@@ -1027,6 +1064,90 @@
       document.getElementById('log-badge').textContent = `${total} rows`;
     }
 
+    /** Ellipsis in table; full text on hover via fixed #log-floating-tip (cell overflow:hidden clips CSS ::before tips). */
+    function logCellTip(text, variantClass) {
+      const raw = text == null ? '' : String(text);
+      const tipPayload = raw.replace(/\r?\n/g, ' ').trim();
+      const tipAttr = tipPayload ? ` data-log-tip="${escAttr(tipPayload)}"` : '';
+      return `<span class="log-cell-tip ${variantClass}"${tipAttr}>${esc(raw)}</span>`;
+    }
+
+    let logFloatingTipEl = null;
+    let logTipAnchorEl = null;
+    function ensureLogFloatingTipEl() {
+      if (!logFloatingTipEl) {
+        logFloatingTipEl = document.getElementById('log-floating-tip');
+      }
+      return logFloatingTipEl;
+    }
+    function hideLogFloatingTip() {
+      const tip = ensureLogFloatingTipEl();
+      if (!tip) return;
+      tip.classList.remove('is-visible');
+      tip.setAttribute('aria-hidden', 'true');
+      logTipAnchorEl = null;
+    }
+    function showLogFloatingTip(anchor) {
+      const tip = ensureLogFloatingTipEl();
+      if (!tip || !anchor) return;
+      const attr = anchor.getAttribute('data-log-tip');
+      if (!attr) return;
+      logTipAnchorEl = anchor;
+      tip.textContent = attr;
+      tip.classList.add('is-visible');
+      tip.setAttribute('aria-hidden', 'false');
+      positionLogFloatingTip(anchor, tip);
+    }
+    function positionLogFloatingTip(anchor, tip) {
+      const margin = 8;
+      const r = anchor.getBoundingClientRect();
+      tip.style.left = '0px';
+      tip.style.top = '0px';
+      const tw = tip.offsetWidth;
+      const th = tip.offsetHeight;
+      let left = r.left + r.width / 2 - tw / 2;
+      left = Math.max(margin, Math.min(left, window.innerWidth - tw - margin));
+      let top = r.bottom + margin;
+      if (top + th > window.innerHeight - margin) {
+        top = r.top - th - margin;
+      }
+      top = Math.max(margin, Math.min(top, window.innerHeight - th - margin));
+      tip.style.left = `${Math.round(left)}px`;
+      tip.style.top = `${Math.round(top)}px`;
+    }
+    function initLogTableFloatingTips() {
+      const tbody = document.getElementById('log-body');
+      const scroll = document.getElementById('table-scroll');
+      if (!tbody || tbody.dataset.logFloatTipWired) return;
+      tbody.dataset.logFloatTipWired = '1';
+
+      tbody.addEventListener('mouseover', (e) => {
+        const el = e.target.closest('.log-cell-tip[data-log-tip]');
+        if (!el || !tbody.contains(el)) return;
+        showLogFloatingTip(el);
+      });
+      tbody.addEventListener('mouseout', (e) => {
+        const el = e.target.closest('.log-cell-tip[data-log-tip]');
+        if (!el || !tbody.contains(el)) return;
+        const to = e.relatedTarget;
+        if (to && el.contains(to)) return;
+        hideLogFloatingTip();
+      });
+      if (scroll) {
+        scroll.addEventListener('scroll', () => hideLogFloatingTip(), { passive: true });
+      }
+      window.addEventListener(
+        'scroll',
+        () => {
+          if (logTipAnchorEl && ensureLogFloatingTipEl()?.classList.contains('is-visible')) {
+            positionLogFloatingTip(logTipAnchorEl, ensureLogFloatingTipEl());
+          }
+        },
+        true,
+      );
+      window.addEventListener('resize', () => hideLogFloatingTip());
+    }
+
     function updateTable(rows) {
       const tbody = document.getElementById('log-body');
       const theadRow = document.getElementById('log-thead-row');
@@ -1060,12 +1181,12 @@
           delta = `<span style="color:var(--text-dim)">baseline</span>`;
         }
 
-        const descCell = `<td style="color:var(--text-muted);max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.description)}">${esc(r.description)}</td>`;
+        const descCell = `<td>${logCellTip(r.description, 'log-cell-tip--desc')}</td>`;
 
         if (hasExtendedFormat) {
           const advF1 = r.adversarialF1 != null ? `<span style="color:${getBarColor(r.adversarialF1)}">${r.adversarialF1.toFixed(4)}</span>` : '<span style="color:var(--text-dim)">n/a</span>';
           const whyText = r.why || '';
-          return `<tr><td>${r.experiment}</td><td><span class="status-badge ${r.status}">${r.status}</span></td><td>${r.meanF1.toFixed(6)}</td><td>${advF1}</td><td>${delta}</td><td style="color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(whyText)}">${esc(whyText)}</td>${descCell}</tr>`;
+          return `<tr><td>${r.experiment}</td><td><span class="status-badge ${r.status}">${r.status}</span></td><td>${r.meanF1.toFixed(6)}</td><td>${advF1}</td><td>${delta}</td><td>${logCellTip(whyText, 'log-cell-tip--why')}</td>${descCell}</tr>`;
         }
         return `<tr><td>${r.experiment}</td><td><span class="status-badge ${r.status}">${r.status}</span></td><td>${r.meanF1.toFixed(6)}</td><td>${delta}</td>${descCell}</tr>`;
       }).join('');
@@ -1571,7 +1692,11 @@
       source.onerror = () => { document.getElementById('status-text').textContent = 'Reconnecting...'; document.getElementById('status-pill').className = 'status-pill stale'; };
     }
 
-    function init() { connectSSE(); route(); }
+    function init() {
+      initLogTableFloatingTips();
+      connectSSE();
+      route();
+    }
     init();
   </script>
 </body>
