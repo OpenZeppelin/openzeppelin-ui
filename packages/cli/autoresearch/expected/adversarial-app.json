@@ -1,13 +1,13 @@
 {
   "fixture": "adversarial-app",
   "description": "Auto-generated adversarial fixture. Uses real OZ component names but imports through randomized path aliases, unusual directory structures, and non-standard file names. Tests that detection strategies are structurally generic rather than path/package-name-dependent.",
-  "_generatedAt": "2026-04-05T10:18:22.313Z",
-  "_seed": 39111,
+  "_generatedAt": "2026-04-05T10:36:53.666Z",
+  "_seed": 43628,
   "_structuralContext": {
-    "scope": "@calmpixel",
-    "uiPackage": "@calmpixel/design-system",
+    "scope": "@rapidvivid",
+    "uiPackage": "@rapidvivid/design-system",
     "pathAlias": "~/",
-    "uiDir": "src/block/frame"
+    "uiDir": "src/sharp/frame"
   },
   "components": [
     {

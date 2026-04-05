@@ -306,6 +306,102 @@ function extractImports(sourceFile: ts.SourceFile): ImportInfo[] {
   return imports;
 }
 
+function hasExportModifier(node: ts.Node): boolean {
+  const mods = ts.canHaveModifiers(node) ? ts.getModifiers(node) : undefined;
+  return mods?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) ?? false;
+}
+
+/**
+ * PascalCase `export function` declarations — used to detect self-contained UI kit
+ * modules (no third-party UI imports) whose exports are all catalog-mapped.
+ */
+function extractExportedFunctionComponentNames(file: ScannedFile): string[] {
+  const sourceFile = ts.createSourceFile(
+    file.relativePath,
+    file.content,
+    ts.ScriptTarget.Latest,
+    true,
+    getScriptKind(file.relativePath)
+  );
+
+  const names: string[] = [];
+  for (const stmt of sourceFile.statements) {
+    if (!ts.isFunctionDeclaration(stmt) || !stmt.name) continue;
+    if (!hasExportModifier(stmt)) continue;
+    const text = stmt.name.text;
+    if (text && text[0] === text[0]!.toUpperCase()) names.push(text);
+  }
+  return names;
+}
+
+/** Path depth under `src/` (segment count including file), or 0 if not under src/. */
+function pathSegmentsDeepUnderSrc(relativePath: string): number {
+  const norm = relativePath.replace(/\\/g, '/');
+  if (!norm.startsWith('src/')) return 0;
+  return norm.slice('src/'.length).split('/').filter(Boolean).length;
+}
+
+function isExportShapeInferenceLibrary(
+  library: SourceLibrary,
+  libKey: string
+): library is SourceLibrary {
+  if (libKey === 'html-elements') return false;
+  if ((library as HtmlElementLibrary).htmlTags) return false;
+  if (library.importPatterns.length === 0) return false;
+  if (library.catalogFallback && Object.keys(library.mappings).length === 0) return false;
+  return Object.keys(library.mappings).length > 0;
+}
+
+/**
+ * Picks the source library that maps every exported name, preferring libraries
+ * that explain more exports as explicit compound rows (reportName: target).
+ */
+function selectLibraryFullyCoveringExports(
+  exportedNames: string[],
+  sourceLibraries: Record<string, SourceLibrary>
+): { key: string; library: SourceLibrary } | null {
+  type Scored = {
+    key: string;
+    library: SourceLibrary;
+    score: number;
+    compoundCatalogBreadth: number;
+  };
+  const candidates: Scored[] = [];
+
+  for (const [key, library] of Object.entries(sourceLibraries)) {
+    if (!isExportShapeInferenceLibrary(library, key)) continue;
+    if (!exportedNames.every((n) => library.mappings[n])) continue;
+    const compoundHits = exportedNames.filter(
+      (n) => library.mappings[n]?.reportName === 'target'
+    ).length;
+    const compoundCatalogBreadth = Object.values(library.mappings).filter(
+      (m) => m.reportName === 'target'
+    ).length;
+    candidates.push({
+      key,
+      library,
+      score: compoundHits * 1000 + exportedNames.length,
+      compoundCatalogBreadth,
+    });
+  }
+
+  if (candidates.length === 0) return null;
+  candidates.sort(
+    (a, b) =>
+      b.score - a.score ||
+      b.compoundCatalogBreadth - a.compoundCatalogBreadth ||
+      a.key.localeCompare(b.key)
+  );
+  return { key: candidates[0]!.key, library: candidates[0]!.library };
+}
+
+function qualifiesForExportShapeInference(resolved: ScannedFile, exportedNames: string[]): boolean {
+  if (exportedNames.length === 0) return false;
+  const depth = pathSegmentsDeepUnderSrc(resolved.relativePath);
+  if (exportedNames.length >= 2) return true;
+  return exportedNames.length === 1 && depth >= 3;
+}
+
 function parseFileFacts(file: ScannedFile): ParsedFileFacts {
   const sourceFile = ts.createSourceFile(
     file.relativePath,
@@ -539,6 +635,66 @@ function tryExternalLibraryMatch(
     };
   }
   return null;
+}
+
+/**
+ * When a local module implements a UI kit without third-party UI imports, infer
+ * the source library from exported component names (all must map in one catalog
+ * library). Preserves compound imported names so per-subcomponent detection
+ * tuples stay distinct.
+ */
+function tryInferredExportShapeLibraryMatch(
+  binding: ImportBinding,
+  sourceKind: ImportSourceKind,
+  importSource: string,
+  resolved: ScannedFile,
+  sourceLibraries: Record<string, SourceLibrary>,
+  catalog: ComponentCatalog
+): MatchResult | null {
+  if (binding.kind === 'namespace') return null;
+
+  const exportedNames = extractExportedFunctionComponentNames(resolved);
+  if (!qualifiesForExportShapeInference(resolved, exportedNames)) return null;
+  if (!exportedNames.includes(binding.importedName)) return null;
+
+  const pick = selectLibraryFullyCoveringExports(exportedNames, sourceLibraries);
+  if (!pick) return null;
+
+  const mapping = resolveLibraryMapping(
+    pick.library,
+    binding.importedName,
+    importSource,
+    binding.kind
+  );
+  if (!mapping) return null;
+
+  const reportName =
+    mapping.reportName === 'target'
+      ? binding.importedName
+      : resolveLibraryReportName(
+          binding.importedName,
+          mapping,
+          pick.library,
+          binding.kind,
+          sourceKind
+        );
+
+  const detectorKind: ComponentDetectorKind =
+    binding.kind === 'namespace' ? 'namespace-mapping' : 'library-mapping';
+  const result: MatchResult = {
+    reportName,
+    canonicalFamily: mapping.source,
+    ozTarget: mapping.source,
+    effort: mapping.effort,
+    category: 'unknown',
+    capabilities: [],
+    notes: mapping.notes,
+    sourceLibrary: pick.key,
+    detectorKind,
+    confidence: 'high',
+  };
+  enrichWithCatalog(result, catalog);
+  return result;
 }
 
 const NON_UI_IDENTITY_SUFFIXES = ['Provider', 'Context'] as const;
@@ -782,20 +938,34 @@ function collectImportObservation(
   // app-level wrappers (e.g. TabsSection would falsely match Tabs).
   if (isLocalImport(sourceKind)) {
     const resolved = resolveLocalImportToFile(file.relativePath, imp.source, files);
-    if (
-      resolved &&
-      localModuleTransitivelyImportsExternalLibrary(resolved, files, ctx.externalLibraryPatterns)
-    ) {
-      let localResult = tryCatalogFallback(binding.importedName, catalog);
-      if (
-        !localResult &&
-        isCatalogOrLibraryMappedName(binding.importedName, catalog, sourceLibraries)
-      ) {
-        localResult = tryDesignSystemInferredMatch(
-          binding.importedName,
-          catalog,
-          catalogFamilies,
-          true
+    if (resolved) {
+      const transitivelyExternal = localModuleTransitivelyImportsExternalLibrary(
+        resolved,
+        files,
+        ctx.externalLibraryPatterns
+      );
+      let localResult: MatchResult | null = null;
+      if (transitivelyExternal) {
+        localResult = tryCatalogFallback(binding.importedName, catalog);
+        if (
+          !localResult &&
+          isCatalogOrLibraryMappedName(binding.importedName, catalog, sourceLibraries)
+        ) {
+          localResult = tryDesignSystemInferredMatch(
+            binding.importedName,
+            catalog,
+            catalogFamilies,
+            true
+          );
+        }
+      } else {
+        localResult = tryInferredExportShapeLibraryMatch(
+          binding,
+          sourceKind,
+          imp.source,
+          resolved,
+          sourceLibraries,
+          catalog
         );
       }
       if (localResult) return buildObservation(file, imp, binding, usageCount, localResult);

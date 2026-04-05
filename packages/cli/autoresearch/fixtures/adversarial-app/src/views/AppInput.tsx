@@ -1,4 +1,4 @@
-import { Input } from '~/block/frame/text-input';
+import { Input } from '~/sharp/frame/text-input';
 
 export function AppInput(props: Record<string, unknown>) {
   return <Input {...props} />;

@@ -1,6 +1,6 @@
-import { Button } from '~/block/frame/action-button';
-import { Card, CardContent, CardHeader, CardTitle } from '~/block/frame/info-card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '~/block/frame/tab-set';
+import { Button } from '~/sharp/frame/action-button';
+import { Card, CardContent, CardHeader, CardTitle } from '~/sharp/frame/info-card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '~/sharp/frame/tab-set';
 
 export function Overview() {
   return (

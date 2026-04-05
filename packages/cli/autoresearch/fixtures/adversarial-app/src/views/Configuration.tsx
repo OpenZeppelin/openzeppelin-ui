@@ -1,9 +1,9 @@
-import { Dialog, DialogContent, DialogTrigger } from '~/block/frame/modal';
-import { Select, SelectTrigger, SelectContent, SelectItem } from '~/block/frame/picker';
-import { Alert, AlertTitle, AlertDescription } from '~/block/frame/notice';
-import { Button } from '~/block/frame/action-button';
-import { Checkbox } from '~/block/frame/tick-box';
-import { Tooltip } from '~/block/frame/hint';
+import { Dialog, DialogContent, DialogTrigger } from '~/sharp/frame/modal';
+import { Select, SelectTrigger, SelectContent, SelectItem } from '~/sharp/frame/picker';
+import { Alert, AlertTitle, AlertDescription } from '~/sharp/frame/notice';
+import { Button } from '~/sharp/frame/action-button';
+import { Checkbox } from '~/sharp/frame/tick-box';
+import { Tooltip } from '~/sharp/frame/hint';
 
 export function Configuration() {
   return (
