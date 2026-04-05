@@ -108,6 +108,76 @@ File: `expected/patterns/<fixture>.json`
 
 ---
 
+## Planning expectation checklist
+
+Planning expectations are especially easy to under-label because the evaluator uses a
+**frozen analysis report** as input, while authors naturally reason from the richer
+live fixture source. Use this checklist when creating or reviewing
+`expected/planning/<fixture>.json`.
+
+### Goal
+
+Capture what a **good planner should emit from the frozen input**, while using the
+fixture source to identify false positives and to validate whether a detected item is
+actually a meaningful migration surface.
+
+### Checklist
+
+1. Start from the frozen report, not from the current planner output.
+  The frozen report defines the planner's observable input. Do not copy today's
+   planner behavior into the expected file.
+2. Use the fixture source to validate meaning, not to invent unsupported positives.
+  If the live source suggests an important migration task but the frozen report never
+   exposes the signal, do not add it as a positive expectation in this fixture.
+3. Label both positives and negatives.
+  A good planning fixture should penalize both under-generation and over-generation.
+4. Add `forbiddenTasks` aggressively for non-migratable component detections.
+  Common cases: routing primitives, icons, app/page components, local feature
+   wrappers, context providers, controllers, and helper-only components.
+5. Classify wallet-pattern files before labeling them.
+  For each wallet-pattern file in the frozen report, decide whether it is:
+  - real wallet/provider/client migration work
+  - a type-only import
+  - an encoding or ABI utility
+  - a chain registry or network metadata file
+  - a formatting/validation/helper file
+   Only the first category belongs in `expectedWalletTasks`.
+6. Avoid impossible expectations.
+  Do not add `(pattern, file)` pairs or component tasks that the frozen report could
+   never produce.
+7. Review every wallet-pattern file exactly once.
+  Every file surfaced by a wallet pattern in the frozen report should usually end up
+   either in `expectedWalletTasks` or `forbiddenWalletFiles`. Leaving many files
+   unlabeled is often a sign of under-specification.
+8. Pressure-test the fixture before accepting it.
+  Ask:
+  - Would a bad planner that emits tasks for `Route`, local wrappers, or providers
+  get penalized?
+  - Would a bad planner that skips genuine wallet/provider migration files get
+  penalized?
+  - Would this fixture still be informative if the current planner already scores
+  `1.0`?
+
+### Healthy signs
+
+- A `1.0` score means the planner matched a non-trivial set of positives and avoided
+meaningful negatives.
+- The expected file explains why false positives are false positives.
+- Positive wallet tasks correspond to real adapter/provider/client migration work, not
+generic `viem` utility usage.
+
+### Red flags
+
+- The expected file looks like a paraphrase of the current planner output.
+- There are many wallet-pattern files in the frozen report, but only a handful are
+classified as expected or forbidden.
+- `forbiddenTasks` only lists one obvious routing component even though the fixture
+contains many local app-level detections.
+- The fixture scores `1.0`, but a clearly over-generating planner would also score
+`1.0`.
+
+---
+
 ## Using an LLM to draft expectations (safely)
 
 Creating a rigorous ground truth file by hand across hundreds of files is exhausting. Using an LLM to generate it is highly recommended—**if you use the LLM correctly**.
@@ -117,6 +187,8 @@ We have compiled a collection of prompt templates for the different capabilities
 These prompts use the **"Data Labeler" vs "Solver"** workflow, which ensures that the LLM deeply scans the codebase using semantic understanding to produce an *aspirational* ground truth, rather than just letting the CLI grade its own homework.
 
 **Read the [LLM Prompts Collection](./llm-prompts-collection.md) to understand the workflow and copy the specific prompt for the capability you are targeting (Patterns, Detection, etc.).**
+
+> **Shortcut:** The autoresearch dashboard exposes a **"Label fixture"** button on every page. It presents the same prompt templates with a capability selector and fixture-name input, ready to copy into an agent chat.
 
 ---
 
@@ -152,15 +224,18 @@ Generates synthetic verification scenarios (pass/fail) with randomized component
 
 Five capabilities have hard lint gates that automatically prevent fixture-specific hardcoding in their editable TypeScript surfaces. All share infrastructure from `lint-shared.ts`.
 
-| Capability   | Lint command                                   | Editable surface checked                                |
-| ------------ | ---------------------------------------------- | ------------------------------------------------------- |
-| Detection    | `npx tsx autoresearch/lint-detection.ts`       | `component-matcher.ts`, `import-classifier.ts`, `import-resolver.ts` |
-| Patterns     | `npx tsx autoresearch/lint-patterns.ts`        | `pattern-scanner.ts`                                    |
-| Planning     | `npx tsx autoresearch/lint-planning.ts`        | `plan.ts`, `generate.ts`, `exclusions.json`             |
-| Execution    | `npx tsx autoresearch/lint-execution.ts`       | `rewriteFile.ts`                                        |
-| Verification | `npx tsx autoresearch/lint-verification.ts`    | `checker.ts`                                            |
+
+| Capability   | Lint command                                | Editable surface checked                                             |
+| ------------ | ------------------------------------------- | -------------------------------------------------------------------- |
+| Detection    | `npx tsx autoresearch/lint-detection.ts`    | `component-matcher.ts`, `import-classifier.ts`, `import-resolver.ts` |
+| Patterns     | `npx tsx autoresearch/lint-patterns.ts`     | `pattern-scanner.ts`                                                 |
+| Planning     | `npx tsx autoresearch/lint-planning.ts`     | `plan.ts`, `generate.ts`, `exclusions.json`                          |
+| Execution    | `npx tsx autoresearch/lint-execution.ts`    | `rewriteFile.ts`                                                     |
+| Verification | `npx tsx autoresearch/lint-verification.ts` | `checker.ts`                                                         |
+
 
 Each lint gate:
+
 - Extracts fixture names, workspace package specifiers, and external manifest identifiers at runtime from whatever fixtures exist on disk.
 - Checks the capability's editable files for string literal references to those identifiers.
 - Self-updating: adding a new fixture automatically extends the lint coverage.

@@ -152,7 +152,7 @@ Output a single valid JSON object to `packages/cli/autoresearch/expected/pattern
 
 **Save output to:** `autoresearch/expected/planning/<FIXTURE_NAME>.json`
 
-**Key detail:** The evaluator runs against a **frozen analysis report**, not the live fixture. Read the frozen report to understand the planner's input, and the fixture source to verify context.
+**Key detail:** The evaluator runs against a **frozen analysis report**, not the live fixture. Read the frozen report to understand the planner's input, and the fixture source to verify context. Do **not** rubber-stamp the current planner or existing expected file: the goal is aspirational ground truth for what a good planner should emit from that frozen input.
 
 **Example output** (from `accounts-ui.json`):
 
@@ -185,18 +185,58 @@ Read the frozen analysis report at
 — this is the input the planner receives.
 
 Then read the fixture source under `packages/cli/autoresearch/fixtures/<FIXTURE_NAME>/`
-to verify context and produce four lists:
+to verify context and produce four lists.
+
+Important labeling rules:
+
+1. Author **aspirational ground truth**, not "whatever the current planner emits".
+   Do NOT copy from the existing expected file or infer labels from today's planner behavior.
+2. The frozen report is the planner's input. Only include positive tasks that are justified by
+   that frozen input. Do NOT add tasks based only on live-source context if the frozen report
+   would never expose the signal.
+3. Use the fixture source to validate meaning and to identify **false positives** the planner
+   must avoid.
+4. Be aggressive about negative labeling. A good expected file should catch both:
+   - under-generation: missing tasks that should exist
+   - over-generation: tasks for local app components, routing, icons, helpers, utilities, etc.
+5. When classifying wallet-related files, distinguish:
+   - real wallet/provider migration work
+   - type-only imports
+   - encoding/ABI utilities
+   - chain registries / network metadata
+   - pure validation/formatting helpers
+   Only the first category belongs in `expectedWalletTasks`; the others belong in
+   `forbiddenWalletFiles` when relevant.
+
+Produce these four lists:
 
 A) expectedTasks — every (type, sourceComponent, targetComponent, phase) the
-   planner SHOULD emit. Do NOT include icon libraries or routing components.
+   planner SHOULD emit. Do NOT include icon libraries, routing components,
+   local app/page components, providers, or helper/controller components unless the
+   frozen report clearly represents a real migration target.
 
 B) forbiddenTasks — source components the planner must NOT create tasks for,
-   with a reason (e.g., "Route" → "react-router-dom routing, not UI").
+   with a reason (e.g., routing, icon, local feature component, provider, form helper,
+   controller, or other non-migratable surface).
 
 C) expectedWalletTasks — every (pattern, file) pair needing a wallet-replacement task.
+   Include only files where the wallet library usage represents real adapter/provider/client
+   migration work.
 
 D) forbiddenWalletFiles — files with wallet imports that should NOT generate tasks
-   (type-only imports, encoding utilities, chain registries).
+   (type-only imports, encoding utilities, chain registries, formatting/validation helpers,
+   or similar false positives).
+
+Before writing the final JSON, do this self-check:
+
+1. If a bad planner generated tasks for Route/Link/providers/local wrappers/helpers, would this
+   expected file penalize it?
+2. If a bad planner skipped a real wallet/provider migration file, would this expected file
+   penalize it?
+3. Does every positive task come from the frozen report input rather than only from live-source
+   intuition?
+4. Did you avoid impossible expectations, such as pattern names or files that the frozen report
+   never exposes?
 
 Output a single valid JSON object to `packages/cli/autoresearch/expected/planning/<FIXTURE_NAME>.json`:
 {

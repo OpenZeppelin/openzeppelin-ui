@@ -1,0 +1,1117 @@
+{
+  "version": "1.0.0",
+  "project": "/Users/ghost/dev/repos/OpenZeppelin/openzeppelin-ui/packages/cli/autoresearch/fixtures/adversarial-app",
+  "framework": "vite",
+  "timestamp": "2026-04-05T21:37:45.117Z",
+  "summary": {
+    "totalFiles": 16,
+    "componentMatches": 24,
+    "mappableComponents": 24,
+    "walletPatterns": 0,
+    "storagePatterns": 0,
+    "existingOzPackages": 0,
+    "estimatedEffort": "low"
+  },
+  "components": [
+    {
+      "name": "Button",
+      "reportName": "Button",
+      "canonicalFamily": "Button",
+      "rawNames": [
+        "Button"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/action-button",
+      "ozTarget": "Button",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 2,
+      "files": [
+        "src/views/Configuration.tsx",
+        "src/views/Overview.tsx"
+      ],
+      "notes": "variant prop maps directly",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/action-button",
+          "importedName": "Button",
+          "localName": "Button",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/action-button",
+          "importedName": "Button",
+          "localName": "Button",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "named-import",
+          "file": "src/views/Overview.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/action-button",
+          "importedName": "Button",
+          "localName": "Button",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Overview.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/action-button",
+          "importedName": "Button",
+          "localName": "Button",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "SelectItem",
+      "reportName": "SelectItem",
+      "canonicalFamily": "Select",
+      "rawNames": [
+        "SelectItem"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/picker",
+      "ozTarget": "Select",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 2,
+      "files": [
+        "src/views/Configuration.tsx"
+      ],
+      "notes": "Compound maps to Select family",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 2,
+          "sourceImport": "~/sharp/frame/picker",
+          "importedName": "SelectItem",
+          "localName": "SelectItem",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 2,
+          "sourceImport": "~/sharp/frame/picker",
+          "importedName": "SelectItem",
+          "localName": "SelectItem",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "TabsContent",
+      "reportName": "TabsContent",
+      "canonicalFamily": "Tabs",
+      "rawNames": [
+        "TabsContent"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/tab-set",
+      "ozTarget": "Tabs",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 2,
+      "files": [
+        "src/views/Overview.tsx"
+      ],
+      "notes": "Compound maps to Tabs family",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Overview.tsx",
+          "usageCount": 2,
+          "sourceImport": "~/sharp/frame/tab-set",
+          "importedName": "TabsContent",
+          "localName": "TabsContent",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Overview.tsx",
+          "usageCount": 2,
+          "sourceImport": "~/sharp/frame/tab-set",
+          "importedName": "TabsContent",
+          "localName": "TabsContent",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "TabsTrigger",
+      "reportName": "TabsTrigger",
+      "canonicalFamily": "Tabs",
+      "rawNames": [
+        "TabsTrigger"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/tab-set",
+      "ozTarget": "Tabs",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 2,
+      "files": [
+        "src/views/Overview.tsx"
+      ],
+      "notes": "Compound maps to Tabs family",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Overview.tsx",
+          "usageCount": 2,
+          "sourceImport": "~/sharp/frame/tab-set",
+          "importedName": "TabsTrigger",
+          "localName": "TabsTrigger",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Overview.tsx",
+          "usageCount": 2,
+          "sourceImport": "~/sharp/frame/tab-set",
+          "importedName": "TabsTrigger",
+          "localName": "TabsTrigger",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "Alert",
+      "reportName": "Alert",
+      "canonicalFamily": "Alert",
+      "rawNames": [
+        "Alert"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/notice",
+      "ozTarget": "Alert",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/Configuration.tsx"
+      ],
+      "notes": "Near 1:1 API parity",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/notice",
+          "importedName": "Alert",
+          "localName": "Alert",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/notice",
+          "importedName": "Alert",
+          "localName": "Alert",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "AlertDescription",
+      "reportName": "AlertDescription",
+      "canonicalFamily": "Alert",
+      "rawNames": [
+        "AlertDescription"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/notice",
+      "ozTarget": "Alert",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/Configuration.tsx"
+      ],
+      "notes": "Compound maps to Alert family",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/notice",
+          "importedName": "AlertDescription",
+          "localName": "AlertDescription",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/notice",
+          "importedName": "AlertDescription",
+          "localName": "AlertDescription",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "AlertTitle",
+      "reportName": "AlertTitle",
+      "canonicalFamily": "Alert",
+      "rawNames": [
+        "AlertTitle"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/notice",
+      "ozTarget": "Alert",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/Configuration.tsx"
+      ],
+      "notes": "Compound maps to Alert family",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/notice",
+          "importedName": "AlertTitle",
+          "localName": "AlertTitle",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/notice",
+          "importedName": "AlertTitle",
+          "localName": "AlertTitle",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "Card",
+      "reportName": "Card",
+      "canonicalFamily": "Card",
+      "rawNames": [
+        "Card"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/info-card",
+      "ozTarget": "Card",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/Overview.tsx"
+      ],
+      "notes": "Near 1:1 API parity",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Overview.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/info-card",
+          "importedName": "Card",
+          "localName": "Card",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Overview.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/info-card",
+          "importedName": "Card",
+          "localName": "Card",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "CardContent",
+      "reportName": "CardContent",
+      "canonicalFamily": "Card",
+      "rawNames": [
+        "CardContent"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/info-card",
+      "ozTarget": "Card",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/Overview.tsx"
+      ],
+      "notes": "Compound maps to Card family",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Overview.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/info-card",
+          "importedName": "CardContent",
+          "localName": "CardContent",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Overview.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/info-card",
+          "importedName": "CardContent",
+          "localName": "CardContent",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "CardHeader",
+      "reportName": "CardHeader",
+      "canonicalFamily": "Card",
+      "rawNames": [
+        "CardHeader"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/info-card",
+      "ozTarget": "Card",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/Overview.tsx"
+      ],
+      "notes": "Compound maps to Card family",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Overview.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/info-card",
+          "importedName": "CardHeader",
+          "localName": "CardHeader",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Overview.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/info-card",
+          "importedName": "CardHeader",
+          "localName": "CardHeader",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "CardTitle",
+      "reportName": "CardTitle",
+      "canonicalFamily": "Card",
+      "rawNames": [
+        "CardTitle"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/info-card",
+      "ozTarget": "Card",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/Overview.tsx"
+      ],
+      "notes": "Compound maps to Card family",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Overview.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/info-card",
+          "importedName": "CardTitle",
+          "localName": "CardTitle",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Overview.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/info-card",
+          "importedName": "CardTitle",
+          "localName": "CardTitle",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "Checkbox",
+      "reportName": "Checkbox",
+      "canonicalFamily": "Checkbox",
+      "rawNames": [
+        "Checkbox"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/tick-box",
+      "ozTarget": "Checkbox",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/Configuration.tsx"
+      ],
+      "notes": "Near 1:1 API parity",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/tick-box",
+          "importedName": "Checkbox",
+          "localName": "Checkbox",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/tick-box",
+          "importedName": "Checkbox",
+          "localName": "Checkbox",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "Dialog",
+      "reportName": "Dialog",
+      "canonicalFamily": "Dialog",
+      "rawNames": [
+        "Dialog"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/modal",
+      "ozTarget": "Dialog",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/Configuration.tsx"
+      ],
+      "notes": "Near 1:1 API parity",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/modal",
+          "importedName": "Dialog",
+          "localName": "Dialog",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/modal",
+          "importedName": "Dialog",
+          "localName": "Dialog",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "DialogContent",
+      "reportName": "DialogContent",
+      "canonicalFamily": "Dialog",
+      "rawNames": [
+        "DialogContent"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/modal",
+      "ozTarget": "Dialog",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/Configuration.tsx"
+      ],
+      "notes": "Compound maps to Dialog family",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/modal",
+          "importedName": "DialogContent",
+          "localName": "DialogContent",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/modal",
+          "importedName": "DialogContent",
+          "localName": "DialogContent",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "DialogTrigger",
+      "reportName": "DialogTrigger",
+      "canonicalFamily": "Dialog",
+      "rawNames": [
+        "DialogTrigger"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/modal",
+      "ozTarget": "Dialog",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/Configuration.tsx"
+      ],
+      "notes": "Compound maps to Dialog family",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/modal",
+          "importedName": "DialogTrigger",
+          "localName": "DialogTrigger",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/modal",
+          "importedName": "DialogTrigger",
+          "localName": "DialogTrigger",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "Input",
+      "reportName": "Input",
+      "canonicalFamily": "Input",
+      "rawNames": [
+        "Input"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/text-input",
+      "ozTarget": "Input",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/AppInput.tsx"
+      ],
+      "notes": "Near 1:1 API parity",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/AppInput.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/text-input",
+          "importedName": "Input",
+          "localName": "Input",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/AppInput.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/text-input",
+          "importedName": "Input",
+          "localName": "Input",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "Select",
+      "reportName": "Select",
+      "canonicalFamily": "Select",
+      "rawNames": [
+        "Select"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/picker",
+      "ozTarget": "Select",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/Configuration.tsx"
+      ],
+      "notes": "Near 1:1 API parity",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/picker",
+          "importedName": "Select",
+          "localName": "Select",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/picker",
+          "importedName": "Select",
+          "localName": "Select",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "SelectContent",
+      "reportName": "SelectContent",
+      "canonicalFamily": "Select",
+      "rawNames": [
+        "SelectContent"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/picker",
+      "ozTarget": "Select",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/Configuration.tsx"
+      ],
+      "notes": "Compound maps to Select family",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/picker",
+          "importedName": "SelectContent",
+          "localName": "SelectContent",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/picker",
+          "importedName": "SelectContent",
+          "localName": "SelectContent",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "SelectTrigger",
+      "reportName": "SelectTrigger",
+      "canonicalFamily": "Select",
+      "rawNames": [
+        "SelectTrigger"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/picker",
+      "ozTarget": "Select",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/Configuration.tsx"
+      ],
+      "notes": "Compound maps to Select family",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/picker",
+          "importedName": "SelectTrigger",
+          "localName": "SelectTrigger",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/picker",
+          "importedName": "SelectTrigger",
+          "localName": "SelectTrigger",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "Tabs",
+      "reportName": "Tabs",
+      "canonicalFamily": "Tabs",
+      "rawNames": [
+        "Tabs"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/tab-set",
+      "ozTarget": "Tabs",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/Overview.tsx"
+      ],
+      "notes": "Near 1:1 API parity",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Overview.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/tab-set",
+          "importedName": "Tabs",
+          "localName": "Tabs",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Overview.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/tab-set",
+          "importedName": "Tabs",
+          "localName": "Tabs",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "TabsList",
+      "reportName": "TabsList",
+      "canonicalFamily": "Tabs",
+      "rawNames": [
+        "TabsList"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/tab-set",
+      "ozTarget": "Tabs",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/Overview.tsx"
+      ],
+      "notes": "Compound maps to Tabs family",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Overview.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/tab-set",
+          "importedName": "TabsList",
+          "localName": "TabsList",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Overview.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/tab-set",
+          "importedName": "TabsList",
+          "localName": "TabsList",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "Tooltip",
+      "reportName": "Tooltip",
+      "canonicalFamily": "Tooltip",
+      "rawNames": [
+        "Tooltip"
+      ],
+      "sourceLibrary": "shadcn",
+      "sourceImport": "~/sharp/frame/hint",
+      "ozTarget": "Tooltip",
+      "effort": "low",
+      "category": "ui",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/Configuration.tsx"
+      ],
+      "notes": "Near 1:1 API parity",
+      "detectorKinds": [
+        "library-mapping"
+      ],
+      "confidence": "high",
+      "evidences": [
+        {
+          "kind": "named-import",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/hint",
+          "importedName": "Tooltip",
+          "localName": "Tooltip",
+          "intrinsicTag": null,
+          "inputType": null
+        },
+        {
+          "kind": "jsx-component-usage",
+          "file": "src/views/Configuration.tsx",
+          "usageCount": 1,
+          "sourceImport": "~/sharp/frame/hint",
+          "importedName": "Tooltip",
+          "localName": "Tooltip",
+          "intrinsicTag": null,
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "Label",
+      "reportName": "Label",
+      "canonicalFamily": "Label",
+      "rawNames": [
+        "Label"
+      ],
+      "sourceLibrary": "html-elements",
+      "sourceImport": "",
+      "ozTarget": "Label",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/LegacyForm.tsx"
+      ],
+      "notes": "Map htmlFor",
+      "detectorKinds": [
+        "html-fallback"
+      ],
+      "confidence": "medium",
+      "evidences": [
+        {
+          "kind": "html-tag-usage",
+          "file": "src/views/LegacyForm.tsx",
+          "usageCount": 1,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "label",
+          "inputType": null
+        }
+      ]
+    },
+    {
+      "name": "Textarea",
+      "reportName": "Textarea",
+      "canonicalFamily": "Textarea",
+      "rawNames": [
+        "Textarea"
+      ],
+      "sourceLibrary": "html-elements",
+      "sourceImport": "",
+      "ozTarget": "Textarea",
+      "effort": "low",
+      "category": "unknown",
+      "capabilities": [],
+      "usageCount": 1,
+      "files": [
+        "src/views/LegacyForm.tsx"
+      ],
+      "notes": "Direct swap",
+      "detectorKinds": [
+        "html-fallback"
+      ],
+      "confidence": "medium",
+      "evidences": [
+        {
+          "kind": "html-tag-usage",
+          "file": "src/views/LegacyForm.tsx",
+          "usageCount": 1,
+          "sourceImport": "",
+          "importedName": null,
+          "localName": null,
+          "intrinsicTag": "textarea",
+          "inputType": null
+        }
+      ]
+    }
+  ],
+  "patterns": [],
+  "tailwind": {
+    "ok": false,
+    "projectRoot": "/Users/ghost/dev/repos/OpenZeppelin/openzeppelin-ui/packages/cli/autoresearch/fixtures/adversarial-app",
+    "appRoot": null,
+    "cssPath": null,
+    "generatedCssPath": null,
+    "sourcePlan": null,
+    "issues": [
+      {
+        "scope": "tailwind",
+        "code": "missing-entry-stylesheet",
+        "severity": "error",
+        "message": "Could not detect a Tailwind entry stylesheet. Re-run with --css to point at one.",
+        "fixable": false
+      }
+    ]
+  },
+  "sourceLibrary": "shadcn"
+}

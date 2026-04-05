@@ -350,35 +350,23 @@
       font-size: 13px; font-weight: 600; min-width: 120px; max-width: 200px; flex-shrink: 0;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
+    .fixture-status-warn {
+      color: var(--orange); font-size: 13px; margin-right: 4px; cursor: help;
+      vertical-align: baseline;
+    }
+    .unlabeled-separator {
+      font-size: 11px; color: var(--text-muted); padding: 10px 12px 4px; border-top: 1px dashed var(--border);
+      margin-top: 4px;
+    }
+    .fixture-row-unlabeled { opacity: .7; }
+    .fixture-row-unlabeled:hover { opacity: 1; }
     .fixture-local-path {
       width: 100%; box-sizing: border-box; margin: 0; padding: 0;
       font-size: 10px; line-height: 1.45; color: var(--text-dim);
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       overflow-wrap: anywhere; word-break: break-all; white-space: normal;
     }
-    .fixture-repo-cell {
-      width: 36px; min-width: 36px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .fixture-repo-icon,
-    .fixture-detail-btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 32px; height: 32px; border-radius: 8px;
-      color: var(--text-muted); border: 1px solid transparent;
-      transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-    }
-    .fixture-repo-icon { text-decoration: none; }
-    .fixture-detail-btn {
-      padding: 0; margin: 0; cursor: pointer; font-family: inherit;
-      background: transparent; appearance: none; -webkit-appearance: none;
-    }
-    .fixture-repo-icon:hover,
-    .fixture-detail-btn:hover { color: var(--text); background: var(--surface-hover); border-color: var(--border); }
-    .fixture-repo-icon:focus-visible,
-    .fixture-detail-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-    .fixture-repo-icon-svg,
-    .fixture-detail-btn-svg { width: 18px; height: 18px; display: block; }
-    .fixture-repo-placeholder { display: block; width: 32px; height: 32px; flex-shrink: 0; }
+    
     .fixture-bar-container { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
     .fixture-bar { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
     .fixture-score { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; min-width: 60px; text-align: right; }
@@ -387,10 +375,46 @@
     .fixture-metric-chip.tp { background: var(--green-bg); color: var(--green); }
     .fixture-metric-chip.fp { background: var(--red-bg); color: var(--red); }
     .fixture-metric-chip.fn { background: var(--orange-bg); color: var(--orange); }
-    .fixture-detail-cell {
-      width: 36px; min-width: 36px; flex-shrink: 0;
+    
+
+    .fixture-actions-cell {
+      position: relative; width: 36px; min-width: 36px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
     }
+    .fixture-actions-trigger {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
+      color: var(--text-muted); border: 1px solid transparent; background: transparent;
+      font-size: 18px; font-weight: 700; letter-spacing: 1px; line-height: 1;
+      padding: 0; margin: 0; appearance: none; -webkit-appearance: none;
+      transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+    .fixture-actions-trigger:hover,
+    .fixture-actions-trigger[aria-expanded="true"] { color: var(--text); background: var(--surface-hover); border-color: var(--border); }
+    .fixture-actions-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .fixture-actions-menu {
+      display: none; position: absolute; right: 0; top: 100%; z-index: 100;
+      min-width: 200px; margin-top: 4px; padding: 4px 0;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    }
+    .fixture-actions-menu.is-open { display: block; }
+    .fixture-actions-menu-item {
+      display: flex; align-items: center; gap: 8px; width: 100%;
+      padding: 7px 14px; border: none; background: none; cursor: pointer;
+      font-size: 12px; color: var(--text-muted); text-align: left;
+      font-family: inherit; transition: background 0.1s, color 0.1s;
+    }
+    .fixture-actions-menu-item:hover { background: var(--surface-hover); color: var(--text); }
+    a.fixture-actions-menu-item { text-decoration: none; }
+    .fixture-actions-menu-item .fam-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: .7; }
+    .fixture-actions-menu-item:hover .fam-icon { opacity: 1; }
+    .fixture-actions-menu-sep { height: 1px; margin: 4px 10px; background: var(--border); }
+    .fixture-actions-menu-item.is-loading { opacity: .5; pointer-events: none; }
+    .fixture-actions-menu-item.is-success { color: var(--green); }
+    .fixture-actions-menu-item.is-error { color: var(--red); }
+    .fixture-actions-menu-item.fam-danger { color: var(--red); }
+    .fixture-actions-menu-item.fam-danger:hover { background: var(--red-bg); color: var(--red); }
 
     .fxd-summary { font-size: 12px; line-height: 1.55; color: var(--text-muted); margin: 0 0 14px; }
     .fxd-metrics {
@@ -435,7 +459,8 @@
     .modal-intro { font-size: 12px; line-height: 1.5; color: var(--text-muted); margin: 0; }
     .aff-form { display: grid; gap: 10px; }
     /* `hidden` alone can lose to `.aff-form { display: grid }` (same specificity, author order). */
-    #sap-capability-field[hidden] {
+    #sap-capability-field[hidden],
+    #lf-capability-field[hidden] {
       display: none !important;
     }
     .aff-field { display: flex; flex-direction: column; gap: 4px; }
@@ -446,7 +471,8 @@
     }
     /* Native macOS select ignores extra padding-right for the system chevron; draw our own. */
     #sap-capability,
-    #aff-type {
+    #aff-type,
+    #lf-capability {
       appearance: none;
       -webkit-appearance: none;
       -moz-appearance: none;
@@ -459,19 +485,16 @@
       cursor: pointer;
     }
     .aff-field textarea { min-height: 56px; resize: vertical; }
-    .aff-caps { display: flex; flex-wrap: wrap; gap: 10px 16px; }
-    .aff-caps label { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: none; letter-spacing: normal; cursor: pointer; }
-    .aff-caps input { accent-color: var(--accent); }
     .aff-prompt-wrap { display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; }
     .aff-prompt-wrap label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim); }
-    #aff-prompt, #sap-prompt {
+    #aff-prompt, #sap-prompt, #lf-prompt {
       width: 100%; flex: 1; min-height: 220px; box-sizing: border-box;
       background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
       color: var(--text-muted); font-size: 12px; line-height: 1.5; padding: 12px;
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       resize: vertical;
     }
-    #sap-prompt { min-height: 200px; }
+    #sap-prompt, #lf-prompt { min-height: 200px; }
     .modal-footer {
       display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end;
       padding: 14px 20px; border-top: 1px solid var(--border); background: rgba(15,17,23,0.35);
@@ -534,8 +557,10 @@
         <p style="font-size:13px;color:var(--text-muted)">7 capabilities across the full migrate-to-oz-uikit system</p>
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <button type="button" class="start-autoresearch-btn" onclick="openStartAgentModal()">Start autoresearch</button>
-        <button type="button" class="refresh-btn" id="overview-refresh-btn" onclick="refreshOverview()">&#x21bb; Refresh All</button>
+        <button type="button" class="start-autoresearch-btn" data-tip="Launch an autonomous agent to improve a capability's code against benchmarks." onclick="openStartAgentModal()">Start autoresearch</button>
+        <button type="button" class="refresh-btn" data-tip="Add a new benchmark fixture — generates a setup prompt for your coding agent." onclick="openAddFixtureModal()">+ Add fixture</button>
+        <button type="button" class="refresh-btn" data-tip="Create or refine ground truth expectations — generates a labeling prompt for your coding agent." onclick="openLabelFixtureModal()">&#x270E; Label fixture</button>
+        <button type="button" class="refresh-btn" data-tip="Reload all capability summaries from the server." id="overview-refresh-btn" onclick="refreshOverview()">&#x21bb; Refresh All</button>
       </div>
     </div>
     <div class="overview-grid" id="overview-grid">
@@ -574,7 +599,7 @@
           <div class="panel-header-left">Experiment Progress</div>
           <div class="panel-header-right">
             <span class="badge" id="chart-badge">-</span>
-            <button type="button" class="start-autoresearch-btn start-autoresearch-btn--compact" onclick="openStartAgentModal()">Start autoresearch</button>
+            <button type="button" class="start-autoresearch-btn start-autoresearch-btn--compact" data-tip="Launch an autonomous agent to improve this capability." onclick="openStartAgentModal()">Start autoresearch</button>
           </div>
         </div>
         <div class="panel-body">
@@ -615,8 +640,9 @@
         <div class="panel-header">
           <div class="panel-header-left">
             Per-Fixture Breakdown
-            <button type="button" class="refresh-btn" onclick="refreshDetail()" style="font-size:11px;padding:2px 8px">&#x21bb; Re-evaluate</button>
-            <button type="button" class="refresh-btn" onclick="openAddFixtureModal()" style="font-size:11px;padding:2px 8px">+ Add fixture</button>
+            <button type="button" class="refresh-btn" data-tip="Run the evaluator against current code to refresh scores." onclick="refreshDetail()" style="font-size:11px;padding:2px 8px">&#x21bb; Re-evaluate</button>
+            <button type="button" class="refresh-btn" data-tip="Add a new benchmark fixture." onclick="openAddFixtureModal()" style="font-size:11px;padding:2px 8px">+ Add fixture</button>
+            <button type="button" class="refresh-btn" id="regen-adversarial-btn" data-tip="Regenerate randomized adversarial test fixtures for this capability." onclick="regenerateAdversarial(this)" style="font-size:11px;padding:2px 8px;display:none">&#x21bb; Regen adversarial</button>
           </div>
           <span class="badge badge-idle" id="fixture-badge">Pending</span>
         </div>
@@ -701,11 +727,11 @@
         <h2 id="add-fixture-title">Add a new fixture</h2>
         <button type="button" class="modal-close" onclick="closeAddFixtureModal()" aria-label="Close">&times;</button>
       </div>
-      <div class="modal-body" id="add-fixture-body" oninput="scheduleAffPromptSync()" onchange="scheduleAffPromptSync()">
+      <div class="modal-body" id="add-fixture-body" onchange="updateAffExternalFieldsVisibility()">
         <p class="modal-intro">
-          Fill in what you already know, then copy the prompt into your coding agent. The agent should edit the repo — this dashboard does not write files.
+          Register a new benchmark fixture. This will update config files, fetch the source (for external fixtures), and generate draft artifacts (scaffold + frozen report). You'll label ground truth afterward.
         </p>
-        <div class="aff-form">
+        <div class="aff-form" id="aff-form-fields">
           <div class="aff-field">
             <label for="aff-type">Fixture type</label>
             <select id="aff-type">
@@ -730,31 +756,15 @@
             <input id="aff-subpath" type="text" placeholder="" autocomplete="off" />
           </div>
           <div class="aff-field">
-            <label for="aff-description">Notes for the agent</label>
+            <label for="aff-description">Description (optional)</label>
             <textarea id="aff-description" placeholder="Why this fixture exists, what it should stress-test…"></textarea>
           </div>
-          <div class="aff-field">
-            <label>Capabilities to support (expected JSON must exist per capability you check)</label>
-            <div class="aff-caps" id="aff-caps">
-              <label><input type="checkbox" name="aff-cap" value="detection" checked /> detection</label>
-              <label><input type="checkbox" name="aff-cap" value="patterns" checked /> patterns</label>
-              <label><input type="checkbox" name="aff-cap" value="planning" checked /> planning</label>
-              <label><input type="checkbox" name="aff-cap" value="init" checked /> init</label>
-              <label><input type="checkbox" name="aff-cap" value="execution" checked /> execution</label>
-              <label><input type="checkbox" name="aff-cap" value="verification" checked /> verification</label>
-              <label><input type="checkbox" name="aff-cap" value="orchestration" checked /> orchestration</label>
-            </div>
-          </div>
         </div>
-        <div class="aff-prompt-wrap">
-          <label for="aff-prompt">Prompt to paste into an LLM</label>
-          <textarea id="aff-prompt" readonly spellcheck="false"></textarea>
-        </div>
+        <div id="aff-result" style="display:none"></div>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-secondary" onclick="syncAddFixturePrompt()">Regenerate prompt</button>
-        <button type="button" class="btn-primary" id="aff-copy-btn" onclick="copyAddFixturePrompt()">Copy prompt</button>
-        <button type="button" class="btn-secondary" onclick="closeAddFixtureModal()">Close</button>
+      <div class="modal-footer" id="aff-footer">
+        <button type="button" class="btn-primary" id="aff-submit-btn" onclick="submitAddFixture()">Add fixture</button>
+        <button type="button" class="btn-secondary" onclick="closeAddFixtureModal()">Cancel</button>
       </div>
     </div>
   </div>
@@ -769,6 +779,77 @@
       <div class="modal-footer">
         <button type="button" class="btn-secondary" onclick="closeFixtureDetailModal()">Close</button>
       </div>
+    </div>
+  </div>
+
+  <div id="label-fixture-modal" class="modal-overlay" aria-hidden="true" onclick="if(event.target===this)closeLabelFixtureModal()">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="label-fixture-title" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 id="label-fixture-title">Label fixture — generate ground truth</h2>
+        <button type="button" class="modal-close" onclick="closeLabelFixtureModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body" id="label-fixture-body" oninput="scheduleLfPromptSync()" onchange="scheduleLfPromptSync()">
+        <p class="modal-intro" id="lf-intro-with-picker">
+          Same labeling prompts as <code>packages/cli/autoresearch/llm-prompts-collection.md</code>. Pick the capability and fixture, then copy the prompt into a new agent chat. Working directory for the agent should be <code>packages/cli</code> inside this monorepo.
+        </p>
+        <p class="modal-intro" id="lf-intro-locked" hidden>
+          You opened this from the <strong id="lf-locked-cap-label">detection</strong> capability page — the prompt below targets that capability. Enter the fixture name, then copy the prompt into a new agent chat. Working directory should be <code>packages/cli</code>.
+        </p>
+        <div class="aff-form">
+          <div class="aff-field" id="lf-capability-field">
+            <label for="lf-capability">Capability</label>
+            <select id="lf-capability">
+              <option value="detection">Detection — component ground truth</option>
+              <option value="patterns">Patterns — pattern × file ground truth</option>
+              <option value="planning">Planning — task / wallet / forbidden ground truth</option>
+              <option value="init">Init — post-init file checklist</option>
+              <option value="execution">Execution — before / task / after triples</option>
+              <option value="verification">Verification — pass / fail scenario fixtures</option>
+              <option value="orchestration">Orchestration — command sequence scenarios</option>
+            </select>
+          </div>
+          <div class="aff-field">
+            <label for="lf-fixture-name">Fixture name (slug, e.g. <code>accounts-ui</code>)</label>
+            <input id="lf-fixture-name" type="text" placeholder="accounts-ui" autocomplete="off" />
+          </div>
+        </div>
+        <div class="aff-prompt-wrap">
+          <label for="lf-prompt">Prompt to paste into an LLM</label>
+          <textarea id="lf-prompt" readonly spellcheck="false"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="syncLabelFixturePrompt()">Regenerate prompt</button>
+        <button type="button" class="btn-primary" id="lf-copy-btn" onclick="copyLabelFixturePrompt()">Copy prompt</button>
+        <button type="button" class="btn-secondary" onclick="closeLabelFixtureModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="remove-fixture-modal" class="modal-overlay" aria-hidden="true" onclick="if(event.target===this)closeRemoveFixtureModal()">
+    <div class="modal-dialog" style="width:min(440px,100%)">
+      <div class="modal-header">
+        <h2>Remove fixture</h2>
+        <button type="button" class="modal-close" onclick="closeRemoveFixtureModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-intro" id="remove-fixture-desc"></p>
+        <div id="remove-fixture-result" style="display:none"></div>
+      </div>
+      <div class="modal-footer" id="remove-fixture-footer">
+        <button type="button" class="btn-secondary" onclick="closeRemoveFixtureModal()">Cancel</button>
+        <button type="button" class="btn-primary" id="remove-fixture-confirm" style="background:var(--red)">Remove</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="actions-help-modal" class="modal-overlay" aria-hidden="true" onclick="if(event.target===this)closeActionsHelpModal()">
+    <div class="modal-dialog" style="width:min(540px,100%)">
+      <div class="modal-header">
+        <h2>Fixture actions reference</h2>
+        <button type="button" class="modal-close" onclick="closeActionsHelpModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body" id="actions-help-body"></div>
     </div>
   </div>
 
@@ -792,6 +873,7 @@
       lastLiveF1: null,
       isEvaluating: false,
       evalFixtures: null,
+      artifactStatusMap: {},
     };
 
     function getRoute() {
@@ -830,6 +912,10 @@
 
     async function showDetail(cap) {
       currentCapability = cap;
+
+      const advBtn = document.getElementById('regen-adversarial-btn');
+      if (advBtn) advBtn.style.display = ADVERSARIAL_CAPS.has(cap) ? '' : 'none';
+
       document.getElementById('overview-view').classList.remove('active');
       document.getElementById('detail-view').classList.add('active');
       document.getElementById('breadcrumb').innerHTML =
@@ -842,12 +928,14 @@
         lastLiveF1: null,
         isEvaluating: false,
         evalFixtures: null,
+        artifactStatusMap: {},
       };
 
       resetDetailUI();
       if (chart) { chart.destroy(); chart = null; }
       initChart();
       setFixtureBadge('evaluating');
+      await fetchArtifactStatus();
       await fetchDetailResults(cap, true);
       await fetchDetailEvaluation(cap);
     }
@@ -1224,7 +1312,8 @@
       if (!evalData || !evalData.fixtures || evalData.fixtures.length === 0) {
         detailState.evalFixtures = null;
         setFixtureBadge('idle', 'No fixtures');
-        grid.innerHTML = '<div class="empty-state"><p>No fixtures found for this capability.</p></div>';
+        grid.innerHTML = '<div class="empty-state"><p>No labeled fixtures found for this capability.</p></div>';
+        appendUnlabeledFixtures(grid, new Set());
         return;
       }
 
@@ -1238,11 +1327,6 @@
       el.style.color = getBarColor(evalData.meanF1);
       document.getElementById('stat-current-sub').textContent = `${getScoreLabel(evalData.meanF1)} · ${evalData.fixtures.length} fixtures`;
 
-      const githubIconSvg =
-        '<svg class="fixture-repo-icon-svg" viewBox="0 0 16 16" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">' +
-        '<path fill="currentColor" fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>' +
-        '</svg>';
-
       const metricTipTp = escAttr(
         'True positives: items that appear in both the golden (expected) set and what the evaluator got from this fixture. Larger means more correct matches.'
       );
@@ -1255,27 +1339,20 @@
 
       detailState.evalFixtures = evalData.fixtures;
 
-      const fixtureDetailIconSvg =
-        '<svg class="fixture-detail-btn-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">' +
-        '<path fill="currentColor" d="M5.5 6.25a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5zm0 4.5a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5zm0 4.5a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5z"/>' +
-        '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M10.5 7.25h9m-9 5h9m-9 5h7"/>' +
-        '</svg>';
-
       grid.innerHTML = evalData.fixtures.map((f, i) => {
         const pct = (f.f1 * 100).toFixed(0);
         const color = getBarColor(f.f1);
-        const repoHref = safeHttpUrl(f.repoUrl);
-        const label = `Open ${f.fixture} repository on GitHub`;
-        const repoCell = repoHref
-          ? `<div class="fixture-repo-cell"><a class="fixture-repo-icon" href="${escAttr(repoHref)}" target="_blank" rel="noopener noreferrer" aria-label="${escAttr(label)}" title="Open on GitHub">${githubIconSvg}</a></div>`
-          : '<div class="fixture-repo-cell"><span class="fixture-repo-placeholder" aria-hidden="true"></span></div>';
         const pathStr = f.localPath && typeof f.localPath === 'string' ? f.localPath : '';
         const pathLine = pathStr
           ? `<div class="fixture-local-path" title="${escAttr(pathStr)}">${esc(pathStr)}</div>`
           : '';
+        const missingLabel = getFixtureMissingLabel(f.fixture);
+        const warnIcon = missingLabel
+          ? `<span class="fixture-status-warn" title="${escAttr(missingLabel)}">&#x26A0;</span>`
+          : '';
         return `<div class="fixture-row">
           <div class="fixture-row-main">
-            <div class="fixture-name" title="${escAttr(f.fixture)}">${esc(f.fixture)}</div>
+            <div class="fixture-name" title="${escAttr(f.fixture)}">${warnIcon}${esc(f.fixture)}</div>
             <div class="fixture-bar-container"><div class="fixture-bar" style="width:${pct}%;background:${color}"></div></div>
             <div class="fixture-score" style="color:${color}">${f.f1.toFixed(4)}</div>
             <div class="fixture-metrics">
@@ -1283,14 +1360,13 @@
               <span class="fixture-metric-chip fp" data-tip="${metricTipFp}" title="${metricTipFp}">FP ${f.fp}</span>
               <span class="fixture-metric-chip fn" data-tip="${metricTipFn}" title="${metricTipFn}">FN ${f.fn}</span>
             </div>
-            <div class="fixture-detail-cell">
-              <button type="button" class="fixture-detail-btn" onclick="openFixtureDetailModal(${i})" aria-label="Evaluation breakdown" title="Evaluation breakdown">${fixtureDetailIconSvg}</button>
-            </div>
-            ${repoCell}
+            ${buildFixtureActionsDropdown(f, i)}
           </div>
           ${pathLine}
         </div>`;
       }).join('');
+
+      appendUnlabeledFixtures(grid, new Set(evalData.fixtures.map(f => f.fixture)));
       setFixtureBadge('ready');
     }
 
@@ -1330,6 +1406,7 @@
     function openFixtureDetailModal(index) {
       closeStartAgentModal();
       closeAddFixtureModal();
+      closeLabelFixtureModal();
       const list = detailState.evalFixtures;
       if (!Array.isArray(list) || index < 0 || index >= list.length) return;
       const f = list[index];
@@ -1403,8 +1480,60 @@
       }
     }
 
+    async function fetchArtifactStatus() {
+      try {
+        const res = await fetch('/api/fixtures/status');
+        const data = await res.json();
+        const map = {};
+        for (const a of data.fixtures || []) { map[a.fixture] = a; }
+        detailState.artifactStatusMap = map;
+      } catch { /* non-critical */ }
+    }
+
+    function getFixtureMissingLabel(fixtureName) {
+      const a = detailState.artifactStatusMap[fixtureName];
+      if (!a) return null;
+      const cap = currentCapability;
+      const missing = [];
+      if (!a.source) missing.push('source');
+      if (cap === 'detection' && !a.detection) missing.push('expected/detection');
+      if (cap === 'patterns' && !a.patterns) missing.push('expected/patterns');
+      if (cap === 'planning' && !a.planningExpected) missing.push('expected/planning');
+      if (cap === 'planning' && !a.planningFrozen) missing.push('frozen report');
+      if (!cap) {
+        if (!a.detection) missing.push('detection');
+        if (!a.patterns) missing.push('patterns');
+        if (!a.planningExpected) missing.push('planning');
+      }
+      return missing.length ? 'Missing: ' + missing.join(', ') : null;
+    }
+
+    function appendUnlabeledFixtures(grid, evaluatedNames) {
+      const unlabeled = Object.keys(detailState.artifactStatusMap)
+        .filter(name => !evaluatedNames.has(name))
+        .sort();
+
+      if (!unlabeled.length) return;
+
+      grid.innerHTML += '<div class="unlabeled-separator">Unlabeled fixtures — use <strong>&#x22EE; &rarr; Label fixture</strong> to create ground truth</div>';
+      grid.innerHTML += unlabeled.map(name => {
+        const missingLabel = getFixtureMissingLabel(name) || 'No expected JSON for this capability';
+        const fakeF = { fixture: name, repoUrl: null };
+        return `<div class="fixture-row fixture-row-unlabeled">
+          <div class="fixture-row-main">
+            <div class="fixture-name" title="${escAttr(name)}"><span class="fixture-status-warn" title="${escAttr(missingLabel)}">&#x26A0;</span>${esc(name)}</div>
+            <div class="fixture-bar-container"><div class="fixture-bar" style="width:0%;background:var(--text-muted)"></div></div>
+            <div class="fixture-score" style="color:var(--text-muted)">&mdash;</div>
+            <div class="fixture-metrics"><span class="fixture-metric-chip" style="opacity:.5">needs labeling</span></div>
+            ${buildFixtureActionsDropdown(fakeF, -1)}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
     async function refreshDetail() {
       if (!currentCapability) return;
+      await fetchArtifactStatus();
       await fetchDetailResults(currentCapability);
       await fetchDetailEvaluation(currentCapability);
     }
@@ -1422,16 +1551,7 @@
     function getBarColor(f1) { return f1 >= 0.9 ? 'var(--green)' : f1 >= 0.7 ? 'var(--blue)' : f1 >= 0.5 ? 'var(--orange)' : 'var(--red)'; }
     function getScoreLabel(f1) { return f1 >= 0.95 ? 'Excellent' : f1 >= 0.9 ? 'Great' : f1 >= 0.7 ? 'Good' : f1 >= 0.5 ? 'Fair' : 'Poor'; }
 
-    // ── Add fixture → LLM prompt modal ───────────────
-
-    let affPromptTimer = null;
-    function scheduleAffPromptSync() {
-      if (affPromptTimer) clearTimeout(affPromptTimer);
-      affPromptTimer = setTimeout(() => {
-        syncAddFixturePrompt();
-        affPromptTimer = null;
-      }, 120);
-    }
+    // ── Add fixture modal ─────────────────────────────
 
     function updateAffExternalFieldsVisibility() {
       const sel = document.getElementById('aff-type');
@@ -1442,98 +1562,22 @@
       });
     }
 
-    function getAffSelectedCapabilities() {
-      return Array.from(document.querySelectorAll('#aff-caps input[name="aff-cap"]:checked')).map((el) => el.value);
-    }
-
-    function syncAddFixturePrompt() {
-      updateAffExternalFieldsVisibility();
-      const type = document.getElementById('aff-type')?.value || 'external';
-      const name = document.getElementById('aff-name')?.value.trim() || '(fill slug, e.g. my-app)';
-      const repo = document.getElementById('aff-repo')?.value.trim() || '(Git URL if external)';
-      const sibling = document.getElementById('aff-sibling')?.value.trim() || '(sibling folder name if external)';
-      const subpath = document.getElementById('aff-subpath')?.value.trim() || '(optional — leave empty if not needed)';
-      const description = document.getElementById('aff-description')?.value.trim() || '(describe purpose / what to stress-test)';
-      const caps = getAffSelectedCapabilities();
-      const capsText = caps.length ? caps.join(', ') : '(none — select capabilities above)';
-      const dashCap = currentCapability || 'overview';
-      const dashNote = currentCapability
-        ? `The human had the **${currentCapability}** capability open in the autoresearch dashboard (${CAP_DESCRIPTIONS[currentCapability] || 'see README'}). Prioritize expected artifacts for that capability, but scaffold every capability they checked below.`
-        : 'The human was on the dashboard overview; use the checked capabilities list below.';
-
-      const typeSpecific =
-        type === 'external'
-          ? [
-              '### If external',
-              '- Append a correctly shaped entry to `packages/cli/autoresearch/fixtures/_external.json` (pin a specific `commit`; set `siblingRepo`; add `subPath` / `sparsePaths` / `tailwindCssPath` only when needed).',
-              '- Do **not** vendor huge trees; prefer `sparsePaths` consistent with existing manifest entries.',
-            ]
-          : [
-              '### If synthetic',
-              '- Add `packages/cli/autoresearch/fixtures/<slug>/` with a minimal realistic project tree, mirroring fixtures like `radix-app` / `shadcn-app`.',
-            ];
-
-      const lines = [
-        'You are a coding agent working in the OpenZeppelin `openzeppelin-ui` git repository.',
-        '',
-        '## Goal',
-        'Add a **new autoresearch evaluation fixture** so it is discovered by the harness and scored like existing fixtures.',
-        '',
-        '## Dashboard context',
-        `- Active route focus: **${dashCap}**`,
-        dashNote,
-        '',
-        '## Fixture draft (from human — correct after you inspect the repo)',
-        `- **Type**: ${type === 'external' ? 'external (manifest + sibling repo or fetch)' : 'synthetic (committed under packages/cli/autoresearch/fixtures/)'}`,
-        `- **Short name / slug**: ${name}`,
-      ];
-      if (type === 'external') {
-        lines.push(
-          `- **Git repository URL**: ${repo}`,
-          `- **Sibling directory name** (folder next to monorepo root): ${sibling}`,
-          `- **Optional subpath inside that repo** (monorepo package path): ${subpath}`,
-        );
-      }
-      lines.push(
-        `- **Capabilities this fixture must participate in** (expected JSON / structure required for each): ${capsText}`,
-        `- **Human notes**: ${description}`,
-        '',
-        '## Read first',
-        '1. `packages/cli/autoresearch/README.md`',
-        '2. `packages/cli/autoresearch/fixtures/_external.json`',
-        '3. `packages/cli/autoresearch/capabilities/fixture-resolver.ts`',
-        '4. `packages/cli/autoresearch/fetch-fixtures.ts`',
-        '5. `packages/cli/autoresearch/expected/` (note subdirs: `planning/`, `patterns/`, `verification/`, …)',
-        '6. `packages/cli/autoresearch/capabilities/*.ts` — see how each evaluator loads expectations',
-        '',
-        '## Implement',
-        ...typeSpecific,
-        '',
-        '- Create or update **`expected/`** artifacts so evaluation succeeds for every capability checked above (`fixtureHasExpected` and evaluator-specific paths).',
-        '- Keep the diff focused: **no unrelated refactors**; do not break existing fixtures.',
-        '',
-        '## Verify',
-        '- From `packages/cli`, run `npx tsx autoresearch/fetch-fixtures.ts` when needed for external resolution.',
-        '- Run `npx tsx autoresearch/evaluate.ts --capability <name> --json` per capability, or `pnpm --filter @openzeppelin/ui-cli evaluate:all` if appropriate.',
-        '- Run package tests if the repo expects them after CLI changes.',
-        '',
-        '## Report',
-        '- List files changed.',
-        '- Call out anything the human must still do locally (e.g. choose commit SHA, run fetch).',
-      );
-
-      const ta = document.getElementById('aff-prompt');
-      if (ta) ta.value = lines.join('\n');
-    }
-
     function openAddFixtureModal() {
       closeStartAgentModal();
+      closeLabelFixtureModal();
       const m = document.getElementById('add-fixture-modal');
       if (!m) return;
+      const result = document.getElementById('aff-result');
+      const fields = document.getElementById('aff-form-fields');
+      const footer = document.getElementById('aff-footer');
+      const btn = document.getElementById('aff-submit-btn');
+      if (result) { result.style.display = 'none'; result.innerHTML = ''; }
+      if (fields) fields.style.display = '';
+      if (footer) footer.style.display = '';
+      if (btn) { btn.disabled = false; btn.textContent = 'Add fixture'; }
       m.classList.add('is-open');
       m.setAttribute('aria-hidden', 'false');
       updateAffExternalFieldsVisibility();
-      syncAddFixturePrompt();
       document.addEventListener('keydown', onAddFixtureModalKeydown);
       document.body.style.overflow = 'hidden';
     }
@@ -1551,21 +1595,82 @@
       document.body.style.overflow = '';
     }
 
-    async function copyAddFixturePrompt() {
-      const ta = document.getElementById('aff-prompt');
-      const btn = document.getElementById('aff-copy-btn');
-      if (!ta || !btn) return;
+    async function submitAddFixture() {
+      const btn = document.getElementById('aff-submit-btn');
+      const result = document.getElementById('aff-result');
+      const fields = document.getElementById('aff-form-fields');
+      const footer = document.getElementById('aff-footer');
+      if (!btn) return;
+
+      const name = (document.getElementById('aff-name')?.value || '').trim();
+      const type = document.getElementById('aff-type')?.value || 'external';
+
+      if (!name) { alert('Please enter a fixture name.'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Adding…';
+
+      const body = { name, type };
+      if (type === 'external') {
+        body.repo = (document.getElementById('aff-repo')?.value || '').trim();
+        body.siblingRepo = (document.getElementById('aff-sibling')?.value || '').trim() || name;
+        const sub = (document.getElementById('aff-subpath')?.value || '').trim();
+        if (sub) body.subPath = sub;
+      }
+      const desc = (document.getElementById('aff-description')?.value || '').trim();
+      if (desc) body.description = desc;
+
       try {
-        await navigator.clipboard.writeText(ta.value);
-        const prev = btn.textContent;
-        btn.textContent = 'Copied!';
-        setTimeout(() => { btn.textContent = prev; }, 2000);
-      } catch {
-        ta.focus();
-        ta.select();
-        const prev = btn.textContent;
-        btn.textContent = 'Select text & copy';
-        setTimeout(() => { btn.textContent = prev; }, 2800);
+        const res = await fetch('/api/fixture', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+
+        if (fields) fields.style.display = 'none';
+        if (footer) footer.style.display = 'none';
+        if (!result) return;
+        result.style.display = '';
+
+        let html = '';
+        if (data.ok) {
+          html += '<div style="color:var(--green);font-weight:600;font-size:13px;margin-bottom:10px">Fixture added successfully</div>';
+        } else {
+          html += '<div style="color:var(--orange);font-weight:600;font-size:13px;margin-bottom:10px">Fixture added with some issues</div>';
+        }
+        if (data.steps?.length) {
+          html += '<ul style="margin:0 0 12px;padding-left:18px;font-size:12px;color:var(--text);line-height:1.7">';
+          data.steps.forEach(s => { html += '<li>' + esc(s) + '</li>'; });
+          html += '</ul>';
+        }
+        if (data.errors?.length) {
+          html += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--red);margin-bottom:4px">Errors</div>';
+          html += '<ul style="margin:0 0 12px;padding-left:18px;font-size:12px;color:var(--red);line-height:1.7">';
+          data.errors.forEach(s => { html += '<li>' + esc(s) + '</li>'; });
+          html += '</ul>';
+        }
+
+        html += '<div style="margin-top:16px;padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px">';
+        html += '<div style="font-size:12px;font-weight:600;margin-bottom:6px">What to do next</div>';
+        html += '<ol style="margin:0;padding-left:18px;font-size:12px;color:var(--text-muted);line-height:1.7">';
+        html += '<li>The fixture is registered with draft artifacts (scaffold + frozen report), but has <strong>no ground-truth labels</strong> yet.</li>';
+        html += '<li>Navigate to a capability page (e.g. detection, patterns, planning) and use the <strong>&#x22EE; &rarr; Label fixture</strong> action on <strong>' + esc(name) + '</strong> to generate a labeling prompt for your coding agent.</li>';
+        html += '<li>Repeat for each capability you want this fixture to participate in.</li>';
+        html += '<li>Fixtures without labels will show a <span style="color:var(--orange)">&#x26A0;</span> warning icon in the fixture list.</li>';
+        html += '</ol></div>';
+
+        html += '<div style="margin-top:12px;text-align:right"><button type="button" class="btn-secondary" onclick="closeAddFixtureModal()">Done</button></div>';
+        result.innerHTML = html;
+
+        refreshDetail();
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = 'Add fixture';
+        if (result) {
+          result.style.display = '';
+          result.innerHTML = '<p style="color:var(--red);font-size:12px">Network error: ' + esc(e.message || 'unknown') + '</p>';
+        }
       }
     }
 
@@ -1616,6 +1721,7 @@
 
     function openStartAgentModal() {
       closeAddFixtureModal();
+      closeLabelFixtureModal();
       const locked = !!(currentCapability && PROGRAM_FILE_BY_CAP[currentCapability]);
       const field = document.getElementById('sap-capability-field');
       const introPick = document.getElementById('sap-intro-with-picker');
@@ -1663,6 +1769,630 @@
     async function copyStartAgentPrompt() {
       const ta = document.getElementById('sap-prompt');
       const btn = document.getElementById('sap-copy-btn');
+      if (!ta || !btn) return;
+      try {
+        await navigator.clipboard.writeText(ta.value);
+        const prev = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = prev; }, 2000);
+      } catch {
+        ta.focus();
+        ta.select();
+        const prev = btn.textContent;
+        btn.textContent = 'Select text & copy';
+        setTimeout(() => { btn.textContent = prev; }, 2800);
+      }
+    }
+
+    // ── Per-fixture actions dropdown ────────────────────
+
+    const FIXTURE_REGEN_CONFIG = {
+      planning: { endpoint: 'regenerate-frozen', label: 'Regenerate frozen report' },
+      detection: { endpoint: 'regenerate-scaffold', label: 'Regenerate scaffold' },
+    };
+
+    const famIconBreakdown = '<svg class="fam-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M5.5 6.25a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5zm0 4.5a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5zm0 4.5a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M10.5 7.25h9m-9 5h9m-9 5h7"/></svg>';
+    const famIconRegen = '<svg class="fam-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 2v6h-6M3 12a9 9 0 0115.36-6.36L21 8M3 22v-6h6M21 12a9 9 0 01-15.36 6.36L3 16"/></svg>';
+    const famIconLabel = '<svg class="fam-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
+    const famIconGithub = '<svg class="fam-icon" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>';
+    const famIconHelp = '<svg class="fam-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5" fill="currentColor" stroke="currentColor" stroke-width="1"/></svg>';
+    const famIconTrash = '<svg class="fam-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14M10 11v6M14 11v6"/></svg>';
+
+    function buildFixtureActionsDropdown(f, index) {
+      const name = f.fixture;
+      const repoHref = safeHttpUrl(f.repoUrl);
+      const regenCfg = FIXTURE_REGEN_CONFIG[currentCapability];
+
+      let items = '';
+      if (index >= 0) {
+        items += `<button type="button" class="fixture-actions-menu-item" onclick="closeAllFixtureMenus(); openFixtureDetailModal(${index})">${famIconBreakdown} Evaluation breakdown</button>`;
+      }
+      items += `<button type="button" class="fixture-actions-menu-item" onclick="closeAllFixtureMenus(); openLabelFixtureModal('${escAttr(name)}')">${famIconLabel} Label fixture</button>`;
+      if (regenCfg) {
+        items += `<button type="button" class="fixture-actions-menu-item" data-regen-btn onclick="fixtureMenuRegen(this, '${escAttr(name)}', '${regenCfg.endpoint}', '${escAttr(regenCfg.label)}')">${famIconRegen} ${esc(regenCfg.label)}</button>`;
+      }
+      if (repoHref) {
+        items += `<div class="fixture-actions-menu-sep"></div>`;
+        items += `<a class="fixture-actions-menu-item" href="${escAttr(repoHref)}" target="_blank" rel="noopener noreferrer" onclick="closeAllFixtureMenus()">${famIconGithub} Open on GitHub</a>`;
+      }
+      items += `<div class="fixture-actions-menu-sep"></div>`;
+      items += `<button type="button" class="fixture-actions-menu-item fam-danger" onclick="closeAllFixtureMenus(); confirmRemoveFixture('${escAttr(name)}')">${famIconTrash} Remove fixture</button>`;
+      items += `<button type="button" class="fixture-actions-menu-item" onclick="closeAllFixtureMenus(); openActionsHelpModal()">${famIconHelp} What do these actions do?</button>`;
+
+      return `<div class="fixture-actions-cell">` +
+        `<button type="button" class="fixture-actions-trigger" aria-haspopup="true" aria-expanded="false" onclick="toggleFixtureMenu(this)" title="Actions">&#x22EE;</button>` +
+        `<div class="fixture-actions-menu" role="menu">${items}</div>` +
+        `</div>`;
+    }
+
+    function toggleFixtureMenu(triggerEl) {
+      const menu = triggerEl.nextElementSibling;
+      const wasOpen = menu.classList.contains('is-open');
+      closeAllFixtureMenus();
+      if (!wasOpen) {
+        menu.classList.add('is-open');
+        triggerEl.setAttribute('aria-expanded', 'true');
+      }
+    }
+
+    function closeAllFixtureMenus() {
+      document.querySelectorAll('.fixture-actions-menu.is-open').forEach(m => {
+        m.classList.remove('is-open');
+        const trigger = m.previousElementSibling;
+        if (trigger) trigger.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.fixture-actions-cell')) closeAllFixtureMenus();
+    });
+
+    async function fixtureMenuRegen(itemEl, fixtureName, endpoint, label) {
+      if (itemEl.classList.contains('is-loading')) return;
+      itemEl.classList.remove('is-success', 'is-error');
+      itemEl.classList.add('is-loading');
+      const origHtml = itemEl.innerHTML;
+
+      try {
+        const res = await fetch('/api/' + endpoint + '/' + encodeURIComponent(fixtureName), { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          itemEl.classList.remove('is-loading');
+          itemEl.classList.add('is-success');
+          itemEl.innerHTML = famIconRegen + ' ' + label + ' — done';
+          setTimeout(() => { itemEl.classList.remove('is-success'); itemEl.innerHTML = origHtml; }, 3000);
+        } else {
+          itemEl.classList.remove('is-loading');
+          itemEl.classList.add('is-error');
+          itemEl.innerHTML = famIconRegen + ' Error: ' + esc(data.error || 'unknown');
+          setTimeout(() => { itemEl.classList.remove('is-error'); itemEl.innerHTML = origHtml; }, 5000);
+        }
+      } catch (e) {
+        itemEl.classList.remove('is-loading');
+        itemEl.classList.add('is-error');
+        itemEl.innerHTML = famIconRegen + ' Network error';
+        setTimeout(() => { itemEl.classList.remove('is-error'); itemEl.innerHTML = origHtml; }, 5000);
+      }
+    }
+
+    // ── Actions help dialog ────────────────────────────
+
+    const ACTIONS_HELP_ENTRIES = [
+      {
+        icon: famIconBreakdown,
+        title: 'Evaluation breakdown',
+        desc: 'Shows a detailed per-fixture report of true positives, false positives, and false negatives. ' +
+              'Use this to understand exactly which items the evaluator matched, which were spurious, and which were missed.',
+      },
+      {
+        icon: famIconLabel,
+        title: 'Label fixture',
+        desc: 'Opens a prompt generator for a coding agent (LLM) to create or refine the ground-truth expectation file for this fixture. ' +
+              'The prompt is pre-filled with the fixture name and current capability. Copy it into your LLM to produce the labelled JSON.',
+      },
+      {
+        icon: famIconRegen,
+        title: 'Regenerate artifact',
+        desc: 'Re-runs the appropriate generator for this capability against the live fixture source. ' +
+              'For <strong>Planning</strong> this regenerates the frozen analysis report (the static input the planner receives). ' +
+              'For <strong>Detection</strong> this regenerates the scaffold — a draft expectation file from the current scanner that you review and refine. ' +
+              'Only appears when the current capability has a regenerable per-fixture artifact.',
+        conditional: true,
+      },
+      {
+        icon: famIconGithub,
+        title: 'Open on GitHub',
+        desc: 'Opens the fixture\'s source repository on GitHub in a new tab. Only appears for fixtures that have a linked repository URL.',
+        conditional: true,
+      },
+      {
+        icon: famIconTrash,
+        title: 'Remove fixture',
+        desc: 'Permanently deletes this fixture and <strong>all</strong> associated artifacts: the fixture source directory, ' +
+              'detection expectations (.json and .scaffold.json), planning frozen report and expectations, pattern expectations, ' +
+              'and entries in config files (detection-fixtures.json, pattern-fixtures.json, _external.json, .gitignore). ' +
+              'A confirmation dialog shows exactly what will be affected before proceeding, and a summary of deleted/edited files is shown afterward.',
+        danger: true,
+      },
+    ];
+
+    function openActionsHelpModal() {
+      const body = document.getElementById('actions-help-body');
+      if (!body) return;
+      body.innerHTML = ACTIONS_HELP_ENTRIES.map(e => {
+        const iconColor = e.danger ? 'var(--red)' : 'var(--text-muted)';
+        const titleColor = e.danger ? 'color:var(--red)' : '';
+        const badge = e.conditional ? ' <span style="font-weight:400;color:var(--text-dim);font-size:11px">(contextual)</span>'
+                     : e.danger ? ' <span style="font-weight:400;color:var(--red);font-size:11px;opacity:.7">(destructive)</span>'
+                     : '';
+        return `<div style="display:flex;gap:10px;align-items:flex-start">` +
+          `<span style="flex-shrink:0;width:20px;height:20px;margin-top:1px;color:${iconColor}">${e.icon}</span>` +
+          `<div>` +
+            `<div style="font-size:13px;font-weight:600;margin-bottom:3px;${titleColor}">${esc(e.title)}${badge}</div>` +
+            `<div style="font-size:12px;color:var(--text-muted);line-height:1.5">${e.desc}</div>` +
+          `</div>` +
+        `</div>`;
+      }).join('');
+      const m = document.getElementById('actions-help-modal');
+      if (!m) return;
+      m.classList.add('is-open');
+      m.setAttribute('aria-hidden', 'false');
+      document.addEventListener('keydown', onActionsHelpKeydown);
+    }
+
+    function onActionsHelpKeydown(e) { if (e.key === 'Escape') closeActionsHelpModal(); }
+
+    function closeActionsHelpModal() {
+      const m = document.getElementById('actions-help-modal');
+      if (!m) return;
+      m.classList.remove('is-open');
+      m.setAttribute('aria-hidden', 'true');
+      document.removeEventListener('keydown', onActionsHelpKeydown);
+    }
+
+    // ── Remove fixture dialog ─────────────────────────
+
+    let pendingRemoveFixture = null;
+
+    function confirmRemoveFixture(fixtureName) {
+      pendingRemoveFixture = fixtureName;
+      const desc = document.getElementById('remove-fixture-desc');
+      const result = document.getElementById('remove-fixture-result');
+      const footer = document.getElementById('remove-fixture-footer');
+      const confirmBtn = document.getElementById('remove-fixture-confirm');
+      if (desc) desc.innerHTML =
+        'This will permanently delete <strong>' + esc(fixtureName) + '</strong> and all its artifacts: ' +
+        'fixture source, detection expectations, scaffold, planning frozen reports and expectations, ' +
+        'pattern expectations, and entries in config files.';
+      if (result) { result.style.display = 'none'; result.innerHTML = ''; }
+      if (footer) footer.style.display = '';
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Remove';
+        confirmBtn.onclick = () => executeRemoveFixture(fixtureName);
+      }
+      const m = document.getElementById('remove-fixture-modal');
+      if (!m) return;
+      m.classList.add('is-open');
+      m.setAttribute('aria-hidden', 'false');
+      document.addEventListener('keydown', onRemoveFixtureKeydown);
+    }
+
+    function onRemoveFixtureKeydown(e) { if (e.key === 'Escape') closeRemoveFixtureModal(); }
+
+    function closeRemoveFixtureModal() {
+      pendingRemoveFixture = null;
+      const m = document.getElementById('remove-fixture-modal');
+      if (!m) return;
+      m.classList.remove('is-open');
+      m.setAttribute('aria-hidden', 'true');
+      document.removeEventListener('keydown', onRemoveFixtureKeydown);
+    }
+
+    async function executeRemoveFixture(fixtureName) {
+      const confirmBtn = document.getElementById('remove-fixture-confirm');
+      const result = document.getElementById('remove-fixture-result');
+      const footer = document.getElementById('remove-fixture-footer');
+      if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Removing…'; }
+
+      try {
+        const res = await fetch('/api/fixture/' + encodeURIComponent(fixtureName), { method: 'DELETE' });
+        const data = await res.json();
+
+        if (footer) footer.style.display = 'none';
+        if (!result) return;
+        result.style.display = '';
+
+        let html = '';
+        if (data.removed && data.removed.length) {
+          html += '<div style="margin-bottom:8px"><strong style="font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-dim)">Deleted</strong>';
+          html += '<ul style="margin:4px 0 0;padding-left:18px;font-size:12px;color:var(--text);line-height:1.6">';
+          data.removed.forEach(p => { html += '<li><code style="font-size:11px">' + esc(p) + '</code></li>'; });
+          html += '</ul></div>';
+        }
+        if (data.edited && data.edited.length) {
+          html += '<div style="margin-bottom:8px"><strong style="font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-dim)">Edited</strong>';
+          html += '<ul style="margin:4px 0 0;padding-left:18px;font-size:12px;color:var(--text);line-height:1.6">';
+          data.edited.forEach(p => { html += '<li><code style="font-size:11px">' + esc(p) + '</code></li>'; });
+          html += '</ul></div>';
+        }
+        if (data.errors && data.errors.length) {
+          html += '<div style="margin-bottom:8px"><strong style="font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--red)">Errors</strong>';
+          html += '<ul style="margin:4px 0 0;padding-left:18px;font-size:12px;color:var(--red);line-height:1.6">';
+          data.errors.forEach(p => { html += '<li>' + esc(p) + '</li>'; });
+          html += '</ul></div>';
+        }
+        if (!data.removed?.length && !data.edited?.length && !data.errors?.length) {
+          html = '<p style="font-size:12px;color:var(--text-dim)">No artifacts found for this fixture.</p>';
+        }
+        result.innerHTML = html;
+        refreshDetail();
+      } catch (e) {
+        if (result) {
+          result.style.display = '';
+          result.innerHTML = '<p style="color:var(--red);font-size:12px">Network error: ' + esc(e.message || 'unknown') + '</p>';
+        }
+        if (footer) footer.style.display = 'none';
+      }
+    }
+
+    const ADVERSARIAL_CAPS = new Set(['detection', 'execution', 'verification']);
+
+    async function regenerateAdversarial(btnEl) {
+      if (!currentCapability || !ADVERSARIAL_CAPS.has(currentCapability)) return;
+      if (!btnEl || btnEl.disabled) return;
+      const origText = btnEl.textContent;
+      btnEl.disabled = true;
+      btnEl.textContent = '⟳ Regenerating…';
+
+      try {
+        const res = await fetch('/api/regenerate-adversarial/' + encodeURIComponent(currentCapability), { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          btnEl.textContent = '✓ Done';
+          setTimeout(() => { btnEl.textContent = origText; btnEl.disabled = false; }, 2000);
+          refreshDetail();
+        } else {
+          btnEl.textContent = '✗ Error';
+          btnEl.title = data.error || 'unknown';
+          setTimeout(() => { btnEl.textContent = origText; btnEl.title = ''; btnEl.disabled = false; }, 4000);
+        }
+      } catch (e) {
+        btnEl.textContent = '✗ Network error';
+        setTimeout(() => { btnEl.textContent = origText; btnEl.disabled = false; }, 4000);
+      }
+    }
+
+    // ── Label fixture → LLM prompt modal ──────────────
+
+    function buildLabelPromptDetection(name) {
+      return [
+        'You are a Data Labeler producing ground truth for a component detection benchmark.',
+        '',
+        '1. From `packages/cli`, generate the scaffold (dumb scanner baseline; safe to re-run — it overwrites):',
+        '   `npx tsx autoresearch/scaffold-expected.ts ' + name + '`',
+        '   Output: `packages/cli/autoresearch/expected/' + name + '.scaffold.json`',
+        '',
+        '2. Read that scaffold — it has false positives and blind spots.',
+        '',
+        '3. Read ALL source files under `packages/cli/autoresearch/fixtures/' + name + '/`',
+        'and refine the scaffold:',
+        '',
+        '- REMOVE false positives (variables named "Button" that aren\'t JSX components,',
+        '  icon components from lucide-react/heroicons, routing components like Route/Link).',
+        '- ADD components the scanner missed (aliased imports, barrel re-exports, HOC-wrapped components).',
+        '- FIX wrong "ozTarget" or "sourceLibrary" values. sourceLibrary must be the npm',
+        '  package name (e.g., "shadcn", "@radix-ui/react-dialog", "html-elements").',
+        '',
+        'Every entry needs exactly three fields: "name", "ozTarget", "sourceLibrary".',
+        '',
+        'Output a single valid JSON object to `packages/cli/autoresearch/expected/' + name + '.json`:',
+        '{',
+        '  "fixture": "' + name + '",',
+        '  "description": "<one sentence>",',
+        '  "components": [',
+        '    { "name": "...", "ozTarget": "...", "sourceLibrary": "..." }',
+        '  ]',
+        '}',
+      ].join('\n');
+    }
+
+    function buildLabelPromptPatterns(name) {
+      return [
+        'You are a Data Labeler producing ground truth for a pattern scanning benchmark.',
+        '',
+        'Read the pattern catalog at `packages/cli/src/catalog/patterns.json` to learn',
+        'which patterns we track and their exact "displayName" values.',
+        '',
+        'Then read ALL source files under `packages/cli/autoresearch/fixtures/' + name + '/`',
+        'and find every file that uses any cataloged pattern. Be thorough — check for:',
+        '- Direct imports (`import { x } from \'wagmi\'`)',
+        '- Subpath imports (`import { x } from \'viem/chains\'` → pattern name is still "viem")',
+        '- Aliased re-exports through barrel files',
+        '- Content patterns like `localStorage.getItem(...)` inside custom hooks/wrappers',
+        '',
+        'Use ONLY the exact "displayName" from the catalog. Do NOT invent pattern names.',
+        'File paths must be POSIX-style, relative to the fixture root, sorted alphabetically.',
+        'Omit patterns with zero matches.',
+        '',
+        'Output a single valid JSON object to `packages/cli/autoresearch/expected/patterns/' + name + '.json`:',
+        '{',
+        '  "fixture": "' + name + '",',
+        '  "patterns": [',
+        '    { "name": "<displayName>", "files": ["path/to/file.ts"] }',
+        '  ]',
+        '}',
+      ].join('\n');
+    }
+
+    function buildLabelPromptPlanning(name) {
+      return [
+        'You are a Data Labeler producing ground truth for a migration planning benchmark.',
+        '',
+        'Read the frozen analysis report at',
+        '`packages/cli/autoresearch/expected/planning/frozen-reports/' + name + '.json`',
+        '— this is the input the planner receives.',
+        '',
+        'Then read the fixture source under `packages/cli/autoresearch/fixtures/' + name + '/`',
+        'to verify context and produce four lists.',
+        '',
+        'Important labeling rules:',
+        '',
+        '1. Author **aspirational ground truth**, not "whatever the current planner emits".',
+        '   Do NOT copy from the existing expected file or infer labels from today\'s planner behavior.',
+        '2. The frozen report is the planner\'s input. Only include positive tasks that are justified by',
+        '   that frozen input. Do NOT add tasks based only on live-source context if the frozen report',
+        '   would never expose the signal.',
+        '3. Use the fixture source to validate meaning and to identify **false positives** the planner',
+        '   must avoid.',
+        '4. Be aggressive about negative labeling. A good expected file should catch both:',
+        '   - under-generation: missing tasks that should exist',
+        '   - over-generation: tasks for local app components, routing, icons, helpers, utilities, etc.',
+        '5. When classifying wallet-related files, distinguish:',
+        '   - real wallet/provider migration work',
+        '   - type-only imports',
+        '   - encoding/ABI utilities',
+        '   - chain registries / network metadata',
+        '   - pure validation/formatting helpers',
+        '   Only the first category belongs in `expectedWalletTasks`; the others belong in',
+        '   `forbiddenWalletFiles` when relevant.',
+        '',
+        'Produce these four lists:',
+        '',
+        'A) expectedTasks — every (type, sourceComponent, targetComponent, phase) the',
+        '   planner SHOULD emit. Do NOT include icon libraries, routing components,',
+        '   local app/page components, providers, or helper/controller components unless the',
+        '   frozen report clearly represents a real migration target.',
+        '',
+        'B) forbiddenTasks — source components the planner must NOT create tasks for,',
+        '   with a reason (e.g., routing, icon, local feature component, provider, form helper,',
+        '   controller, or other non-migratable surface).',
+        '',
+        'C) expectedWalletTasks — every (pattern, file) pair needing a wallet-replacement task.',
+        '   Include only files where the wallet library usage represents real adapter/provider/client',
+        '   migration work.',
+        '',
+        'D) forbiddenWalletFiles — files with wallet imports that should NOT generate tasks',
+        '   (type-only imports, encoding utilities, chain registries, formatting/validation helpers,',
+        '   or similar false positives).',
+        '',
+        'Before writing the final JSON, do this self-check:',
+        '',
+        '1. If a bad planner generated tasks for Route/Link/providers/local wrappers/helpers, would this',
+        '   expected file penalize it?',
+        '2. If a bad planner skipped a real wallet/provider migration file, would this expected file',
+        '   penalize it?',
+        '3. Does every positive task come from the frozen report input rather than only from live-source',
+        '   intuition?',
+        '4. Did you avoid impossible expectations, such as pattern names or files that the frozen report',
+        '   never exposes?',
+        '',
+        'Output a single valid JSON object to `packages/cli/autoresearch/expected/planning/' + name + '.json`:',
+        '{',
+        '  "fixture": "' + name + '",',
+        '  "analysisReport": "frozen-reports/' + name + '.json",',
+        '  "expectedTasks": [{ "type": "...", "sourceComponent": "...", "targetComponent": "...", "phase": "..." }],',
+        '  "forbiddenTasks": [{ "sourceComponent": "...", "reason": "..." }],',
+        '  "expectedWalletTasks": [{ "pattern": "...", "file": "..." }],',
+        '  "forbiddenWalletFiles": [{ "file": "...", "reason": "..." }]',
+        '}',
+      ].join('\n');
+    }
+
+    function buildLabelPromptInit(name) {
+      return [
+        'You are a Data Labeler producing ground truth for a project initialization benchmark.',
+        '',
+        'Read the fixture project at `packages/cli/autoresearch/expected/init/' + name + '/project/`',
+        'to understand its starting state (package.json, tailwind config, app entry point).',
+        '',
+        'Read the init templates at `packages/cli/src/templates/` to understand what',
+        '`oz-ui migrate init` generates.',
+        '',
+        'Then produce a checklist of files that must exist after init runs, with',
+        'contentPatterns (plain substrings checked via String.includes()) that must',
+        'appear in each file.',
+        '',
+        'Init typically creates: src/oz/OzProviders.tsx, src/oz/resolve-runtime.ts,',
+        'tailwind config updates, .cursor/skills/ and .cursor/agents/ files,',
+        '.claude/agents/ files.',
+        '',
+        'Output a single valid JSON object to `packages/cli/autoresearch/expected/init/' + name + '.json`:',
+        '{',
+        '  "fixture": "' + name + '",',
+        '  "projectDir": "' + name + '/project",',
+        '  "expectedFiles": [',
+        '    { "path": "relative/path.tsx", "contentPatterns": ["substring1", "substring2"] }',
+        '  ]',
+        '}',
+      ].join('\n');
+    }
+
+    function buildLabelPromptExecution(name) {
+      return [
+        'You are a Data Labeler creating before/task/after test triples for a code',
+        'rewriting benchmark.',
+        '',
+        'Read the fixture source under `packages/cli/autoresearch/fixtures/' + name + '/`',
+        'and find 3-5 representative files that import UI components.',
+        '',
+        'For each, create a directory under `packages/cli/autoresearch/expected/execution/`',
+        'with tier classification (tier1/tier2/tier3) containing:',
+        '',
+        '- before.tsx — the original file content (verbatim from the fixture)',
+        '- task.json — a MigrationTask with fields: id, phase, type, status, description,',
+        '  file, sourceComponent, targetComponent (and optional propMappings if props rename)',
+        '- after.tsx — the perfect rewrite: old import replaced with',
+        '  @openzeppelin/ui-components, all JSX updated, valid TypeScript, formatting preserved',
+        '',
+        'Cover edge cases: namespace imports (import * as X), compound components (Dialog.Content),',
+        'aliased imports, multi-component files.',
+      ].join('\n');
+    }
+
+    function buildLabelPromptVerification(name) {
+      return [
+        'You are a Data Labeler creating test fixtures for a migration verification',
+        '(doctor) benchmark.',
+        '',
+        'Look at the existing verification fixtures under',
+        '`packages/cli/autoresearch/expected/verification/` to understand the pattern.',
+        '',
+        'Then design 3-5 new scenarios — small project directories that represent',
+        'specific migration states:',
+        '',
+        'Broken scenarios (expectedStatus: "fail"):',
+        '- orphaned old imports alongside new OZ imports',
+        '- missing OZ import after removing old component',
+        '- wrong package name in the replacement import',
+        '',
+        'Correct scenarios (expectedStatus: "pass"):',
+        '- old import fully replaced with @openzeppelin/ui-components',
+        '',
+        'For each, create the project files AND a JSON fixture with: fixture name,',
+        'expectedStatus, diagnosticKeywords (lowercase substrings the doctor should emit),',
+        'the MigrationTask being checked, and projectDir pointing to the project files.',
+        '',
+        'diagnosticKeywords are checked with case-insensitive String.includes().',
+        'For "pass" scenarios, use an empty array.',
+      ].join('\n');
+    }
+
+    function buildLabelPromptOrchestration(name) {
+      return [
+        'You are a Data Labeler creating scenario fixtures for an orchestration benchmark.',
+        '',
+        'Read the SKILL.md protocol at',
+        '`packages/cli/src/templates/skills/migrate-to-oz-uikit/SKILL.md`',
+        'to understand the migration workflow it teaches to coding agents.',
+        '',
+        'Look at existing scenarios under `packages/cli/autoresearch/expected/orchestration/`',
+        'to understand the format.',
+        '',
+        'Then design 3-5 realistic scenarios an agent might encounter:',
+        '- Fresh project start (no prior migration)',
+        '- Resuming a partial migration (init/analyze done, needs plan + execute)',
+        '- Doctor fails mid-migration (must re-execute failing tasks)',
+        '- No components detected (should skip plan/execute)',
+        '',
+        'For each scenario output a JSON with: name, description (one sentence),',
+        'expectedCommands (ordered CLI commands like "oz-ui migrate init"),',
+        'and expectedGates (sequencing invariants like "init-complete-before-analyze").',
+      ].join('\n');
+    }
+
+    const LABEL_PROMPT_BUILDERS = {
+      detection: buildLabelPromptDetection,
+      patterns: buildLabelPromptPatterns,
+      planning: buildLabelPromptPlanning,
+      init: buildLabelPromptInit,
+      execution: buildLabelPromptExecution,
+      verification: buildLabelPromptVerification,
+      orchestration: buildLabelPromptOrchestration,
+    };
+
+    let lfPromptTimer = null;
+    function scheduleLfPromptSync() {
+      if (lfPromptTimer) clearTimeout(lfPromptTimer);
+      lfPromptTimer = setTimeout(() => {
+        syncLabelFixturePrompt();
+        lfPromptTimer = null;
+      }, 120);
+    }
+
+    function getLfEffectiveCapability() {
+      if (currentCapability && LABEL_PROMPT_BUILDERS[currentCapability]) {
+        return currentCapability;
+      }
+      const sel = document.getElementById('lf-capability');
+      return sel?.value && LABEL_PROMPT_BUILDERS[sel.value] ? sel.value : 'detection';
+    }
+
+    function syncLabelFixturePrompt() {
+      const cap = getLfEffectiveCapability();
+      const fixtureName = (document.getElementById('lf-fixture-name')?.value || '').trim() || '<FIXTURE_NAME>';
+      const builder = LABEL_PROMPT_BUILDERS[cap];
+      const ta = document.getElementById('lf-prompt');
+      if (ta && builder) ta.value = builder(fixtureName);
+    }
+
+    function openLabelFixtureModal(presetFixtureName) {
+      closeStartAgentModal();
+      closeAddFixtureModal();
+      closeFixtureDetailModal();
+
+      if (presetFixtureName) {
+        const nameInput = document.getElementById('lf-fixture-name');
+        if (nameInput) nameInput.value = presetFixtureName;
+      }
+
+      const locked = !!(currentCapability && LABEL_PROMPT_BUILDERS[currentCapability]);
+      const field = document.getElementById('lf-capability-field');
+      const introPick = document.getElementById('lf-intro-with-picker');
+      const introLocked = document.getElementById('lf-intro-locked');
+      const labelEl = document.getElementById('lf-locked-cap-label');
+      const sel = document.getElementById('lf-capability');
+
+      if (locked) {
+        if (sel) sel.value = currentCapability;
+        if (field) field.hidden = true;
+        if (introPick) introPick.hidden = true;
+        if (introLocked) introLocked.hidden = false;
+        if (labelEl) {
+          labelEl.textContent =
+            currentCapability.charAt(0).toUpperCase() + currentCapability.slice(1);
+        }
+      } else {
+        if (field) field.hidden = false;
+        if (introPick) introPick.hidden = false;
+        if (introLocked) introLocked.hidden = true;
+      }
+
+      const m = document.getElementById('label-fixture-modal');
+      if (!m) return;
+      syncLabelFixturePrompt();
+      m.classList.add('is-open');
+      m.setAttribute('aria-hidden', 'false');
+      document.addEventListener('keydown', onLabelFixtureModalKeydown);
+      document.body.style.overflow = 'hidden';
+    }
+
+    function onLabelFixtureModalKeydown(e) {
+      if (e.key === 'Escape') closeLabelFixtureModal();
+    }
+
+    function closeLabelFixtureModal() {
+      const m = document.getElementById('label-fixture-modal');
+      if (!m) return;
+      m.classList.remove('is-open');
+      m.setAttribute('aria-hidden', 'true');
+      document.removeEventListener('keydown', onLabelFixtureModalKeydown);
+      document.body.style.overflow = '';
+    }
+
+    async function copyLabelFixturePrompt() {
+      const ta = document.getElementById('lf-prompt');
+      const btn = document.getElementById('lf-copy-btn');
       if (!ta || !btn) return;
       try {
         await navigator.clipboard.writeText(ta.value);

@@ -254,9 +254,32 @@ The route-based dashboard at [http://localhost:4200](http://localhost:4200):
 
 - `**/**` — Overview scorecard showing all 7 capabilities with scores and experiment counts
 - `**/capability/:name**` — Detail page with scatter chart, per-fixture breakdown, and experiment log
+
+Both views expose action buttons:
+
+- **Start autoresearch** — opens a prompt for an autonomous research agent (see § "Start an agent")
+- **Add fixture** — registers a new fixture, fetches source, generates scaffold + frozen report, then guides the user to label ground truth
+- **Label fixture** — generates a data-labeling prompt from the [LLM Prompts Collection](./llm-prompts-collection.md) for a specific capability and fixture; use when creating or refining ground truth expectations
+- **Re-evaluate** — reruns the evaluator against current code (detail view only)
+
+Per-fixture dropdown actions (kebab menu on each fixture row):
+
+- **Evaluation breakdown** — detailed TP/FP/FN report for a single fixture
+- **Label fixture** — per-capability labeling prompt for ground truth
+- **Regenerate artifact** — re-runs the appropriate generator (frozen report for planning, scaffold for detection)
+- **Open on GitHub** — links to the source repo (external fixtures only)
+- **Remove fixture** — deletes source, expectations, and config entries for the fixture
+
+Fixtures without ground-truth labels show a ⚠ warning icon and appear under an "Unlabeled" separator.
+
+API routes:
+
 - `**/api/capabilities**` — Summary JSON for all capabilities
 - `**/api/results/:name**` — Results TSV data as JSON
 - `**/api/evaluate/:name**` — Live evaluation trigger
+- `**/api/fixture**` (POST) — Add a new fixture (register + fetch + scaffold)
+- `**/api/fixture/:name**` (DELETE) — Remove fixture and all its artifacts
+- `**/api/fixtures/status**` — Artifact status for all known fixtures
 - `**/api/stream**` — SSE for real-time updates
 
 ## Results format
