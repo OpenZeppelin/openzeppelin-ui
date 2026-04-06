@@ -1,6 +1,6 @@
-import { Button } from '~/sharp/frame/action-button';
-import { Card, CardContent, CardHeader, CardTitle } from '~/sharp/frame/info-card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '~/sharp/frame/tab-set';
+import { Button } from '~/sleek/prism/action-button';
+import { Card, CardContent, CardHeader, CardTitle } from '~/sleek/prism/info-card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '~/sleek/prism/tab-set';
 
 export function Overview() {
   return (

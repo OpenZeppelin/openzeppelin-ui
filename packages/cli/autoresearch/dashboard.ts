@@ -13,6 +13,8 @@
  *   POST /api/fixture                      -> add a new fixture (register + fetch + scaffold)
  *   POST /api/execution-fixture            -> add execution triple (before.tsx, task.json, after.tsx)
  *   DELETE /api/execution-fixture          -> remove execution triple (?relativePath=tier3/foo)
+ *   POST /api/verification-fixture         -> add verification scenario (json + project/)
+ *   DELETE /api/verification-fixture       -> remove verification scenario (?relativePath=broken/foo)
  *   DELETE /api/fixture/:name              -> remove fixture and all its artifacts
  *   GET /api/fixtures/status               -> artifact status for all known fixtures
  *   GET /api/stream            -> SSE (watches all results-*.tsv)
@@ -35,6 +37,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_PORT = 4200;
 const EXTERNAL_MANIFEST_PATH = path.join(__dirname, 'fixtures', '_external.json');
 const EXECUTION_EXPECTED_DIR = path.join(__dirname, 'expected', 'execution');
+const VERIFICATION_EXPECTED_DIR = path.join(__dirname, 'expected', 'verification');
 
 function loadExternalRepoByName(): Record<string, string> {
   try {
@@ -102,6 +105,7 @@ function enrichEvaluationForDashboard(payload: EvalApiPayload): EvalApiPayload {
   const repos = loadExternalRepoByName();
   const isInit = payload.capability === 'init';
   const isExecution = payload.capability === 'execution';
+  const isVerification = payload.capability === 'verification';
   return {
     ...payload,
     fixtures: payload.fixtures.map((fx) => {
@@ -116,6 +120,10 @@ function enrichEvaluationForDashboard(payload: EvalApiPayload): EvalApiPayload {
       if (isExecution && !resolved) {
         const execDir = path.join(EXECUTION_EXPECTED_DIR, ...name.split('/'));
         if (fs.existsSync(execDir)) resolved = execDir;
+      }
+      if (isVerification && !resolved) {
+        const vPath = resolveVerificationJsonPath(name);
+        if (vPath && fs.existsSync(vPath)) resolved = vPath;
       }
       return {
         ...fx,
@@ -366,7 +374,8 @@ function removeFixture(fixtureName: string): RemovalResult {
   return { ok: errors.length === 0, removed, edited, errors };
 }
 
-function normalizeExecutionRelativePath(input: string): string | null {
+/** Safe multi-segment path under expected/{execution|verification}/ (lowercase slug segments). */
+function normalizeExpectedRelativePath(input: string): string | null {
   const s = input.trim().replace(/\\/g, '/').replace(/^\/+|\/+$/g, '');
   if (!s || s.includes('..')) return null;
   const segments = s.split('/').filter(Boolean);
@@ -377,8 +386,19 @@ function normalizeExecutionRelativePath(input: string): string | null {
   return segments.join('/');
 }
 
+function resolveVerificationJsonPath(normalizedRel: string): string | null {
+  const normalized = normalizeExpectedRelativePath(normalizedRel);
+  if (!normalized) return null;
+  const parts = normalized.split('/');
+  const jsonPath = path.join(VERIFICATION_EXPECTED_DIR, ...parts.slice(0, -1), `${parts[parts.length - 1]}.json`);
+  const base = path.resolve(VERIFICATION_EXPECTED_DIR);
+  const resolved = path.resolve(jsonPath);
+  if (!resolved.startsWith(base + path.sep) && resolved !== base) return null;
+  return jsonPath;
+}
+
 function resolveExecutionFixtureDir(rel: string): string | null {
-  const normalized = normalizeExecutionRelativePath(rel);
+  const normalized = normalizeExpectedRelativePath(rel);
   if (!normalized) return null;
   const full = path.resolve(EXECUTION_EXPECTED_DIR, ...normalized.split('/'));
   const base = path.resolve(EXECUTION_EXPECTED_DIR);
@@ -484,6 +504,151 @@ function removeExecutionFixture(relativePath: string): RemovalResult {
   } catch (err: unknown) {
     errors.push(err instanceof Error ? err.message : String(err));
   }
+  return { ok: errors.length === 0, removed, edited: [], errors };
+}
+
+interface AddVerificationFixtureRequest {
+  relativePath: string;
+  fixture: string;
+  expectedStatus: 'pass' | 'fail';
+  diagnosticKeywords: string[];
+  task: unknown;
+  appSource: string;
+  packageJson?: string;
+}
+
+const DEFAULT_VERIFICATION_PACKAGE = {
+  name: 'verification-fixture',
+  private: true,
+  dependencies: { react: '^19.0.0' },
+};
+
+function addVerificationFixture(body: AddVerificationFixtureRequest): AddFixtureResult {
+  const steps: string[] = [];
+  const errors: string[] = [];
+  if (typeof body.relativePath !== 'string' || !body.relativePath.trim()) {
+    return { ok: false, steps, errors: ['relativePath is required'] };
+  }
+  if (typeof body.fixture !== 'string' || !/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(body.fixture)) {
+    return { ok: false, steps, errors: ['fixture must be a lowercase slug (e.g. my-scenario)'] };
+  }
+  if (body.expectedStatus !== 'pass' && body.expectedStatus !== 'fail') {
+    return { ok: false, steps, errors: ['expectedStatus must be pass or fail'] };
+  }
+  if (typeof body.appSource !== 'string') {
+    return { ok: false, steps, errors: ['appSource must be a string (contents of src/App.tsx)'] };
+  }
+  const normalized = normalizeExpectedRelativePath(body.relativePath);
+  if (!normalized) {
+    return {
+      ok: false,
+      steps,
+      errors: ['Invalid relative path — use lowercase segments (e.g. broken/my-case), no ..'],
+    };
+  }
+  const jsonPath = resolveVerificationJsonPath(normalized);
+  if (!jsonPath) {
+    return { ok: false, steps, errors: ['Invalid verification fixture path'] };
+  }
+  if (fs.existsSync(jsonPath)) {
+    return {
+      ok: false,
+      steps,
+      errors: [`Verification fixture already exists: ${path.relative(__dirname, jsonPath)}`],
+    };
+  }
+  const taskErr = validateExecutionTask(body.task);
+  if (taskErr) return { ok: false, steps, errors: [taskErr] };
+
+  let pkg: Record<string, unknown> = { ...DEFAULT_VERIFICATION_PACKAGE };
+  if (body.packageJson != null && String(body.packageJson).trim()) {
+    try {
+      const parsed = JSON.parse(String(body.packageJson)) as unknown;
+      if (!isPlainObject(parsed)) {
+        return { ok: false, steps, errors: ['packageJson must be a JSON object'] };
+      }
+      pkg = parsed;
+    } catch {
+      return { ok: false, steps, errors: ['packageJson must be valid JSON'] };
+    }
+  }
+
+  const keywords = Array.isArray(body.diagnosticKeywords)
+    ? body.diagnosticKeywords.filter((k) => typeof k === 'string' && k.trim())
+    : [];
+
+  const projectDirRel = `${normalized}/project`;
+  const projectRoot = path.join(VERIFICATION_EXPECTED_DIR, ...normalized.split('/'), 'project');
+  const spec = {
+    fixture: body.fixture,
+    expectedStatus: body.expectedStatus,
+    diagnosticKeywords: keywords,
+    task: body.task,
+    projectDir: projectDirRel,
+  };
+
+  try {
+    fs.mkdirSync(path.join(projectRoot, 'src'), { recursive: true });
+    fs.writeFileSync(path.join(projectRoot, 'src', 'App.tsx'), body.appSource, 'utf8');
+    fs.writeFileSync(path.join(projectRoot, 'package.json'), JSON.stringify(pkg, null, 2) + '\n', 'utf8');
+    fs.writeFileSync(jsonPath, JSON.stringify(spec, null, 2) + '\n', 'utf8');
+    steps.push(`Created ${path.relative(__dirname, jsonPath)}`);
+    steps.push(`Created ${path.relative(__dirname, projectRoot)}/`);
+  } catch (err: unknown) {
+    errors.push(err instanceof Error ? err.message : String(err));
+    try {
+      if (fs.existsSync(jsonPath)) fs.unlinkSync(jsonPath);
+      const parent = path.join(VERIFICATION_EXPECTED_DIR, ...normalized.split('/'));
+      if (fs.existsSync(parent)) fs.rmSync(parent, { recursive: true, force: true });
+    } catch {
+      /* ignore */
+    }
+  }
+  return { ok: errors.length === 0, steps, errors };
+}
+
+function removeVerificationFixture(relativePath: string): RemovalResult {
+  const removed: string[] = [];
+  const errors: string[] = [];
+  const jsonPath = resolveVerificationJsonPath(relativePath);
+  if (!jsonPath) {
+    return { ok: false, removed, edited: [], errors: ['Invalid verification fixture path'] };
+  }
+  if (!fs.existsSync(jsonPath)) {
+    return { ok: false, removed, edited: [], errors: ['Verification expectation JSON not found'] };
+  }
+
+  const base = path.resolve(VERIFICATION_EXPECTED_DIR);
+  let projectAbs: string | null = null;
+  try {
+    const raw = JSON.parse(fs.readFileSync(jsonPath, 'utf8')) as { projectDir?: string };
+    if (typeof raw.projectDir === 'string' && raw.projectDir.trim()) {
+      const candidate = path.resolve(VERIFICATION_EXPECTED_DIR, raw.projectDir);
+      if (candidate.startsWith(base + path.sep) || candidate === base) {
+        projectAbs = candidate;
+      }
+    }
+  } catch {
+    /* fall through */
+  }
+
+  try {
+    fs.unlinkSync(jsonPath);
+    removed.push(path.relative(__dirname, jsonPath));
+  } catch (err: unknown) {
+    errors.push(err instanceof Error ? err.message : String(err));
+    return { ok: false, removed, edited: [], errors };
+  }
+
+  if (projectAbs && fs.existsSync(projectAbs)) {
+    try {
+      fs.rmSync(projectAbs, { recursive: true, force: true });
+      removed.push(path.relative(__dirname, projectAbs));
+    } catch (err: unknown) {
+      errors.push(err instanceof Error ? err.message : String(err));
+    }
+  }
+
   return { ok: errors.length === 0, removed, edited: [], errors };
 }
 
@@ -859,6 +1024,26 @@ function main(): void {
         return;
       }
 
+      if (segments[1] === 'verification-fixture' && !segments[2] && req.method === 'POST') {
+        const chunks: Buffer[] = [];
+        for await (const chunk of req) chunks.push(chunk as Buffer);
+        try {
+          const body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as AddVerificationFixtureRequest;
+          const result = addVerificationFixture(body);
+          serveJson(res, result);
+        } catch (err: unknown) {
+          serveJson(res, { ok: false, steps: [], errors: [`Bad request: ${err instanceof Error ? err.message : String(err)}`] });
+        }
+        return;
+      }
+
+      if (segments[1] === 'verification-fixture' && !segments[2] && req.method === 'DELETE') {
+        const rel = url.searchParams.get('relativePath')?.trim() ?? '';
+        const result = removeVerificationFixture(rel);
+        serveJson(res, result);
+        return;
+      }
+
       if (segments[1] === 'fixtures' && segments[2] === 'status' && req.method === 'GET') {
         const all = getAllFixtureNames();
         serveJson(res, { fixtures: all.map(getFixtureArtifacts) });
@@ -887,6 +1072,8 @@ function main(): void {
     console.log(`    /api/fixture               Add new fixture (POST)`);
     console.log(`    /api/execution-fixture     Add execution triple (POST JSON)`);
     console.log(`    /api/execution-fixture     Remove execution triple (DELETE ?relativePath=)`);
+    console.log(`    /api/verification-fixture  Add verification scenario (POST JSON)`);
+    console.log(`    /api/verification-fixture  Remove verification scenario (DELETE ?relativePath=)`);
     console.log(`    /api/fixture/:name        Remove fixture and all artifacts (DELETE)`);
     console.log(`    /api/fixtures/status       Artifact status for all fixtures (GET)`);
     console.log(`    /api/stream               SSE updates\n`);

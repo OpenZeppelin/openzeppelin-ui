@@ -547,9 +547,16 @@
       cursor: pointer;
     }
     .aff-field textarea { min-height: 56px; resize: vertical; }
-    #aef-before, #aef-after, #aef-task { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+    #aef-before, #aef-after, #aef-task,
+    #avf-task, #avf-app, #avf-pkg, #avf-diagnostics {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px;
+    }
     #aef-before, #aef-after { min-height: 100px; }
     #aef-task { min-height: 180px; }
+    #avf-app { min-height: 110px; }
+    #avf-task { min-height: 160px; }
+    #avf-pkg { min-height: 88px; }
+    #avf-diagnostics { min-height: 72px; }
     .aff-prompt-wrap { display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; }
     .aff-prompt-wrap label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim); }
     #aff-prompt, #sap-prompt, #lf-prompt {
@@ -879,6 +886,60 @@
     </div>
   </div>
 
+  <div id="add-verification-fixture-modal" class="modal-overlay" aria-hidden="true" onclick="if(event.target===this)closeAddVerificationFixtureModal()">
+    <div class="modal-dialog modal-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="add-verification-fixture-title" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 id="add-verification-fixture-title">Add verification fixture</h2>
+        <button type="button" class="modal-close" onclick="closeAddVerificationFixtureModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-intro">
+          Creates <code>expected/verification/&lt;path&gt;.json</code> plus <code>&lt;path&gt;/project/</code> (with
+          <code>package.json</code> and <code>src/App.tsx</code>) for the doctor / verification evaluator.
+          Use a path like <code>broken/my-scenario</code> or <code>correct/my-scenario</code>.
+        </p>
+        <div class="aff-form" id="avf-form-fields">
+          <div class="aff-field">
+            <label for="avf-relative-path">Relative path (no <code>.json</code> suffix)</label>
+            <input id="avf-relative-path" type="text" placeholder="broken/my-scenario" autocomplete="off" />
+          </div>
+          <div class="aff-field">
+            <label for="avf-fixture-slug">Short <code>fixture</code> id in JSON</label>
+            <input id="avf-fixture-slug" type="text" placeholder="my-scenario" autocomplete="off" />
+          </div>
+          <div class="aff-field">
+            <label for="avf-expected-status">Expected checker outcome</label>
+            <select id="avf-expected-status">
+              <option value="fail">fail — migration should be rejected / diagnostics expected</option>
+              <option value="pass">pass — migration should be accepted</option>
+            </select>
+          </div>
+          <div class="aff-field">
+            <label for="avf-diagnostics">Diagnostic keywords (fail only, one per line; optional for pass)</label>
+            <textarea id="avf-diagnostics" spellcheck="false" placeholder="OZ import&#10;Button"></textarea>
+          </div>
+          <div class="aff-field">
+            <label for="avf-task"><code>task</code> (migration task JSON)</label>
+            <textarea id="avf-task" spellcheck="false"></textarea>
+          </div>
+          <div class="aff-field">
+            <label for="avf-app"><code>project/src/App.tsx</code></label>
+            <textarea id="avf-app" spellcheck="false"></textarea>
+          </div>
+          <div class="aff-field">
+            <label for="avf-pkg"><code>project/package.json</code> (optional override)</label>
+            <textarea id="avf-pkg" spellcheck="false"></textarea>
+          </div>
+        </div>
+        <div id="avf-result" style="display:none"></div>
+      </div>
+      <div class="modal-footer" id="avf-footer">
+        <button type="button" class="btn-primary" id="avf-submit-btn" onclick="submitAddVerificationFixture()">Create scenario</button>
+        <button type="button" class="btn-secondary" onclick="closeAddVerificationFixtureModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <div id="fixture-detail-modal" class="modal-overlay" aria-hidden="true" onclick="if(event.target===this)closeFixtureDetailModal()">
     <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="fixture-detail-title" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -1044,12 +1105,14 @@
       resetDetailUI();
       const addDetailBtn = document.getElementById('detail-add-fixture-btn');
       if (addDetailBtn) {
-        addDetailBtn.setAttribute(
-          'data-tip',
-          cap === 'execution'
-            ? 'Add an execution benchmark: before.tsx, task.json, after.tsx under expected/execution/.'
-            : 'Add a new benchmark app fixture (manifest, fetch, scaffold).'
-        );
+        let addTip = 'Add a new benchmark app fixture (manifest, fetch, scaffold).';
+        if (cap === 'execution') {
+          addTip = 'Add an execution benchmark: before.tsx, task.json, after.tsx under expected/execution/.';
+        } else if (cap === 'verification') {
+          addTip =
+            'Add a verification scenario: expected JSON + project/ under expected/verification/ (doctor checker).';
+        }
+        addDetailBtn.setAttribute('data-tip', addTip);
       }
       if (chart) { chart.destroy(); chart = null; }
       initChart();
@@ -1527,6 +1590,8 @@
     function openFixtureDetailModal(index) {
       closeStartAgentModal();
       closeAddFixtureModal();
+      closeAddExecutionFixtureModal();
+      closeAddVerificationFixtureModal();
       closeLabelFixtureModal();
       const list = detailState.evalFixtures;
       if (!Array.isArray(list) || index < 0 || index >= list.length) return;
@@ -1629,9 +1694,9 @@
       return missing.length ? 'Missing: ' + missing.join(', ') : null;
     }
 
-    /** Execution uses `expected/execution/**` triples, not the shared app fixture list. */
+    /** Execution and verification use their own trees under expected/, not the shared app fixture list. */
     function shouldAppendUnlabeledFixtures() {
-      return currentCapability !== 'execution';
+      return currentCapability !== 'execution' && currentCapability !== 'verification';
     }
 
     function appendUnlabeledFixtures(grid, evaluatedNames) {
@@ -1717,6 +1782,7 @@ export function Demo() {
       closeStartAgentModal();
       closeLabelFixtureModal();
       closeAddFixtureModal();
+      closeAddVerificationFixtureModal();
       const m = document.getElementById('add-execution-fixture-modal');
       if (!m) return;
       const result = document.getElementById('aef-result');
@@ -1820,14 +1886,165 @@ export function Demo() {
       }
     }
 
+    const DEFAULT_AVF_APP = `import { useState } from 'react';
+
+export function App() {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount(c => c + 1)}>Count: {count}</button>;
+}
+`;
+
+    const DEFAULT_AVF_PKG = `{
+  "name": "verification-fixture",
+  "private": true,
+  "dependencies": {
+    "react": "^19.0.0"
+  }
+}`;
+
+    function openAddVerificationFixtureModal() {
+      closeStartAgentModal();
+      closeLabelFixtureModal();
+      closeAddFixtureModal();
+      closeAddExecutionFixtureModal();
+      const m = document.getElementById('add-verification-fixture-modal');
+      if (!m) return;
+      const result = document.getElementById('avf-result');
+      const fields = document.getElementById('avf-form-fields');
+      const footer = document.getElementById('avf-footer');
+      const btn = document.getElementById('avf-submit-btn');
+      if (result) { result.style.display = 'none'; result.innerHTML = ''; }
+      if (fields) fields.style.display = '';
+      if (footer) footer.style.display = '';
+      if (btn) { btn.disabled = false; btn.textContent = 'Create scenario'; }
+      const rel = document.getElementById('avf-relative-path');
+      const slug = document.getElementById('avf-fixture-slug');
+      const status = document.getElementById('avf-expected-status');
+      const diag = document.getElementById('avf-diagnostics');
+      const taskEl = document.getElementById('avf-task');
+      const appEl = document.getElementById('avf-app');
+      const pkgEl = document.getElementById('avf-pkg');
+      if (rel) rel.value = 'broken/my-scenario';
+      if (slug) slug.value = 'my-scenario';
+      if (status) status.value = 'fail';
+      if (diag) diag.value = 'OZ import\nButton';
+      if (taskEl) taskEl.value = DEFAULT_AEF_TASK;
+      if (appEl) appEl.value = DEFAULT_AVF_APP;
+      if (pkgEl) pkgEl.value = DEFAULT_AVF_PKG;
+      m.classList.add('is-open');
+      m.setAttribute('aria-hidden', 'false');
+      document.addEventListener('keydown', onAddVerificationFixtureKeydown);
+      document.body.style.overflow = 'hidden';
+    }
+
+    function onAddVerificationFixtureKeydown(e) {
+      if (e.key === 'Escape') closeAddVerificationFixtureModal();
+    }
+
+    function closeAddVerificationFixtureModal() {
+      const m = document.getElementById('add-verification-fixture-modal');
+      if (!m) return;
+      m.classList.remove('is-open');
+      m.setAttribute('aria-hidden', 'true');
+      document.removeEventListener('keydown', onAddVerificationFixtureKeydown);
+      document.body.style.overflow = '';
+    }
+
+    async function submitAddVerificationFixture() {
+      const btn = document.getElementById('avf-submit-btn');
+      const result = document.getElementById('avf-result');
+      const fields = document.getElementById('avf-form-fields');
+      const footer = document.getElementById('avf-footer');
+      if (!btn) return;
+
+      const relativePath = (document.getElementById('avf-relative-path')?.value || '').trim();
+      const fixture = (document.getElementById('avf-fixture-slug')?.value || '').trim();
+      const expectedStatus = document.getElementById('avf-expected-status')?.value || 'fail';
+      const diagRaw = document.getElementById('avf-diagnostics')?.value ?? '';
+      const taskRaw = (document.getElementById('avf-task')?.value || '').trim();
+      const appSource = document.getElementById('avf-app')?.value ?? '';
+      const pkgRaw = (document.getElementById('avf-pkg')?.value || '').trim();
+
+      if (!relativePath) { alert('Enter a relative path (e.g. broken/my-scenario).'); return; }
+      if (!fixture) { alert('Enter a short fixture id (e.g. my-scenario).'); return; }
+
+      let task;
+      try {
+        task = JSON.parse(taskRaw);
+      } catch {
+        alert('Task must be valid JSON.');
+        return;
+      }
+
+      const diagnosticKeywords = diagRaw.split('\n').map((l) => l.trim()).filter(Boolean);
+
+      btn.disabled = true;
+      btn.textContent = 'Creating…';
+
+      const body = {
+        relativePath,
+        fixture,
+        expectedStatus,
+        diagnosticKeywords,
+        task,
+        appSource,
+      };
+      if (pkgRaw) body.packageJson = pkgRaw;
+
+      try {
+        const res = await fetch('/api/verification-fixture', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+
+        if (fields) fields.style.display = 'none';
+        if (footer) footer.style.display = 'none';
+        if (!result) return;
+        result.style.display = '';
+
+        let html = '';
+        if (data.ok) {
+          html += '<div style="color:var(--green);font-weight:600;font-size:13px;margin-bottom:10px">Verification scenario created</div>';
+        } else {
+          html += '<div style="color:var(--orange);font-weight:600;font-size:13px;margin-bottom:10px">Could not create scenario</div>';
+        }
+        if (data.steps?.length) {
+          html += '<ul style="margin:0 0 12px;padding-left:18px;font-size:12px;color:var(--text);line-height:1.7">';
+          data.steps.forEach(s => { html += '<li>' + esc(s) + '</li>'; });
+          html += '</ul>';
+        }
+        if (data.errors?.length) {
+          html += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--red);margin-bottom:4px">Errors</div>';
+          html += '<ul style="margin:0 0 12px;padding-left:18px;font-size:12px;color:var(--red);line-height:1.7">';
+          data.errors.forEach(s => { html += '<li>' + esc(s) + '</li>'; });
+          html += '</ul>';
+        }
+        html += '<div style="margin-top:12px;text-align:right"><button type="button" class="btn-secondary" onclick="closeAddVerificationFixtureModal()">Done</button></div>';
+        result.innerHTML = html;
+
+        if (data.ok) refreshDetail();
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = 'Create scenario';
+        alert('Network error: ' + (e && e.message ? e.message : String(e)));
+      }
+    }
+
     function openAddFixtureModal() {
       if (currentCapability === 'execution') {
         openAddExecutionFixtureModal();
         return;
       }
+      if (currentCapability === 'verification') {
+        openAddVerificationFixtureModal();
+        return;
+      }
       closeStartAgentModal();
       closeLabelFixtureModal();
       closeAddExecutionFixtureModal();
+      closeAddVerificationFixtureModal();
       const m = document.getElementById('add-fixture-modal');
       if (!m) return;
       const result = document.getElementById('aff-result');
@@ -2229,6 +2446,11 @@ export function Demo() {
             'This will permanently delete the execution triple at <code>expected/execution/' + esc(fixtureName) + '</code> ' +
             '(<code>before.tsx</code>, <code>task.json</code>, <code>after.tsx</code>). ' +
             'App fixtures and other capabilities are not affected.';
+        } else if (currentCapability === 'verification') {
+          desc.innerHTML =
+            'This will permanently delete the verification scenario at <code>expected/verification/' + esc(fixtureName) + '.json</code> ' +
+            'and its <code>project/</code> directory (from <code>projectDir</code> in the JSON). ' +
+            'App fixtures and other capabilities are not affected.';
         } else {
           desc.innerHTML =
             'This will permanently delete <strong>' + esc(fixtureName) + '</strong> and all its artifacts: ' +
@@ -2268,13 +2490,14 @@ export function Demo() {
       if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Removing…'; }
 
       try {
-        const isExecution = currentCapability === 'execution';
-        const res = await fetch(
-          isExecution
-            ? '/api/execution-fixture?relativePath=' + encodeURIComponent(fixtureName)
-            : '/api/fixture/' + encodeURIComponent(fixtureName),
-          { method: 'DELETE' }
-        );
+        const cap = currentCapability;
+        let url = '/api/fixture/' + encodeURIComponent(fixtureName);
+        if (cap === 'execution') {
+          url = '/api/execution-fixture?relativePath=' + encodeURIComponent(fixtureName);
+        } else if (cap === 'verification') {
+          url = '/api/verification-fixture?relativePath=' + encodeURIComponent(fixtureName);
+        }
+        const res = await fetch(url, { method: 'DELETE' });
         const data = await res.json();
 
         if (footer) footer.style.display = 'none';
@@ -2507,52 +2730,65 @@ export function Demo() {
     }
 
     function buildLabelPromptExecution(name) {
+      const tripleDir = 'packages/cli/autoresearch/expected/execution/' + name;
       return [
-        'You are a Data Labeler creating before/task/after test triples for a code',
-        'rewriting benchmark.',
+        'You are a Data Labeler working on the execution (code rewrite) autoresearch benchmark.',
         '',
-        'Read the fixture source under `packages/cli/autoresearch/fixtures/' + name + '/`',
-        'and find 3-5 representative files that import UI components.',
+        'Selected benchmark case (before / task / after triple):',
+        '`' + tripleDir + '/`',
         '',
-        'For each, create a directory under `packages/cli/autoresearch/expected/execution/`',
-        'with tier classification (tier1/tier2/tier3) containing:',
+        'This directory must contain:',
+        '- `before.tsx` — source before rewrite',
+        '- `task.json` — MigrationTask (id, phase, type, status, description, file as needed,',
+        '  sourceComponent, targetComponent; optional propMappings for prop renames)',
+        '- `after.tsx` — golden output after rewrite (@openzeppelin/ui-components, updated JSX,',
+        '  valid TypeScript)',
         '',
-        '- before.tsx — the original file content (verbatim from the fixture)',
-        '- task.json — a MigrationTask with fields: id, phase, type, status, description,',
-        '  file, sourceComponent, targetComponent (and optional propMappings if props rename)',
-        '- after.tsx — the perfect rewrite: old import replaced with',
-        '  @openzeppelin/ui-components, all JSX updated, valid TypeScript, formatting preserved',
+        'Read all three files. Refine them so `after.tsx` is the correct golden output for',
+        '`rewriteFile(task, before)` — self-contained and representative, without embedding',
+        'benchmark-specific hacks in the triple text itself.',
         '',
-        'Cover edge cases: namespace imports (import * as X), compound components (Dialog.Content),',
-        'aliased imports, multi-component files.',
+        'Adding more cases: create new sibling directories under',
+        '`packages/cli/autoresearch/expected/execution/` (e.g. tier1/, tier2/, tier3/,',
+        'adversarial/), each with the same three files. Copy structure from neighboring triples.',
+        '',
+        'Optional — to mine new snippets from real apps, use trees under',
+        '`packages/cli/autoresearch/fixtures/` and clones described in `fixtures/_external.json`',
+        '(run `npx tsx autoresearch/fetch-fixtures.ts` when needed), then place excerpts into',
+        'new folders under expected/execution/.',
+        '',
+        'Strong coverage across the suite: namespace imports, compound components (e.g.',
+        'Dialog.Content), aliased imports, multi-component files.',
       ].join('\n');
     }
 
     function buildLabelPromptVerification(name) {
+      const jsonPath = 'packages/cli/autoresearch/expected/verification/' + name + '.json';
       return [
-        'You are a Data Labeler creating test fixtures for a migration verification',
-        '(doctor) benchmark.',
+        'You are a Data Labeler working on the migration verification (doctor) benchmark.',
         '',
-        'Look at the existing verification fixtures under',
-        '`packages/cli/autoresearch/expected/verification/` to understand the pattern.',
+        'Selected scenario expectation file:',
+        '`' + jsonPath + '`',
         '',
-        'Then design 3-5 new scenarios — small project directories that represent',
-        'specific migration states:',
+        'Open it and read: `fixture`, `expectedStatus` (pass | fail), `diagnosticKeywords`,',
+        '`task` (MigrationTask), and `projectDir` (relative to `expected/verification/`).',
+        'Load the on-disk project the checker evaluates — usually:',
+        '`packages/cli/autoresearch/expected/verification/` + `projectDir`',
+        '(e.g. `.../broken/my-case/project/` with `src/App.tsx`, `package.json`).',
         '',
-        'Broken scenarios (expectedStatus: "fail"):',
-        '- orphaned old imports alongside new OZ imports',
-        '- missing OZ import after removing old component',
-        '- wrong package name in the replacement import',
+        'Refine the JSON and/or project files so the doctor’s pass/fail result matches',
+        '`expectedStatus`, and (for fail) joined diagnostics contain each `diagnosticKeywords`',
+        'substring (case-insensitive String.includes()). For pass scenarios, prefer',
+        '`diagnosticKeywords: []`.',
         '',
-        'Correct scenarios (expectedStatus: "pass"):',
-        '- old import fully replaced with @openzeppelin/ui-components',
+        'Adding new scenarios: add `group/case.json` plus `group/case/project/` under',
+        '`packages/cli/autoresearch/expected/verification/` (see existing `broken/` and',
+        '`correct/` trees). Set `projectDir` relative to expected/verification, e.g.',
+        '"broken/my-case/project".',
         '',
-        'For each, create the project files AND a JSON fixture with: fixture name,',
-        'expectedStatus, diagnosticKeywords (lowercase substrings the doctor should emit),',
-        'the MigrationTask being checked, and projectDir pointing to the project files.',
-        '',
-        'diagnosticKeywords are checked with case-insensitive String.includes().',
-        'For "pass" scenarios, use an empty array.',
+        'Example broken themes: orphaned old imports next to OZ imports, missing OZ import,',
+        'wrong package name in imports. Example pass themes: clean @openzeppelin/ui-components',
+        'usage consistent with the task.',
       ].join('\n');
     }
 

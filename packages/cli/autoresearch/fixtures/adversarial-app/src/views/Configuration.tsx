@@ -1,9 +1,9 @@
-import { Dialog, DialogContent, DialogTrigger } from '~/sharp/frame/modal';
-import { Select, SelectTrigger, SelectContent, SelectItem } from '~/sharp/frame/picker';
-import { Alert, AlertTitle, AlertDescription } from '~/sharp/frame/notice';
-import { Button } from '~/sharp/frame/action-button';
-import { Checkbox } from '~/sharp/frame/tick-box';
-import { Tooltip } from '~/sharp/frame/hint';
+import { Dialog, DialogContent, DialogTrigger } from '~/sleek/prism/modal';
+import { Select, SelectTrigger, SelectContent, SelectItem } from '~/sleek/prism/picker';
+import { Alert, AlertTitle, AlertDescription } from '~/sleek/prism/notice';
+import { Button } from '~/sleek/prism/action-button';
+import { Checkbox } from '~/sleek/prism/tick-box';
+import { Tooltip } from '~/sleek/prism/hint';
 
 export function Configuration() {
   return (
