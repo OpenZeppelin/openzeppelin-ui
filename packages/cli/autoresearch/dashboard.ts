@@ -61,6 +61,32 @@ function loadExternalTailwindCssByFixture(fixtureName: string): string | undefin
   }
 }
 
+const EXPECTED_INIT_DIR = path.join(__dirname, 'expected', 'init');
+
+/**
+ * Directory under expected/init/<name>/ used as the init benchmark input (mirrors init.ts discovery).
+ * Prefer the bundle folder when present; otherwise the resolved projectDir from the spec JSON.
+ */
+function resolveInitFixtureLocalPath(fixtureName: string): string | null {
+  const specPath = path.join(EXPECTED_INIT_DIR, `${fixtureName}.json`);
+  if (!fs.existsSync(specPath)) return null;
+  try {
+    const raw = fs.readFileSync(specPath, 'utf8');
+    const data = JSON.parse(raw) as { projectDir?: string };
+    const bundleDir = path.join(EXPECTED_INIT_DIR, fixtureName);
+    if (fs.existsSync(bundleDir) && fs.statSync(bundleDir).isDirectory()) {
+      return bundleDir;
+    }
+    const projectDir = data.projectDir
+      ? path.resolve(EXPECTED_INIT_DIR, data.projectDir)
+      : path.join(EXPECTED_INIT_DIR, fixtureName, 'project');
+    if (fs.existsSync(projectDir)) return projectDir;
+    return EXPECTED_INIT_DIR;
+  } catch {
+    return EXPECTED_INIT_DIR;
+  }
+}
+
 type EvalApiPayload = {
   capability: string;
   fixtures: Array<Record<string, unknown>>;
@@ -71,11 +97,18 @@ type EvalApiPayload = {
 function enrichEvaluationForDashboard(payload: EvalApiPayload): EvalApiPayload {
   if (payload.error || !Array.isArray(payload.fixtures)) return payload;
   const repos = loadExternalRepoByName();
+  const isInit = payload.capability === 'init';
   return {
     ...payload,
     fixtures: payload.fixtures.map((fx) => {
       const name = typeof fx.fixture === 'string' ? fx.fixture : '';
-      const resolved = resolveFixturePath(name);
+      let resolved: string | null = null;
+      if (isInit) {
+        resolved = resolveInitFixtureLocalPath(name);
+      }
+      if (!resolved) {
+        resolved = resolveFixturePath(name);
+      }
       return {
         ...fx,
         repoUrl: repos[name] ?? null,
@@ -276,11 +309,14 @@ function removeFixture(fixtureName: string): RemovalResult {
   };
 
   deleteIfExists(path.join(__dirname, 'fixtures', fixtureName));
+  deleteIfExists(path.join(__dirname, 'resolved-fixtures', fixtureName));
   deleteIfExists(path.join(__dirname, 'expected', `${fixtureName}.json`));
   deleteIfExists(path.join(__dirname, 'expected', `${fixtureName}.scaffold.json`));
   deleteIfExists(path.join(__dirname, 'expected', 'planning', `${fixtureName}.json`));
   deleteIfExists(path.join(__dirname, 'expected', 'planning', 'frozen-reports', `${fixtureName}.json`));
   deleteIfExists(path.join(__dirname, 'expected', 'patterns', `${fixtureName}.json`));
+  deleteIfExists(path.join(EXPECTED_INIT_DIR, `${fixtureName}.json`));
+  deleteIfExists(path.join(EXPECTED_INIT_DIR, fixtureName));
 
   const removeFromJsonArray = (filePath: string, key: string) => {
     try {
