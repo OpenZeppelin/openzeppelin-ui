@@ -11,6 +11,7 @@ import {
 } from '@openzeppelin/ui-tailwind-utils';
 
 import { CLI_BRANDING, CLI_FAMILIES, CLI_VERSION, OZ_CORE_PACKAGES } from '../../branding';
+import { ensureTailwindConfigStubIfNeeded } from '../../init/setup';
 import { copyTemplateDirectory, writeTemplate } from '../../templates';
 import { buildInstallCommand, detectFramework, detectPackageManager } from '../../utils/framework';
 import { printError, printJson } from '../../utils/logger';
@@ -137,6 +138,7 @@ export function registerInitCommand(parent: Command): void {
         const agentsCopied = copyAgentFiles(projectRoot);
         const skillCopied = copySkillFiles(projectRoot);
         const tailwindFixed = normalizeTailwind(projectRoot, CLI_FAMILIES, CLI_BRANDING);
+        ensureTailwindConfigStubIfNeeded(projectRoot, CLI_FAMILIES);
 
         const result: InitResult = {
           ok: true,

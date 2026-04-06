@@ -9,6 +9,7 @@ import path from 'node:path';
 
 import {
   fixTailwindProject,
+  printTailwindProject,
   type PackageFamilyMap,
   type TailwindBrandingOptions,
 } from '@openzeppelin/ui-tailwind-utils';
@@ -100,6 +101,31 @@ function normalizeTailwind(
   }
 }
 
+const ROOT_TAILWIND_CONFIG_NAMES = [
+  'tailwind.config.ts',
+  'tailwind.config.mts',
+  'tailwind.config.js',
+  'tailwind.config.mjs',
+  'tailwind.config.cjs',
+] as const;
+
+/** When the project has no Tailwind-enabled package, emit a root config stub with OZ content paths. */
+export function ensureTailwindConfigStubIfNeeded(
+  projectRoot: string,
+  families: PackageFamilyMap
+): void {
+  if (ROOT_TAILWIND_CONFIG_NAMES.some((name) => fs.existsSync(path.join(projectRoot, name)))) {
+    return;
+  }
+
+  const resolved = printTailwindProject(projectRoot, families);
+  if (resolved.ok) {
+    return;
+  }
+
+  writeTemplate(path.join(projectRoot, 'tailwind.config.ts'), 'tailwind.config.ts.template');
+}
+
 /** @description Runs OZ UI kit project setup: packages, provider templates, agents, skill, and Tailwind fixes. */
 export function runSetup(options: SetupOptions): SetupResult {
   const { projectRoot, skipInstall = false } = options;
@@ -113,6 +139,7 @@ export function runSetup(options: SetupOptions): SetupResult {
   const agentsCopied = copyAgentFiles(projectRoot);
   const skillCopied = copySkillFiles(projectRoot);
   const tailwindFixed = normalizeTailwind(projectRoot, CLI_FAMILIES, CLI_BRANDING);
+  ensureTailwindConfigStubIfNeeded(projectRoot, CLI_FAMILIES);
 
   return { packagesInstalled, templatesWritten, agentsCopied, skillCopied, tailwindFixed };
 }
