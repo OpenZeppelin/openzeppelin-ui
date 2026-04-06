@@ -66,6 +66,32 @@ function resolveOzTargetForComponent(comp: ReportComponent, all: ReportComponent
   return null;
 }
 
+/**
+ * @description Per-export OZ target: co-exported sub-primitives (CardContent from card.tsx) map to same-named OZ
+ * components; rows whose catalog target is the family root but the symbol name is a longer prefix extension
+ * (CardContent + Card) map to the concrete symbol; unmappable rows inherit the sibling root as before.
+ */
+function resolveTargetComponentForSourceName(
+  comp: ReportComponent,
+  sourceName: string,
+  baseOz: string | null
+): string | null {
+  if (sourceName !== comp.name) {
+    return sourceName;
+  }
+  const explicitOz = comp.ozTarget;
+  if (explicitOz && explicitOz !== comp.name && comp.name.startsWith(explicitOz)) {
+    return comp.name;
+  }
+  if (explicitOz) {
+    return explicitOz;
+  }
+  if (baseOz && baseOz !== comp.name) {
+    return comp.name;
+  }
+  return baseOz;
+}
+
 function componentSourceNamesForPlan(comp: ReportComponent, scopedFiles: string[]): string[] {
   const rawNames = comp.rawNames ?? [];
   const raw = rawNames.length > 0 ? rawNames : [comp.name];
@@ -148,8 +174,8 @@ export function generateComponentTasks(
   const allComponents = report.components;
 
   for (const comp of allComponents) {
-    const ozTarget = resolveOzTargetForComponent(comp, allComponents);
-    if (!ozTarget) continue;
+    const baseOz = resolveOzTargetForComponent(comp, allComponents);
+    if (!baseOz && !comp.ozTarget) continue;
     if (sourceLibraryIsOzCatalogFallback(comp.sourceLibrary)) continue;
     if (isAppLocalRelativeImport(comp)) continue;
     if (componentFilter && !componentFilter.includes(comp.name)) continue;
@@ -164,6 +190,8 @@ export function generateComponentTasks(
     const sourceNames = componentSourceNamesForPlan(comp, files);
 
     for (const sourceName of sourceNames) {
+      const targetComponent = resolveTargetComponentForSourceName(comp, sourceName, baseOz);
+      if (!targetComponent) continue;
       for (const file of files) {
         tasks.push({
           id: `${type}-${sourceName}-${file.replace(/[/\\]/g, '-')}`,
@@ -171,16 +199,16 @@ export function generateComponentTasks(
           phaseDetail:
             phase === 'form-fields'
               ? 'form-fields'
-              : isCompositeComponent(sourceName, ozTarget)
+              : isCompositeComponent(sourceName, targetComponent)
                 ? 'composite-components'
                 : 'ui-primitives',
           type,
           status: 'pending',
-          description: `Replace ${sourceName} with OZ ${ozTarget} in ${file}`,
+          description: `Replace ${sourceName} with OZ ${targetComponent} in ${file}`,
           file,
           files: [file],
           sourceComponent: sourceName,
-          targetComponent: ozTarget,
+          targetComponent,
           capability: comp.capabilities[0],
           dependsOn: [...FOUNDATION_DEPENDENCIES],
           validation: buildValidation(`${type}-${sourceName}-${file.replace(/[/\\]/g, '-')}`),

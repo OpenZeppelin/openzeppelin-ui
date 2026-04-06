@@ -33,19 +33,42 @@ function specifierBaseName(spec: string): string {
   return spec.includes(' as ') ? spec.split(' as ')[0].trim() : spec.trim();
 }
 
+/** True when the catalog maps this export name to a different compound family root (e.g. TabsContent → Tabs). JSX tags keep the export name after migration. */
+function isCompoundFamilyExport(componentName: string): boolean {
+  const libraries = loadSourceLibraries();
+  for (const lib of Object.values(libraries)) {
+    const entry = lib.mappings[componentName] as { source?: string } | undefined;
+    const root = entry?.source;
+    if (root && root !== componentName) return true;
+  }
+  return false;
+}
+
+/** Catalog `source` root for a component (e.g. CardHeader → Card). Used to group compound imports. */
+function catalogSourceRootForComponent(componentName: string): string | null {
+  const libraries = loadSourceLibraries();
+  for (const lib of Object.values(libraries)) {
+    const entry = lib.mappings[componentName] as { source?: string } | undefined;
+    if (entry?.source) return entry.source;
+  }
+  return null;
+}
+
 function importSpecifiersBelongToSourceFamily(
   importPath: string,
   bases: string[],
   sourceComponent: string
 ): boolean {
   if (!bases.includes(sourceComponent)) return false;
+  const familyRoot = catalogSourceRootForComponent(sourceComponent);
+  if (!familyRoot) return false;
   const libraries = loadSourceLibraries();
   for (const lib of Object.values(libraries)) {
     const pathMatch = lib.importPatterns.some((p) => importPath.includes(p));
     if (!pathMatch) continue;
     const allOk = bases.every((base) => {
       const entry = lib.mappings[base] as { source?: string } | undefined;
-      return entry?.source === sourceComponent;
+      return entry?.source === familyRoot;
     });
     if (allOk) return true;
   }
@@ -78,9 +101,58 @@ function collectOzComponentNames(memberMap: Record<string, string>): string[] {
   return names;
 }
 
-function mergeOzNamedImports(content: string, targetPackage: string, names: string[]): string {
+function collectCatalogImportPathSubstrings(): string[] {
+  const substrings: string[] = [];
+  for (const lib of Object.values(loadSourceLibraries())) {
+    substrings.push(...lib.importPatterns);
+  }
+  return substrings;
+}
+
+/** Start index of the first import line whose module path matches a catalog legacy pattern (not OZ). */
+function firstLegacyCatalogImportLineStart(content: string): number | null {
+  const patterns = collectCatalogImportPathSubstrings();
+  let idx = 0;
+  for (const line of content.split('\n')) {
+    const importIdx = line.search(/^\s*import\b/);
+    if (importIdx >= 0) {
+      const fromMatch = line.match(/from\s*['"]([^'"]+)['"]/);
+      const modPath = fromMatch?.[1];
+      if (
+        modPath &&
+        !modPath.includes('@openzeppelin') &&
+        patterns.some((p) => modPath.includes(p))
+      ) {
+        return idx + importIdx;
+      }
+    }
+    idx += line.length + 1;
+  }
+  return null;
+}
+
+function formatOzNamedImportStatement(
+  targetPackage: string,
+  namesSorted: string[],
+  multiline: boolean
+): string {
+  if (!multiline) {
+    return `import { ${namesSorted.join(', ')} } from '${targetPackage}';`;
+  }
+  const body = namesSorted.map((n) => `  ${n},`).join('\n');
+  return `import {\n${body}\n} from '${targetPackage}';`;
+}
+
+function mergeOzNamedImports(
+  content: string,
+  targetPackage: string,
+  names: string[],
+  preferMultiline: boolean
+): string {
   const unique = [...new Set(names)].sort((a, b) => a.localeCompare(b));
   if (unique.length === 0) return content;
+
+  const multiline = preferMultiline && unique.length >= 5;
 
   const ozImportRegex = new RegExp(
     `import\\s*\\{([^}]*)\\}\\s*from\\s*['"]${escapeRegex(targetPackage)}['"]`
@@ -93,21 +165,24 @@ function mergeOzNamedImports(content: string, targetPackage: string, names: stri
       .map((s) => s.trim())
       .filter(Boolean);
     const merged = [...new Set([...existing, ...unique])].sort((a, b) => a.localeCompare(b));
-    return content.replace(ozMatch[0], `import { ${merged.join(', ')} } from '${targetPackage}'`);
+    const stmt = formatOzNamedImportStatement(targetPackage, merged, multiline);
+    return content.replace(ozMatch[0], stmt);
+  }
+
+  const newLine = `${formatOzNamedImportStatement(targetPackage, unique, multiline)}\n`;
+  const beforeLegacy = firstLegacyCatalogImportLineStart(content);
+  if (beforeLegacy !== null) {
+    return content.slice(0, beforeLegacy) + newLine + content.slice(beforeLegacy);
   }
 
   const lastImportIdx = content.lastIndexOf('import ');
   if (lastImportIdx >= 0) {
     const lineEnd = content.indexOf('\n', lastImportIdx);
     const insertAt = lineEnd >= 0 ? lineEnd + 1 : content.length;
-    return (
-      content.slice(0, insertAt) +
-      `import { ${unique.join(', ')} } from '${targetPackage}';\n` +
-      content.slice(insertAt)
-    );
+    return content.slice(0, insertAt) + newLine + content.slice(insertAt);
   }
 
-  return `import { ${unique.join(', ')} } from '${targetPackage}';\n${content}`;
+  return newLine + content;
 }
 
 function rewriteNamespaceImportBody(
@@ -173,7 +248,7 @@ function rewriteNamespaceImportBody(
   );
   result = result.replace(nsImportLine, '');
 
-  result = mergeOzNamedImports(result, targetPackage, collectOzComponentNames(memberMap));
+  result = mergeOzNamedImports(result, targetPackage, collectOzComponentNames(memberMap), false);
   result = result.replace(/^\s*\n{2,}/gm, '\n');
 
   return result;
@@ -206,6 +281,7 @@ function rewriteImports(
   targetPackage: string
 ): string {
   let result = content;
+  const preferMultilineOzImport = isCompoundFamilyExport(sourceComponent);
 
   const importRegex = new RegExp(
     `import\\s*\\{([^}]*\\b${escapeRegex(sourceComponent)}\\b[^}]*)\\}\\s*from\\s*['"]([^'"]+)['"]\\s*;?`,
@@ -244,7 +320,7 @@ function rewriteImports(
     }
   }
 
-  result = mergeOzNamedImports(result, targetPackage, [...ozSymbols]);
+  result = mergeOzNamedImports(result, targetPackage, [...ozSymbols], preferMultilineOzImport);
   result = result.replace(/^\s*\n{2,}/gm, '\n');
 
   return result;
@@ -299,7 +375,9 @@ export function rewriteFile(
   }
 
   let result = rewriteImports(content, source, target, targetPackage);
-  result = rewriteJsx(result, source, target);
+  if (!isCompoundFamilyExport(source)) {
+    result = rewriteJsx(result, source, target);
+  }
 
   if (context.propMappings && Object.keys(context.propMappings).length > 0) {
     result = applyPropMappings(result, target, context.propMappings);
