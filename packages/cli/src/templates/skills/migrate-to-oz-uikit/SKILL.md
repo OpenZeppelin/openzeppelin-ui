@@ -9,6 +9,19 @@ Migrate an existing React application to the OpenZeppelin UI Kit. This skill orc
 
 ## Workflow
 
+### Ordered pipeline
+
+For a full migration, keep this sequence (each step builds on the last):
+
+1. **`oz-ui migrate init`** — when there is no `migration-manifest.json` yet and OpenZeppelin UI packages are not wired (see Step 1).
+2. **`oz-ui migrate analyze`** — scan the repo; produce `migration-analysis.json`.
+3. **Align** with the user on profile, scope, and ambiguous mappings (decisions inform the plan).
+4. **`oz-ui migrate plan`** — produce `migration-manifest.json` with phased tasks.
+5. **Execute** tasks from the manifest in phase order (code edits), using **`oz-ui migrate doctor`** after each task or batch to verify structure before continuing.
+6. **Complete** with **`oz-ui migrate status`** and a full **`oz-ui migrate doctor`** pass on the manifest.
+
+If a manifest already exists, **resume** with status/doctor instead of re-running init.
+
 ### Step 1: Resume or Initialize
 
 Check if a migration is already in progress:
@@ -79,10 +92,7 @@ For each pending task in the manifest, in phase order:
    - For `storage-migration`: Flag the file for manual review, add a TODO comment noting the affected storage keys
 3. **Update the manifest**: Mark the task as `completed` or `failed`
 4. **Run verification**: `oz-ui migrate doctor --manifest migration-manifest.json --check <task-id> --json`
-5. **Handle failure**: If doctor reports failure:
-   - Stop execution
-   - Report what went wrong with diagnostics
-   - Offer: retry / skip / manual fix
+5. **Handle failure**: When doctor **fails**, stop, report diagnostics, then **retry** after fixing the issue, or skip / fix manually with explicit user consent (do not silently **rollback** committed work without agreement).
 
 ### Step 6: Phase Gate
 
