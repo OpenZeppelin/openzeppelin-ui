@@ -193,6 +193,10 @@
     }
     .refresh-btn:hover { background: var(--surface-hover); color: var(--text); }
     .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .refresh-btn--fixture-toolbar {
+      background: var(--surface); color: var(--text); border-color: var(--border);
+    }
+    .refresh-btn--fixture-toolbar:hover { background: var(--surface-hover); color: var(--text); }
     .refresh-btn .spin { display: inline-block; animation: rotate 1s linear infinite; }
     @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
@@ -557,6 +561,11 @@
     #avf-task { min-height: 160px; }
     #avf-pkg { min-height: 88px; }
     #avf-diagnostics { min-height: 72px; }
+    #aof-desc, #aof-commands, #aof-gates {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px;
+    }
+    #aof-desc { min-height: 64px; }
+    #aof-commands, #aof-gates { min-height: 100px; }
     .aff-prompt-wrap { display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; }
     .aff-prompt-wrap label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim); }
     #aff-prompt, #sap-prompt, #lf-prompt {
@@ -718,9 +727,9 @@
         <div class="panel-header">
           <div class="panel-header-left">
             Per-Fixture Breakdown
-            <button type="button" class="refresh-btn" data-tip="Run the evaluator against current code to refresh scores." onclick="refreshDetail()" style="font-size:11px;padding:2px 8px">&#x21bb; Re-evaluate</button>
-            <button type="button" class="refresh-btn" id="detail-add-fixture-btn" data-tip="Add a new benchmark fixture." onclick="openAddFixtureModal()" style="font-size:11px;padding:2px 8px">+ Add fixture</button>
-            <button type="button" class="refresh-btn" id="regen-adversarial-btn" data-tip="Regenerate randomized adversarial test fixtures for this capability." onclick="regenerateAdversarial(this)" style="font-size:11px;padding:2px 8px;display:none">&#x21bb; Regen adversarial</button>
+            <button type="button" class="refresh-btn refresh-btn--fixture-toolbar" data-tip="Run the evaluator against current code to refresh scores." onclick="refreshDetail()" style="font-size:11px;padding:2px 8px">&#x21bb; Re-evaluate</button>
+            <button type="button" class="refresh-btn refresh-btn--fixture-toolbar" id="detail-add-fixture-btn" data-tip="Add a new benchmark fixture." onclick="openAddFixtureModal()" style="font-size:11px;padding:2px 8px">+ Add fixture</button>
+            <button type="button" class="refresh-btn refresh-btn--fixture-toolbar" id="regen-adversarial-btn" data-tip="Regenerate randomized adversarial test fixtures for this capability." onclick="regenerateAdversarial(this)" style="font-size:11px;padding:2px 8px;display:none">&#x21bb; Regen adversarial</button>
           </div>
           <span class="badge badge-idle" id="fixture-badge">Pending</span>
         </div>
@@ -940,6 +949,46 @@
     </div>
   </div>
 
+  <div id="add-orchestration-fixture-modal" class="modal-overlay" aria-hidden="true" onclick="if(event.target===this)closeAddOrchestrationFixtureModal()">
+    <div class="modal-dialog modal-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="add-orchestration-fixture-title" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 id="add-orchestration-fixture-title">Add orchestration scenario</h2>
+        <button type="button" class="modal-close" onclick="closeAddOrchestrationFixtureModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-intro">
+          Creates <code>packages/cli/autoresearch/expected/orchestration/&lt;name&gt;.json</code> with
+          <code>name</code>, <code>description</code>, <code>expectedCommands</code>, and <code>expectedGates</code>
+          (used when subagent replay is wired; the checklist row <code>skill-checklist</code> stays separate).
+          Slug <code>skill-checklist</code> is reserved.
+        </p>
+        <div class="aff-form" id="aof-form-fields">
+          <div class="aff-field">
+            <label for="aof-name">Scenario slug (filename <code>&lt;slug&gt;.json</code>)</label>
+            <input id="aof-name" type="text" placeholder="my-agent-scenario" autocomplete="off" />
+          </div>
+          <div class="aff-field">
+            <label for="aof-desc">Description (one sentence)</label>
+            <textarea id="aof-desc" spellcheck="true"></textarea>
+          </div>
+          <div class="aff-field">
+            <label for="aof-commands"><code>expectedCommands</code> (one CLI line each)</label>
+            <textarea id="aof-commands" spellcheck="false" placeholder="oz-ui migrate init"></textarea>
+          </div>
+          <div class="aff-field">
+            <label for="aof-gates"><code>expectedGates</code> (one gate id per line)</label>
+            <textarea id="aof-gates" spellcheck="false" placeholder="init-complete-before-analyze"></textarea>
+          </div>
+        </div>
+        <div id="aof-result" style="display:none"></div>
+      </div>
+      <div class="modal-footer" id="aof-footer">
+        <button type="button" class="btn-primary" id="aof-submit-btn" onclick="submitAddOrchestrationFixture()">Create JSON</button>
+        <button type="button" class="btn-secondary" onclick="closeAddOrchestrationFixtureModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <div id="fixture-detail-modal" class="modal-overlay" aria-hidden="true" onclick="if(event.target===this)closeFixtureDetailModal()">
     <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="fixture-detail-title" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -1111,6 +1160,9 @@
         } else if (cap === 'verification') {
           addTip =
             'Add a verification scenario: expected JSON + project/ under expected/verification/ (doctor checker).';
+        } else if (cap === 'orchestration') {
+          addTip =
+            'Add an orchestration scenario JSON under expected/orchestration/ (future subagent replay).';
         }
         addDetailBtn.setAttribute('data-tip', addTip);
       }
@@ -1592,6 +1644,7 @@
       closeAddFixtureModal();
       closeAddExecutionFixtureModal();
       closeAddVerificationFixtureModal();
+      closeAddOrchestrationFixtureModal();
       closeLabelFixtureModal();
       const list = detailState.evalFixtures;
       if (!Array.isArray(list) || index < 0 || index >= list.length) return;
@@ -1694,9 +1747,13 @@
       return missing.length ? 'Missing: ' + missing.join(', ') : null;
     }
 
-    /** Execution and verification use their own trees under expected/, not the shared app fixture list. */
+    /** Capability-local benchmarks under expected/ — not the shared app fixture registry. */
     function shouldAppendUnlabeledFixtures() {
-      return currentCapability !== 'execution' && currentCapability !== 'verification';
+      return (
+        currentCapability !== 'execution' &&
+        currentCapability !== 'verification' &&
+        currentCapability !== 'orchestration'
+      );
     }
 
     function appendUnlabeledFixtures(grid, evaluatedNames) {
@@ -1783,6 +1840,7 @@ export function Demo() {
       closeLabelFixtureModal();
       closeAddFixtureModal();
       closeAddVerificationFixtureModal();
+      closeAddOrchestrationFixtureModal();
       const m = document.getElementById('add-execution-fixture-modal');
       if (!m) return;
       const result = document.getElementById('aef-result');
@@ -1907,6 +1965,7 @@ export function App() {
       closeLabelFixtureModal();
       closeAddFixtureModal();
       closeAddExecutionFixtureModal();
+      closeAddOrchestrationFixtureModal();
       const m = document.getElementById('add-verification-fixture-modal');
       if (!m) return;
       const result = document.getElementById('avf-result');
@@ -2032,6 +2091,119 @@ export function App() {
       }
     }
 
+    const DEFAULT_AOF_COMMANDS = `oz-ui migrate init
+oz-ui migrate analyze
+oz-ui migrate plan`;
+
+    const DEFAULT_AOF_GATES = `init-complete-before-analyze
+analyze-complete-before-plan`;
+
+    function openAddOrchestrationFixtureModal() {
+      closeStartAgentModal();
+      closeLabelFixtureModal();
+      closeAddFixtureModal();
+      closeAddExecutionFixtureModal();
+      closeAddVerificationFixtureModal();
+      const m = document.getElementById('add-orchestration-fixture-modal');
+      if (!m) return;
+      const result = document.getElementById('aof-result');
+      const fields = document.getElementById('aof-form-fields');
+      const footer = document.getElementById('aof-footer');
+      const btn = document.getElementById('aof-submit-btn');
+      if (result) { result.style.display = 'none'; result.innerHTML = ''; }
+      if (fields) fields.style.display = '';
+      if (footer) footer.style.display = '';
+      if (btn) { btn.disabled = false; btn.textContent = 'Create JSON'; }
+      const n = document.getElementById('aof-name');
+      const d = document.getElementById('aof-desc');
+      const c = document.getElementById('aof-commands');
+      const g = document.getElementById('aof-gates');
+      if (n) n.value = 'my-agent-scenario';
+      if (d) d.value = 'Describe the migration state the agent should handle.';
+      if (c) c.value = DEFAULT_AOF_COMMANDS;
+      if (g) g.value = DEFAULT_AOF_GATES;
+      m.classList.add('is-open');
+      m.setAttribute('aria-hidden', 'false');
+      document.addEventListener('keydown', onAddOrchestrationFixtureKeydown);
+      document.body.style.overflow = 'hidden';
+    }
+
+    function onAddOrchestrationFixtureKeydown(e) {
+      if (e.key === 'Escape') closeAddOrchestrationFixtureModal();
+    }
+
+    function closeAddOrchestrationFixtureModal() {
+      const m = document.getElementById('add-orchestration-fixture-modal');
+      if (!m) return;
+      m.classList.remove('is-open');
+      m.setAttribute('aria-hidden', 'true');
+      document.removeEventListener('keydown', onAddOrchestrationFixtureKeydown);
+      document.body.style.overflow = '';
+    }
+
+    async function submitAddOrchestrationFixture() {
+      const btn = document.getElementById('aof-submit-btn');
+      const result = document.getElementById('aof-result');
+      const fields = document.getElementById('aof-form-fields');
+      const footer = document.getElementById('aof-footer');
+      if (!btn) return;
+
+      const name = (document.getElementById('aof-name')?.value || '').trim();
+      const description = (document.getElementById('aof-desc')?.value || '').trim();
+      const cmdRaw = document.getElementById('aof-commands')?.value ?? '';
+      const gateRaw = document.getElementById('aof-gates')?.value ?? '';
+      const expectedCommands = cmdRaw.split('\n').map((l) => l.trim()).filter(Boolean);
+      const expectedGates = gateRaw.split('\n').map((l) => l.trim()).filter(Boolean);
+
+      if (!name) { alert('Enter a scenario slug.'); return; }
+      if (!description) { alert('Enter a description.'); return; }
+      if (!expectedCommands.length) { alert('Add at least one expected command line.'); return; }
+      if (!expectedGates.length) { alert('Add at least one expected gate line.'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Creating…';
+
+      try {
+        const res = await fetch('/api/orchestration-fixture', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, description, expectedCommands, expectedGates }),
+        });
+        const data = await res.json();
+
+        if (fields) fields.style.display = 'none';
+        if (footer) footer.style.display = 'none';
+        if (!result) return;
+        result.style.display = '';
+
+        let html = '';
+        if (data.ok) {
+          html += '<div style="color:var(--green);font-weight:600;font-size:13px;margin-bottom:10px">Orchestration scenario created</div>';
+        } else {
+          html += '<div style="color:var(--orange);font-weight:600;font-size:13px;margin-bottom:10px">Could not create scenario</div>';
+        }
+        if (data.steps?.length) {
+          html += '<ul style="margin:0 0 12px;padding-left:18px;font-size:12px;color:var(--text);line-height:1.7">';
+          data.steps.forEach(s => { html += '<li>' + esc(s) + '</li>'; });
+          html += '</ul>';
+        }
+        if (data.errors?.length) {
+          html += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--red);margin-bottom:4px">Errors</div>';
+          html += '<ul style="margin:0 0 12px;padding-left:18px;font-size:12px;color:var(--red);line-height:1.7">';
+          data.errors.forEach(s => { html += '<li>' + esc(s) + '</li>'; });
+          html += '</ul>';
+        }
+        html += '<div style="margin-top:12px;text-align:right"><button type="button" class="btn-secondary" onclick="closeAddOrchestrationFixtureModal()">Done</button></div>';
+        result.innerHTML = html;
+
+        if (data.ok) refreshDetail();
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = 'Create JSON';
+        alert('Network error: ' + (e && e.message ? e.message : String(e)));
+      }
+    }
+
     function openAddFixtureModal() {
       if (currentCapability === 'execution') {
         openAddExecutionFixtureModal();
@@ -2041,10 +2213,15 @@ export function App() {
         openAddVerificationFixtureModal();
         return;
       }
+      if (currentCapability === 'orchestration') {
+        openAddOrchestrationFixtureModal();
+        return;
+      }
       closeStartAgentModal();
       closeLabelFixtureModal();
       closeAddExecutionFixtureModal();
       closeAddVerificationFixtureModal();
+      closeAddOrchestrationFixtureModal();
       const m = document.getElementById('add-fixture-modal');
       if (!m) return;
       const result = document.getElementById('aff-result');
@@ -2201,6 +2378,9 @@ export function App() {
 
     function openStartAgentModal() {
       closeAddFixtureModal();
+      closeAddExecutionFixtureModal();
+      closeAddVerificationFixtureModal();
+      closeAddOrchestrationFixtureModal();
       closeLabelFixtureModal();
       const locked = !!(currentCapability && PROGRAM_FILE_BY_CAP[currentCapability]);
       const field = document.getElementById('sap-capability-field');
@@ -2296,7 +2476,11 @@ export function App() {
         items += `<a class="fixture-actions-menu-item" href="${escAttr(repoHref)}" target="_blank" rel="noopener noreferrer" onclick="closeAllFixtureMenus()">${famIconGithub} Open on GitHub</a>`;
       }
       items += `<div class="fixture-actions-menu-sep"></div>`;
-      items += `<button type="button" class="fixture-actions-menu-item fam-danger" onclick="closeAllFixtureMenus(); confirmRemoveFixture('${escAttr(name)}')">${famIconTrash} Remove fixture</button>`;
+      const hideRemove =
+        currentCapability === 'orchestration' && name === 'skill-checklist';
+      if (!hideRemove) {
+        items += `<button type="button" class="fixture-actions-menu-item fam-danger" onclick="closeAllFixtureMenus(); confirmRemoveFixture('${escAttr(name)}')">${famIconTrash} Remove fixture</button>`;
+      }
       items += `<button type="button" class="fixture-actions-menu-item" onclick="closeAllFixtureMenus(); openActionsHelpModal()">${famIconHelp} What do these actions do?</button>`;
 
       return `<div class="fixture-actions-cell">` +
@@ -2451,6 +2635,10 @@ export function App() {
             'This will permanently delete the verification scenario at <code>expected/verification/' + esc(fixtureName) + '.json</code> ' +
             'and its <code>project/</code> directory (from <code>projectDir</code> in the JSON). ' +
             'App fixtures and other capabilities are not affected.';
+        } else if (currentCapability === 'orchestration') {
+          desc.innerHTML =
+            'This will permanently delete <code>expected/orchestration/' + esc(fixtureName) + '.json</code>. ' +
+            'The synthetic <code>skill-checklist</code> row cannot be removed here.';
         } else {
           desc.innerHTML =
             'This will permanently delete <strong>' + esc(fixtureName) + '</strong> and all its artifacts: ' +
@@ -2496,6 +2684,8 @@ export function App() {
           url = '/api/execution-fixture?relativePath=' + encodeURIComponent(fixtureName);
         } else if (cap === 'verification') {
           url = '/api/verification-fixture?relativePath=' + encodeURIComponent(fixtureName);
+        } else if (cap === 'orchestration') {
+          url = '/api/orchestration-fixture?name=' + encodeURIComponent(fixtureName);
         }
         const res = await fetch(url, { method: 'DELETE' });
         const data = await res.json();
@@ -2793,25 +2983,43 @@ export function App() {
     }
 
     function buildLabelPromptOrchestration(name) {
+      if (name === 'skill-checklist') {
+        return [
+          'You are a Data Labeler working on the orchestration benchmark’s **static checklist** row.',
+          '',
+          'Primary file to edit:',
+          '`packages/cli/src/templates/skills/migrate-to-oz-uikit/SKILL.md`',
+          '',
+          'The evaluator scores this row by checking that SKILL.md mentions the right CLI commands,',
+          'phases, gates, error recovery, and manifest usage (see orchestration.ts checklist).',
+          '',
+          'Refine SKILL.md so agents get clear, ordered guidance (init → analyze → plan → execute → doctor)',
+          'without hardcoding benchmark-only project names.',
+          '',
+          'Related scenario JSON files (for future subagent replay) live under',
+          '`packages/cli/autoresearch/expected/orchestration/*.json` — same shape as',
+          'fresh-project-start.json (name, description, expectedCommands, expectedGates).',
+        ].join('\n');
+      }
+      const jsonPath = 'packages/cli/autoresearch/expected/orchestration/' + name + '.json';
       return [
-        'You are a Data Labeler creating scenario fixtures for an orchestration benchmark.',
+        'You are a Data Labeler working on an **orchestration scenario** JSON (subagent replay hook).',
         '',
-        'Read the SKILL.md protocol at',
+        'Selected file:',
+        '`' + jsonPath + '`',
+        '',
+        'Edit it in place. Each file is one object with:',
+        '- `name` — slug matching the filename (without .json)',
+        '- `description` — one sentence',
+        '- `expectedCommands` — ordered CLI strings (e.g. "oz-ui migrate init")',
+        '- `expectedGates` — sequencing invariants (e.g. "init-complete-before-analyze")',
+        '',
+        'Also read `SKILL.md` at',
         '`packages/cli/src/templates/skills/migrate-to-oz-uikit/SKILL.md`',
-        'to understand the migration workflow it teaches to coding agents.',
+        'so scenarios stay aligned with what the skill teaches.',
         '',
-        'Look at existing scenarios under `packages/cli/autoresearch/expected/orchestration/`',
-        'to understand the format.',
-        '',
-        'Then design 3-5 realistic scenarios an agent might encounter:',
-        '- Fresh project start (no prior migration)',
-        '- Resuming a partial migration (init/analyze done, needs plan + execute)',
-        '- Doctor fails mid-migration (must re-execute failing tasks)',
-        '- No components detected (should skip plan/execute)',
-        '',
-        'For each scenario output a JSON with: name, description (one sentence),',
-        'expectedCommands (ordered CLI commands like "oz-ui migrate init"),',
-        'and expectedGates (sequencing invariants like "init-complete-before-analyze").',
+        'Adding scenarios: new `<slug>.json` files in the same directory (do not use the reserved',
+        'slug `skill-checklist`).',
       ].join('\n');
     }
 
@@ -2853,6 +3061,9 @@ export function App() {
     function openLabelFixtureModal(presetFixtureName) {
       closeStartAgentModal();
       closeAddFixtureModal();
+      closeAddExecutionFixtureModal();
+      closeAddVerificationFixtureModal();
+      closeAddOrchestrationFixtureModal();
       closeFixtureDetailModal();
 
       if (presetFixtureName) {

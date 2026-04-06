@@ -15,6 +15,8 @@
  *   DELETE /api/execution-fixture          -> remove execution triple (?relativePath=tier3/foo)
  *   POST /api/verification-fixture         -> add verification scenario (json + project/)
  *   DELETE /api/verification-fixture       -> remove verification scenario (?relativePath=broken/foo)
+ *   POST /api/orchestration-fixture        -> add orchestration scenario JSON
+ *   DELETE /api/orchestration-fixture      -> remove scenario (?name=slug)
  *   DELETE /api/fixture/:name              -> remove fixture and all its artifacts
  *   GET /api/fixtures/status               -> artifact status for all known fixtures
  *   GET /api/stream            -> SSE (watches all results-*.tsv)
@@ -38,6 +40,29 @@ const DEFAULT_PORT = 4200;
 const EXTERNAL_MANIFEST_PATH = path.join(__dirname, 'fixtures', '_external.json');
 const EXECUTION_EXPECTED_DIR = path.join(__dirname, 'expected', 'execution');
 const VERIFICATION_EXPECTED_DIR = path.join(__dirname, 'expected', 'verification');
+const ORCHESTRATION_EXPECTED_DIR = path.join(__dirname, 'expected', 'orchestration');
+const ORCHESTRATION_SKILL_PATH = path.resolve(
+  __dirname,
+  '..',
+  'src',
+  'templates',
+  'skills',
+  'migrate-to-oz-uikit',
+  'SKILL.md'
+);
+
+function isOrchestrationScenarioSlug(slug: string): boolean {
+  return /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(slug);
+}
+
+function resolveOrchestrationScenarioJsonPath(slug: string): string | null {
+  if (!isOrchestrationScenarioSlug(slug)) return null;
+  const jsonPath = path.join(ORCHESTRATION_EXPECTED_DIR, `${slug}.json`);
+  const base = path.resolve(ORCHESTRATION_EXPECTED_DIR);
+  const resolved = path.resolve(jsonPath);
+  if (!resolved.startsWith(base + path.sep) && resolved !== base) return null;
+  return jsonPath;
+}
 
 function loadExternalRepoByName(): Record<string, string> {
   try {
@@ -106,6 +131,7 @@ function enrichEvaluationForDashboard(payload: EvalApiPayload): EvalApiPayload {
   const isInit = payload.capability === 'init';
   const isExecution = payload.capability === 'execution';
   const isVerification = payload.capability === 'verification';
+  const isOrchestration = payload.capability === 'orchestration';
   return {
     ...payload,
     fixtures: payload.fixtures.map((fx) => {
@@ -124,6 +150,14 @@ function enrichEvaluationForDashboard(payload: EvalApiPayload): EvalApiPayload {
       if (isVerification && !resolved) {
         const vPath = resolveVerificationJsonPath(name);
         if (vPath && fs.existsSync(vPath)) resolved = vPath;
+      }
+      if (isOrchestration && !resolved) {
+        if (name === 'skill-checklist' && fs.existsSync(ORCHESTRATION_SKILL_PATH)) {
+          resolved = ORCHESTRATION_SKILL_PATH;
+        } else {
+          const oPath = resolveOrchestrationScenarioJsonPath(name);
+          if (oPath && fs.existsSync(oPath)) resolved = oPath;
+        }
       }
       return {
         ...fx,
@@ -652,6 +686,98 @@ function removeVerificationFixture(relativePath: string): RemovalResult {
   return { ok: errors.length === 0, removed, edited: [], errors };
 }
 
+const RESERVED_ORCHESTRATION_SCENARIO = 'skill-checklist';
+
+interface AddOrchestrationFixtureRequest {
+  name: string;
+  description: string;
+  expectedCommands: string[];
+  expectedGates: string[];
+}
+
+function addOrchestrationFixture(body: AddOrchestrationFixtureRequest): AddFixtureResult {
+  const steps: string[] = [];
+  const errors: string[] = [];
+  const name = typeof body.name === 'string' ? body.name.trim() : '';
+  if (!name || !isOrchestrationScenarioSlug(name)) {
+    return { ok: false, steps, errors: ['name must be a lowercase slug (e.g. my-scenario)'] };
+  }
+  if (name === RESERVED_ORCHESTRATION_SCENARIO) {
+    return { ok: false, steps, errors: [`"${RESERVED_ORCHESTRATION_SCENARIO}" is reserved for the SKILL.md checklist`] };
+  }
+  if (typeof body.description !== 'string' || !body.description.trim()) {
+    return { ok: false, steps, errors: ['description is required'] };
+  }
+  const cmds = Array.isArray(body.expectedCommands)
+    ? body.expectedCommands.filter((c) => typeof c === 'string' && c.trim())
+    : [];
+  const gates = Array.isArray(body.expectedGates)
+    ? body.expectedGates.filter((g) => typeof g === 'string' && g.trim())
+    : [];
+  if (cmds.length === 0) {
+    return { ok: false, steps, errors: ['expectedCommands must be a non-empty array of strings'] };
+  }
+  if (gates.length === 0) {
+    return { ok: false, steps, errors: ['expectedGates must be a non-empty array of strings'] };
+  }
+
+  const jsonPath = resolveOrchestrationScenarioJsonPath(name);
+  if (!jsonPath) {
+    return { ok: false, steps, errors: ['Invalid orchestration scenario name'] };
+  }
+  if (fs.existsSync(jsonPath)) {
+    return {
+      ok: false,
+      steps,
+      errors: [`Scenario already exists: ${path.relative(__dirname, jsonPath)}`],
+    };
+  }
+
+  const spec = {
+    name,
+    description: body.description.trim(),
+    expectedCommands: cmds.map((c) => c.trim()),
+    expectedGates: gates.map((g) => g.trim()),
+  };
+
+  try {
+    fs.mkdirSync(ORCHESTRATION_EXPECTED_DIR, { recursive: true });
+    fs.writeFileSync(jsonPath, JSON.stringify(spec, null, 2) + '\n', 'utf8');
+    steps.push(`Created ${path.relative(__dirname, jsonPath)}`);
+  } catch (err: unknown) {
+    errors.push(err instanceof Error ? err.message : String(err));
+  }
+  return { ok: errors.length === 0, steps, errors };
+}
+
+function removeOrchestrationScenario(slug: string): RemovalResult {
+  const removed: string[] = [];
+  const errors: string[] = [];
+  const trimmed = slug.trim();
+  if (trimmed === RESERVED_ORCHESTRATION_SCENARIO) {
+    return {
+      ok: false,
+      removed,
+      edited: [],
+      errors: ['Cannot remove the synthetic skill-checklist row — it is not a JSON scenario file'],
+    };
+  }
+  const jsonPath = resolveOrchestrationScenarioJsonPath(trimmed);
+  if (!jsonPath) {
+    return { ok: false, removed, edited: [], errors: ['Invalid orchestration scenario name'] };
+  }
+  if (!fs.existsSync(jsonPath)) {
+    return { ok: false, removed, edited: [], errors: ['Orchestration scenario JSON not found'] };
+  }
+  try {
+    fs.unlinkSync(jsonPath);
+    removed.push(path.relative(__dirname, jsonPath));
+  } catch (err: unknown) {
+    errors.push(err instanceof Error ? err.message : String(err));
+  }
+  return { ok: errors.length === 0, removed, edited: [], errors };
+}
+
 interface AddFixtureRequest {
   name: string;
   type: 'external' | 'synthetic';
@@ -1044,6 +1170,26 @@ function main(): void {
         return;
       }
 
+      if (segments[1] === 'orchestration-fixture' && !segments[2] && req.method === 'POST') {
+        const chunks: Buffer[] = [];
+        for await (const chunk of req) chunks.push(chunk as Buffer);
+        try {
+          const body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as AddOrchestrationFixtureRequest;
+          const result = addOrchestrationFixture(body);
+          serveJson(res, result);
+        } catch (err: unknown) {
+          serveJson(res, { ok: false, steps: [], errors: [`Bad request: ${err instanceof Error ? err.message : String(err)}`] });
+        }
+        return;
+      }
+
+      if (segments[1] === 'orchestration-fixture' && !segments[2] && req.method === 'DELETE') {
+        const slug = url.searchParams.get('name')?.trim() ?? '';
+        const result = removeOrchestrationScenario(slug);
+        serveJson(res, result);
+        return;
+      }
+
       if (segments[1] === 'fixtures' && segments[2] === 'status' && req.method === 'GET') {
         const all = getAllFixtureNames();
         serveJson(res, { fixtures: all.map(getFixtureArtifacts) });
@@ -1074,6 +1220,8 @@ function main(): void {
     console.log(`    /api/execution-fixture     Remove execution triple (DELETE ?relativePath=)`);
     console.log(`    /api/verification-fixture  Add verification scenario (POST JSON)`);
     console.log(`    /api/verification-fixture  Remove verification scenario (DELETE ?relativePath=)`);
+    console.log(`    /api/orchestration-fixture Add orchestration scenario (POST JSON)`);
+    console.log(`    /api/orchestration-fixture Remove scenario (DELETE ?name=slug)`);
     console.log(`    /api/fixture/:name        Remove fixture and all artifacts (DELETE)`);
     console.log(`    /api/fixtures/status       Artifact status for all fixtures (GET)`);
     console.log(`    /api/stream               SSE updates\n`);
