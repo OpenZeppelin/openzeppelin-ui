@@ -506,6 +506,7 @@
       background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
       box-shadow: 0 24px 48px rgba(0,0,0,0.45);
     }
+    .modal-dialog--wide { width: min(920px, 100%); }
     .modal-header {
       display: flex; align-items: center; justify-content: space-between; gap: 12px;
       padding: 16px 20px; border-bottom: 1px solid var(--border);
@@ -546,6 +547,9 @@
       cursor: pointer;
     }
     .aff-field textarea { min-height: 56px; resize: vertical; }
+    #aef-before, #aef-after, #aef-task { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+    #aef-before, #aef-after { min-height: 100px; }
+    #aef-task { min-height: 180px; }
     .aff-prompt-wrap { display: flex; flex-direction: column; gap: 6px; flex: 1; min-height: 0; }
     .aff-prompt-wrap label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim); }
     #aff-prompt, #sap-prompt, #lf-prompt {
@@ -708,7 +712,7 @@
           <div class="panel-header-left">
             Per-Fixture Breakdown
             <button type="button" class="refresh-btn" data-tip="Run the evaluator against current code to refresh scores." onclick="refreshDetail()" style="font-size:11px;padding:2px 8px">&#x21bb; Re-evaluate</button>
-            <button type="button" class="refresh-btn" data-tip="Add a new benchmark fixture." onclick="openAddFixtureModal()" style="font-size:11px;padding:2px 8px">+ Add fixture</button>
+            <button type="button" class="refresh-btn" id="detail-add-fixture-btn" data-tip="Add a new benchmark fixture." onclick="openAddFixtureModal()" style="font-size:11px;padding:2px 8px">+ Add fixture</button>
             <button type="button" class="refresh-btn" id="regen-adversarial-btn" data-tip="Regenerate randomized adversarial test fixtures for this capability." onclick="regenerateAdversarial(this)" style="font-size:11px;padding:2px 8px;display:none">&#x21bb; Regen adversarial</button>
           </div>
           <span class="badge badge-idle" id="fixture-badge">Pending</span>
@@ -832,6 +836,45 @@
       <div class="modal-footer" id="aff-footer">
         <button type="button" class="btn-primary" id="aff-submit-btn" onclick="submitAddFixture()">Add fixture</button>
         <button type="button" class="btn-secondary" onclick="closeAddFixtureModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="add-execution-fixture-modal" class="modal-overlay" aria-hidden="true" onclick="if(event.target===this)closeAddExecutionFixtureModal()">
+    <div class="modal-dialog modal-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="add-execution-fixture-title" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 id="add-execution-fixture-title">Add execution fixture</h2>
+        <button type="button" class="modal-close" onclick="closeAddExecutionFixtureModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-intro">
+          Creates <code>packages/cli/autoresearch/expected/execution/&lt;path&gt;/</code> with
+          <code>before.tsx</code>, <code>task.json</code>, and <code>after.tsx</code> for the execution evaluator
+          (<code>rewriteFile</code> vs golden output). Use path segments like <code>tier3/my-case</code>.
+        </p>
+        <div class="aff-form" id="aef-form-fields">
+          <div class="aff-field">
+            <label for="aef-relative-path">Relative path under <code>expected/execution/</code></label>
+            <input id="aef-relative-path" type="text" placeholder="tier3/my-component-swap" autocomplete="off" />
+          </div>
+          <div class="aff-field">
+            <label for="aef-before"><code>before.tsx</code></label>
+            <textarea id="aef-before" spellcheck="false"></textarea>
+          </div>
+          <div class="aff-field">
+            <label for="aef-task"><code>task.json</code> (migration task)</label>
+            <textarea id="aef-task" spellcheck="false"></textarea>
+          </div>
+          <div class="aff-field">
+            <label for="aef-after"><code>after.tsx</code> (expected rewrite)</label>
+            <textarea id="aef-after" spellcheck="false"></textarea>
+          </div>
+        </div>
+        <div id="aef-result" style="display:none"></div>
+      </div>
+      <div class="modal-footer" id="aef-footer">
+        <button type="button" class="btn-primary" id="aef-submit-btn" onclick="submitAddExecutionFixture()">Create triple</button>
+        <button type="button" class="btn-secondary" onclick="closeAddExecutionFixtureModal()">Cancel</button>
       </div>
     </div>
   </div>
@@ -999,6 +1042,15 @@
       };
 
       resetDetailUI();
+      const addDetailBtn = document.getElementById('detail-add-fixture-btn');
+      if (addDetailBtn) {
+        addDetailBtn.setAttribute(
+          'data-tip',
+          cap === 'execution'
+            ? 'Add an execution benchmark: before.tsx, task.json, after.tsx under expected/execution/.'
+            : 'Add a new benchmark app fixture (manifest, fetch, scaffold).'
+        );
+      }
       if (chart) { chart.destroy(); chart = null; }
       initChart();
       setFixtureBadge('evaluating');
@@ -1380,7 +1432,7 @@
         detailState.evalFixtures = null;
         setFixtureBadge('idle', 'No fixtures');
         grid.innerHTML = '<div class="empty-state"><p>No labeled fixtures found for this capability.</p></div>';
-        appendUnlabeledFixtures(grid, new Set());
+        if (shouldAppendUnlabeledFixtures()) appendUnlabeledFixtures(grid, new Set());
         return;
       }
 
@@ -1433,7 +1485,9 @@
         </div>`;
       }).join('');
 
-      appendUnlabeledFixtures(grid, new Set(evalData.fixtures.map(f => f.fixture)));
+      if (shouldAppendUnlabeledFixtures()) {
+        appendUnlabeledFixtures(grid, new Set(evalData.fixtures.map(f => f.fixture)));
+      }
       setFixtureBadge('ready');
     }
 
@@ -1575,6 +1629,11 @@
       return missing.length ? 'Missing: ' + missing.join(', ') : null;
     }
 
+    /** Execution uses `expected/execution/**` triples, not the shared app fixture list. */
+    function shouldAppendUnlabeledFixtures() {
+      return currentCapability !== 'execution';
+    }
+
     function appendUnlabeledFixtures(grid, evaluatedNames) {
       const unlabeled = Object.keys(detailState.artifactStatusMap)
         .filter(name => !evaluatedNames.has(name))
@@ -1629,9 +1688,146 @@
       });
     }
 
-    function openAddFixtureModal() {
+    const DEFAULT_AEF_TASK = `{
+  "id": "component-replacement-Example",
+  "phase": "ui-components",
+  "type": "component-replacement",
+  "status": "pending",
+  "description": "Replace Button with OZ Button",
+  "file": "src/Example.tsx",
+  "sourceComponent": "Button",
+  "targetComponent": "Button"
+}`;
+
+    const DEFAULT_AEF_BEFORE = `import { Button } from '@acme/ui';
+
+export function Demo() {
+  return <Button variant="primary">Hi</Button>;
+}
+`;
+
+    const DEFAULT_AEF_AFTER = `import { Button } from '@openzeppelin/ui-components';
+
+export function Demo() {
+  return <Button variant="primary">Hi</Button>;
+}
+`;
+
+    function openAddExecutionFixtureModal() {
       closeStartAgentModal();
       closeLabelFixtureModal();
+      closeAddFixtureModal();
+      const m = document.getElementById('add-execution-fixture-modal');
+      if (!m) return;
+      const result = document.getElementById('aef-result');
+      const fields = document.getElementById('aef-form-fields');
+      const footer = document.getElementById('aef-footer');
+      const btn = document.getElementById('aef-submit-btn');
+      const rel = document.getElementById('aef-relative-path');
+      const beforeEl = document.getElementById('aef-before');
+      const taskEl = document.getElementById('aef-task');
+      const afterEl = document.getElementById('aef-after');
+      if (result) { result.style.display = 'none'; result.innerHTML = ''; }
+      if (fields) fields.style.display = '';
+      if (footer) footer.style.display = '';
+      if (btn) { btn.disabled = false; btn.textContent = 'Create triple'; }
+      if (rel) rel.value = '';
+      if (beforeEl) beforeEl.value = DEFAULT_AEF_BEFORE;
+      if (taskEl) taskEl.value = DEFAULT_AEF_TASK;
+      if (afterEl) afterEl.value = DEFAULT_AEF_AFTER;
+      m.classList.add('is-open');
+      m.setAttribute('aria-hidden', 'false');
+      document.addEventListener('keydown', onAddExecutionFixtureKeydown);
+      document.body.style.overflow = 'hidden';
+    }
+
+    function onAddExecutionFixtureKeydown(e) {
+      if (e.key === 'Escape') closeAddExecutionFixtureModal();
+    }
+
+    function closeAddExecutionFixtureModal() {
+      const m = document.getElementById('add-execution-fixture-modal');
+      if (!m) return;
+      m.classList.remove('is-open');
+      m.setAttribute('aria-hidden', 'true');
+      document.removeEventListener('keydown', onAddExecutionFixtureKeydown);
+      document.body.style.overflow = '';
+    }
+
+    async function submitAddExecutionFixture() {
+      const btn = document.getElementById('aef-submit-btn');
+      const result = document.getElementById('aef-result');
+      const fields = document.getElementById('aef-form-fields');
+      const footer = document.getElementById('aef-footer');
+      if (!btn) return;
+
+      const relativePath = (document.getElementById('aef-relative-path')?.value || '').trim();
+      const before = document.getElementById('aef-before')?.value ?? '';
+      const after = document.getElementById('aef-after')?.value ?? '';
+      const taskRaw = (document.getElementById('aef-task')?.value || '').trim();
+
+      if (!relativePath) { alert('Enter a relative path (e.g. tier3/my-case).'); return; }
+
+      let task;
+      try {
+        task = JSON.parse(taskRaw);
+      } catch {
+        alert('task.json must be valid JSON.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Creating…';
+
+      try {
+        const res = await fetch('/api/execution-fixture', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ relativePath, before, task, after }),
+        });
+        const data = await res.json();
+
+        if (fields) fields.style.display = 'none';
+        if (footer) footer.style.display = 'none';
+        if (!result) return;
+        result.style.display = '';
+
+        let html = '';
+        if (data.ok) {
+          html += '<div style="color:var(--green);font-weight:600;font-size:13px;margin-bottom:10px">Execution triple created</div>';
+        } else {
+          html += '<div style="color:var(--orange);font-weight:600;font-size:13px;margin-bottom:10px">Could not create triple</div>';
+        }
+        if (data.steps?.length) {
+          html += '<ul style="margin:0 0 12px;padding-left:18px;font-size:12px;color:var(--text);line-height:1.7">';
+          data.steps.forEach(s => { html += '<li>' + esc(s) + '</li>'; });
+          html += '</ul>';
+        }
+        if (data.errors?.length) {
+          html += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--red);margin-bottom:4px">Errors</div>';
+          html += '<ul style="margin:0 0 12px;padding-left:18px;font-size:12px;color:var(--red);line-height:1.7">';
+          data.errors.forEach(s => { html += '<li>' + esc(s) + '</li>'; });
+          html += '</ul>';
+        }
+        html += '<div style="margin-top:12px;text-align:right"><button type="button" class="btn-secondary" onclick="closeAddExecutionFixtureModal()">Done</button></div>';
+        result.innerHTML = html;
+
+        if (data.ok) refreshDetail();
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = 'Create triple';
+        alert('Network error: ' + (e && e.message ? e.message : String(e)));
+      }
+    }
+
+    function openAddFixtureModal() {
+      if (currentCapability === 'execution') {
+        openAddExecutionFixtureModal();
+        return;
+      }
+      closeStartAgentModal();
+      closeLabelFixtureModal();
+      closeAddExecutionFixtureModal();
       const m = document.getElementById('add-fixture-modal');
       if (!m) return;
       const result = document.getElementById('aff-result');
@@ -2027,10 +2223,19 @@
       const result = document.getElementById('remove-fixture-result');
       const footer = document.getElementById('remove-fixture-footer');
       const confirmBtn = document.getElementById('remove-fixture-confirm');
-      if (desc) desc.innerHTML =
-        'This will permanently delete <strong>' + esc(fixtureName) + '</strong> and all its artifacts: ' +
-        'fixture source, detection expectations, scaffold, planning frozen reports and expectations, ' +
-        'pattern expectations, and entries in config files.';
+      if (desc) {
+        if (currentCapability === 'execution') {
+          desc.innerHTML =
+            'This will permanently delete the execution triple at <code>expected/execution/' + esc(fixtureName) + '</code> ' +
+            '(<code>before.tsx</code>, <code>task.json</code>, <code>after.tsx</code>). ' +
+            'App fixtures and other capabilities are not affected.';
+        } else {
+          desc.innerHTML =
+            'This will permanently delete <strong>' + esc(fixtureName) + '</strong> and all its artifacts: ' +
+            'fixture source, detection expectations, scaffold, planning frozen reports and expectations, ' +
+            'pattern expectations, and entries in config files.';
+        }
+      }
       if (result) { result.style.display = 'none'; result.innerHTML = ''; }
       if (footer) footer.style.display = '';
       if (confirmBtn) {
@@ -2063,7 +2268,13 @@
       if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Removing…'; }
 
       try {
-        const res = await fetch('/api/fixture/' + encodeURIComponent(fixtureName), { method: 'DELETE' });
+        const isExecution = currentCapability === 'execution';
+        const res = await fetch(
+          isExecution
+            ? '/api/execution-fixture?relativePath=' + encodeURIComponent(fixtureName)
+            : '/api/fixture/' + encodeURIComponent(fixtureName),
+          { method: 'DELETE' }
+        );
         const data = await res.json();
 
         if (footer) footer.style.display = 'none';

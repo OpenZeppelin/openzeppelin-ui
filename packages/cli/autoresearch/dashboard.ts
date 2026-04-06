@@ -11,6 +11,8 @@
  *   POST /api/regenerate-scaffold/:fixture -> regenerate detection scaffold
  *   POST /api/regenerate-adversarial/:cap  -> regenerate adversarial fixtures
  *   POST /api/fixture                      -> add a new fixture (register + fetch + scaffold)
+ *   POST /api/execution-fixture            -> add execution triple (before.tsx, task.json, after.tsx)
+ *   DELETE /api/execution-fixture          -> remove execution triple (?relativePath=tier3/foo)
  *   DELETE /api/fixture/:name              -> remove fixture and all its artifacts
  *   GET /api/fixtures/status               -> artifact status for all known fixtures
  *   GET /api/stream            -> SSE (watches all results-*.tsv)
@@ -32,6 +34,7 @@ const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_PORT = 4200;
 const EXTERNAL_MANIFEST_PATH = path.join(__dirname, 'fixtures', '_external.json');
+const EXECUTION_EXPECTED_DIR = path.join(__dirname, 'expected', 'execution');
 
 function loadExternalRepoByName(): Record<string, string> {
   try {
@@ -98,6 +101,7 @@ function enrichEvaluationForDashboard(payload: EvalApiPayload): EvalApiPayload {
   if (payload.error || !Array.isArray(payload.fixtures)) return payload;
   const repos = loadExternalRepoByName();
   const isInit = payload.capability === 'init';
+  const isExecution = payload.capability === 'execution';
   return {
     ...payload,
     fixtures: payload.fixtures.map((fx) => {
@@ -108,6 +112,10 @@ function enrichEvaluationForDashboard(payload: EvalApiPayload): EvalApiPayload {
       }
       if (!resolved) {
         resolved = resolveFixturePath(name);
+      }
+      if (isExecution && !resolved) {
+        const execDir = path.join(EXECUTION_EXPECTED_DIR, ...name.split('/'));
+        if (fs.existsSync(execDir)) resolved = execDir;
       }
       return {
         ...fx,
@@ -356,6 +364,127 @@ function removeFixture(fixtureName: string): RemovalResult {
   }
 
   return { ok: errors.length === 0, removed, edited, errors };
+}
+
+function normalizeExecutionRelativePath(input: string): string | null {
+  const s = input.trim().replace(/\\/g, '/').replace(/^\/+|\/+$/g, '');
+  if (!s || s.includes('..')) return null;
+  const segments = s.split('/').filter(Boolean);
+  if (segments.length === 0 || segments.length > 12) return null;
+  for (const seg of segments) {
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(seg)) return null;
+  }
+  return segments.join('/');
+}
+
+function resolveExecutionFixtureDir(rel: string): string | null {
+  const normalized = normalizeExecutionRelativePath(rel);
+  if (!normalized) return null;
+  const full = path.resolve(EXECUTION_EXPECTED_DIR, ...normalized.split('/'));
+  const base = path.resolve(EXECUTION_EXPECTED_DIR);
+  if (full === base || !full.startsWith(base + path.sep)) return null;
+  return full;
+}
+
+function isPlainObject(o: unknown): o is Record<string, unknown> {
+  return typeof o === 'object' && o !== null && !Array.isArray(o);
+}
+
+function validateExecutionTask(task: unknown): string | null {
+  if (!isPlainObject(task)) return 'task must be a JSON object';
+  const need = ['id', 'phase', 'type', 'status', 'description'] as const;
+  for (const k of need) {
+    const v = task[k];
+    if (typeof v !== 'string' || !v.trim()) return `task.${k} must be a non-empty string`;
+  }
+  return null;
+}
+
+function isExecutionTripleDir(dir: string): boolean {
+  return (
+    fs.existsSync(path.join(dir, 'before.tsx')) &&
+    fs.existsSync(path.join(dir, 'task.json')) &&
+    fs.existsSync(path.join(dir, 'after.tsx'))
+  );
+}
+
+interface AddExecutionFixtureRequest {
+  relativePath: string;
+  before: string;
+  task: unknown;
+  after: string;
+}
+
+function addExecutionFixture(body: AddExecutionFixtureRequest): AddFixtureResult {
+  const steps: string[] = [];
+  const errors: string[] = [];
+  if (typeof body.relativePath !== 'string' || !body.relativePath.trim()) {
+    return { ok: false, steps, errors: ['relativePath is required'] };
+  }
+  if (typeof body.before !== 'string' || typeof body.after !== 'string') {
+    return { ok: false, steps, errors: ['before and after must be strings'] };
+  }
+  const dir = resolveExecutionFixtureDir(body.relativePath);
+  if (!dir) {
+    return {
+      ok: false,
+      steps,
+      errors: ['Invalid relative path — use lowercase path segments (e.g. tier3/my-case), no ..'],
+    };
+  }
+  if (fs.existsSync(dir)) {
+    return {
+      ok: false,
+      steps,
+      errors: [`Execution fixture already exists: ${path.relative(__dirname, dir)}`],
+    };
+  }
+  const taskErr = validateExecutionTask(body.task);
+  if (taskErr) return { ok: false, steps, errors: [taskErr] };
+
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    const taskJson = JSON.stringify(body.task, null, 2) + '\n';
+    fs.writeFileSync(path.join(dir, 'before.tsx'), body.before, 'utf8');
+    fs.writeFileSync(path.join(dir, 'task.json'), taskJson, 'utf8');
+    fs.writeFileSync(path.join(dir, 'after.tsx'), body.after, 'utf8');
+    steps.push(`Created ${path.relative(__dirname, dir)} with before.tsx, task.json, after.tsx`);
+  } catch (err: unknown) {
+    errors.push(err instanceof Error ? err.message : String(err));
+    try {
+      if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
+    } catch {
+      /* ignore */
+    }
+  }
+  return { ok: errors.length === 0, steps, errors };
+}
+
+function removeExecutionFixture(relativePath: string): RemovalResult {
+  const removed: string[] = [];
+  const errors: string[] = [];
+  const dir = resolveExecutionFixtureDir(relativePath);
+  if (!dir) {
+    return { ok: false, removed, edited: [], errors: ['Invalid execution fixture path'] };
+  }
+  if (!fs.existsSync(dir)) {
+    return { ok: false, removed, edited: [], errors: ['Execution fixture directory not found'] };
+  }
+  if (!isExecutionTripleDir(dir)) {
+    return {
+      ok: false,
+      removed,
+      edited: [],
+      errors: ['Refusing to remove: directory is not a single execution triple (before.tsx, task.json, after.tsx)'],
+    };
+  }
+  try {
+    fs.rmSync(dir, { recursive: true, force: true });
+    removed.push(path.relative(__dirname, dir));
+  } catch (err: unknown) {
+    errors.push(err instanceof Error ? err.message : String(err));
+  }
+  return { ok: errors.length === 0, removed, edited: [], errors };
 }
 
 interface AddFixtureRequest {
@@ -710,6 +839,26 @@ function main(): void {
         return;
       }
 
+      if (segments[1] === 'execution-fixture' && !segments[2] && req.method === 'POST') {
+        const chunks: Buffer[] = [];
+        for await (const chunk of req) chunks.push(chunk as Buffer);
+        try {
+          const body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as AddExecutionFixtureRequest;
+          const result = addExecutionFixture(body);
+          serveJson(res, result);
+        } catch (err: unknown) {
+          serveJson(res, { ok: false, steps: [], errors: [`Bad request: ${err instanceof Error ? err.message : String(err)}`] });
+        }
+        return;
+      }
+
+      if (segments[1] === 'execution-fixture' && !segments[2] && req.method === 'DELETE') {
+        const rel = url.searchParams.get('relativePath')?.trim() ?? '';
+        const result = removeExecutionFixture(rel);
+        serveJson(res, result);
+        return;
+      }
+
       if (segments[1] === 'fixtures' && segments[2] === 'status' && req.method === 'GET') {
         const all = getAllFixtureNames();
         serveJson(res, { fixtures: all.map(getFixtureArtifacts) });
@@ -736,6 +885,8 @@ function main(): void {
     console.log(`    /api/regenerate-scaffold/:f  Regenerate detection scaffold (POST)`);
     console.log(`    /api/regenerate-adversarial/:cap  Regenerate adversarial fixtures (POST)`);
     console.log(`    /api/fixture               Add new fixture (POST)`);
+    console.log(`    /api/execution-fixture     Add execution triple (POST JSON)`);
+    console.log(`    /api/execution-fixture     Remove execution triple (DELETE ?relativePath=)`);
     console.log(`    /api/fixture/:name        Remove fixture and all artifacts (DELETE)`);
     console.log(`    /api/fixtures/status       Artifact status for all fixtures (GET)`);
     console.log(`    /api/stream               SSE updates\n`);
