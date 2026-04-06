@@ -1,0 +1,58 @@
+{
+  "fixture": "shadcn-app",
+  "projectDir": "shadcn-app/project",
+  "expectedFiles": [
+    {
+      "path": "src/oz/OzProviders.tsx",
+      "contentPatterns": [
+        "RuntimeProvider",
+        "WalletStateProvider",
+        "@openzeppelin/ui-react",
+        "resolveRuntime",
+        "OzProviders"
+      ]
+    },
+    {
+      "path": "src/oz/resolve-runtime.ts",
+      "contentPatterns": [
+        "resolveRuntime",
+        "EcosystemRuntime",
+        "NetworkConfig",
+        "@openzeppelin/ui-types"
+      ]
+    },
+    {
+      "path": "src/index.css",
+      "contentPatterns": ["oz-tailwind.generated"]
+    },
+    {
+      "path": "src/oz-tailwind.generated.css",
+      "contentPatterns": [
+        "Managed by oz-ui migrate init",
+        "@openzeppelin/ui-styles/global.css",
+        "tailwindcss",
+        "@source"
+      ]
+    },
+    {
+      "path": ".cursor/agents/migration-analyzer.md",
+      "contentPatterns": ["migration", "analyze"]
+    },
+    {
+      "path": ".cursor/agents/migration-verifier.md",
+      "contentPatterns": ["migration", "verif"]
+    },
+    {
+      "path": ".cursor/skills/migrate-to-oz-uikit/SKILL.md",
+      "contentPatterns": ["oz-ui", "migrate"]
+    },
+    {
+      "path": ".claude/agents/migration-analyzer.md",
+      "contentPatterns": ["migration", "analyze"]
+    },
+    {
+      "path": ".claude/agents/migration-verifier.md",
+      "contentPatterns": ["migration", "verif"]
+    }
+  ]
+}

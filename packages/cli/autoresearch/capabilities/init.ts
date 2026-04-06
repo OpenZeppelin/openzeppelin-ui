@@ -71,6 +71,24 @@ function discoverInitFixtures(): InitFixtureEntry[] {
 }
 
 function evaluateFixture(entry: InitFixtureEntry): FixtureScore {
+  if (!fs.existsSync(entry.projectDir)) {
+    return {
+      fixture: entry.fixture,
+      precision: 0,
+      recall: 0,
+      f1: 0,
+      truePositives: 0,
+      falsePositives: 0,
+      falseNegatives: 1,
+      details: {
+        matched: [],
+        missed: [`missing-fixture-project:${entry.projectDir}`],
+        extra: [],
+      },
+      metadata: { error: 'ENOENT', projectDir: entry.projectDir },
+    };
+  }
+
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), `autoresearch-init-${entry.fixture}-`));
 
   try {
