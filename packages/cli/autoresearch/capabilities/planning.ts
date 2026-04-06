@@ -4,7 +4,8 @@
  * Uses frozen analysis reports so plan quality is measured independently of
  * detection quality. Metric is a gated composite:
  *   - If forbidden_ratio > 0.1 → cap total at 0.5
- *   - Otherwise: Task F1 (70%) + Phase order accuracy (30%)
+ *   - Otherwise: 0.6·component task F1 + 0.2·wallet F1 + 0.2·phase order
+ *     (phase order is 1.0 when there are no expected component tasks — nothing to mis-order)
  */
 
 import path from 'node:path';
@@ -138,7 +139,8 @@ function evaluateFixture(fixtureName: string): FixtureScore {
   }
 
   // --- Phase order scoring ---
-  let phaseOrderScore = 0;
+  // When the fixture defines no expected component tasks, phase placement is out of scope (e.g. wallet-only plans).
+  let phaseOrderScore = 1;
   if (expected.expectedTasks.length > 0) {
     let correctPhase = 0;
     for (const et of expected.expectedTasks) {

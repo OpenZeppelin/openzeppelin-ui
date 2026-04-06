@@ -8,9 +8,9 @@ You are working inside `packages/cli/` of the `openzeppelin-ui` monorepo.
 
 **Evaluation metric:** Gated composite score:
 - If `forbidden_ratio > 0.1` → total is capped at 0.5
-- Otherwise: `Task F1 (70%) + Phase order accuracy (30%)`
-- Task F1 is computed on `(task_type, source_component, target_component)` tuples
-- Phase order accuracy = fraction of tasks assigned to the correct phase
+- Otherwise: `0.6·component task F1 + 0.2·wallet task F1 + 0.2·phase order accuracy`
+- Component task F1 uses `(task_type, source_component, target_component)` tuples; wallet F1 uses `(pattern, file)` when the fixture defines `expectedWalletTasks`
+- Phase order accuracy = fraction of expected component tasks in the correct phase; **if `expectedTasks` is empty, phase score is 1.0** (wallet-only / forbidden-only fixtures have no component phase to grade)
 
 **Run the evaluation:**
 ```bash

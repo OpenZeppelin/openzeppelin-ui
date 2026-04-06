@@ -1,0 +1,5 @@
+{
+  "name": "oz-oss-apps-init-fixture",
+  "private": true,
+  "workspaces": ["packages/*"]
+}
