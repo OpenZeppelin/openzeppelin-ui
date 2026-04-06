@@ -2,51 +2,276 @@
   "fixture": "oz-oss-apps",
   "analysisReport": "frozen-reports/oz-oss-apps.json",
   "expectedTasks": [
-    { "type": "component-replacement", "sourceComponent": "Button", "targetComponent": "Button", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "Badge", "targetComponent": "Badge", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "Label", "targetComponent": "Label", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "Card", "targetComponent": "Card", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "CardContent", "targetComponent": "Card", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "CardHeader", "targetComponent": "Card", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "CardTitle", "targetComponent": "Card", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "CardDescription", "targetComponent": "Card", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "Input", "targetComponent": "Input", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "Select", "targetComponent": "Select", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "SelectItem", "targetComponent": "Select", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "SelectContent", "targetComponent": "Select", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "SelectTrigger", "targetComponent": "Select", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "SelectValue", "targetComponent": "Select", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "Dialog", "targetComponent": "Dialog", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "DialogTitle", "targetComponent": "Dialog", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "DialogHeader", "targetComponent": "Dialog", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "DialogContent", "targetComponent": "Dialog", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "DialogDescription", "targetComponent": "Dialog", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "DialogFooter", "targetComponent": "Dialog", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "Table", "targetComponent": "Table", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "TableCell", "targetComponent": "Table", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "TableRow", "targetComponent": "Table", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "TableHead", "targetComponent": "Table", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "TableBody", "targetComponent": "Table", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "TableHeader", "targetComponent": "Table", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "Switch", "targetComponent": "Switch", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "Separator", "targetComponent": "Separator", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "DropdownMenu", "targetComponent": "DropdownMenu", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "DropdownMenuItem", "targetComponent": "DropdownMenu", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "DropdownMenuContent", "targetComponent": "DropdownMenu", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "DropdownMenuTrigger", "targetComponent": "DropdownMenu", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "DropdownMenuSeparator", "targetComponent": "DropdownMenu", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "Tabs", "targetComponent": "Tabs", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "TabsContent", "targetComponent": "Tabs", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "TabsTrigger", "targetComponent": "Tabs", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "TabsList", "targetComponent": "Tabs", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "Toaster", "targetComponent": "Toaster", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "AddAccountModal", "targetComponent": "AddAccountModal", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "Logo", "targetComponent": "Logo", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "WalletWidget", "targetComponent": "WalletWidget", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "AccountSwitcher", "targetComponent": "AccountSwitcher", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "AccountItem", "targetComponent": "AccountItem", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "NetworkSelector", "targetComponent": "NetworkSelector", "phase": "ui-components" },
-    { "type": "component-replacement", "sourceComponent": "NetworkItem", "targetComponent": "NetworkItem", "phase": "ui-components" }
+    {
+      "type": "component-replacement",
+      "sourceComponent": "Button",
+      "targetComponent": "Button",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "Badge",
+      "targetComponent": "Badge",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "Label",
+      "targetComponent": "Label",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "Card",
+      "targetComponent": "Card",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "CardContent",
+      "targetComponent": "CardContent",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "CardHeader",
+      "targetComponent": "CardHeader",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "CardTitle",
+      "targetComponent": "CardTitle",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "CardDescription",
+      "targetComponent": "CardDescription",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "Input",
+      "targetComponent": "Input",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "Select",
+      "targetComponent": "Select",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "SelectItem",
+      "targetComponent": "SelectItem",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "SelectContent",
+      "targetComponent": "SelectContent",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "SelectTrigger",
+      "targetComponent": "SelectTrigger",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "SelectValue",
+      "targetComponent": "SelectValue",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "Dialog",
+      "targetComponent": "Dialog",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "DialogTitle",
+      "targetComponent": "DialogTitle",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "DialogHeader",
+      "targetComponent": "DialogHeader",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "DialogContent",
+      "targetComponent": "DialogContent",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "DialogDescription",
+      "targetComponent": "DialogDescription",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "DialogFooter",
+      "targetComponent": "DialogFooter",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "Table",
+      "targetComponent": "Table",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "TableCell",
+      "targetComponent": "TableCell",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "TableRow",
+      "targetComponent": "TableRow",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "TableHead",
+      "targetComponent": "TableHead",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "TableBody",
+      "targetComponent": "TableBody",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "TableHeader",
+      "targetComponent": "TableHeader",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "Switch",
+      "targetComponent": "Switch",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "Separator",
+      "targetComponent": "Separator",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "DropdownMenu",
+      "targetComponent": "DropdownMenu",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "DropdownMenuItem",
+      "targetComponent": "DropdownMenuItem",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "DropdownMenuContent",
+      "targetComponent": "DropdownMenuContent",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "DropdownMenuTrigger",
+      "targetComponent": "DropdownMenuTrigger",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "DropdownMenuSeparator",
+      "targetComponent": "DropdownMenuSeparator",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "Tabs",
+      "targetComponent": "Tabs",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "TabsContent",
+      "targetComponent": "TabsContent",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "TabsTrigger",
+      "targetComponent": "TabsTrigger",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "TabsList",
+      "targetComponent": "TabsList",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "Toaster",
+      "targetComponent": "Toaster",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "AddAccountModal",
+      "targetComponent": "AddAccountModal",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "Logo",
+      "targetComponent": "Logo",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "WalletWidget",
+      "targetComponent": "WalletWidget",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "AccountSwitcher",
+      "targetComponent": "AccountSwitcher",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "AccountItem",
+      "targetComponent": "AccountItem",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "NetworkSelector",
+      "targetComponent": "NetworkSelector",
+      "phase": "ui-components"
+    },
+    {
+      "type": "component-replacement",
+      "sourceComponent": "NetworkItem",
+      "targetComponent": "NetworkItem",
+      "phase": "ui-components"
+    }
   ],
   "forbiddenTasks": [
     {

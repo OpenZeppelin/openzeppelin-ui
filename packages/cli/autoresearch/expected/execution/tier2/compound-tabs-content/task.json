@@ -1,0 +1,10 @@
+{
+  "id": "component-replacement-TabsContent",
+  "phase": "ui-components",
+  "type": "component-replacement",
+  "status": "pending",
+  "description": "Replace TabsContent with OZ Tabs family in src/Settings.tsx",
+  "file": "src/Settings.tsx",
+  "sourceComponent": "TabsContent",
+  "targetComponent": "Tabs"
+}

@@ -75,29 +75,22 @@ The current setup flow installs or copies those assets through `oz-ui migrate in
 
 ## What The User Should Say
 
-Bootstrap once:
+Bootstrap and migrate (fresh project):
 
 ```text
-Set up the OpenZeppelin UI migration skill in this repo so you can migrate this app for me.
-```
-
-Start migration:
-
-```text
-Use the migrate-to-oz-uikit skill to migrate this app to OpenZeppelin UI Kit.
+Install @openzeppelin/ui-cli as a dev dependency, then run `oz-ui migrate init --project .` to set up the migration skill and OZ packages. Once init finishes, read the skill at .cursor/skills/migrate-to-oz-uikit/SKILL.md and follow it to migrate this app to OpenZeppelin UI Kit. Ask me only when you need profile/scope decisions or manual validation.
 ```
 
 With preferences:
 
 ```text
-Use the migrate-to-oz-uikit skill to migrate this app to OpenZeppelin UI Kit.
-Prefer the transactor profile. Migrate the whole app unless you find risky areas.
+Install @openzeppelin/ui-cli as a dev dependency, then run `oz-ui migrate init --project .` to set up the migration skill and OZ packages. Once init finishes, read the skill at .cursor/skills/migrate-to-oz-uikit/SKILL.md and follow it to migrate this app to OpenZeppelin UI Kit. Prefer the transactor profile. Migrate the whole app unless you find risky areas.
 ```
 
-Resume later:
+Resume later (skill and manifest already exist):
 
 ```text
-Resume the OpenZeppelin UI migration in this repo.
+Read the skill at .cursor/skills/migrate-to-oz-uikit/SKILL.md and resume the OpenZeppelin UI migration from the existing migration-manifest.json.
 ```
 
 ## What The Assistant Does
@@ -106,10 +99,12 @@ Resume the OpenZeppelin UI migration in this repo.
 
 The assistant prepares the repo for migration:
 
-- installs or uses the CLI
-- copies the skill and agent prompts
-- wires provider templates
-- normalizes Tailwind when needed
+1. installs `@openzeppelin/ui-cli` as a dev dependency
+2. runs `oz-ui migrate init --project .`
+3. reads the skill file that init copied (`.cursor/skills/migrate-to-oz-uikit/SKILL.md`)
+4. follows that skill for all subsequent steps
+
+The `init` command installs OZ packages, wires provider templates, normalizes Tailwind, and copies the skill and agent prompts into the repo.
 
 ### 2. Decide whether this is fresh or resumed
 
@@ -235,8 +230,10 @@ The user should mostly see natural-language progress updates, not raw CLI operat
 If you want a single good user prompt, use this:
 
 ```text
-Install the OpenZeppelin migration skill in this repo and then use it to migrate this app to OpenZeppelin UI Kit. Ask me only when you need profile/scope decisions or manual validation.
+Install @openzeppelin/ui-cli as a dev dependency, then run `oz-ui migrate init --project .` to bootstrap the migration. Once init finishes, read the skill at .cursor/skills/migrate-to-oz-uikit/SKILL.md and follow it to migrate this app to OpenZeppelin UI Kit. Ask me only when you need profile/scope decisions or manual validation.
 ```
+
+The key insight: the LLM does not know about the CLI or the skill until `init` copies everything into the repo. The prompt must be explicit about the install command, the init command, and the path to the skill file.
 
 ## Final Takeaway
 

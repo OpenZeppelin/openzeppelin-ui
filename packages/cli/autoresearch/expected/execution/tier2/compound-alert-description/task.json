@@ -1,0 +1,10 @@
+{
+  "id": "component-replacement-AlertDescription",
+  "phase": "ui-components",
+  "type": "component-replacement",
+  "status": "pending",
+  "description": "Replace AlertDescription with OZ Alert family in src/StatusBanner.tsx",
+  "file": "src/StatusBanner.tsx",
+  "sourceComponent": "AlertDescription",
+  "targetComponent": "Alert"
+}
