@@ -1,5 +1,10 @@
 {
   "fixture": "oz-oss-apps",
+  "benchmark": {
+    "fixtureSource": "external-snapshot",
+    "fixtureCommit": "f1bdab54906a60bc3136bc606d95d184c08f1a62",
+    "scannerPolicyHash": "9cb5f85fda531e1d1eb8dcbb65173a4c71006745"
+  },
   "patterns": [
     {
       "name": "localStorage",

@@ -1,5 +1,10 @@
 {
   "fixture": "accounts-ui",
+  "benchmark": {
+    "fixtureSource": "external-snapshot",
+    "fixtureCommit": "220750951b51306611dc4e69259db1805b920aa0",
+    "scannerPolicyHash": "9cb5f85fda531e1d1eb8dcbb65173a4c71006745"
+  },
   "patterns": [
     {
       "name": "@wagmi/core",
@@ -70,7 +75,6 @@
         "src/components/forms/BytesInput.tsx",
         "src/components/forms/ContractExplorerModal.tsx",
         "src/components/forms/FormField.tsx",
-        "src/components/forms/index.ts",
         "src/components/modals/CallActionModal.tsx",
         "src/components/modals/CancelRecoveryModal.tsx",
         "src/components/modals/ConfidentialTokenObserversModal.tsx",
@@ -108,8 +112,7 @@
         "src/components/sharing/ShareMethodSelector.tsx",
         "src/components/sharing/SignatureCollector.tsx",
         "src/components/sharing/SignatureExporter.tsx",
-        "src/components/sharing/SignatureStatusList.tsx",
-        "src/components/sharing/index.ts"
+        "src/components/sharing/SignatureStatusList.tsx"
       ]
     },
     {
@@ -152,7 +155,6 @@
         "src/components/forms/AmountInput.tsx",
         "src/components/forms/BytesInput.tsx",
         "src/components/forms/ContractExplorerModal.tsx",
-        "src/components/forms/index.ts",
         "src/components/modals/CallActionModal.tsx",
         "src/components/modals/CancelRecoveryModal.tsx",
         "src/components/modals/ConfidentialTokenObserversModal.tsx",
@@ -171,16 +173,13 @@
         "src/components/modals/SpendingLimitSetupModal.tsx",
         "src/components/modules/AccountBalance.tsx",
         "src/components/modules/AccountDetails.tsx",
-        "src/components/modules/SpendingLimitCard.tsx",
         "src/components/sharing/SignatureCollector.tsx",
-        "src/components/sharing/index.ts",
         "src/constants/userOpErrors.ts",
         "src/constants/zamaAcl.ts",
         "src/contexts/AccountSnapshotContext.tsx",
         "src/demo/demoSnapshotService.ts",
         "src/demo/demoWalletStub.ts",
         "src/demo/demoWriteInterceptor.ts",
-        "src/demo/index.ts",
         "src/demo/scenarios/multisigDeployed.ts",
         "src/demo/scenarios/predictedAccount.ts",
         "src/demo/scenarios/socialRecoveryMultisig.ts",
@@ -202,7 +201,6 @@
         "src/services/ConfidentialFheService.ts",
         "src/services/MultisigApiService.ts",
         "src/services/sharing-codec.ts",
-        "src/services/SmartAccountService.entrypoint.test.ts",
         "src/services/SmartAccountService.ts",
         "src/services/ZamaObserverDelegationService.ts",
         "src/utils/baseContractDeploymentStatus.ts",
@@ -215,7 +213,6 @@
         "src/utils/smartAccountCreation.ts",
         "src/utils/smartAccountIndexTracker.ts",
         "src/utils/smartAccountPrediction.ts",
-        "src/utils/spendingLimits.ts",
         "src/utils/storageKeys.ts"
       ]
     },

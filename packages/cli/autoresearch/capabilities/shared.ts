@@ -2,6 +2,7 @@
  * Shared scoring primitives used by all capability evaluators.
  */
 
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -60,7 +61,8 @@ export function getFixturePath(name: string): string {
   const resolved = resolveFixturePath(name);
   if (!resolved) {
     throw new Error(
-      `Fixture "${name}" not found. Run \`npx tsx autoresearch/fetch-fixtures.ts\` to resolve external fixtures.`
+      `Fixture "${name}" not found. External fixtures must be materialized as local snapshots; ` +
+      'run `npx tsx autoresearch/fetch-fixtures.ts` to prepare them.'
     );
   }
   return resolved;
@@ -110,6 +112,10 @@ export function checklistScore(checks: boolean[]): number {
 
 export function loadJsonFile<T>(filePath: string): T {
   return JSON.parse(fs.readFileSync(filePath, 'utf8')) as T;
+}
+
+export function hashFile(filePath: string): string {
+  return crypto.createHash('sha1').update(fs.readFileSync(filePath)).digest('hex');
 }
 
 export function fixtureHasExpected(fixtureName: string, subdir?: string): boolean {

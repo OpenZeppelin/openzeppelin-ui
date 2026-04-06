@@ -7,7 +7,7 @@
 
 import { scanPatterns } from '../../src/analysis/pattern-scanner.js';
 import { loadPatternCatalog, type PatternCategory } from '../../src/catalog/index.js';
-import { scanProjectFiles } from '../../src/analysis/scanner.js';
+import { scanProjectFiles, type ScannedFile } from '../../src/analysis/scanner.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -19,10 +19,12 @@ import {
   discoverFixtures,
   fixtureHasExpected,
   getFixturePath,
+  hashFile,
   loadJsonFile,
   loadExpectedFile,
   meanScore,
 } from './shared.js';
+import { resolveFixture } from './fixture-resolver.js';
 
 interface ExpectedPattern {
   name: string;
@@ -31,6 +33,11 @@ interface ExpectedPattern {
 
 interface ExpectedPatterns {
   fixture: string;
+  benchmark?: {
+    fixtureSource: 'synthetic' | 'external-snapshot';
+    fixtureCommit?: string;
+    scannerPolicyHash: string;
+  };
   patterns: ExpectedPattern[];
 }
 
@@ -72,6 +79,8 @@ interface LoadedPatternFixtureMetadata {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const patternFixtureConfigPath = path.join(__dirname, '..', 'config', 'pattern-fixtures.json');
+const scannerPolicyPath = path.join(__dirname, '..', '..', 'src', 'analysis', 'scanner.ts');
+const scannerPolicyHash = hashFile(scannerPolicyPath);
 
 function loadPatternFixtureMetadata(): LoadedPatternFixtureMetadata {
   const config = loadJsonFile<PatternFixtureMetadataFile>(patternFixtureConfigPath);
@@ -118,6 +127,86 @@ function summarizeMetric(
   };
 }
 
+function assertExpectedBenchmarkMetadata(
+  fixtureName: string,
+  expected: ExpectedPatterns
+): void {
+  if (!expected.benchmark) {
+    throw new Error(
+      `Expected patterns for "${fixtureName}" are missing benchmark metadata. ` +
+      'Add benchmark.fixtureSource and benchmark.scannerPolicyHash.'
+    );
+  }
+
+  if (expected.benchmark.scannerPolicyHash !== scannerPolicyHash) {
+    throw new Error(
+      `Expected patterns for "${fixtureName}" were generated against scanner policy ` +
+      `${expected.benchmark.scannerPolicyHash}, but current policy is ${scannerPolicyHash}. ` +
+      'Refresh the expected file so it matches scanProjectFiles().'
+    );
+  }
+}
+
+function assertExpectedFilesAreScannable(
+  fixtureName: string,
+  files: ScannedFile[],
+  expected: ExpectedPatterns
+): void {
+  const visibleFiles = new Set(files.map((file) => file.relativePath));
+  const invisibleExpectedFiles = new Set<string>();
+
+  for (const pattern of expected.patterns) {
+    for (const file of pattern.files) {
+      if (!visibleFiles.has(file)) {
+        invisibleExpectedFiles.add(file);
+      }
+    }
+  }
+
+  if (invisibleExpectedFiles.size === 0) return;
+
+  const examples = [...invisibleExpectedFiles].sort().slice(0, 5).join(', ');
+  throw new Error(
+    `Expected patterns for "${fixtureName}" reference ${invisibleExpectedFiles.size} ` +
+    `file(s) that scanProjectFiles() does not include. Examples: ${examples}. ` +
+    'Refresh the expected file using the scanner-visible file set.'
+  );
+}
+
+function assertFixtureSnapshotConsistency(
+  fixtureName: string,
+  expected: ExpectedPatterns
+): void {
+  const resolvedFixture = resolveFixture(fixtureName);
+  if (!resolvedFixture || resolvedFixture.source === 'synthetic') return;
+
+  if (resolvedFixture.source !== 'external-snapshot' || !resolvedFixture.lockfile) {
+    throw new Error(
+      `Fixture "${fixtureName}" is not using a materialized snapshot. ` +
+      'Run `npx tsx autoresearch/fetch-fixtures.ts` before evaluating.'
+    );
+  }
+
+  if (expected.benchmark?.fixtureSource !== 'external-snapshot') {
+    throw new Error(
+      `Expected patterns for "${fixtureName}" must declare benchmark.fixtureSource="external-snapshot".`
+    );
+  }
+
+  if (!expected.benchmark.fixtureCommit) {
+    throw new Error(
+      `Expected patterns for "${fixtureName}" are missing benchmark.fixtureCommit.`
+    );
+  }
+
+  if (expected.benchmark.fixtureCommit !== resolvedFixture.lockfile.commit) {
+    throw new Error(
+      `Fixture "${fixtureName}" snapshot commit ${resolvedFixture.lockfile.commit} does not match ` +
+      `expected commit ${expected.benchmark.fixtureCommit}. Refresh fixtures or expected data.`
+    );
+  }
+}
+
 function evaluateFixture(
   fixtureName: string,
   fixtureMetadata: LoadedPatternFixtureMetadata
@@ -127,6 +216,9 @@ function evaluateFixture(
   const metadata = fixtureMetadata.fixtures.get(fixtureName);
 
   const files = scanProjectFiles(fixtureDir);
+  assertExpectedBenchmarkMetadata(fixtureName, expected);
+  assertFixtureSnapshotConsistency(fixtureName, expected);
+  assertExpectedFilesAreScannable(fixtureName, files, expected);
   const actual = scanPatterns(files);
 
   const expectedSet = new Set<string>();
@@ -153,6 +245,7 @@ function evaluateFixture(
       metadata: {
         expectedTupleCount: expectedSet.size,
         actualTupleCount: actualSet.size,
+        scannerPolicyHash,
       },
     },
     expectedSet,
