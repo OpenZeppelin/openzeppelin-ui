@@ -6,14 +6,14 @@ You are an autonomous research agent improving the SKILL.md orchestration protoc
 
 You are working inside `packages/cli/` of the `openzeppelin-ui` monorepo.
 
-**Evaluation metric:** Structural checklist + sequence accuracy
+**Evaluation metric:** Structural checklist + scenario sequence accuracy
 - Static checklist: fraction of required properties present in SKILL.md
   - References all CLI commands (init, analyze, plan, doctor)
   - Includes phase gate logic
   - Includes error recovery instructions
   - References resume/partial-migration
   - Covers all migration phases
-- Sequence accuracy (future): subagent replay comparing command sequences against scenarios
+- Scenario sequence accuracy: compare the skill protocol against expected fresh-start and resume scenarios
 
 **Run the evaluation:**
 ```bash

@@ -86,6 +86,47 @@ export function updateTaskStatus(
 /**
  *
  */
+export function resolveTask(manifest: MigrationManifest, taskId: string): MigrationTask {
+  const task = manifest.tasks.find((candidate) => candidate.id === taskId);
+  if (!task) {
+    throw new Error(`Task "${taskId}" not found in manifest.`);
+  }
+  return task;
+}
+
+/**
+ * Advances a task to a terminal/manual status, routing through `in_progress`
+ * when the state machine requires an intermediate hop.
+ */
+export function transitionTaskStatus(
+  manifest: MigrationManifest,
+  taskId: string,
+  targetStatus: Extract<TaskStatus, 'completed' | 'failed' | 'skipped' | 'in_progress'>,
+  error?: string
+): MigrationManifest {
+  let next = manifest;
+  let current = resolveTask(next, taskId).status;
+
+  if (current === targetStatus) return next;
+
+  if (
+    (current === 'pending' || current === 'failed' || current === 'skipped') &&
+    targetStatus !== 'in_progress'
+  ) {
+    next = updateTaskStatus(next, taskId, 'in_progress');
+    current = 'in_progress';
+  }
+
+  if (current !== targetStatus) {
+    next = updateTaskStatus(next, taskId, targetStatus, error);
+  }
+
+  return next;
+}
+
+/**
+ *
+ */
 export function computePhaseProgress(manifest: MigrationManifest): PhaseProgress[] {
   const phaseMap = new Map<string, MigrationTask[]>();
 

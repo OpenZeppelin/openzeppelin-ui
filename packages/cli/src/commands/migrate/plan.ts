@@ -14,6 +14,7 @@ import {
 } from '../../manifest';
 import { generatePlanTasks } from '../../planning/generate';
 import { printError, printJson } from '../../utils/logger';
+import type { JsonCommandResult } from './json-results';
 
 interface PlanOptions {
   report: string;
@@ -23,6 +24,13 @@ interface PlanOptions {
   profile?: string;
   decision?: string[];
   json?: boolean;
+}
+
+interface PlanResult extends JsonCommandResult<'migrate-plan'> {
+  report: string;
+  manifestPath: string;
+  manifest: MigrationManifest;
+  totalTasks: number;
 }
 
 function parseDecisionFlags(decisionFlags: string[] | undefined): MigrationManifest['decisions'] {
@@ -113,7 +121,15 @@ export function registerPlanCommand(parent: Command): void {
         writeManifest(outputPath, manifest);
 
         if (options.json) {
-          printJson(manifest);
+          const result: PlanResult = {
+            ok: true,
+            action: 'migrate-plan',
+            report: reportPath,
+            manifestPath: outputPath,
+            manifest,
+            totalTasks: manifest.tasks.length,
+          };
+          printJson(result);
           return;
         }
 

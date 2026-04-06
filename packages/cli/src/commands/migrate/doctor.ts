@@ -5,6 +5,7 @@ import pc from 'picocolors';
 import { readManifest } from '../../manifest';
 import { printError, printJson } from '../../utils/logger';
 import { checkTask, type TaskCheckResult } from '../../verification/checker';
+import type { JsonCommandResult } from './json-results';
 
 interface DoctorOptions {
   manifest: string;
@@ -12,9 +13,7 @@ interface DoctorOptions {
   json?: boolean;
 }
 
-interface DoctorResult {
-  ok: boolean;
-  action: 'migrate-doctor';
+interface DoctorResult extends JsonCommandResult<'migrate-doctor'> {
   manifest: string;
   results: TaskCheckResult[];
   passed: number;

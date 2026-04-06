@@ -14,6 +14,8 @@ export {
   getManifestPath,
   manifestExists,
   readManifest,
+  resolveTask,
+  transitionTaskStatus,
   writeManifest,
   updateTaskStatus,
   computePhaseProgress,

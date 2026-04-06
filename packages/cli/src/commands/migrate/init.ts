@@ -1,20 +1,20 @@
-import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { Command } from 'commander';
 import pc from 'picocolors';
 
-import {
-  fixTailwindProject,
-  type PackageFamilyMap,
-  type TailwindBrandingOptions,
-} from '@openzeppelin/ui-tailwind-utils';
-
 import { CLI_BRANDING, CLI_FAMILIES, CLI_VERSION, OZ_CORE_PACKAGES } from '../../branding';
-import { ensureTailwindConfigStubIfNeeded } from '../../init/setup';
-import { copyTemplateDirectory, writeTemplate } from '../../templates';
-import { buildInstallCommand, detectFramework, detectPackageManager } from '../../utils/framework';
+import {
+  copyAgentFiles,
+  copySkillFiles,
+  ensureTailwindConfigStubIfNeeded,
+  installPackages,
+  normalizeTailwind,
+  writeProviderTemplates,
+} from '../../init/setup';
+import { detectFramework, detectPackageManager } from '../../utils/framework';
 import { printError, printJson } from '../../utils/logger';
+import type { JsonCommandResult } from './json-results';
 
 interface InitOptions {
   project: string;
@@ -22,9 +22,7 @@ interface InitOptions {
   skipInstall?: boolean;
 }
 
-interface InitResult {
-  ok: boolean;
-  action: 'migrate-init';
+interface InitResult extends JsonCommandResult<'migrate-init'> {
   project: string;
   framework: string;
   packageManager: string;
@@ -33,76 +31,6 @@ interface InitResult {
   agentsCopied: string[];
   skillCopied: string[];
   tailwindFixed: boolean;
-}
-
-function installPackages(projectRoot: string, packages: string[], skipInstall: boolean): string[] {
-  if (skipInstall || packages.length === 0) return [];
-
-  const pm = detectPackageManager(projectRoot);
-  const cmd = buildInstallCommand(pm, packages);
-
-  try {
-    execSync(cmd, { cwd: projectRoot, stdio: 'pipe' });
-    return packages;
-  } catch {
-    return [];
-  }
-}
-
-function writeProviderTemplates(projectRoot: string): string[] {
-  const written: string[] = [];
-  const srcDir = path.join(projectRoot, 'src', 'oz');
-
-  if (writeTemplate(path.join(srcDir, 'OzProviders.tsx'), 'runtime-provider-setup.tsx.template')) {
-    written.push('src/oz/OzProviders.tsx');
-  }
-
-  if (writeTemplate(path.join(srcDir, 'resolve-runtime.ts'), 'resolve-runtime.ts.template')) {
-    written.push('src/oz/resolve-runtime.ts');
-  }
-
-  return written;
-}
-
-function copyAgentFiles(projectRoot: string): string[] {
-  const copied: string[] = [];
-
-  const cursorResult = copyTemplateDirectory('agents', path.join(projectRoot, '.cursor', 'agents'));
-  copied.push(...cursorResult.copied.map((f) => `.cursor/agents/${f}`));
-
-  const claudeResult = copyTemplateDirectory('agents', path.join(projectRoot, '.claude', 'agents'));
-  copied.push(...claudeResult.copied.map((f) => `.claude/agents/${f}`));
-
-  return copied;
-}
-
-function copySkillFiles(projectRoot: string): string[] {
-  const copied: string[] = [];
-
-  try {
-    const result = copyTemplateDirectory(
-      'skills/migrate-to-oz-uikit',
-      path.join(projectRoot, '.cursor', 'skills', 'migrate-to-oz-uikit')
-    );
-    copied.push(...result.copied.map((f) => `.cursor/skills/migrate-to-oz-uikit/${f}`));
-  } catch {
-    // Skill templates may not exist yet during early stages
-  }
-
-  return copied;
-}
-
-function normalizeTailwind(
-  projectRoot: string,
-  families: PackageFamilyMap,
-  branding: TailwindBrandingOptions
-): boolean {
-  try {
-    const result = fixTailwindProject(projectRoot, families, branding);
-    return result.ok && result.changed;
-  } catch {
-    return false;
-  }
 }
 
 /**

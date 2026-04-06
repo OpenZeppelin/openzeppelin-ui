@@ -13,7 +13,7 @@ An autonomous experiment loop — inspired by [Karpathy's autoresearch](https://
 | 4   | **Init**          | Weighted checklist score                            |
 | 5   | **Execution**     | AST parse + structural similarity                   |
 | 6   | **Verification**  | Classification accuracy + diagnostic precision      |
-| 7   | **Orchestration** | Structural checklist (+ future subagent replay)     |
+| 7   | **Orchestration** | Structural checklist + scenario sequence scoring    |
 
 
 Run `pnpm --filter @openzeppelin/ui-cli evaluate:all` to see live scores.

@@ -17,10 +17,15 @@ For a full migration, keep this sequence (each step builds on the last):
 2. **`oz-ui migrate analyze`** — scan the repo; produce `migration-analysis.json`.
 3. **Align** with the user on profile, scope, and ambiguous mappings (decisions inform the plan).
 4. **`oz-ui migrate plan`** — produce `migration-manifest.json` with phased tasks.
-5. **Execute** tasks from the manifest in phase order (code edits), using **`oz-ui migrate doctor`** after each task or batch to verify structure before continuing.
+5. **Execute** tasks from the manifest in phase order, using **`oz-ui migrate execute`** for deterministic work and manual edits only when the CLI returns a manual-review task.
 6. **Complete** with **`oz-ui migrate status`** and a full **`oz-ui migrate doctor`** pass on the manifest.
 
+Use `oz-ui migrate status --manifest migration-manifest.json --next` whenever you need the CLI to suggest the next command sequence.
+
 If a manifest already exists, **resume** with status/doctor instead of re-running init.
+
+The **setup phase** must complete before analysis begins on a fresh project. Do not run
+`oz-ui migrate analyze` until `oz-ui migrate init` has finished and the provider / asset scaffolding is in place.
 
 ### Step 1: Resume or Initialize
 
@@ -38,6 +43,8 @@ ls migration-manifest.json 2>/dev/null
 **If no manifest exists**, check for OZ packages:
 - If `@openzeppelin/ui-react` is in `package.json`, the project is partially set up — skip to analysis
 - Otherwise, run initialization:
+
+If no manifest exists, run initialization before you skip to analysis.
 
 ```bash
 oz-ui migrate init --project .
@@ -84,17 +91,30 @@ This creates `migration-manifest.json` with all phased tasks. Show the user the 
 
 ### Step 5: Execute Tasks
 
+Delegate to the **migration-executor** subagent, or run directly:
+
+```bash
+oz-ui migrate execute --manifest migration-manifest.json --json
+```
+
 For each pending task in the manifest, in phase order:
 
 1. **Read the task** from the manifest
-2. **Execute the migration** — this is the actual code refactoring:
-   - For `component-replacement`: Replace imports and JSX usage, translate props, thread capability props from `useRuntimeContext()`
-   - For `form-field-replacement`: Replace form field imports, connect `addressing` / `typeMapping` capabilities as optional props
-   - For `wallet-replacement`: Replace wagmi/ethers hooks with OZ adapter hooks (`useRuntimeContext`, `useWalletState`)
-   - For `storage-migration`: Flag the file for manual review, add a TODO comment noting the affected storage keys
-3. **Update the manifest**: Mark the task as `completed` or `failed`
+2. **Run `oz-ui migrate execute`**:
+   - For deterministic tasks (`install-packages`, `wire-providers`, `tailwind-normalize`, `copy-agents`, `copy-skill`, many direct component / form-field swaps), let the CLI apply the change and update the manifest
+   - For `wallet-replacement`, `storage-migration`, and `schema-driven-form`, the CLI returns manual instructions instead of pretending the task is fully automated
+3. **For manual tasks**, perform the code refactor:
+   - `component-replacement`: Replace imports and JSX usage, and verify the UI component replacement phase remains structurally correct
+   - `wallet-replacement`: Replace wagmi/ethers hooks with OZ adapter hooks (`useRuntimeContext`, `useWalletState`)
+   - `storage-migration`: Flag the file for manual review, add a TODO comment noting the affected storage keys
+   - `schema-driven-form`: Review for `RenderFormSchema` / `TransactionForm` migration and verify the rendered UI
 4. **Run verification**: `oz-ui migrate doctor --manifest migration-manifest.json --check <task-id> --json`
-5. **Handle failure**: When doctor **fails**, stop, report diagnostics, then **retry** after fixing the issue, or skip / fix manually with explicit user consent (do not silently **rollback** committed work without agreement).
+5. **Update manifest state explicitly for manual tasks**:
+   - When verification passes: `oz-ui migrate complete --manifest migration-manifest.json --task <task-id>`
+   - When blocked: `oz-ui migrate fail --manifest migration-manifest.json --task <task-id> --reason "<blocker>"`
+6. **Handle failure**: When doctor **fails**, stop, report diagnostics, then **retry** after fixing the issue, or record the blocker with `migrate fail` (do not silently **rollback** committed work without agreement).
+
+For any manual or resumed task, `oz-ui migrate status --manifest migration-manifest.json --next` should be treated as the source of truth for the next suggested command.
 
 ### Step 6: Phase Gate
 

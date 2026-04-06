@@ -106,4 +106,41 @@ describe('checkTask', () => {
     expect(result.severity).toBe('warning');
     expect(result.warnings?.join('\n')).toMatch(/manual review/);
   });
+
+  it('warns when Claude skill mirrors are missing', () => {
+    const dir = createTempDir();
+    writeFile(path.join(dir, '.cursor', 'skills', 'migrate-to-oz-uikit', 'SKILL.md'), '# skill');
+
+    const task: MigrationTask = {
+      id: 'setup-copy-skill',
+      phase: 'setup',
+      type: 'copy-skill',
+      status: 'pending',
+      description: 'Copy migration skill file to project',
+    };
+
+    const result = checkTask(task, dir);
+    expect(result.passed).toBe(true);
+    expect(result.severity).toBe('warning');
+    expect(result.warnings?.join('\n')).toMatch(/\.claude\/skills/);
+  });
+
+  it('passes when analyzer, executor, and verifier agents exist in Cursor', () => {
+    const dir = createTempDir();
+    writeFile(path.join(dir, '.cursor', 'agents', 'migration-analyzer.md'), '# analyzer');
+    writeFile(path.join(dir, '.cursor', 'agents', 'migration-executor.md'), '# executor');
+    writeFile(path.join(dir, '.cursor', 'agents', 'migration-verifier.md'), '# verifier');
+
+    const task: MigrationTask = {
+      id: 'setup-copy-agents',
+      phase: 'setup',
+      type: 'copy-agents',
+      status: 'pending',
+      description: 'Copy migration agent files to project',
+    };
+
+    const result = checkTask(task, dir);
+    expect(result.passed).toBe(true);
+    expect(result.diagnostics.join('\n')).toMatch(/migration-executor/);
+  });
 });

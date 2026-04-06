@@ -7,6 +7,8 @@ import {
   computePhaseProgress,
   createEmptyManifest,
   readManifest,
+  resolveTask,
+  transitionTaskStatus,
   updateTaskStatus,
   writeManifest,
 } from './io';
@@ -144,6 +146,52 @@ describe('updateTaskStatus', () => {
     expect(() => updateTaskStatus(manifest, 'task-1', 'pending')).toThrow(
       /Invalid task status transition/
     );
+  });
+});
+
+describe('transitionTaskStatus', () => {
+  it('routes pending tasks through in_progress before completing them', () => {
+    const manifest = createEmptyManifest('/tmp/project', {
+      catalogVersion: '1.0.0',
+      targetOzVersion: '0.1.0',
+      framework: 'vite',
+      sourceLibrary: null,
+    });
+    manifest.tasks = [
+      {
+        id: 'task-1',
+        phase: 'wallet-adapter',
+        type: 'wallet-replacement',
+        status: 'pending',
+        description: 'Manual wallet migration',
+      },
+    ];
+
+    const updated = transitionTaskStatus(manifest, 'task-1', 'completed');
+    expect(resolveTask(updated, 'task-1').status).toBe('completed');
+    expect(resolveTask(updated, 'task-1').completedAt).toBeTruthy();
+  });
+
+  it('routes pending tasks through in_progress before failing them', () => {
+    const manifest = createEmptyManifest('/tmp/project', {
+      catalogVersion: '1.0.0',
+      targetOzVersion: '0.1.0',
+      framework: 'vite',
+      sourceLibrary: null,
+    });
+    manifest.tasks = [
+      {
+        id: 'task-1',
+        phase: 'storage',
+        type: 'storage-migration',
+        status: 'pending',
+        description: 'Manual storage migration',
+      },
+    ];
+
+    const updated = transitionTaskStatus(manifest, 'task-1', 'failed', 'blocked by legacy data');
+    expect(resolveTask(updated, 'task-1').status).toBe('failed');
+    expect(resolveTask(updated, 'task-1').error).toBe('blocked by legacy data');
   });
 });
 

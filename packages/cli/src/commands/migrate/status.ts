@@ -2,8 +2,15 @@ import path from 'node:path';
 import { Command } from 'commander';
 import pc from 'picocolors';
 
-import { computePhaseProgress, readManifest, type PhaseProgress } from '../../manifest';
+import {
+  computePhaseProgress,
+  readManifest,
+  type MigrationManifest,
+  type MigrationTask,
+  type PhaseProgress,
+} from '../../manifest';
 import { printError, printJson } from '../../utils/logger';
+import type { JsonCommandResult } from './json-results';
 
 interface StatusOptions {
   manifest: string;
@@ -16,15 +23,16 @@ interface NextTaskSummary {
   phase: string;
   phaseDetail?: string;
   phaseDescription?: string;
+  type: string;
   description: string;
   status: string;
   dependsOn: string[];
   validationCommand?: string;
+  suggestedCommands: string[];
+  suggestedPrimaryCommand?: string;
 }
 
-interface StatusResult {
-  ok: boolean;
-  action: 'migrate-status';
+interface StatusResult extends JsonCommandResult<'migrate-status'> {
   manifest: string;
   phases: PhaseProgress[];
   phaseDescriptions?: Record<string, string>;
@@ -32,6 +40,47 @@ interface StatusResult {
   completedTasks: number;
   percentComplete: number;
   nextTask: NextTaskSummary | null;
+}
+
+function dependenciesSatisfied(manifest: MigrationManifest, task: MigrationTask): boolean {
+  const dependencies = task.dependsOn ?? [];
+  return dependencies.every((dependencyId) => {
+    const dependency = manifest.tasks.find((candidate) => candidate.id === dependencyId);
+    return dependency
+      ? dependency.status === 'completed' || dependency.status === 'skipped'
+      : false;
+  });
+}
+
+function isManualTask(task: MigrationTask): boolean {
+  return (
+    task.type === 'wallet-replacement' ||
+    task.type === 'storage-migration' ||
+    task.type === 'schema-driven-form'
+  );
+}
+
+function suggestedCommandsForTask(task: MigrationTask, manifestPath: string): string[] {
+  const manifestArg = path.relative(process.cwd(), manifestPath) || manifestPath;
+  const executeCommand = `oz-ui migrate execute --manifest ${manifestArg} --task ${task.id}`;
+  const validateCommand =
+    task.validation?.command ??
+    `oz-ui migrate doctor --manifest ${manifestArg} --check ${task.id} --json`;
+  const completeCommand = `oz-ui migrate complete --manifest ${manifestArg} --task ${task.id}`;
+  const failCommand = `oz-ui migrate fail --manifest ${manifestArg} --task ${task.id} --reason "<blocker>"`;
+
+  if (task.status === 'pending') {
+    return [executeCommand];
+  }
+
+  if (task.status === 'in_progress') {
+    if (isManualTask(task)) {
+      return [validateCommand, completeCommand, failCommand];
+    }
+    return [executeCommand, validateCommand];
+  }
+
+  return [];
 }
 
 /**
@@ -56,19 +105,28 @@ export function registerStatusCommand(parent: Command): void {
         ).length;
         const percentComplete =
           totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-        const nextTask = manifest.tasks.find(
-          (t) => t.status === 'pending' || t.status === 'in_progress'
-        );
+        const nextTask =
+          manifest.tasks.find(
+            (t) =>
+              (t.status === 'pending' || t.status === 'in_progress') &&
+              dependenciesSatisfied(manifest, t)
+          ) ?? null;
+        const nextTaskSuggestions = nextTask
+          ? suggestedCommandsForTask(nextTask, manifestPath)
+          : [];
         const nextTaskSummary: NextTaskSummary | null = nextTask
           ? {
               id: nextTask.id,
               phase: nextTask.phase,
               phaseDetail: nextTask.phaseDetail,
               phaseDescription: manifest.phaseDescriptions?.[nextTask.phase],
+              type: nextTask.type,
               description: nextTask.description,
               status: nextTask.status,
               dependsOn: nextTask.dependsOn ?? [],
               validationCommand: nextTask.validation?.command,
+              suggestedCommands: nextTaskSuggestions,
+              suggestedPrimaryCommand: nextTaskSuggestions[0],
             }
           : null;
 
@@ -99,6 +157,7 @@ export function registerStatusCommand(parent: Command): void {
               process.stdout.write(`  Subphase:    ${nextTaskSummary.phaseDetail}\n`);
             }
             process.stdout.write(`  Status:      ${nextTaskSummary.status}\n`);
+            process.stdout.write(`  Type:        ${nextTaskSummary.type}\n`);
             process.stdout.write(`  Description: ${nextTaskSummary.description}\n`);
             if (nextTaskSummary.phaseDescription) {
               process.stdout.write(`  Phase info:  ${nextTaskSummary.phaseDescription}\n`);
@@ -108,6 +167,12 @@ export function registerStatusCommand(parent: Command): void {
             }
             if (nextTaskSummary.validationCommand) {
               process.stdout.write(`  Validate:    ${nextTaskSummary.validationCommand}\n`);
+            }
+            if (nextTaskSummary.suggestedCommands.length > 0) {
+              process.stdout.write(`  Suggested:\n`);
+              for (const command of nextTaskSummary.suggestedCommands) {
+                process.stdout.write(`    ${command}\n`);
+              }
             }
             process.stdout.write('\n');
           } else {
@@ -145,6 +210,11 @@ export function registerStatusCommand(parent: Command): void {
 
         if (nextTaskSummary) {
           process.stdout.write(`\n  ${pc.bold('Next:')} ${nextTaskSummary.description}\n`);
+          if (nextTaskSummary.suggestedPrimaryCommand) {
+            process.stdout.write(
+              `  ${pc.bold('Do:')}   ${nextTaskSummary.suggestedPrimaryCommand}\n`
+            );
+          }
         }
 
         process.stdout.write('\n');

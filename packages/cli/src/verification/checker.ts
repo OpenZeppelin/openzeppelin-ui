@@ -452,27 +452,36 @@ function checkSchemaDrivenForm(task: MigrationTask, projectRoot: string): TaskCh
   };
 }
 
-function checkCopiedArtifact(
+function checkCopiedArtifacts(
   task: MigrationTask,
   projectRoot: string,
-  artifactPath: string,
+  requiredArtifacts: string[],
+  optionalArtifacts: string[],
   label: string
 ): TaskCheckResult {
-  const fullPath = path.join(projectRoot, artifactPath);
-  if (!fs.existsSync(fullPath)) {
+  const missingRequired = requiredArtifacts.filter(
+    (artifactPath) => !fs.existsSync(path.join(projectRoot, artifactPath))
+  );
+
+  if (missingRequired.length > 0) {
     return {
       taskId: task.id,
       passed: false,
       severity: 'fail',
-      diagnostics: [`Missing ${label}: ${artifactPath}`],
+      diagnostics: missingRequired.map((artifactPath) => `Missing ${label}: ${artifactPath}`),
     };
   }
+
+  const warnings = optionalArtifacts
+    .filter((artifactPath) => !fs.existsSync(path.join(projectRoot, artifactPath)))
+    .map((artifactPath) => `Missing optional ${label} mirror: ${artifactPath}`);
 
   return {
     taskId: task.id,
     passed: true,
-    severity: 'pass',
-    diagnostics: [`${label} present at ${artifactPath}`],
+    severity: warnings.length > 0 ? 'warning' : 'pass',
+    diagnostics: requiredArtifacts.map((artifactPath) => `${label} present at ${artifactPath}`),
+    warnings: warnings.length > 0 ? warnings : undefined,
   };
 }
 
@@ -497,18 +506,28 @@ export function checkTask(task: MigrationTask, projectRoot: string): TaskCheckRe
     case 'schema-driven-form':
       return checkSchemaDrivenForm(task, projectRoot);
     case 'copy-agents':
-      return checkCopiedArtifact(
+      return checkCopiedArtifacts(
         task,
         projectRoot,
-        '.cursor/agents/migration-analyzer.md',
-        'agent'
+        [
+          '.cursor/agents/migration-analyzer.md',
+          '.cursor/agents/migration-executor.md',
+          '.cursor/agents/migration-verifier.md',
+        ],
+        [
+          '.claude/agents/migration-analyzer.md',
+          '.claude/agents/migration-executor.md',
+          '.claude/agents/migration-verifier.md',
+        ],
+        'agent file'
       );
     case 'copy-skill':
-      return checkCopiedArtifact(
+      return checkCopiedArtifacts(
         task,
         projectRoot,
-        '.cursor/skills/migrate-to-oz-uikit/SKILL.md',
-        'skill'
+        ['.cursor/skills/migrate-to-oz-uikit/SKILL.md'],
+        ['.claude/skills/migrate-to-oz-uikit/SKILL.md'],
+        'skill file'
       );
   }
 }

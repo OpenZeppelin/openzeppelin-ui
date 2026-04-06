@@ -5,12 +5,20 @@ import pc from 'picocolors';
 
 import { analyzeProject } from '../../analysis';
 import { printError, printJson } from '../../utils/logger';
+import type { JsonCommandResult } from './json-results';
 
 interface AnalyzeOptions {
   project: string;
   scope?: string;
   output?: string;
   json?: boolean;
+}
+
+interface AnalyzeResult extends JsonCommandResult<'migrate-analyze'> {
+  project: string;
+  scope?: string;
+  output?: string;
+  report: ReturnType<typeof analyzeProject>;
 }
 
 /**
@@ -47,7 +55,15 @@ export function registerAnalyzeCommand(parent: Command): void {
         }
 
         if (options.json) {
-          printJson(report);
+          const result: AnalyzeResult = {
+            ok: true,
+            action: 'migrate-analyze',
+            project: projectRoot,
+            scope: options.scope,
+            output: options.output ? path.resolve(options.output) : undefined,
+            report,
+          };
+          printJson(result);
           return;
         }
 

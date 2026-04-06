@@ -1,11 +1,9 @@
 /**
  * Capability 7: Orchestration evaluator.
  *
- * Primary: subagent replay (agent-runtime agnostic — Cursor, Claude Code, etc.)
- * Fallback: static checklist analysis of SKILL.md structural properties.
- *
- * The static checklist is always available; subagent replay requires an LLM
- * runtime and is designed for future integration.
+ * Scores the migration skill in two ways:
+ * 1. Structural checklist coverage
+ * 2. Scenario sequence coverage for fresh-start and resume flows
  */
 
 import fs from 'node:fs';
@@ -102,6 +100,78 @@ interface ScenarioFixture {
   expectedGates: string[];
 }
 
+function normalizedContent(content: string): string {
+  return content.toLowerCase();
+}
+
+function includesOrderedSequence(content: string, expectedCommands: string[]): boolean {
+  let lastIndex = -1;
+  const lower = normalizedContent(content);
+
+  for (const command of expectedCommands) {
+    const currentIndex = lower.indexOf(command.toLowerCase(), lastIndex + 1);
+    if (currentIndex === -1) return false;
+    lastIndex = currentIndex;
+  }
+
+  return true;
+}
+
+function gatePattern(gate: string): RegExp {
+  switch (gate) {
+    case 'init-complete-before-analyze':
+      return /if no manifest exists[\s\S]*migrate init[\s\S]*skip to analysis|run initialization[\s\S]*skip to analysis/i;
+    case 'analyze-complete-before-plan':
+      return /step 2: analyze[\s\S]*step 3: user alignment[\s\S]*step 4: generate plan/i;
+    case 'check-status-before-continuing':
+      return /if manifest exists[\s\S]*migrate status[\s\S]*migrate doctor/i;
+    case 'verify-phase-before-next':
+      return /phase gate|only proceed to the next phase after user approval/i;
+    default:
+      return new RegExp(gate, 'i');
+  }
+}
+
+function evaluateScenario(content: string, scenario: ScenarioFixture): FixtureScore {
+  const checks: { id: string; passed: boolean }[] = [];
+
+  for (const command of scenario.expectedCommands) {
+    checks.push({
+      id: `command:${command}`,
+      passed: new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i').test(content),
+    });
+  }
+
+  if (scenario.expectedCommands.length > 1) {
+    checks.push({
+      id: 'command-order',
+      passed: includesOrderedSequence(content, scenario.expectedCommands),
+    });
+  }
+
+  for (const gate of scenario.expectedGates) {
+    checks.push({
+      id: `gate:${gate}`,
+      passed: gatePattern(gate).test(content),
+    });
+  }
+
+  const matched = checks.filter((check) => check.passed).map((check) => check.id);
+  const missed = checks.filter((check) => !check.passed).map((check) => check.id);
+  const score = checklistScore(checks.map((check) => check.passed));
+
+  return {
+    fixture: scenario.name,
+    precision: score,
+    recall: score,
+    f1: score,
+    truePositives: matched.length,
+    falsePositives: 0,
+    falseNegatives: missed.length,
+    details: { matched, missed, extra: [] },
+  };
+}
+
 function discoverScenarios(): ScenarioFixture[] {
   const scenarioDir = path.join(EXPECTED_DIR, 'orchestration');
   if (!fs.existsSync(scenarioDir)) return [];
@@ -158,18 +228,12 @@ export const orchestrationEvaluator: CapabilityEvaluator = {
 
   evaluate(): EvaluationResult {
     const scores: FixtureScore[] = [];
+    const content = fs.existsSync(SKILL_PATH) ? fs.readFileSync(SKILL_PATH, 'utf8') : '';
 
     scores.push(evaluateChecklist());
 
     const scenarios = discoverScenarios();
-    if (scenarios.length > 0) {
-      // Subagent replay integration point — future LLM-based evaluation
-      // For now, scenario fixtures are discovered but not executed
-      // When an LLM runtime is available, each scenario would:
-      // 1. Send SKILL.md + scenario context to the LLM
-      // 2. Parse the response for command sequences
-      // 3. Score against expectedCommands and expectedGates
-    }
+    scores.push(...scenarios.map((scenario) => evaluateScenario(content, scenario)));
 
     const aggregate =
       scores.length > 0 ? scores.reduce((sum, s) => sum + s.f1, 0) / scores.length : 0;

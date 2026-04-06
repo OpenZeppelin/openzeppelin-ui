@@ -31,7 +31,11 @@ export interface SetupResult {
   tailwindFixed: boolean;
 }
 
-function installPackages(projectRoot: string, packages: string[], skipInstall: boolean): string[] {
+export function installPackages(
+  projectRoot: string,
+  packages: string[],
+  skipInstall: boolean
+): string[] {
   if (skipInstall || packages.length === 0) return [];
 
   const pm = detectPackageManager(projectRoot);
@@ -45,7 +49,7 @@ function installPackages(projectRoot: string, packages: string[], skipInstall: b
   }
 }
 
-function writeProviderTemplates(projectRoot: string): string[] {
+export function writeProviderTemplates(projectRoot: string): string[] {
   const written: string[] = [];
   const srcDir = path.join(projectRoot, 'src', 'oz');
 
@@ -60,7 +64,7 @@ function writeProviderTemplates(projectRoot: string): string[] {
   return written;
 }
 
-function copyAgentFiles(projectRoot: string): string[] {
+export function copyAgentFiles(projectRoot: string): string[] {
   const copied: string[] = [];
 
   const cursorResult = copyTemplateDirectory('agents', path.join(projectRoot, '.cursor', 'agents'));
@@ -72,15 +76,21 @@ function copyAgentFiles(projectRoot: string): string[] {
   return copied;
 }
 
-function copySkillFiles(projectRoot: string): string[] {
+export function copySkillFiles(projectRoot: string): string[] {
   const copied: string[] = [];
 
   try {
-    const result = copyTemplateDirectory(
+    const cursorResult = copyTemplateDirectory(
       'skills/migrate-to-oz-uikit',
       path.join(projectRoot, '.cursor', 'skills', 'migrate-to-oz-uikit')
     );
-    copied.push(...result.copied.map((f) => `.cursor/skills/migrate-to-oz-uikit/${f}`));
+    copied.push(...cursorResult.copied.map((f) => `.cursor/skills/migrate-to-oz-uikit/${f}`));
+
+    const claudeResult = copyTemplateDirectory(
+      'skills/migrate-to-oz-uikit',
+      path.join(projectRoot, '.claude', 'skills', 'migrate-to-oz-uikit')
+    );
+    copied.push(...claudeResult.copied.map((f) => `.claude/skills/migrate-to-oz-uikit/${f}`));
   } catch {
     // Skill templates may not exist yet
   }
@@ -88,7 +98,7 @@ function copySkillFiles(projectRoot: string): string[] {
   return copied;
 }
 
-function normalizeTailwind(
+export function normalizeTailwind(
   projectRoot: string,
   families: PackageFamilyMap,
   branding: TailwindBrandingOptions
