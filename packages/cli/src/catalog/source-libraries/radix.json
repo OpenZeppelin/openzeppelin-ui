@@ -6,7 +6,21 @@
   "mappings": {
     "Accordion": { "source": "Accordion", "effort": "low", "notes": "Wrap swap — OZ wraps Radix internally" },
     "Checkbox": { "source": "Checkbox", "effort": "low", "notes": "Wrap swap" },
-    "Dialog": { "source": "Dialog", "effort": "low", "notes": "Wrap swap" },
+    "Dialog": {
+      "source": "Dialog",
+      "effort": "low",
+      "notes": "Wrap swap",
+      "namespaceMemberToTarget": {
+        "Root": "Dialog",
+        "Trigger": "DialogTrigger",
+        "Portal": "__OZ_NS_UNWRAP__",
+        "Overlay": "__OZ_NS_OMIT__",
+        "Content": "DialogContent",
+        "Title": "DialogTitle",
+        "Description": "DialogDescription",
+        "Close": "__OZ_NS_CLOSE_AS_CHILD__"
+      }
+    },
     "DropdownMenu": { "source": "DropdownMenu", "effort": "low", "notes": "Wrap swap" },
     "Label": { "source": "Label", "effort": "low", "notes": "Wrap swap" },
     "Popover": { "source": "Popover", "effort": "low", "notes": "Wrap swap" },
