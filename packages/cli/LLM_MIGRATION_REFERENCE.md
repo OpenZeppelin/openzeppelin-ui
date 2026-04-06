@@ -55,6 +55,8 @@ flowchart TD
   more -->|No| finish
 ```
 
+
+
 ## What Must Exist First
 
 The target repo should end up with:
@@ -213,19 +215,6 @@ Instead, the main assistant may delegate internally when the host supports it.
 - `migration-executor`
 - `migration-verifier`
 
-### Important caveat
-
-The CLI does **not** launch subagents.
-
-Subagents are invoked by the **host LLM environment**, if that environment supports agent delegation and the main assistant chooses to use them.
-
-So the most accurate mental model is:
-
-- the **CLI is guaranteed**
-- subagent delegation is **optional specialization**
-
-If delegation is unavailable, the main assistant should still perform the same workflow directly.
-
 ## The Actual Under-The-Hood Loop
 
 The assistant is effectively doing this:
@@ -258,3 +247,4 @@ The intended experience is:
 3. The assistant analyzes, plans, executes, verifies, and resumes from the manifest.
 4. The CLI provides reliability under the hood.
 5. Subagents may help internally, but the user should not need to think about them.
+

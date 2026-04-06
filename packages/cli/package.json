@@ -5,7 +5,7 @@
   "description": "Consumer CLI for scaffolding, migrating, and managing OpenZeppelin UI applications.",
   "type": "module",
   "bin": {
-    "oz-ui": "dist/index.mjs"
+    "oz-ui": "dist/index.cjs"
   },
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
@@ -67,11 +67,11 @@
   "author": "OpenZeppelin",
   "license": "AGPL-3.0",
   "dependencies": {
-    "@openzeppelin/ui-tailwind-utils": "workspace:*",
     "commander": "^13.1.0",
     "picocolors": "^1.1.1"
   },
   "devDependencies": {
+    "@openzeppelin/ui-tailwind-utils": "workspace:*",
     "@types/node": "^22.19.15",
     "tsx": "^4.21.0",
     "typescript": "^5.8.3",
