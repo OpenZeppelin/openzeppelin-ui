@@ -10,7 +10,26 @@ import type { MigrationTask } from '../manifest';
 export interface TaskCheckResult {
   taskId: string;
   passed: boolean;
+  severity: 'pass' | 'warning' | 'fail';
   diagnostics: string[];
+  warnings?: string[];
+}
+
+function taskFiles(task: MigrationTask): string[] {
+  if (task.files && task.files.length > 0) return task.files;
+  return task.file ? [task.file] : [];
+}
+
+function firstExistingTaskFile(
+  task: MigrationTask,
+  projectRoot: string
+): { file: string; content: string } | null {
+  for (const file of taskFiles(task)) {
+    const filePath = path.join(projectRoot, file);
+    if (!fs.existsSync(filePath)) continue;
+    return { file, content: fs.readFileSync(filePath, 'utf8') };
+  }
+  return null;
 }
 
 function checkInstallPackages(task: MigrationTask, projectRoot: string): TaskCheckResult {
@@ -18,7 +37,12 @@ function checkInstallPackages(task: MigrationTask, projectRoot: string): TaskChe
   const diagnostics: string[] = [];
 
   if (!fs.existsSync(packageJsonPath)) {
-    return { taskId: task.id, passed: false, diagnostics: ['package.json not found'] };
+    return {
+      taskId: task.id,
+      passed: false,
+      severity: 'fail',
+      diagnostics: ['package.json not found'],
+    };
   }
 
   const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
@@ -42,7 +66,12 @@ function checkInstallPackages(task: MigrationTask, projectRoot: string): TaskChe
     diagnostics.push('All required OZ packages are installed');
   }
 
-  return { taskId: task.id, passed: allPresent, diagnostics };
+  return {
+    taskId: task.id,
+    passed: allPresent,
+    severity: allPresent ? 'pass' : 'fail',
+    diagnostics,
+  };
 }
 
 function checkWireProviders(task: MigrationTask, projectRoot: string): TaskCheckResult {
@@ -52,7 +81,12 @@ function checkWireProviders(task: MigrationTask, projectRoot: string): TaskCheck
 
   const srcDir = path.join(projectRoot, 'src');
   if (!fs.existsSync(srcDir)) {
-    return { taskId: task.id, passed: false, diagnostics: ['src/ directory not found'] };
+    return {
+      taskId: task.id,
+      passed: false,
+      severity: 'fail',
+      diagnostics: ['src/ directory not found'],
+    };
   }
 
   function scan(dir: string): void {
@@ -80,6 +114,7 @@ function checkWireProviders(task: MigrationTask, projectRoot: string): TaskCheck
   return {
     taskId: task.id,
     passed: hasRuntimeProvider && hasWalletStateProvider,
+    severity: hasRuntimeProvider && hasWalletStateProvider ? 'pass' : 'fail',
     diagnostics,
   };
 }
@@ -91,6 +126,7 @@ function checkTailwindNormalize(task: MigrationTask, projectRoot: string): TaskC
     return {
       taskId: task.id,
       passed: true,
+      severity: 'pass',
       diagnostics: ['Tailwind configuration is valid'],
     };
   }
@@ -98,6 +134,7 @@ function checkTailwindNormalize(task: MigrationTask, projectRoot: string): TaskC
   return {
     taskId: task.id,
     passed: false,
+    severity: 'fail',
     diagnostics: result.issues.map(
       (issue) => `[${issue.severity}] ${issue.code}: ${issue.message}`
     ),
@@ -167,16 +204,26 @@ function rawHtmlOpenTagPattern(htmlSource: string): RegExp | null {
 
 function checkComponentReplacement(task: MigrationTask, projectRoot: string): TaskCheckResult {
   const diagnostics: string[] = [];
-  if (!task.file || !task.sourceComponent || !task.targetComponent) {
-    return { taskId: task.id, passed: false, diagnostics: ['Task missing file or component info'] };
+  if (taskFiles(task).length === 0 || !task.sourceComponent || !task.targetComponent) {
+    return {
+      taskId: task.id,
+      passed: false,
+      severity: 'fail',
+      diagnostics: ['Task missing file or component info'],
+    };
   }
 
-  const filePath = path.join(projectRoot, task.file);
-  if (!fs.existsSync(filePath)) {
-    return { taskId: task.id, passed: false, diagnostics: [`File not found: ${task.file}`] };
+  const resolvedFile = firstExistingTaskFile(task, projectRoot);
+  if (!resolvedFile) {
+    return {
+      taskId: task.id,
+      passed: false,
+      severity: 'fail',
+      diagnostics: taskFiles(task).map((file) => `File not found: ${file}`),
+    };
   }
 
-  const content = fs.readFileSync(filePath, 'utf8');
+  const content = resolvedFile.content;
   const target = task.targetComponent;
   const bindings = parseNamedImportBindings(content);
 
@@ -280,7 +327,153 @@ function checkComponentReplacement(task: MigrationTask, projectRoot: string): Ta
     diagnostics.push(`${target} is imported from OZ`);
   }
 
-  return { taskId: task.id, passed, diagnostics };
+  return { taskId: task.id, passed, severity: passed ? 'pass' : 'fail', diagnostics };
+}
+
+function checkWalletReplacement(task: MigrationTask, projectRoot: string): TaskCheckResult {
+  const diagnostics: string[] = [];
+  const warnings: string[] = [];
+  const resolvedFile = firstExistingTaskFile(task, projectRoot);
+  if (!resolvedFile) {
+    return {
+      taskId: task.id,
+      passed: false,
+      severity: 'fail',
+      diagnostics: taskFiles(task).length
+        ? taskFiles(task).map((file) => `File not found: ${file}`)
+        : ['Task missing file info'],
+    };
+  }
+
+  const { content, file } = resolvedFile;
+  const legacyWalletSignals = [
+    /\bfrom\s+['"]wagmi(?:\/[^'"]*)?['"]/,
+    /\bfrom\s+['"]ethers(?:\/[^'"]*)?['"]/,
+    /\bfrom\s+['"]viem(?:\/[^'"]*)?['"]/,
+  ];
+  const lingering = legacyWalletSignals.filter((pattern) => pattern.test(content)).length;
+  if (lingering > 0) {
+    diagnostics.push(`Legacy wallet imports still present in ${file}`);
+  }
+
+  if (!content.includes('useRuntimeContext') && !content.includes('useWalletState')) {
+    diagnostics.push(`No OZ wallet/runtime hooks detected in ${file}`);
+  }
+
+  if (!content.includes('RuntimeProvider') && !content.includes('WalletStateProvider')) {
+    warnings.push(
+      `Provider ancestry is not verifiable from ${file}; confirm runtime providers are wired at the app root`
+    );
+  }
+
+  const passed = diagnostics.length === 0;
+  if (passed) diagnostics.push(`Wallet replacement signals look correct in ${file}`);
+  return {
+    taskId: task.id,
+    passed,
+    severity: passed ? (warnings.length > 0 ? 'warning' : 'pass') : 'fail',
+    diagnostics,
+    warnings: warnings.length > 0 ? warnings : undefined,
+  };
+}
+
+function checkStorageMigration(task: MigrationTask, projectRoot: string): TaskCheckResult {
+  const diagnostics: string[] = [];
+  const warnings: string[] = [];
+  const resolvedFile = firstExistingTaskFile(task, projectRoot);
+  if (!resolvedFile) {
+    return {
+      taskId: task.id,
+      passed: false,
+      severity: 'fail',
+      diagnostics: taskFiles(task).length
+        ? taskFiles(task).map((file) => `File not found: ${file}`)
+        : ['Task missing file info'],
+    };
+  }
+
+  const { content, file } = resolvedFile;
+  const hasStorageMarker =
+    content.includes('EntityStorage') ||
+    content.includes('createDexieDatabase') ||
+    content.includes('TODO') ||
+    content.includes('manual review');
+
+  if (!hasStorageMarker) {
+    diagnostics.push(`No storage migration marker found in ${file}`);
+  }
+
+  if (task.manualReview) {
+    warnings.push('Storage data migration remains out of scope and still requires manual review');
+  }
+
+  const passed = diagnostics.length === 0;
+  if (passed) diagnostics.push(`Storage migration marker found in ${file}`);
+  return {
+    taskId: task.id,
+    passed,
+    severity: passed ? (warnings.length > 0 ? 'warning' : 'pass') : 'fail',
+    diagnostics,
+    warnings: warnings.length > 0 ? warnings : undefined,
+  };
+}
+
+function checkSchemaDrivenForm(task: MigrationTask, projectRoot: string): TaskCheckResult {
+  const diagnostics: string[] = [];
+  const warnings: string[] = [];
+  const resolvedFile = firstExistingTaskFile(task, projectRoot);
+  if (!resolvedFile) {
+    return {
+      taskId: task.id,
+      passed: false,
+      severity: 'fail',
+      diagnostics: taskFiles(task).length
+        ? taskFiles(task).map((file) => `File not found: ${file}`)
+        : ['Task missing file info'],
+    };
+  }
+
+  const { content, file } = resolvedFile;
+  const hasSchemaRenderer =
+    content.includes('RenderFormSchema') ||
+    content.includes('TransactionForm') ||
+    content.includes('DynamicFormField');
+  if (!hasSchemaRenderer) diagnostics.push(`No schema-driven form usage detected in ${file}`);
+  warnings.push('Schema-driven form migration should still be manually validated in the UI');
+
+  const passed = diagnostics.length === 0;
+  if (passed) diagnostics.push(`Schema-driven form usage detected in ${file}`);
+  return {
+    taskId: task.id,
+    passed,
+    severity: passed ? 'warning' : 'fail',
+    diagnostics,
+    warnings,
+  };
+}
+
+function checkCopiedArtifact(
+  task: MigrationTask,
+  projectRoot: string,
+  artifactPath: string,
+  label: string
+): TaskCheckResult {
+  const fullPath = path.join(projectRoot, artifactPath);
+  if (!fs.existsSync(fullPath)) {
+    return {
+      taskId: task.id,
+      passed: false,
+      severity: 'fail',
+      diagnostics: [`Missing ${label}: ${artifactPath}`],
+    };
+  }
+
+  return {
+    taskId: task.id,
+    passed: true,
+    severity: 'pass',
+    diagnostics: [`${label} present at ${artifactPath}`],
+  };
 }
 
 /**
@@ -298,18 +491,24 @@ export function checkTask(task: MigrationTask, projectRoot: string): TaskCheckRe
     case 'form-field-replacement':
       return checkComponentReplacement(task, projectRoot);
     case 'wallet-replacement':
+      return checkWalletReplacement(task, projectRoot);
     case 'storage-migration':
+      return checkStorageMigration(task, projectRoot);
     case 'schema-driven-form':
+      return checkSchemaDrivenForm(task, projectRoot);
     case 'copy-agents':
+      return checkCopiedArtifact(
+        task,
+        projectRoot,
+        '.cursor/agents/migration-analyzer.md',
+        'agent'
+      );
     case 'copy-skill':
-      return {
-        taskId: task.id,
-        passed: task.status === 'completed',
-        diagnostics: [
-          task.status === 'completed'
-            ? 'Task marked as completed'
-            : 'Task not yet completed (manual verification required)',
-        ],
-      };
+      return checkCopiedArtifact(
+        task,
+        projectRoot,
+        '.cursor/skills/migrate-to-oz-uikit/SKILL.md',
+        'skill'
+      );
   }
 }

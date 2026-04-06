@@ -1,9 +1,9 @@
-import { Dialog, DialogContent, DialogTrigger } from '~/sleek/prism/modal';
-import { Select, SelectTrigger, SelectContent, SelectItem } from '~/sleek/prism/picker';
-import { Alert, AlertTitle, AlertDescription } from '~/sleek/prism/notice';
-import { Button } from '~/sleek/prism/action-button';
-import { Checkbox } from '~/sleek/prism/tick-box';
-import { Tooltip } from '~/sleek/prism/hint';
+import { Dialog, DialogContent, DialogTrigger } from '~/orbit/field/modal';
+import { Select, SelectTrigger, SelectContent, SelectItem } from '~/orbit/field/picker';
+import { Alert, AlertTitle, AlertDescription } from '~/orbit/field/notice';
+import { Button } from '~/orbit/field/action-button';
+import { Checkbox } from '~/orbit/field/tick-box';
+import { Tooltip } from '~/orbit/field/hint';
 
 export function Configuration() {
   return (

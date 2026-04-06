@@ -24,16 +24,37 @@ export type MigrationPhase =
   | 'storage'
   | 'cleanup';
 
+export type MigrationPhaseDetail =
+  | 'foundation'
+  | 'ui-primitives'
+  | 'composite-components'
+  | 'form-fields'
+  | 'schema-driven-forms'
+  | 'wallet-and-adapters'
+  | 'storage'
+  | 'cleanup';
+
+export interface TaskValidation {
+  command: string;
+  doctorCheck?: string;
+}
+
 export interface MigrationTask {
   id: string;
   phase: MigrationPhase;
+  phaseDetail?: MigrationPhaseDetail;
   type: TaskType;
   status: TaskStatus;
   description: string;
   file?: string;
+  files?: string[];
   sourceComponent?: string;
   targetComponent?: string;
   capability?: string;
+  dependsOn?: string[];
+  validation?: TaskValidation;
+  notes?: string[];
+  manualReview?: boolean;
   error?: string;
   completedAt?: string;
 }
@@ -68,6 +89,7 @@ export interface MigrationManifest {
   };
   decisions: UserDecision[];
   phases: MigrationPhase[];
+  phaseDescriptions?: Partial<Record<MigrationPhase, string>>;
   tasks: MigrationTask[];
   createdAt: string;
   updatedAt: string;

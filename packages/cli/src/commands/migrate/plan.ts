@@ -21,7 +21,22 @@ interface PlanOptions {
   scope?: string;
   components?: string;
   profile?: string;
+  decision?: string[];
   json?: boolean;
+}
+
+function parseDecisionFlags(decisionFlags: string[] | undefined): MigrationManifest['decisions'] {
+  if (!decisionFlags || decisionFlags.length === 0) return [];
+
+  return decisionFlags
+    .map((flag) => {
+      const [keyPart, ...rest] = flag.split('=');
+      const key = keyPart?.trim();
+      const choice = rest.join('=').trim();
+      if (!key || !choice) return null;
+      return { key, choice };
+    })
+    .filter((decision): decision is NonNullable<typeof decision> => decision !== null);
 }
 
 function detectProfile(report: AnalysisReport, override?: string): MigrationManifest['profile'] {
@@ -48,6 +63,15 @@ export function registerPlanCommand(parent: Command): void {
     .option('-s, --scope <dir>', 'Limit migration scope to a directory')
     .option('-c, --components <list>', 'Filter by component names (comma-separated)')
     .option('--profile <profile>', 'Override profile selection (viewer/transactor/operator)')
+    .option(
+      '--decision <key=value>',
+      'Record a user decision in the manifest',
+      (value, acc) => {
+        acc.push(value);
+        return acc;
+      },
+      [] as string[]
+    )
     .option('--json', 'Emit machine-readable JSON output')
     .action((options: PlanOptions) => {
       try {
@@ -75,6 +99,7 @@ export function registerPlanCommand(parent: Command): void {
           directory: options.scope,
           componentFilter,
         };
+        manifest.decisions = parseDecisionFlags(options.decision);
 
         manifest.tasks = generatePlanTasks(report, {
           scopeDir: options.scope,

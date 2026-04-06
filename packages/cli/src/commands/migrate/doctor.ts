@@ -18,6 +18,7 @@ interface DoctorResult {
   manifest: string;
   results: TaskCheckResult[];
   passed: number;
+  warnings: number;
   failed: number;
   total: number;
 }
@@ -53,6 +54,7 @@ export function registerDoctorCommand(parent: Command): void {
         }
 
         const passed = results.filter((r) => r.passed).length;
+        const warnings = results.filter((r) => r.severity === 'warning').length;
         const failed = results.filter((r) => !r.passed).length;
 
         const doctorResult: DoctorResult = {
@@ -61,6 +63,7 @@ export function registerDoctorCommand(parent: Command): void {
           manifest: manifestPath,
           results,
           passed,
+          warnings,
           failed,
           total: results.length,
         };
@@ -72,16 +75,27 @@ export function registerDoctorCommand(parent: Command): void {
         }
 
         if (doctorResult.ok) {
-          process.stdout.write(pc.green(`Doctor: all ${passed} checks passed\n`));
+          const warningSuffix = warnings > 0 ? pc.yellow(` (${warnings} with warnings)`) : '';
+          process.stdout.write(
+            pc.green(`Doctor: all ${passed} checks passed`) + warningSuffix + '\n'
+          );
         } else {
           process.stdout.write(pc.red(`Doctor: ${failed}/${results.length} checks failed\n`));
         }
 
         for (const result of results) {
-          const icon = result.passed ? pc.green('✓') : pc.red('✗');
+          const icon =
+            result.severity === 'fail'
+              ? pc.red('✗')
+              : result.severity === 'warning'
+                ? pc.yellow('!')
+                : pc.green('✓');
           process.stdout.write(`  ${icon} ${result.taskId}\n`);
           for (const diag of result.diagnostics) {
             process.stdout.write(`    ${pc.dim(diag)}\n`);
+          }
+          for (const warning of result.warnings ?? []) {
+            process.stdout.write(`    ${pc.yellow(warning)}\n`);
           }
         }
 

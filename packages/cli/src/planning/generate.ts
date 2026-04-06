@@ -8,6 +8,26 @@ import { loadSourceLibraries } from '../catalog';
 import { loadExclusions } from '../catalog/exclusions';
 import type { MigrationPhase, MigrationTask, TaskType } from '../manifest';
 
+const FOUNDATION_DEPENDENCIES = [
+  'setup-install-packages',
+  'setup-wire-providers',
+  'setup-tailwind-normalize',
+] as const;
+
+function buildValidation(taskId: string): MigrationTask['validation'] {
+  return {
+    command: `oz-ui migrate doctor --manifest migration-manifest.json --check ${taskId} --json`,
+    doctorCheck: taskId,
+  };
+}
+
+function isCompositeComponent(sourceName: string, targetComponent: string): boolean {
+  if (sourceName !== targetComponent) return true;
+  return /(Content|Header|Footer|Title|Description|Trigger|Item|List|Value|Provider)$/u.test(
+    sourceName
+  );
+}
+
 /** @description True when analysis tagged the component as sourced from an OZ catalog package (already migrated). */
 function sourceLibraryIsOzCatalogFallback(sourceLibrary: string | null): boolean {
   if (!sourceLibrary) return false;
@@ -68,37 +88,51 @@ export function generateSetupTasks(): MigrationTask[] {
     {
       id: 'setup-install-packages',
       phase: 'setup',
+      phaseDetail: 'foundation',
       type: 'install-packages',
       status: 'pending',
       description: 'Install @openzeppelin/* packages',
+      validation: buildValidation('setup-install-packages'),
     },
     {
       id: 'setup-wire-providers',
       phase: 'setup',
+      phaseDetail: 'foundation',
       type: 'wire-providers',
       status: 'pending',
       description: 'Wire RuntimeProvider + WalletStateProvider into app entry',
+      dependsOn: ['setup-install-packages'],
+      validation: buildValidation('setup-wire-providers'),
     },
     {
       id: 'setup-tailwind-normalize',
       phase: 'setup',
+      phaseDetail: 'foundation',
       type: 'tailwind-normalize',
       status: 'pending',
       description: 'Normalize Tailwind configuration for OZ packages',
+      dependsOn: ['setup-install-packages'],
+      validation: buildValidation('setup-tailwind-normalize'),
     },
     {
       id: 'setup-copy-agents',
       phase: 'setup',
+      phaseDetail: 'foundation',
       type: 'copy-agents',
       status: 'pending',
       description: 'Copy migration agent files to project',
+      dependsOn: ['setup-install-packages'],
+      validation: buildValidation('setup-copy-agents'),
     },
     {
       id: 'setup-copy-skill',
       phase: 'setup',
+      phaseDetail: 'foundation',
       type: 'copy-skill',
       status: 'pending',
       description: 'Copy migration skill file to project',
+      dependsOn: ['setup-install-packages'],
+      validation: buildValidation('setup-copy-skill'),
     },
   ];
 }
@@ -134,13 +168,23 @@ export function generateComponentTasks(
         tasks.push({
           id: `${type}-${sourceName}-${file.replace(/[/\\]/g, '-')}`,
           phase,
+          phaseDetail:
+            phase === 'form-fields'
+              ? 'form-fields'
+              : isCompositeComponent(sourceName, ozTarget)
+                ? 'composite-components'
+                : 'ui-primitives',
           type,
           status: 'pending',
           description: `Replace ${sourceName} with OZ ${ozTarget} in ${file}`,
           file,
+          files: [file],
           sourceComponent: sourceName,
           targetComponent: ozTarget,
           capability: comp.capabilities[0],
+          dependsOn: [...FOUNDATION_DEPENDENCIES],
+          validation: buildValidation(`${type}-${sourceName}-${file.replace(/[/\\]/g, '-')}`),
+          notes: comp.notes ? [comp.notes] : undefined,
         });
       }
     }
@@ -174,10 +218,17 @@ export function generateWalletTasks(report: AnalysisReport): MigrationTask[] {
       tasks.push({
         id: `wallet-replacement-${pattern.pattern}-${file.replace(/[/\\]/g, '-')}`,
         phase: 'wallet-adapter',
+        phaseDetail: 'wallet-and-adapters',
         type: 'wallet-replacement',
         status: 'pending',
         description: `Replace ${pattern.pattern} usage with OZ adapter in ${file}`,
         file,
+        files: [file],
+        dependsOn: [...FOUNDATION_DEPENDENCIES],
+        validation: buildValidation(
+          `wallet-replacement-${pattern.pattern}-${file.replace(/[/\\]/g, '-')}`
+        ),
+        notes: pattern.migrationRelevance ? [pattern.migrationRelevance] : undefined,
       });
     }
   }
@@ -197,15 +248,74 @@ export function generateStorageTasks(report: AnalysisReport): MigrationTask[] {
       tasks.push({
         id: `storage-migration-${pattern.pattern}-${file.replace(/[/\\]/g, '-')}`,
         phase: 'storage',
+        phaseDetail: 'storage',
         type: 'storage-migration',
         status: 'pending',
         description: `Flag ${pattern.pattern} usage in ${file} for manual review (data migration out of scope)`,
         file,
+        files: [file],
+        dependsOn: [...FOUNDATION_DEPENDENCIES],
+        validation: buildValidation(
+          `storage-migration-${pattern.pattern}-${file.replace(/[/\\]/g, '-')}`
+        ),
+        notes: pattern.migrationRelevance ? [pattern.migrationRelevance] : undefined,
+        manualReview: true,
       });
     }
   }
 
   return tasks;
+}
+
+/** @description Builds optional schema-driven form migration tasks when contract-like form surfaces are detected. */
+export function generateSchemaFormTasks(report: AnalysisReport): MigrationTask[] {
+  const relevantComponents = report.components.filter(
+    (component) =>
+      component.name === 'Form' ||
+      component.rawNames?.includes('Form') ||
+      component.notes.includes('RenderFormSchema')
+  );
+  const adapterFiles = new Set([
+    ...(report.wallet?.affectedFiles ?? []),
+    ...(report.adapters?.affectedFiles ?? []),
+    ...report.patterns
+      .filter((pattern) => pattern.category === 'wallet')
+      .flatMap((pattern) => pattern.files),
+  ]);
+  if (relevantComponents.length === 0 || adapterFiles.size === 0) return [];
+
+  const tasks: MigrationTask[] = [];
+  for (const component of relevantComponents) {
+    for (const file of component.files) {
+      tasks.push({
+        id: `schema-driven-form-${file.replace(/[/\\]/g, '-')}`,
+        phase: 'schema-forms',
+        phaseDetail: 'schema-driven-forms',
+        type: 'schema-driven-form',
+        status: 'pending',
+        description: `Review ${file} for RenderFormSchema/TransactionForm migration`,
+        file,
+        files: [file],
+        sourceComponent: component.name,
+        targetComponent: 'RenderFormSchema',
+        dependsOn: [...FOUNDATION_DEPENDENCIES],
+        validation: buildValidation(`schema-driven-form-${file.replace(/[/\\]/g, '-')}`),
+        notes: [
+          'Optional phase 4b migration for schema-driven or contract-oriented forms.',
+          ...(component.notes ? [component.notes] : []),
+        ],
+        manualReview: true,
+      });
+    }
+  }
+
+  const deduped = new Map<string, MigrationTask>();
+  for (const task of tasks) {
+    const adapterRelated = task.file ? adapterFiles.has(task.file) : false;
+    if (!adapterRelated) continue;
+    deduped.set(task.id, task);
+  }
+  return [...deduped.values()];
 }
 
 export interface GeneratePlanOptions {
@@ -220,8 +330,9 @@ export function generatePlanTasks(
 ): MigrationTask[] {
   const setupTasks = generateSetupTasks();
   const componentTasks = generateComponentTasks(report, options.scopeDir, options.componentFilter);
+  const schemaFormTasks = generateSchemaFormTasks(report);
   const walletTasks = generateWalletTasks(report);
   const storageTasks = generateStorageTasks(report);
 
-  return [...setupTasks, ...componentTasks, ...walletTasks, ...storageTasks];
+  return [...setupTasks, ...componentTasks, ...schemaFormTasks, ...walletTasks, ...storageTasks];
 }

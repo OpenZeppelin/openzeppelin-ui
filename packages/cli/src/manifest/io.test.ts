@@ -40,6 +40,7 @@ describe('createEmptyManifest', () => {
     expect(manifest.sourceLibrary).toBe('shadcn');
     expect(manifest.tasks).toEqual([]);
     expect(manifest.phases).toHaveLength(7);
+    expect(manifest.phaseDescriptions?.setup).toMatch(/Foundation/);
   });
 });
 

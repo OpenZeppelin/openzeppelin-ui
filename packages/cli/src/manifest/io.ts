@@ -169,6 +169,22 @@ export function createEmptyManifest(
       'storage',
       'cleanup',
     ],
+    phaseDescriptions: {
+      setup:
+        'Foundation: install OZ packages, wire providers, normalize Tailwind, and copy migration assets.',
+      'ui-components':
+        'Replace visual UI primitives and compound components with OpenZeppelin UI Kit equivalents.',
+      'form-fields':
+        'Replace raw and library-specific form controls with OpenZeppelin field components.',
+      'schema-forms':
+        'Optional schema-driven form migration for contract or transaction-oriented form surfaces.',
+      'wallet-adapter':
+        'Replace direct wallet and chain integrations with RuntimeProvider and capability-based consumption.',
+      storage:
+        'Review and migrate persistence code paths to the OpenZeppelin storage layer where applicable.',
+      cleanup:
+        'Remove stale dependencies, wrappers, and migration scaffolding after verification passes.',
+    },
     tasks: [],
     createdAt: now,
     updatedAt: now,

@@ -56,10 +56,12 @@ oz-ui migrate analyze --project . --json --output migration-analysis.json
 ```
 
 Present a summary to the user:
+- Framework, router, state/styling setup, and whether OZ packages are already present
 - How many components were found and how many map to OZ equivalents
 - Which UI library is in use (shadcn, MUI, Chakra, etc.)
 - Whether wallet libraries (wagmi, ethers) are present
 - Whether storage patterns were detected
+- Whether direct adapter / chain libraries (viem, ethers) were detected
 - The estimated effort level (low / medium / high)
 - Recommended profile (viewer / transactor / operator)
 
@@ -70,12 +72,12 @@ Ask the user to confirm:
 2. **Scope**: "Migrate the entire project or a specific directory?"
 3. **Ambiguous components**: For any components where the mapping is unclear, present options and ask the user to decide
 
-Record all decisions — they will be passed to the plan command.
+Record all decisions — they will be passed to the plan command using `--decision key=value` flags and persisted in the manifest.
 
 ### Step 4: Generate Plan
 
 ```bash
-oz-ui migrate plan --report migration-analysis.json --json --profile <selected> [--scope <dir>]
+oz-ui migrate plan --report migration-analysis.json --json --profile <selected> [--scope <dir>] [--decision <key=value>]
 ```
 
 This creates `migration-manifest.json` with all phased tasks. Show the user the plan summary and get approval before proceeding.
@@ -108,7 +110,7 @@ After completing all tasks in a phase:
 ### Step 7: Completion
 
 After all phases are complete:
-1. Run `oz-ui migrate status --manifest migration-manifest.json` for a final summary
+1. Run `oz-ui migrate status --manifest migration-manifest.json` or `oz-ui migrate status --manifest migration-manifest.json --next` for the next actionable task
 2. Run `oz-ui migrate doctor --manifest migration-manifest.json` for a full verification pass
 3. Recommend the user:
    - Run their test suite

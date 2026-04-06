@@ -6,28 +6,46 @@
  * It is passed to RuntimeProvider and called lazily per network.
  *
  * Customize this file to add ecosystem-specific adapters.
+ * In a real migration, this file becomes the bridge between your app's
+ * network catalog and the capability-based OZ runtime profiles.
  */
 
 import type { EcosystemRuntime, NetworkConfig } from '@openzeppelin/ui-types';
+
+type RuntimeFactory = (networkConfig: NetworkConfig) => Promise<EcosystemRuntime>;
+
+/**
+ * Register one factory per ecosystem as you adopt OZ adapters.
+ *
+ * Example profiles:
+ * - `viewer` for read-only contract and explorer usage
+ * - `transactor` for wallet + execution flows
+ * - `operator` for advanced admin / access-control flows
+ */
+const runtimeFactories: Partial<Record<NetworkConfig['ecosystem'], RuntimeFactory>> = {
+  // evm: async (networkConfig) => {
+  //   const { createEvmRuntime } = await import('@openzeppelin/adapter-evm');
+  //   return createEvmRuntime(networkConfig, { profile: 'transactor' });
+  // },
+  // stellar: async (networkConfig) => {
+  //   const { createStellarRuntime } = await import('@openzeppelin/adapter-stellar');
+  //   return createStellarRuntime(networkConfig, { profile: 'viewer' });
+  // },
+};
 
 /**
  * Resolves an EcosystemRuntime for the given network config.
  * Add adapter imports and runtime creation logic per ecosystem here.
  */
 export async function resolveRuntime(networkConfig: NetworkConfig): Promise<EcosystemRuntime> {
-  const { ecosystem } = networkConfig;
+  const factory = runtimeFactories[networkConfig.ecosystem];
 
-  switch (ecosystem) {
-    // Example: uncomment and install @openzeppelin/adapter-evm to enable EVM support
-    // case 'evm': {
-    //   const { createEvmRuntime } = await import('@openzeppelin/adapter-evm');
-    //   return createEvmRuntime(networkConfig);
-    // }
-
-    default:
-      throw new Error(
-        `No adapter configured for ecosystem "${ecosystem}". ` +
-          'Install the appropriate @openzeppelin/adapter-* package and add a case here.'
-      );
+  if (!factory) {
+    throw new Error(
+      `No adapter configured for ecosystem "${networkConfig.ecosystem}". ` +
+        'Install the appropriate @openzeppelin/adapter-* package, register a runtime factory, and choose a profile that matches this app.'
+    );
   }
+
+  return factory(networkConfig);
 }

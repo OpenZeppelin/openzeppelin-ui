@@ -1,6 +1,6 @@
-import { Button } from '~/sleek/prism/action-button';
-import { Card, CardContent, CardHeader, CardTitle } from '~/sleek/prism/info-card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '~/sleek/prism/tab-set';
+import { Button } from '~/orbit/field/action-button';
+import { Card, CardContent, CardHeader, CardTitle } from '~/orbit/field/info-card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '~/orbit/field/tab-set';
 
 export function Overview() {
   return (

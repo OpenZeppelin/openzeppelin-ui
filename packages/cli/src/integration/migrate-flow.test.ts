@@ -108,6 +108,13 @@ describe('integration: fixture project analysis', () => {
     expect(report.version).toBe('1.0.0');
     expect(report.framework).toBe('vite');
     expect(report.summary.totalFiles).toBeGreaterThan(0);
+    expect(report.projectInfo.root).toBe(dir);
+    expect(report.projectInfo.stylingSystem).toBe('tailwind');
+    expect(report.componentsByMigration.mappable.length).toBeGreaterThan(0);
+    expect(report.wallet.targetSetup).toContain('RuntimeProvider');
+    expect(report.storage.currentPatterns.length).toBeGreaterThan(0);
+    expect(report.adapters.capabilityTargets).toContain('ExecutionCapability');
+    expect(report.tailwindAnalysis.doctor).toEqual(report.tailwind);
   });
 
   it('detects shadcn-style component imports', () => {
@@ -131,6 +138,7 @@ describe('integration: fixture project analysis', () => {
 
     expect(wagmi).toBeDefined();
     expect(wagmi!.category).toBe('wallet');
+    expect(report.wallet.currentSetup).toContain('wagmi');
   });
 
   it('detects localStorage pattern', () => {
@@ -142,6 +150,7 @@ describe('integration: fixture project analysis', () => {
 
     expect(storage).toBeDefined();
     expect(storage!.category).toBe('storage');
+    expect(report.storage.affectedFiles).toContain('src/hooks/useStorage.ts');
   });
 
   it('estimates medium effort due to wallet + storage patterns', () => {
