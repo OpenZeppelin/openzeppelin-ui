@@ -67,6 +67,9 @@ const IMPORT_PATTERNS = [
   /\bimport\s+['"]([^'"]+)['"]/g,
 ];
 
+/** Dynamic `import('specifier')` — structural; wallet/OZ packages are often loaded lazily. */
+const DYNAMIC_IMPORT_PATTERN = /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
+
 function countLineNumber(content: string, index: number): number {
   return content.slice(0, index).split('\n').length;
 }
@@ -79,18 +82,31 @@ function readLineAt(content: string, index: number): string {
 
 function extractImports(file: ScannedFile): ExtractedImport[] {
   const imports: ExtractedImport[] = [];
+  const seen = new Set<string>();
+
+  const pushMatch = (source: string, index: number) => {
+    if (!source) return;
+    const line = countLineNumber(file.content, index);
+    const key = `${source}\0${line}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    imports.push({
+      source,
+      statement: readLineAt(file.content, index),
+      line,
+    });
+  };
 
   for (const pattern of IMPORT_PATTERNS) {
     for (const match of file.content.matchAll(pattern)) {
-      const source = match[1];
-      if (!source || match.index === undefined) continue;
-
-      imports.push({
-        source,
-        statement: readLineAt(file.content, match.index),
-        line: countLineNumber(file.content, match.index),
-      });
+      if (match[1] === undefined || match.index === undefined) continue;
+      pushMatch(match[1], match.index);
     }
+  }
+
+  for (const match of file.content.matchAll(DYNAMIC_IMPORT_PATTERN)) {
+    if (match[1] === undefined || match.index === undefined) continue;
+    pushMatch(match[1], match.index);
   }
 
   return imports;
