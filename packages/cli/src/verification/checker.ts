@@ -4,6 +4,7 @@ import path from 'node:path';
 import { doctorTailwindProject } from '@openzeppelin/ui-tailwind-utils';
 
 import { CLI_BRANDING, CLI_FAMILIES } from '../branding';
+import { loadCatalog, loadHtmlElementMappings } from '../catalog';
 import type { MigrationTask } from '../manifest';
 
 export interface TaskCheckResult {
@@ -103,6 +104,67 @@ function checkTailwindNormalize(task: MigrationTask, projectRoot: string): TaskC
   };
 }
 
+const OZ_SCOPE = '@openzeppelin/';
+/** Canonical package for UI primitives; `ui-react` hosts adapters/runtime, not primary component imports. */
+const OZ_UI_COMPONENTS_PKG = '@openzeppelin/ui-components';
+const OZ_UI_REACT_PKG = '@openzeppelin/ui-react';
+
+interface ParsedImportBinding {
+  module: string;
+  exportName: string;
+  localName: string;
+}
+
+/**
+ * Extracts named import bindings from a source file (structural parse, not a full TS program).
+ */
+function parseNamedImportBindings(source: string): ParsedImportBinding[] {
+  const out: ParsedImportBinding[] = [];
+  const re = /import\s+(?:type\s+)?\{([^}]*)\}\s*from\s*['"]([^'"]+)['"]/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(source)) !== null) {
+    const bindingList = m[1];
+    const moduleSpecifier = m[2];
+    for (const rawPart of bindingList.split(',')) {
+      const part = rawPart.trim();
+      if (!part) continue;
+      const asSplit = part.split(/\s+as\s+/);
+      if (asSplit.length === 2) {
+        const exportName = asSplit[0].trim();
+        const localName = asSplit[1].trim();
+        if (/^\w+$/.test(exportName) && /^\w+$/.test(localName)) {
+          out.push({ module: moduleSpecifier, exportName, localName });
+        }
+        continue;
+      }
+      if (/^\w+$/.test(part)) {
+        out.push({ module: moduleSpecifier, exportName: part, localName: part });
+      }
+    }
+  }
+  return out;
+}
+
+function openZeppelinPackageRoot(moduleSpecifier: string): string | null {
+  const match = moduleSpecifier.match(/^(@[^/]+\/[^/]+)(?:\/|$)/);
+  return match ? match[1] : null;
+}
+
+function isOpenZeppelinModule(moduleSpecifier: string): boolean {
+  return moduleSpecifier.startsWith(OZ_SCOPE);
+}
+
+/**
+ * Returns a RegExp that matches a raw intrinsic HTML opening tag for catalog `source` (e.g. button).
+ * PascalCase JSX is not matched.
+ */
+function rawHtmlOpenTagPattern(htmlSource: string): RegExp | null {
+  const simple = htmlSource.match(/^([a-z][a-z0-9-]*)$/);
+  if (!simple) return null;
+  const tag = simple[1].toLowerCase();
+  return new RegExp(`<${tag}(?=[\\s/>])`);
+}
+
 function checkComponentReplacement(task: MigrationTask, projectRoot: string): TaskCheckResult {
   const diagnostics: string[] = [];
   if (!task.file || !task.sourceComponent || !task.targetComponent) {
@@ -115,24 +177,110 @@ function checkComponentReplacement(task: MigrationTask, projectRoot: string): Ta
   }
 
   const content = fs.readFileSync(filePath, 'utf8');
+  const target = task.targetComponent;
+  const bindings = parseNamedImportBindings(content);
 
-  const hasOldImport =
-    content.includes(task.sourceComponent) && !content.includes(`@openzeppelin/`);
-  const hasNewImport = content.includes('@openzeppelin/') && content.includes(task.targetComponent);
+  const catalog = loadCatalog();
+  const catalogEntry = catalog.components[target];
+  const expectedOzPackage = catalogEntry?.package;
 
-  if (hasNewImport && !hasOldImport) {
-    diagnostics.push(`${task.targetComponent} is imported from OZ`);
-    return { taskId: task.id, passed: true, diagnostics };
+  const ozBindingsForTarget = bindings.filter(
+    (b) => b.exportName === target && isOpenZeppelinModule(b.module)
+  );
+  const wrongOzBindings = expectedOzPackage
+    ? ozBindingsForTarget.filter((b) => openZeppelinPackageRoot(b.module) !== expectedOzPackage)
+    : [];
+  const correctOzBindings = expectedOzPackage
+    ? ozBindingsForTarget.filter((b) => openZeppelinPackageRoot(b.module) === expectedOzPackage)
+    : ozBindingsForTarget;
+
+  if (wrongOzBindings.length > 0) {
+    const found = wrongOzBindings[0].module;
+    diagnostics.push(
+      `Wrong package for ${target}: catalog expects ${expectedOzPackage} but found import from ${found}`
+    );
   }
 
-  if (hasOldImport) {
-    diagnostics.push(`Old import of ${task.sourceComponent} still present`);
-  }
-  if (!hasNewImport) {
-    diagnostics.push(`OZ import of ${task.targetComponent} not found`);
+  if (!expectedOzPackage) {
+    const reactOnly = ozBindingsForTarget.find(
+      (b) => openZeppelinPackageRoot(b.module) === OZ_UI_REACT_PKG
+    );
+    if (reactOnly) {
+      diagnostics.push(
+        `Wrong package for ${target}: OpenZeppelin UI components should be imported from ${OZ_UI_COMPONENTS_PKG}, not from ${OZ_UI_REACT_PKG} (found import from ${reactOnly.module})`
+      );
+    }
   }
 
-  return { taskId: task.id, passed: false, diagnostics };
+  const nonOzImportsOfTarget = bindings.filter(
+    (b) => b.exportName === target && !isOpenZeppelinModule(b.module)
+  );
+  for (const b of nonOzImportsOfTarget) {
+    const aliasNote =
+      b.localName !== b.exportName
+        ? ` (exported as ${b.exportName} under local alias ${b.localName})`
+        : '';
+    const shadcnHint =
+      b.module.includes('components/ui') || b.module.startsWith('@/')
+        ? ' Path matches a typical shadcn-style alias layout.'
+        : '';
+    diagnostics.push(
+      `Old import of ${target} from non-OZ module ${b.module} still present${aliasNote}.${shadcnHint}`.trimEnd()
+    );
+  }
+
+  const source = task.sourceComponent;
+  if (source && source !== target) {
+    const staleSourceImports = bindings.filter(
+      (b) => b.exportName === source && !isOpenZeppelinModule(b.module)
+    );
+    for (const b of staleSourceImports) {
+      const aliasNote =
+        b.localName !== b.exportName
+          ? ` (exported as ${b.exportName} under local alias ${b.localName})`
+          : '';
+      const shadcnHint =
+        b.module.includes('components/ui') || b.module.startsWith('@/')
+          ? ' Path matches a typical shadcn-style alias layout.'
+          : '';
+      diagnostics.push(
+        `Old import of ${source} from non-OZ module ${b.module} still present${aliasNote}.${shadcnHint}`.trimEnd()
+      );
+    }
+  }
+
+  const htmlLib = loadHtmlElementMappings();
+  const htmlMapping = htmlLib?.mappings[target];
+  if (htmlMapping?.source) {
+    const pattern = rawHtmlOpenTagPattern(htmlMapping.source);
+    if (pattern?.test(content)) {
+      diagnostics.push(
+        `Raw HTML <${htmlMapping.source}> still present; ${target} is not migrated to the OZ component`
+      );
+    }
+  }
+
+  if (correctOzBindings.length === 0) {
+    if (expectedOzPackage) {
+      if (ozBindingsForTarget.length === 0) {
+        diagnostics.push(
+          `OZ import of ${target} not found — ${target} is not imported from ${expectedOzPackage}`
+        );
+      }
+    } else if (ozBindingsForTarget.length === 0) {
+      diagnostics.push(
+        `OZ import of ${target} not found — ${target} is not imported from OpenZeppelin UI packages`
+      );
+    }
+  }
+
+  const passed = diagnostics.length === 0;
+
+  if (passed) {
+    diagnostics.push(`${target} is imported from OZ`);
+  }
+
+  return { taskId: task.id, passed, diagnostics };
 }
 
 /**
