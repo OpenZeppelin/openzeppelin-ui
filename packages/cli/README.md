@@ -89,3 +89,7 @@ pnpm --filter @openzeppelin/ui-cli dashboard
 The CLI includes an autonomous experiment loop for improving component detection accuracy. An AI agent iteratively modifies detection logic, evaluates against benchmark fixtures, and keeps only changes that improve the F1 score — with a real-time dashboard for monitoring.
 
 See [autoresearch/README.md](autoresearch/README.md) for the full workflow and documentation.
+
+## Additional Reference
+
+For a plain-English explanation of how the migration system is intended to work when the user talks to an LLM instead of the CLI directly, see [LLM_MIGRATION_REFERENCE.md](LLM_MIGRATION_REFERENCE.md).
