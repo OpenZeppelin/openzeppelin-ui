@@ -41,7 +41,7 @@ export interface EvaluationResult {
 
 export interface CapabilityEvaluator {
   name: string;
-  evaluate(): EvaluationResult;
+  evaluate(): EvaluationResult | Promise<EvaluationResult>;
 }
 
 /**

@@ -243,12 +243,32 @@ Each lint gate:
 
 ---
 
+## Runtime fixtures
+
+Runtime fixtures validate that a migrated project **actually boots and functions**, not just passes static analysis. They live under `expected/runtime/<fixture>.json`.
+
+Unlike other capabilities that use precision/recall against labeled ground truth, runtime fixtures use a **health-check assertion model**: start the dev server, fetch endpoints, and check assertions (status codes, body content, absence of error strings).
+
+### Adding a runtime fixture
+
+1. Create `expected/runtime/<name>.json` — see `expected/runtime/README.md` for the full schema.
+2. Required fields: `fixture`, `projectDir` (or `fixtureSource`), `serve`, `port`, `healthChecks`.
+3. Each health check targets a URL path and runs assertion types: `status-ok`, `body-contains`, `body-not-contains`, `no-error-strings`.
+4. The fixture should reflect the **actual state** of the migration — if the migrated app fails at runtime, the fixture should score 0.
+
+### Why runtime is separate from verification
+
+The `verification` capability validates structural properties (correct imports, component replacements, doctor checks) via static file analysis. Runtime validates that the assembled app actually works end-to-end: providers mount correctly, config loads in the right order, pages render without fatal errors. A project can pass all verification checks but still show a blank page due to runtime bootstrap issues — this is the exact gap runtime fixtures close.
+
+---
+
 ## Anti-patterns
 
 - **Fixture without expectations** — Breaks or skips evaluation; defeats autoresearch.
 - **Expectations = copy-paste of current scanner output** — Inflates F1 without validating behavior.
 - **Mismatched pattern names** — Typos or wishful names (`wagmi/chains` when the scanner only reports `wagmi`) cause false misses until catalog or expectations align by design.
 - **Wrong relative paths** — Paths must be relative to the fixture root as resolved on disk, not the monorepo root.
+- **Runtime fixture that always passes** — If the assertion set is too weak (only checking `status-ok` on `/`), it won't catch actual runtime failures. Include `body-contains` for critical UI elements and `no-error-strings` for known fatal patterns.
 
 ---
 

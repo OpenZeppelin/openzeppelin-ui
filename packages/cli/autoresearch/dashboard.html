@@ -641,7 +641,7 @@
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
       <div>
         <h2 style="font-size:18px;font-weight:600;margin-bottom:4px">Capability Scorecard</h2>
-        <p style="font-size:13px;color:var(--text-muted)">7 capabilities across the full migrate-to-oz-uikit system</p>
+        <p style="font-size:13px;color:var(--text-muted)">8 capabilities across the full migrate-to-oz-uikit system</p>
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <button type="button" class="start-autoresearch-btn" data-tip="Launch an autonomous agent to improve a capability's code against benchmarks." onclick="openStartAgentModal()">Start autoresearch</button>
@@ -792,6 +792,7 @@
               <option value="execution">Execution — program-execution.md</option>
               <option value="verification">Verification — program-verification.md</option>
               <option value="orchestration">Orchestration — program-orchestration.md</option>
+              <option value="runtime">Runtime — program-runtime.md</option>
             </select>
           </div>
         </div>
@@ -1026,6 +1027,7 @@
               <option value="execution">Execution — before / task / after triples</option>
               <option value="verification">Verification — pass / fail scenario fixtures</option>
               <option value="orchestration">Orchestration — command sequence scenarios</option>
+              <option value="runtime">Runtime — browser health-check assertions</option>
             </select>
           </div>
           <div class="aff-field">
@@ -1082,6 +1084,7 @@
       execution: 'Task execution — rewrites imports and JSX to use OZ components',
       verification: 'Verification — validates migrations are correct and produces diagnostics',
       orchestration: 'Orchestration — ensures SKILL.md correctly guides agents through migration',
+      runtime: 'Runtime — validates migrated apps actually boot and function in a browser',
     };
 
     let chart = null;
@@ -1202,7 +1205,25 @@
       try {
         const res = await fetch('/api/capabilities');
         const data = await res.json();
-        renderOverview(data.capabilities);
+        const capabilities = data.capabilities || [];
+
+        const runtimeCap = capabilities.find(c => c.name === 'runtime');
+        if (runtimeCap && !runtimeCap.hasResults) {
+          try {
+            const liveRes = await fetch('/api/evaluate/runtime');
+            const liveData = await liveRes.json();
+            if (liveData && typeof liveData.meanF1 === 'number') {
+              runtimeCap.lastF1 = liveData.meanF1;
+              runtimeCap.hasResults = true;
+              runtimeCap.experiments = 0;
+              runtimeCap._liveEval = true;
+            }
+          } catch {
+            // live eval failed — show unknown state
+          }
+        }
+
+        renderOverview(capabilities);
       } catch (e) {
         console.error('Failed to load capabilities:', e);
       } finally {
@@ -1213,17 +1234,76 @@
     function renderOverview(capabilities) {
       const grid = document.getElementById('overview-grid');
 
-      grid.innerHTML = capabilities.map(cap => {
+      const runtimeCap = capabilities.find(c => c.name === 'runtime');
+      const staticCaps = capabilities.filter(c => c.name !== 'runtime');
+      const runtimeScore = runtimeCap?.lastF1;
+      const runtimeHasData = runtimeCap?.hasResults;
+
+      const staticMean = staticCaps.filter(c => c.lastF1 !== null).length > 0
+        ? staticCaps.filter(c => c.lastF1 !== null).reduce((s, c) => s + c.lastF1, 0) / staticCaps.filter(c => c.lastF1 !== null).length
+        : null;
+
+      const runtimeFailing = runtimeHasData && runtimeScore !== null && runtimeScore < 1.0;
+      const runtimePassing = runtimeHasData && runtimeScore !== null && runtimeScore >= 1.0;
+      const runtimeUnknown = !runtimeHasData;
+
+      let healthBanner = '';
+      if (runtimeFailing) {
+        healthBanner = `
+          <div style="background:var(--red-bg);border:1px solid rgba(239,68,68,0.25);border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+            <span style="font-size:22px">⛔</span>
+            <div>
+              <div style="font-weight:600;color:var(--red);margin-bottom:2px">Real-World Migration Health: FAILING</div>
+              <div style="font-size:13px;color:var(--text-muted)">
+                Runtime score is ${runtimeScore.toFixed(4)} — the migrated app does not boot correctly.
+                Static capability scores (mean ${staticMean !== null ? staticMean.toFixed(4) : '—'}) do not reflect actual migration health.
+                <a href="#" onclick="event.preventDefault();navigate('runtime')" style="color:var(--red);text-decoration:underline">View runtime details →</a>
+              </div>
+            </div>
+          </div>`;
+      } else if (runtimePassing) {
+        healthBanner = `
+          <div style="background:var(--green-bg);border:1px solid rgba(34,197,94,0.25);border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+            <span style="font-size:22px">✅</span>
+            <div>
+              <div style="font-weight:600;color:var(--green);margin-bottom:2px">Real-World Migration Health: PASSING</div>
+              <div style="font-size:13px;color:var(--text-muted)">
+                Runtime score is ${runtimeScore.toFixed(4)} — migrated apps boot and function correctly.
+              </div>
+            </div>
+          </div>`;
+      } else if (runtimeUnknown) {
+        healthBanner = `
+          <div style="background:var(--yellow-bg);border:1px solid rgba(234,179,8,0.25);border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+            <span style="font-size:22px">⚠️</span>
+            <div>
+              <div style="font-weight:600;color:var(--yellow);margin-bottom:2px">Real-World Migration Health: UNKNOWN</div>
+              <div style="font-size:13px;color:var(--text-muted)">
+                No runtime evaluation data yet. Run <code>pnpm evaluate:runtime</code> to validate migrated apps actually boot.
+              </div>
+            </div>
+          </div>`;
+      }
+
+      grid.innerHTML = healthBanner + capabilities.map(cap => {
         const desc = CAP_DESCRIPTIONS[cap.name] || '';
         const scoreStr = cap.lastF1 !== null ? cap.lastF1.toFixed(4) : '—';
         const scoreColor = cap.lastF1 !== null ? getBarColor(cap.lastF1) : 'var(--text-dim)';
+        const isLiveEval = !!cap._liveEval;
         const badgeClass = cap.hasResults ? 'active' : 'empty';
-        const badgeText = cap.hasResults ? `${cap.experiments} exp` : 'no data';
+        const badgeText = cap.hasResults ? (isLiveEval ? 'live eval' : `${cap.experiments} exp`) : 'no data';
         const meta = cap.hasResults
-          ? `${cap.experiments} experiments`
+          ? (isLiveEval ? 'Live evaluation (no experiments yet)' : `${cap.experiments} experiments`)
           : 'No experiments yet — run the agent';
 
-        return `<div class="cap-card" onclick="navigate('${cap.name}')">
+        const isRuntime = cap.name === 'runtime';
+        const cardBorderStyle = isRuntime && runtimeFailing
+          ? 'border-color: var(--red); box-shadow: 0 0 12px rgba(239,68,68,0.15);'
+          : isRuntime && runtimePassing
+          ? 'border-color: var(--green); box-shadow: 0 0 12px rgba(34,197,94,0.15);'
+          : '';
+
+        return `<div class="cap-card" onclick="navigate('${cap.name}')" style="${cardBorderStyle}">
           <span class="cap-badge ${badgeClass}">${badgeText}</span>
           <div class="cap-name">${cap.name}</div>
           <div class="cap-desc">${desc}</div>
@@ -2341,6 +2421,7 @@ analyze-complete-before-plan`;
       execution: 'program-execution.md',
       verification: 'program-verification.md',
       orchestration: 'program-orchestration.md',
+      runtime: 'program-runtime.md',
     };
 
     let sapPromptTimer = null;
@@ -3023,6 +3104,32 @@ analyze-complete-before-plan`;
       ].join('\n');
     }
 
+    function buildLabelPromptRuntime(name) {
+      const jsonPath = 'packages/cli/autoresearch/expected/runtime/' + name + '.json';
+      return [
+        'You are a Data Labeler producing ground truth for a **runtime** benchmark.',
+        '',
+        'Selected fixture: `' + name + '`',
+        'Expectation file: `' + jsonPath + '`',
+        '',
+        'Each runtime expectation is a JSON object with:',
+        '- `fixture` — slug matching the filename (without .json)',
+        '- `projectDir` — relative or absolute path to the migrated project',
+        '- `serve` — command to start the dev/preview server',
+        '- `port` — port the server listens on',
+        '- `healthChecks` — array of { path, assertions[] }',
+        '',
+        'Assertions are objects with:',
+        '- `type` — one of: `status-ok`, `body-contains`, `body-not-contains`, `no-error-strings`',
+        '- `value` — string to check (for body-contains / body-not-contains)',
+        '- `description` — human-readable label',
+        '',
+        'Goal: the fixture should fail if the migrated app has runtime bootstrap errors',
+        '(blank page, missing providers, uncaught exceptions) and pass only when the',
+        'app boots correctly with functioning wallet UI.',
+      ].join('\n');
+    }
+
     const LABEL_PROMPT_BUILDERS = {
       detection: buildLabelPromptDetection,
       patterns: buildLabelPromptPatterns,
@@ -3031,6 +3138,7 @@ analyze-complete-before-plan`;
       execution: buildLabelPromptExecution,
       verification: buildLabelPromptVerification,
       orchestration: buildLabelPromptOrchestration,
+      runtime: buildLabelPromptRuntime,
     };
 
     let lfPromptTimer = null;

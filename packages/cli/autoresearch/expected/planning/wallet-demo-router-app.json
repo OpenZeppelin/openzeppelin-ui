@@ -1,0 +1,68 @@
+{
+  "fixture": "wallet-demo-router-app",
+  "analysisReport": "frozen-reports/wallet-demo-router-app.json",
+  "expectedTasks": [
+    {
+      "type": "component-replacement",
+      "sourceComponent": "Button",
+      "targetComponent": "Button",
+      "phase": "ui-components"
+    }
+  ],
+  "forbiddenTasks": [
+    {
+      "sourceComponent": "App",
+      "reason": "application router shell, not an OZ-mappable source-library primitive"
+    },
+    {
+      "sourceComponent": "DemoLauncher",
+      "reason": "local feature component, not a source-library primitive"
+    },
+    {
+      "sourceComponent": "DemoShell",
+      "reason": "local demo layout, not a source-library primitive"
+    },
+    {
+      "sourceComponent": "LandingPage",
+      "reason": "local page component, not a source-library primitive"
+    },
+    {
+      "sourceComponent": "Route",
+      "reason": "react-router-dom route primitive, not a UI migration target"
+    },
+    {
+      "sourceComponent": "Routes",
+      "reason": "react-router-dom routing container, not a UI migration target"
+    },
+    {
+      "sourceComponent": "Navigate",
+      "reason": "react-router-dom navigation helper, not a UI migration target"
+    },
+    {
+      "sourceComponent": "TxHashLink",
+      "reason": "local transaction link helper, not a source-library primitive"
+    }
+  ],
+  "expectedWalletTasks": [
+    { "pattern": "rainbowkit", "file": "src/components/DemoLauncher.tsx" },
+    { "pattern": "rainbowkit", "file": "src/components/DemoShell.tsx" },
+    { "pattern": "rainbowkit", "file": "src/components/LandingPage.tsx" },
+    { "pattern": "rainbowkit", "file": "src/config/wagmi.ts" },
+    { "pattern": "rainbowkit", "file": "src/main.tsx" },
+    { "pattern": "viem", "file": "src/config/wagmi.ts" },
+    { "pattern": "wagmi", "file": "src/App.tsx" },
+    { "pattern": "wagmi", "file": "src/components/DemoLauncher.tsx" },
+    { "pattern": "wagmi", "file": "src/config/wagmi.ts" },
+    { "pattern": "wagmi", "file": "src/main.tsx" }
+  ],
+  "forbiddenWalletFiles": [
+    {
+      "file": "src/components/TxHashLink.tsx",
+      "reason": "Type-only viem Hash import for explorer links, not wallet/provider migration work"
+    },
+    {
+      "file": "src/config/networks.ts",
+      "reason": "Chain metadata import from wagmi/chains, not provider or wallet execution wiring"
+    }
+  ]
+}

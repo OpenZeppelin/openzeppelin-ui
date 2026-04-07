@@ -1,6 +1,6 @@
-# Autoresearch: 7-Capability Improvement Loop
+# Autoresearch: 8-Capability Improvement Loop
 
-An autonomous experiment loop — inspired by [Karpathy's autoresearch](https://github.com/karpathy/autoresearch) — that iteratively improves all 7 capabilities of the `@openzeppelin/ui-cli` migration system.
+An autonomous experiment loop — inspired by [Karpathy's autoresearch](https://github.com/karpathy/autoresearch) — that iteratively improves all 8 capabilities of the `@openzeppelin/ui-cli` migration system.
 
 ## Capabilities
 
@@ -14,6 +14,7 @@ An autonomous experiment loop — inspired by [Karpathy's autoresearch](https://
 | 5   | **Execution**     | AST parse + structural similarity                   |
 | 6   | **Verification**  | Classification accuracy + diagnostic precision      |
 | 7   | **Orchestration** | Structural checklist + scenario sequence scoring    |
+| 8   | **Runtime**       | Health-check assertion pass rate (browser validation)|
 
 
 Run `pnpm --filter @openzeppelin/ui-cli evaluate:all` to see live scores.
@@ -110,7 +111,7 @@ npx tsx autoresearch/evaluate.ts --capability orchestration
 pnpm --filter @openzeppelin/ui-cli dashboard
 ```
 
-Open [http://localhost:4200](http://localhost:4200). The overview page shows all 7 capabilities as scorecards. Click into any capability for the detailed experiment chart, fixture breakdown, and log.
+Open [http://localhost:4200](http://localhost:4200). The overview page shows all 8 capabilities as scorecards. Click into any capability for the detailed experiment chart, fixture breakdown, and log.
 
 ### 5. Start an agent
 
@@ -130,6 +131,7 @@ Each capability has its own program file:
 | Execution     | `program-execution.md`     |
 | Verification  | `program-verification.md`  |
 | Orchestration | `program-orchestration.md` |
+| Runtime       | `program-runtime.md`       |
 
 
 ## Fixture management
@@ -232,6 +234,7 @@ autoresearch/
       broken/
       adversarial/               # Auto-generated adversarial (randomized per run)
     orchestration/               # Orchestration scenario fixtures
+    runtime/                     # Runtime health-check fixtures (browser validation)
 ```
 
 ## Editable surface per capability
@@ -246,13 +249,14 @@ autoresearch/
 | Execution     | `rewriter/rewriteFile.ts`, `source-libraries/*.json` (propMappings) |
 | Verification  | `verification/checker.ts`                                           |
 | Orchestration | `templates/skills/migrate-to-oz-uikit/SKILL.md`                     |
+| Runtime       | Migration execution, init templates, adapter integration              |
 
 
 ## Dashboard
 
 The route-based dashboard at [http://localhost:4200](http://localhost:4200):
 
-- `**/**` — Overview scorecard showing all 7 capabilities with scores and experiment counts
+- `**/**` — Overview scorecard showing all 8 capabilities with scores and experiment counts
 - `**/capability/:name**` — Detail page with scatter chart, per-fixture breakdown, and experiment log
 
 Both views expose action buttons:

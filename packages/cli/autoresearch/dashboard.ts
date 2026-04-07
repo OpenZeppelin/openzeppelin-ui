@@ -132,6 +132,7 @@ function enrichEvaluationForDashboard(payload: EvalApiPayload): EvalApiPayload {
   const isExecution = payload.capability === 'execution';
   const isVerification = payload.capability === 'verification';
   const isOrchestration = payload.capability === 'orchestration';
+  const isRuntime = payload.capability === 'runtime';
   return {
     ...payload,
     fixtures: payload.fixtures.map((fx) => {
@@ -159,6 +160,10 @@ function enrichEvaluationForDashboard(payload: EvalApiPayload): EvalApiPayload {
           if (oPath && fs.existsSync(oPath)) resolved = oPath;
         }
       }
+      if (isRuntime && !resolved) {
+        const rPath = path.join(__dirname, 'expected', 'runtime', `${name}.json`);
+        if (fs.existsSync(rPath)) resolved = rPath;
+      }
       return {
         ...fx,
         repoUrl: repos[name] ?? null,
@@ -176,6 +181,7 @@ const CAPABILITY_NAMES = [
   'execution',
   'verification',
   'orchestration',
+  'runtime',
 ] as const;
 
 interface ResultRow {
@@ -243,12 +249,13 @@ async function runLiveEvaluation(
 ): Promise<{ capability: string; fixtures: unknown[]; meanF1: number; error?: string }> {
   const tsxBin = path.join(__dirname, '..', 'node_modules', '.bin', 'tsx');
   const evalScript = path.join(__dirname, 'evaluate.ts');
+  const timeout = capability === 'runtime' ? 300_000 : 60_000;
 
   try {
     const { stdout } = await execFileAsync(
       tsxBin,
       [evalScript, '--capability', capability, '--json'],
-      { cwd: path.join(__dirname, '..'), timeout: 60_000 }
+      { cwd: path.join(__dirname, '..'), timeout }
     );
     const parsed = JSON.parse(stdout.trim()) as EvalApiPayload;
     return { capability, ...parsed };
@@ -936,6 +943,7 @@ interface FixtureArtifacts {
   patterns: boolean;
   planningExpected: boolean;
   planningFrozen: boolean;
+  runtime: boolean;
 }
 
 function getFixtureArtifacts(fixtureName: string): FixtureArtifacts {
@@ -948,6 +956,7 @@ function getFixtureArtifacts(fixtureName: string): FixtureArtifacts {
     patterns: e(`expected/patterns/${fixtureName}.json`),
     planningExpected: e(`expected/planning/${fixtureName}.json`),
     planningFrozen: e(`expected/planning/frozen-reports/${fixtureName}.json`),
+    runtime: e(`expected/runtime/${fixtureName}.json`),
   };
 }
 

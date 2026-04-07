@@ -31,6 +31,16 @@
       "name": "radix-app",
       "split": "holdout",
       "tags": ["synthetic", "negative-control", "radix"]
+    },
+    {
+      "name": "wallet-demo-router-app",
+      "split": "train",
+      "tags": ["synthetic", "wallet", "rainbowkit", "router", "demo-flow"]
+    },
+    {
+      "name": "wallet-facade-app",
+      "split": "holdout",
+      "tags": ["synthetic", "wallet", "facade", "sdk-coupling", "storage"]
     }
   ]
 }

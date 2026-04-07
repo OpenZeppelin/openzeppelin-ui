@@ -19,6 +19,7 @@ import { initEvaluator } from './capabilities/init.js';
 import { orchestrationEvaluator } from './capabilities/orchestration.js';
 import { patternsEvaluator } from './capabilities/patterns.js';
 import { planningEvaluator } from './capabilities/planning.js';
+import { runtimeEvaluator } from './capabilities/runtime.js';
 import type { CapabilityEvaluator, EvaluationResult } from './capabilities/shared.js';
 import { verificationEvaluator } from './capabilities/verification.js';
 
@@ -30,6 +31,7 @@ const EVALUATORS: Record<string, CapabilityEvaluator> = {
   execution: executionEvaluator,
   verification: verificationEvaluator,
   orchestration: orchestrationEvaluator,
+  runtime: runtimeEvaluator,
 };
 
 function parseCapabilityArg(): string {
@@ -38,7 +40,7 @@ function parseCapabilityArg(): string {
   return 'detection';
 }
 
-function runCapability(name: string): EvaluationResult {
+async function runCapability(name: string): Promise<EvaluationResult> {
   const evaluator = EVALUATORS[name];
   if (!evaluator) {
     throw new Error(`Unknown capability: ${name}. Available: ${Object.keys(EVALUATORS).join(', ')}`);
@@ -46,16 +48,20 @@ function runCapability(name: string): EvaluationResult {
   return evaluator.evaluate();
 }
 
-function runAll(): EvaluationResult[] {
-  return Object.values(EVALUATORS).map((ev) => ev.evaluate());
+async function runAll(): Promise<EvaluationResult[]> {
+  const results: EvaluationResult[] = [];
+  for (const ev of Object.values(EVALUATORS)) {
+    results.push(await ev.evaluate());
+  }
+  return results;
 }
 
-function main(): void {
+async function main(): Promise<void> {
   const jsonMode = process.argv.includes('--json');
   const capabilityArg = parseCapabilityArg();
 
   const results: EvaluationResult[] =
-    capabilityArg === 'all' ? runAll() : [runCapability(capabilityArg)];
+    capabilityArg === 'all' ? await runAll() : [await runCapability(capabilityArg)];
 
   if (jsonMode) {
     if (results.length === 1) {

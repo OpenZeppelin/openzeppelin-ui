@@ -55,7 +55,8 @@
     "scaffold-expected": "tsx autoresearch/scaffold-expected.ts",
     "fetch-fixtures": "tsx autoresearch/fetch-fixtures.ts",
     "fetch-fixtures:status": "tsx autoresearch/fetch-fixtures.ts --status",
-    "fetch-fixtures:clean": "tsx autoresearch/fetch-fixtures.ts --clean"
+    "fetch-fixtures:clean": "tsx autoresearch/fetch-fixtures.ts --clean",
+    "evaluate:runtime": "tsx autoresearch/evaluate.ts --capability runtime"
   },
   "keywords": [
     "openzeppelin",

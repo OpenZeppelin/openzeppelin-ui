@@ -1,0 +1,35 @@
+{
+  "fixture": "wallet-facade-app",
+  "benchmark": {
+    "fixtureSource": "synthetic",
+    "scannerPolicyHash": "9cb5f85fda531e1d1eb8dcbb65173a4c71006745"
+  },
+  "patterns": [
+    {
+      "name": "localStorage",
+      "files": [
+        "src/hooks/useWallet.tsx"
+      ]
+    },
+    {
+      "name": "viem",
+      "files": [
+        "src/components/DemoAccountSetup.tsx",
+        "src/components/WalletIndicator.tsx",
+        "src/hooks/useDemoWallet.tsx",
+        "src/hooks/useTreasuryWallet.tsx",
+        "src/hooks/useWallet.tsx",
+        "src/lib/createSigner.ts"
+      ]
+    },
+    {
+      "name": "wagmi",
+      "files": [
+        "src/components/DemoAccountSetup.tsx",
+        "src/components/WalletIndicator.tsx",
+        "src/hooks/useTreasuryWallet.tsx",
+        "src/hooks/useWallet.tsx"
+      ]
+    }
+  ]
+}

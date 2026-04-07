@@ -1,0 +1,36 @@
+{
+  "fixture": "wallet-demo-router-app",
+  "benchmark": {
+    "fixtureSource": "synthetic",
+    "scannerPolicyHash": "9cb5f85fda531e1d1eb8dcbb65173a4c71006745"
+  },
+  "patterns": [
+    {
+      "name": "rainbowkit",
+      "files": [
+        "src/components/DemoLauncher.tsx",
+        "src/components/DemoShell.tsx",
+        "src/components/LandingPage.tsx",
+        "src/config/wagmi.ts",
+        "src/main.tsx"
+      ]
+    },
+    {
+      "name": "viem",
+      "files": [
+        "src/components/TxHashLink.tsx",
+        "src/config/wagmi.ts"
+      ]
+    },
+    {
+      "name": "wagmi",
+      "files": [
+        "src/App.tsx",
+        "src/components/DemoLauncher.tsx",
+        "src/config/networks.ts",
+        "src/config/wagmi.ts",
+        "src/main.tsx"
+      ]
+    }
+  ]
+}
