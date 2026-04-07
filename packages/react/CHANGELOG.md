@@ -1,5 +1,18 @@
 # @openzeppelin/ui-react
 
+## 2.0.1
+
+### Patch Changes
+
+- [#116](https://github.com/OpenZeppelin/openzeppelin-ui/pull/116) [`092a0f7`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/092a0f72f7e0ba9edeafe9623d1579c8d6cf3bad) Thanks [@pasevin](https://github.com/pasevin)! - Prevent infinite retry loop in RuntimeProvider when adapter loading fails
+
+  When `resolveRuntime` rejected (e.g. due to a peer-dependency version mismatch),
+  the provider would remove the network from `loadingNetworks`, which re-memoised
+  `getRuntimeForNetwork`, which re-triggered the consumer's effect, restarting the
+  failed load indefinitely. A `failedNetworksRef` now tracks permanently-failed
+  networks so they are not retried. The set resets when `resolveRuntime` changes,
+  allowing recovery after the host app fixes the underlying issue.
+
 ## 2.0.0
 
 ### Major Changes
