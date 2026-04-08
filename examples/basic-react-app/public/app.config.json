@@ -1,0 +1,5 @@
+{
+  "$comment": "Optional runtime overrides. RPC URLs are defined on each network in @openzeppelin/adapter-evm / adapter-stellar; use rpcEndpoints here only for custom endpoints. Secrets: prefer VITE_APP_CFG_* in .env (see AppConfigService).",
+  "rpcEndpoints": {},
+  "indexerEndpoints": {}
+}
