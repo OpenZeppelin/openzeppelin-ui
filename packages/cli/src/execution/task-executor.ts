@@ -7,6 +7,7 @@ import type { JsonCommandResult, JsonTaskStateSummary } from '../commands/migrat
 import {
   copyAgentFiles,
   copySkillFiles,
+  ensurePnpmWorkspaceIsolation,
   ensureTailwindConfigStubIfNeeded,
   installPackages,
   normalizeTailwind,
@@ -129,7 +130,17 @@ function executeSetupTask(
           instructions: [`Would install ${OZ_CORE_PACKAGES.join(', ')}`],
         };
       case 'wire-providers':
-        return { changedFiles: ['src/oz/OzProviders.tsx', 'src/oz/resolve-runtime.ts'] };
+        return {
+          changedFiles: [
+            'src/oz/OzProviders.tsx',
+            'src/oz/resolve-runtime.ts',
+            'src/oz/runtime-providers.tsx',
+            'src/main.tsx',
+          ],
+          instructions: [
+            'Entry file may be src/main.tsx, src/main.jsx, src/index.tsx, or src/index.jsx — only an existing candidate is patched.',
+          ],
+        };
       case 'tailwind-normalize':
         return { changedFiles: ['tailwind.config.ts'] };
       case 'copy-agents':
@@ -155,6 +166,7 @@ function executeSetupTask(
 
   switch (task.type) {
     case 'install-packages':
+      ensurePnpmWorkspaceIsolation(projectRoot);
       installPackages(projectRoot, OZ_CORE_PACKAGES, false);
       return { changedFiles: ['package.json'] };
     case 'wire-providers':
