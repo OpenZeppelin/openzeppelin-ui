@@ -117,8 +117,8 @@ export function RendererDemo(): React.ReactElement {
         <h2 className="mb-4 text-2xl font-semibold tracking-tight">FormRenderer</h2>
         <p className="text-muted-foreground mb-6">
           A dynamic form rendering system that generates blockchain transaction forms from schema
-          definitions. The renderer automatically handles field validation, data formatting, and
-          form state management using real runtime capabilities.
+          definitions. The renderer uses Tier 2 capabilities (TypeMapping, Schema) from the active
+          runtime for field validation, data formatting, and form state management.
         </p>
       </div>
 

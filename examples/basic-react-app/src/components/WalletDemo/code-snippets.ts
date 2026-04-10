@@ -48,7 +48,7 @@ const components = activeRuntime?.uiKit?.getEcosystemWalletComponents?.();
 // Returns: { ConnectButton, AccountDisplay, NetworkSwitcher }`;
 
 export const UI_KIT_SWITCHING_CODE = `// UI kits can be switched at runtime without page reload
-// This provides the same behavior as UI Builder
+// Available in profiles with the UiKit capability (Transactor, Composer, Operator)
 
 import { useWalletState } from '@openzeppelin/ui-react';
 

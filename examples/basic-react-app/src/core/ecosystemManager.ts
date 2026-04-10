@@ -112,7 +112,6 @@ export const ECOSYSTEM_METADATA: Record<DemoEcosystem, PublishedEcosystemMetadat
 // ============================================================================
 
 const ecosystemDefCache = new Map<DemoEcosystem, EcosystemExport>();
-const runtimeCache = new Map<string, DemoRuntime>();
 
 // ============================================================================
 // Full Adapter Loading
@@ -210,15 +209,16 @@ export async function getEcosystemMetadata(ecosystem: DemoEcosystem): Promise<Ec
   };
 }
 
+/**
+ * Creates a fresh runtime for the given network. This is intentionally a
+ * factory (no caching) because RuntimeProvider owns the runtime lifecycle —
+ * it caches active runtimes in its own registry and disposes them when they
+ * are no longer needed. Caching here would return stale, disposed instances
+ * after an ecosystem switch.
+ */
 export async function getRuntime(networkConfig: NetworkConfig): Promise<DemoRuntime> {
-  const cached = runtimeCache.get(networkConfig.id);
-  if (cached) return cached;
-
   const def = await loadEcosystemDefinition(networkConfig.ecosystem as DemoEcosystem);
-  const runtime = def.createRuntime('composer', networkConfig) as DemoRuntime;
-
-  runtimeCache.set(networkConfig.id, runtime);
-  return runtime;
+  return def.createRuntime('composer', networkConfig) as DemoRuntime;
 }
 
 // ============================================================================
@@ -227,8 +227,6 @@ export async function getRuntime(networkConfig: NetworkConfig): Promise<DemoRunt
 
 export function clearAllCaches(): void {
   ecosystemDefCache.clear();
-  runtimeCache.forEach((runtime) => runtime.dispose());
-  runtimeCache.clear();
 }
 
 export function isEcosystemLoaded(ecosystem: DemoEcosystem): boolean {

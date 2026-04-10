@@ -1,9 +1,10 @@
 import {
-  ArrowLeftRight,
   ArrowRight,
   ExternalLink,
+  FileCode2,
   Globe,
   Layers,
+  Shield,
   Wallet,
   Wand2,
 } from 'lucide-react';
@@ -129,7 +130,8 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">What you can build</h2>
         <p className="text-muted-foreground">
-          Build any web3 app with production-ready components. Stop rebuilding from scratch.
+          Choose a profile that matches your app — from lightweight address validation to full
+          contract UIs with wallet integration.
         </p>
 
         {/* Solution Cards */}
@@ -147,6 +149,9 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
               Connect MetaMask, WalletConnect, Freighter, and more. Same code, any chain. Users pick
               their wallet, you ship faster.
             </p>
+            <span className="mt-2 inline-block rounded-full bg-pink-100 px-2 py-0.5 text-xs font-medium text-pink-700 dark:bg-pink-900/40 dark:text-pink-400">
+              Transactor profile
+            </span>
           </button>
 
           <button
@@ -162,6 +167,9 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
               Auto-generate forms from any contract ABI. Full transaction execution and contract
               read capabilities, with type-safe inputs and validation built-in.
             </p>
+            <span className="mt-2 inline-block rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/40 dark:text-purple-400">
+              Composer profile
+            </span>
           </button>
 
           <button
@@ -174,9 +182,12 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
               <ArrowRight className="text-muted-foreground ml-auto size-4 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
             </div>
             <p className="text-muted-foreground mt-2 text-sm">
-              Network switching, chain icons, status badges. Support mainnet, testnet, and custom
-              RPCs without extra code.
+              Network switching, chain icons, status badges. Support EVM, Stellar, Polkadot, and
+              more without extra code.
             </p>
+            <span className="mt-2 inline-block rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-400">
+              Viewer profile
+            </span>
           </button>
 
           <button
@@ -184,14 +195,17 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
             className="group rounded-lg border p-5 text-left transition-colors hover:border-primary hover:bg-primary/5"
           >
             <div className="flex items-center gap-2">
-              <ArrowLeftRight className="size-5 text-green-600" />
-              <h3 className="font-semibold">Admin & Management Tools</h3>
+              <Shield className="size-5 text-cyan-600" />
+              <h3 className="font-semibold">Access Control &amp; Admin Tools</h3>
               <ArrowRight className="text-muted-foreground ml-auto size-4 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
             </div>
             <p className="text-muted-foreground mt-2 text-sm">
-              Build token management, access control panels, or governance UIs. Type mapping
-              automatically handles all blockchain-specific data types.
+              Build role management, ownership transfer, or governance UIs. The AccessControl
+              capability handles Ownable, AccessControl, and role enumeration patterns.
             </p>
+            <span className="mt-2 inline-block rounded-full bg-cyan-100 px-2 py-0.5 text-xs font-medium text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-400">
+              Operator profile
+            </span>
           </button>
         </div>
       </div>
@@ -203,22 +217,22 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
           <div className="rounded-lg border p-4">
             <p className="font-medium">Ship faster</p>
             <p className="text-muted-foreground mt-1 text-sm">
-              Pre-built components mean less boilerplate. Focus on your product, not wallet
-              integration.
+              Pre-built components and adapter profiles mean less boilerplate. Focus on your
+              product, not wallet integration.
             </p>
           </div>
           <div className="rounded-lg border p-4">
-            <p className="font-medium">One codebase</p>
+            <p className="font-medium">One codebase, 5+ chains</p>
             <p className="text-muted-foreground mt-1 text-sm">
-              Support multiple blockchains without maintaining separate code paths. Adapters handle
-              the differences.
+              EVM, Stellar, Polkadot, Midnight, and more. Capability-based adapters handle the
+              differences behind a unified API.
             </p>
           </div>
           <div className="rounded-lg border p-4">
-            <p className="font-medium">Production ready</p>
+            <p className="font-medium">Pay for what you use</p>
             <p className="text-muted-foreground mt-1 text-sm">
-              Battle-tested components from OpenZeppelin. Accessible, themeable, and designed for
-              real-world use.
+              13 capabilities across 3 tiers with sub-path exports. A config wizard loads zero
+              wallet code; a full dApp gets everything.
             </p>
           </div>
         </div>
@@ -228,10 +242,10 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Powering Production Apps</h2>
         <p className="text-muted-foreground">
-          These libraries and adapters are already powering real OpenZeppelin products in
-          production.
+          These libraries and adapters are already powering real OpenZeppelin products in production
+          — each using a different adapter profile matched to its needs.
         </p>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <a
             href="https://builder.openzeppelin.com"
             target="_blank"
@@ -247,8 +261,9 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
                 <ExternalLink className="text-muted-foreground size-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
               </div>
               <p className="text-muted-foreground mt-1 text-sm">
-                Build and deploy smart contract interfaces with a visual editor. Uses UI components
-                and adapters to support multiple blockchain ecosystems.
+                Visual editor for smart contract interfaces. Uses the <strong>Composer</strong>{' '}
+                profile for full contract loading, form rendering, execution, and relayer support
+                across ecosystems.
               </p>
             </div>
           </a>
@@ -260,7 +275,7 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
             className="group flex items-start gap-4 rounded-lg border p-5 transition-colors hover:border-primary hover:bg-primary/5"
           >
             <div className="bg-primary/10 shrink-0 rounded-lg p-2.5">
-              <Layers className="text-primary size-5" />
+              <Shield className="text-primary size-5" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
@@ -268,8 +283,31 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
                 <ExternalLink className="text-muted-foreground size-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
               </div>
               <p className="text-muted-foreground mt-1 text-sm">
-                Manage access control roles for smart contracts. Built with the same component
-                library and adapter patterns for seamless multi-chain support.
+                Manage access control roles for smart contracts. Uses the <strong>Operator</strong>{' '}
+                profile with full AccessControl capability for role queries, ownership transfers,
+                and admin lifecycle.
+              </p>
+            </div>
+          </a>
+
+          <a
+            href="https://github.com/OpenZeppelin"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-start gap-4 rounded-lg border p-5 transition-colors hover:border-primary hover:bg-primary/5"
+          >
+            <div className="bg-primary/10 shrink-0 rounded-lg p-2.5">
+              <FileCode2 className="text-primary size-5" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold">RWA Wizard</h3>
+                <ExternalLink className="text-muted-foreground size-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
+              </div>
+              <p className="text-muted-foreground mt-1 text-sm">
+                Real-world asset token generation. Uses the lightweight <strong>Declarative</strong>{' '}
+                profile — only address validation, network catalogs, and explorer links, with zero
+                wallet SDK overhead.
               </p>
             </div>
           </a>
@@ -285,8 +323,8 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
           <div className="flex-1">
             <h3 className="font-semibold">Ready to dive deeper?</h3>
             <p className="text-muted-foreground mt-1 text-sm">
-              Learn how adapters, facade hooks, and UI components work together. Or explore the
-              Component Gallery to see individual components in action.
+              Learn how 13 capabilities, 5 profiles, and tiered sub-path exports make adapters both
+              powerful and lightweight. Or explore the Component Gallery.
             </p>
           </div>
           <button

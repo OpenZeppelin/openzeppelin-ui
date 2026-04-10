@@ -36,8 +36,9 @@ export function FacadeHooksSection(): React.ReactElement {
           Facade Hooks
         </CardTitle>
         <CardDescription>
-          Unified React hooks that provide consistent wallet state across all adapters. These hooks
-          abstract away blockchain-specific libraries like wagmi.
+          Unified React hooks that provide consistent wallet state across all ecosystem adapters.
+          These hooks abstract away blockchain-specific libraries like wagmi and
+          stellar-wallets-kit.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -139,8 +140,8 @@ export function UiKitSwitchingSection(): React.ReactElement {
           Runtime UI Kit Switching
         </CardTitle>
         <CardDescription>
-          Switch between wallet UI kits (RainbowKit, custom) at runtime without losing connection
-          state.
+          Switch between wallet UI kits (RainbowKit, Stellar Wallets Kit, custom) at runtime without
+          losing connection state. Powered by the UiKit capability (Tier 3).
         </CardDescription>
       </CardHeader>
       <CardContent>
