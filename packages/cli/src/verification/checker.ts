@@ -74,8 +74,41 @@ function checkInstallPackages(task: MigrationTask, projectRoot: string): TaskChe
   };
 }
 
+const ENTRY_FILE_CANDIDATES = ['src/main.tsx', 'src/main.jsx', 'src/index.tsx', 'src/index.jsx'];
+
+/**
+ * Checks whether the app entry file imports providers from the local stub
+ * rather than from `@openzeppelin/ui-react`. When the stub is used, OZ hooks
+ * like `useWalletState()` will throw at runtime because they read from a
+ * different React context than the one the stub provides.
+ */
+function checkEntryFileProviderSource(projectRoot: string): {
+  fromStub: boolean;
+  fromOz: boolean;
+  entryFile: string | null;
+} {
+  for (const candidate of ENTRY_FILE_CANDIDATES) {
+    const filePath = path.join(projectRoot, candidate);
+    if (!fs.existsSync(filePath)) continue;
+
+    const content = fs.readFileSync(filePath, 'utf8');
+    const bindings = parseNamedImportBindings(content);
+    const providerBindings = bindings.filter(
+      (b) => b.exportName === 'RuntimeProvider' || b.exportName === 'WalletStateProvider'
+    );
+
+    const fromStub = providerBindings.some((b) => !b.module.startsWith('@openzeppelin/'));
+    const fromOz = providerBindings.some((b) => b.module.startsWith('@openzeppelin/'));
+
+    return { fromStub, fromOz, entryFile: candidate };
+  }
+
+  return { fromStub: false, fromOz: false, entryFile: null };
+}
+
 function checkWireProviders(task: MigrationTask, projectRoot: string): TaskCheckResult {
   const diagnostics: string[] = [];
+  const warnings: string[] = [];
   let hasRuntimeProvider = false;
   let hasWalletStateProvider = false;
 
@@ -111,11 +144,22 @@ function checkWireProviders(task: MigrationTask, projectRoot: string): TaskCheck
   if (hasWalletStateProvider) diagnostics.push('WalletStateProvider found');
   else diagnostics.push('WalletStateProvider not found in any .tsx/.jsx file');
 
+  const providerSource = checkEntryFileProviderSource(projectRoot);
+  if (providerSource.entryFile && providerSource.fromStub && !providerSource.fromOz) {
+    warnings.push(
+      `Entry file ${providerSource.entryFile} imports providers from a local stub, not from @openzeppelin/ui-react. ` +
+        'OZ hooks like useWalletState() will throw at runtime. ' +
+        'Switch to OzProviders or import directly from @openzeppelin/ui-react.'
+    );
+  }
+
+  const passed = hasRuntimeProvider && hasWalletStateProvider;
   return {
     taskId: task.id,
-    passed: hasRuntimeProvider && hasWalletStateProvider,
-    severity: hasRuntimeProvider && hasWalletStateProvider ? 'pass' : 'fail',
+    passed,
+    severity: passed ? (warnings.length > 0 ? 'warning' : 'pass') : 'fail',
     diagnostics,
+    warnings: warnings.length > 0 ? warnings : undefined,
   };
 }
 
@@ -363,6 +407,14 @@ function checkWalletReplacement(task: MigrationTask, projectRoot: string): TaskC
   if (!content.includes('RuntimeProvider') && !content.includes('WalletStateProvider')) {
     warnings.push(
       `Provider ancestry is not verifiable from ${file}; confirm runtime providers are wired at the app root`
+    );
+  }
+
+  const providerSource = checkEntryFileProviderSource(projectRoot);
+  if (providerSource.entryFile && providerSource.fromStub && !providerSource.fromOz) {
+    diagnostics.push(
+      `Entry file providers come from a local stub, not @openzeppelin/ui-react. ` +
+        `OZ hooks in ${file} will throw "useWalletState must be used within a WalletStateProvider" at runtime.`
     );
   }
 

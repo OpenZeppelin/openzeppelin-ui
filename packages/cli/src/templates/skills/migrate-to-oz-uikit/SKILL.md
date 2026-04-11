@@ -120,6 +120,10 @@ For each pending task in the manifest, in phase order:
 
 For any manual or resumed task, `npx oz-ui migrate status --manifest migration-manifest.json --next` should be treated as the source of truth for the next suggested command.
 
+#### Wallet-Adapter Phase Precondition
+
+**Before executing any `wallet-replacement` task**, verify that the app entry file (`src/main.tsx` or equivalent) imports `RuntimeProvider` and `WalletStateProvider` from `@openzeppelin/ui-react` — **not** from the local stub at `src/oz/runtime-providers`. If the stub is still in use, switch the entry file to use `OzProviders` from `src/oz/OzProviders.tsx` first. Failing to do this will cause a runtime `"useWalletState must be used within a WalletStateProvider"` error because OZ hooks read from a different React context than the one provided by the stub.
+
 ### Step 6: Phase Gate
 
 After completing all tasks in a phase:
