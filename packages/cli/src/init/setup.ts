@@ -97,7 +97,7 @@ export function patchEntryFileWithProviders(projectRoot: string): string | null 
     if (!fs.existsSync(filePath)) continue;
 
     const content = fs.readFileSync(filePath, 'utf8');
-    if (content.includes('RuntimeProvider')) return null;
+    if (content.includes('RuntimeProvider') || content.includes('OzProviders')) return null;
 
     const patched = injectProviderWiring(content);
     if (patched !== content) {
@@ -110,7 +110,7 @@ export function patchEntryFileWithProviders(projectRoot: string): string | null 
 }
 
 function injectProviderWiring(source: string): string {
-  if (source.includes('RuntimeProvider')) return source;
+  if (source.includes('RuntimeProvider') || source.includes('OzProviders')) return source;
 
   let result = source;
 

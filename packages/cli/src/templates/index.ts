@@ -20,7 +20,8 @@ export function readTemplate(templateName: string): string {
 export function writeTemplate(
   targetPath: string,
   templateName: string,
-  replacements?: Record<string, string>
+  replacements?: Record<string, string>,
+  options?: { overwrite?: boolean }
 ): boolean {
   let content = readTemplate(templateName);
 
@@ -33,6 +34,7 @@ export function writeTemplate(
   if (fs.existsSync(targetPath)) {
     const existing = fs.readFileSync(targetPath, 'utf8');
     if (existing === content) return false;
+    if (!options?.overwrite) return false;
   }
 
   fs.mkdirSync(path.dirname(targetPath), { recursive: true });
