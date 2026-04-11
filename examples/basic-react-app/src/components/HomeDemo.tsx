@@ -18,6 +18,7 @@ import {
   getSupportedEcosystems,
   type DemoEcosystem,
 } from '../core/ecosystemManager';
+import { DOCS_ECOSYSTEM_ADAPTERS, DOCS_UIKIT } from '../docsUrls';
 import { Web3NetworkIcon } from './Web3NetworkIcon';
 
 export interface HomeDemoProps {
@@ -52,6 +53,29 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
         </h1>
         <p className="text-muted-foreground text-lg">
           One component library. Switch adapters—the UI adapts automatically.
+        </p>
+        <p className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+          <a
+            href={DOCS_UIKIT}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary inline-flex items-center gap-1 hover:underline"
+          >
+            UIKit documentation
+            <ExternalLink className="size-3.5" aria-hidden />
+          </a>
+          <span className="text-muted-foreground/60" aria-hidden>
+            ·
+          </span>
+          <a
+            href={DOCS_ECOSYSTEM_ADAPTERS}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary inline-flex items-center gap-1 hover:underline"
+          >
+            Ecosystem Adapters documentation
+            <ExternalLink className="size-3.5" aria-hidden />
+          </a>
         </p>
       </div>
 

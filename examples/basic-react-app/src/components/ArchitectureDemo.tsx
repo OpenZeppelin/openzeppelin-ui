@@ -29,6 +29,7 @@ import {
   CardTitle,
 } from '@openzeppelin/ui-components';
 
+import { DOCS_ECOSYSTEM_ADAPTERS, DOCS_UIKIT } from '../docsUrls';
 import { CodeBlock } from './CodeBlock';
 import { DemoSection } from './DemoSection';
 import { Web3NetworkIcon } from './Web3NetworkIcon';
@@ -183,7 +184,16 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
             <p className="text-sm text-muted-foreground">
               Standalone packages that translate chain-specific operations into 13 composable
               capabilities across 3 tiers. Each adapter is published independently under{' '}
-              <code className="text-xs">@openzeppelin/adapter-*</code>.
+              <code className="text-xs">@openzeppelin/adapter-*</code>.{' '}
+              <a
+                href={DOCS_ECOSYSTEM_ADAPTERS}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary inline-flex items-center gap-1 font-medium hover:underline"
+              >
+                Ecosystem Adapters docs
+                <ExternalLink className="size-3.5" aria-hidden />
+              </a>
             </p>
           </CardContent>
         </Card>
@@ -219,7 +229,16 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
             <p className="text-sm text-muted-foreground">
               Chain-agnostic React components for wallet connection, forms, network management, and
               more. Built on 7 package layers from <code className="text-xs">ui-types</code> through{' '}
-              <code className="text-xs">ui-storage</code>.
+              <code className="text-xs">ui-storage</code>.{' '}
+              <a
+                href={DOCS_UIKIT}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary inline-flex items-center gap-1 font-medium hover:underline"
+              >
+                UIKit docs
+                <ExternalLink className="size-3.5" aria-hidden />
+              </a>
             </p>
           </CardContent>
         </Card>
@@ -429,7 +448,17 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
             >
               openzeppelin-adapters
             </a>{' '}
-            repository with independent versioning.
+            repository with independent versioning. See the{' '}
+            <a
+              href={DOCS_ECOSYSTEM_ADAPTERS}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary inline-flex items-center gap-1 hover:underline"
+            >
+              Ecosystem Adapters documentation
+              <ExternalLink className="size-3.5" aria-hidden />
+            </a>{' '}
+            for architecture, profiles, and guides.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -485,7 +514,7 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
                 <li>
                   • Community adapters can follow the{' '}
                   <a
-                    href="https://github.com/OpenZeppelin/openzeppelin-adapters"
+                    href={`${DOCS_ECOSYSTEM_ADAPTERS}/building-an-adapter`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary hover:underline"
