@@ -1,6 +1,28 @@
 {
   "name": "fresh-project-start",
-  "description": "Starting migration from scratch on a new project. Agent should begin with init.",
-  "expectedCommands": ["oz-ui migrate init", "oz-ui migrate analyze", "oz-ui migrate plan"],
-  "expectedGates": ["init-complete-before-analyze", "analyze-complete-before-plan"]
+  "description": "Starting migration from scratch on a new project. Agent should begin with init, then analyze, plan, and execute through all phases including cleanup.",
+  "expectedCommands": [
+    "oz-ui migrate init",
+    "oz-ui migrate analyze",
+    "oz-ui migrate plan",
+    "oz-ui migrate execute",
+    "oz-ui migrate doctor",
+    "oz-ui migrate complete",
+    "oz-ui migrate status --next"
+  ],
+  "expectedGates": [
+    "init-complete-before-analyze",
+    "analyze-complete-before-plan",
+    "phase-gate-before-next-phase",
+    "cleanup-tasks-after-all-phases"
+  ],
+  "expectedPhases": [
+    "setup",
+    "ui-components",
+    "form-fields",
+    "schema-forms",
+    "wallet-adapter",
+    "storage",
+    "cleanup"
+  ]
 }

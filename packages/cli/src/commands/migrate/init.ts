@@ -24,6 +24,7 @@ interface InitOptions {
 
 interface InitResult extends JsonCommandResult<'migrate-init'> {
   project: string;
+  initVersion: string;
   framework: string;
   packageManager: string;
   packagesInstalled: string[];
@@ -72,6 +73,7 @@ export function registerInitCommand(parent: Command): void {
           ok: true,
           action: 'migrate-init',
           project: projectRoot,
+          initVersion: CLI_VERSION,
           framework,
           packageManager,
           packagesInstalled,

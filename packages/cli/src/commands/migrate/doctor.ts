@@ -10,6 +10,7 @@ import type { JsonCommandResult } from './json-results';
 interface DoctorOptions {
   manifest: string;
   check?: string;
+  reconcile?: boolean;
   json?: boolean;
 }
 
@@ -33,15 +34,26 @@ export function registerDoctorCommand(parent: Command): void {
     )
     .requiredOption('-m, --manifest <path>', 'Path to migration-manifest.json')
     .option('--check <task-id>', 'Check a specific task only')
+    .option(
+      '--reconcile',
+      'Check all tasks (including pending) to reconcile codebase state against the manifest'
+    )
     .option('--json', 'Emit machine-readable JSON output')
     .action((options: DoctorOptions) => {
       try {
         const manifestPath = path.resolve(options.manifest);
         const manifest = readManifest(manifestPath);
 
-        const tasksToCheck = options.check
-          ? manifest.tasks.filter((t) => t.id === options.check)
-          : manifest.tasks.filter((t) => t.status === 'completed' || t.status === 'in_progress');
+        let tasksToCheck;
+        if (options.check) {
+          tasksToCheck = manifest.tasks.filter((t) => t.id === options.check);
+        } else if (options.reconcile) {
+          tasksToCheck = manifest.tasks;
+        } else {
+          tasksToCheck = manifest.tasks.filter(
+            (t) => t.status === 'completed' || t.status === 'in_progress'
+          );
+        }
 
         if (options.check && tasksToCheck.length === 0) {
           throw new Error(`Task "${options.check}" not found in manifest.`);

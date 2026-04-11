@@ -186,6 +186,7 @@ export function createEmptyManifest(
   options: {
     catalogVersion: string;
     targetOzVersion: string;
+    initVersion?: string;
     framework: MigrationManifest['framework'];
     sourceLibrary: string | null;
   }
@@ -195,6 +196,7 @@ export function createEmptyManifest(
     schemaVersion: CURRENT_SCHEMA_VERSION,
     catalogVersion: options.catalogVersion,
     targetOzVersion: options.targetOzVersion,
+    initVersion: options.initVersion,
     projectRoot,
     framework: options.framework,
     sourceLibrary: options.sourceLibrary,

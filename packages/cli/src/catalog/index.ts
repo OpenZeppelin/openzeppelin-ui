@@ -22,6 +22,7 @@ export interface SourceLibraryMapping {
 
 export interface SourceLibrary {
   library: string;
+  packages?: string[];
   importPatterns: string[];
   namespaceImportStrategy?: 'binding' | 'package-name';
   namespaceReportName?: 'imported' | 'target';

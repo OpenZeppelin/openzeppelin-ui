@@ -91,6 +91,16 @@ const STRUCTURAL_CHECKLIST: ChecklistItem[] = [
     description: 'Mentions capability threading or prop passing',
     check: (c) => /capabilit.*thread|thread.*capabilit|chainId|provider.*prop/i.test(c),
   },
+  {
+    id: 'cleanup-phase',
+    description: 'Covers cleanup phase (stale deps removal, scaffolding cleanup)',
+    check: (c) => /cleanup\s+phase|remove.stale|cleanup.scaffolding|remove.*stale.*dep/i.test(c),
+  },
+  {
+    id: 'reconciliation',
+    description: 'Mentions reconciliation or --reconcile for resume flows',
+    check: (c) => /reconcil|--reconcile/i.test(c),
+  },
 ];
 
 interface ScenarioFixture {
@@ -127,6 +137,14 @@ function gatePattern(gate: string): RegExp {
       return /if manifest exists[\s\S]*migrate status[\s\S]*migrate doctor/i;
     case 'verify-phase-before-next':
       return /phase gate|only proceed to the next phase after user approval/i;
+    case 'phase-gate-before-next-phase':
+      return /phase gate|only proceed to the next phase/i;
+    case 'cleanup-tasks-after-all-phases':
+      return /cleanup|remove.stale|scaffolding/i;
+    case 'reconcile-codebase-against-manifest':
+      return /reconcil|--reconcile|codebase.*state.*against.*manifest/i;
+    case 'failed-task-recovery-via-in_progress':
+      return /failed.*in_progress|retry|recover.*fail/i;
     default:
       return new RegExp(gate, 'i');
   }

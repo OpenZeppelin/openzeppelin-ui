@@ -56,7 +56,9 @@ function isManualTask(task: MigrationTask): boolean {
   return (
     task.type === 'wallet-replacement' ||
     task.type === 'storage-migration' ||
-    task.type === 'schema-driven-form'
+    task.type === 'schema-driven-form' ||
+    task.type === 'remove-stale-deps' ||
+    task.type === 'cleanup-scaffolding'
   );
 }
 

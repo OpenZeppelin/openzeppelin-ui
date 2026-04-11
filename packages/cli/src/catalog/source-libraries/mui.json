@@ -1,5 +1,6 @@
 {
   "library": "Material UI (MUI)",
+  "packages": ["@mui/material", "@mui/icons-material", "@mui/system", "@emotion/react", "@emotion/styled"],
   "importPatterns": ["@mui/material/", "@mui/material"],
   "mappings": {
     "Button": { "source": "Button", "effort": "medium", "notes": "Prop translation: variant='contained' → variant='default', color/size differ" },

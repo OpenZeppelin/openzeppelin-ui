@@ -269,5 +269,17 @@
     }
   ],
   "expectedWalletTasks": [],
-  "forbiddenWalletFiles": []
+  "forbiddenWalletFiles": [],
+  "expectedCleanupTasks": [
+    {
+      "type": "remove-stale-deps",
+      "phase": "cleanup",
+      "descriptionPattern": "stale.*packages"
+    },
+    {
+      "type": "cleanup-scaffolding",
+      "phase": "cleanup",
+      "descriptionPattern": "scaffolding"
+    }
+  ]
 }

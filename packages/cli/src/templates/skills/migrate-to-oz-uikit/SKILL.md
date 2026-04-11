@@ -102,7 +102,7 @@ For each pending task in the manifest, in phase order:
 1. **Read the task** from the manifest
 2. **Run `oz-ui migrate execute`**:
    - For deterministic tasks (`install-packages`, `wire-providers`, `tailwind-normalize`, `copy-agents`, `copy-skill`, many direct component / form-field swaps), let the CLI apply the change and update the manifest
-   - For `wallet-replacement`, `storage-migration`, and `schema-driven-form`, the CLI returns manual instructions instead of pretending the task is fully automated
+   - For `wallet-replacement`, `storage-migration`, `schema-driven-form`, `remove-stale-deps`, and `cleanup-scaffolding`, the CLI returns manual instructions instead of pretending the task is fully automated
 3. **For manual tasks**, perform the code refactor:
    - `component-replacement`: Replace imports and JSX usage, and verify the UI component replacement phase remains structurally correct
    - `wallet-replacement`: Replace wagmi/ethers hooks with OZ adapter hooks (`useRuntimeContext`, `useWalletState`)
@@ -120,18 +120,28 @@ For any manual or resumed task, `oz-ui migrate status --manifest migration-manif
 
 After completing all tasks in a phase:
 
-1. Delegate to the **migration-verifier** subagent for a deeper structural review
-2. Report the verification results to the user
-3. Recommend manual testing:
+1. Run `oz-ui migrate doctor --manifest migration-manifest.json --json` to verify all completed tasks
+2. Delegate to the **migration-verifier** subagent for a deeper structural review if the host supports it
+3. Report the verification results to the user
+4. Recommend manual testing:
    - "Please verify the UI renders correctly"
    - "Please test wallet connection if applicable"
-4. Only proceed to the next phase after user approval
+5. Only proceed to the next phase after user approval
 
-### Step 7: Completion
+### Step 7: Cleanup Phase
 
-After all phases are complete:
-1. Run `oz-ui migrate status --manifest migration-manifest.json` or `oz-ui migrate status --manifest migration-manifest.json --next` for the next actionable task
-2. Run `oz-ui migrate doctor --manifest migration-manifest.json` for a full verification pass
+After all migration phases are complete, the manifest includes cleanup tasks:
+
+1. **remove-stale-deps**: Remove the source-library packages (e.g., shadcn, Chakra, MUI dependencies) that are no longer used
+2. **cleanup-scaffolding**: Remove the runtime-providers stub, update the entry file import to use OzProviders directly, and commit the manifest
+
+These are manual-review tasks. Execute them, validate with doctor, then complete/fail as usual.
+
+### Step 8: Completion
+
+After all phases including cleanup are complete:
+1. Run `oz-ui migrate status --manifest migration-manifest.json` to confirm 100% completion
+2. Run `oz-ui migrate doctor --manifest migration-manifest.json --reconcile` for a full reconciliation pass against the codebase
 3. Recommend the user:
    - Run their test suite
    - Do a visual review of the application

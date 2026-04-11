@@ -485,6 +485,77 @@ function checkCopiedArtifacts(
   };
 }
 
+function checkRemoveStaleDeps(task: MigrationTask, projectRoot: string): TaskCheckResult {
+  const diagnostics: string[] = [];
+  const warnings: string[] = [];
+  const packageJsonPath = path.join(projectRoot, 'package.json');
+
+  if (!fs.existsSync(packageJsonPath)) {
+    return {
+      taskId: task.id,
+      passed: false,
+      severity: 'fail',
+      diagnostics: ['package.json not found'],
+    };
+  }
+
+  const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+  const deps = { ...(pkg.dependencies ?? {}), ...(pkg.devDependencies ?? {}) };
+
+  const stalePackageHints = (task.notes ?? [])
+    .join(' ')
+    .match(/Packages to consider removing:\s*(.+)/)?.[1];
+  if (stalePackageHints) {
+    const candidates = stalePackageHints.split(',').map((s) => s.trim());
+    const stillPresent = candidates.filter((c) => deps[c]);
+    if (stillPresent.length > 0) {
+      warnings.push(`Source-library packages still installed: ${stillPresent.join(', ')}`);
+    } else {
+      diagnostics.push('All flagged source-library packages have been removed.');
+    }
+  }
+
+  const passed = diagnostics.length > 0 || warnings.length > 0;
+  if (diagnostics.length === 0 && warnings.length === 0) {
+    diagnostics.push('No stale-dependency guidance available; manual verification recommended.');
+  }
+
+  return {
+    taskId: task.id,
+    passed,
+    severity: passed ? (warnings.length > 0 ? 'warning' : 'pass') : 'fail',
+    diagnostics,
+    warnings: warnings.length > 0 ? warnings : undefined,
+  };
+}
+
+function checkCleanupScaffolding(task: MigrationTask, projectRoot: string): TaskCheckResult {
+  const diagnostics: string[] = [];
+  const warnings: string[] = [];
+
+  const stubPath = path.join(projectRoot, 'src', 'oz', 'runtime-providers.tsx');
+  if (fs.existsSync(stubPath)) {
+    warnings.push(
+      'Runtime provider stub (src/oz/runtime-providers.tsx) still present; remove after switching to OzProviders.tsx.'
+    );
+  } else {
+    diagnostics.push('Runtime provider stub removed.');
+  }
+
+  if (!fs.existsSync(path.join(projectRoot, 'migration-manifest.json'))) {
+    warnings.push('migration-manifest.json not found in project root (it should be committed).');
+  }
+
+  const passed = true;
+  return {
+    taskId: task.id,
+    passed,
+    severity: warnings.length > 0 ? 'warning' : 'pass',
+    diagnostics: diagnostics.length > 0 ? diagnostics : ['Cleanup scaffolding check passed.'],
+    warnings: warnings.length > 0 ? warnings : undefined,
+  };
+}
+
 /**
  *
  */
@@ -529,5 +600,18 @@ export function checkTask(task: MigrationTask, projectRoot: string): TaskCheckRe
         ['.claude/skills/migrate-to-oz-uikit/SKILL.md'],
         'skill file'
       );
+    case 'remove-stale-deps':
+      return checkRemoveStaleDeps(task, projectRoot);
+    case 'cleanup-scaffolding':
+      return checkCleanupScaffolding(task, projectRoot);
+    default: {
+      const _exhaustive: never = task.type;
+      return {
+        taskId: task.id,
+        passed: false,
+        severity: 'fail',
+        diagnostics: [`Unhandled task type: ${_exhaustive}`],
+      };
+    }
   }
 }

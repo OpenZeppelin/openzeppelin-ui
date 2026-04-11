@@ -26,6 +26,8 @@ The CLI will return **manual** instructions for tasks that still need human or a
 - `wallet-replacement`
 - `storage-migration`
 - `schema-driven-form`
+- `remove-stale-deps`
+- `cleanup-scaffolding`
 
 When a task is returned as manual:
 1. Read the task instructions carefully

@@ -98,6 +98,7 @@ export function registerPlanCommand(parent: Command): void {
         const manifest = createEmptyManifest(report.project, {
           catalogVersion: catalog.catalogVersion,
           targetOzVersion: CLI_VERSION,
+          initVersion: CLI_VERSION,
           framework: report.framework,
           sourceLibrary: report.sourceLibrary,
         });

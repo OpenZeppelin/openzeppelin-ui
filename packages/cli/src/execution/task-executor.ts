@@ -161,6 +161,8 @@ function executeSetupTask(
             '.claude/skills/migrate-to-oz-uikit/SKILL.md',
           ],
         };
+      default:
+        return { changedFiles: [] };
     }
   }
 
@@ -183,6 +185,8 @@ function executeSetupTask(
       return { changedFiles: copyAgentFiles(projectRoot) };
     case 'copy-skill':
       return { changedFiles: copySkillFiles(projectRoot) };
+    default:
+      return { changedFiles: [] };
   }
 }
 
@@ -212,6 +216,19 @@ function manualInstructions(task: MigrationTask): string[] {
         fileHint,
         'Validate the rendered UI after refactoring; doctor only checks for structural signals.',
       ].filter(Boolean);
+    case 'remove-stale-deps':
+      return [
+        'Remove the source-library packages listed in the task notes from package.json.',
+        ...(task.notes ?? []),
+        'Run the package manager install command afterwards, then rerun doctor.',
+      ];
+    case 'cleanup-scaffolding':
+      return [
+        'Remove the runtime-providers.tsx stub if OzProviders.tsx uses @openzeppelin/ui-react directly.',
+        'Update the entry file import to use OzProviders instead of the stub.',
+        'Commit migration-manifest.json as a git artifact.',
+        ...(task.notes ?? []),
+      ];
     default:
       return ['This task type requires manual execution.'];
   }
@@ -235,6 +252,8 @@ function applyTask(
     case 'wallet-replacement':
     case 'storage-migration':
     case 'schema-driven-form':
+    case 'remove-stale-deps':
+    case 'cleanup-scaffolding':
       return { mode: 'manual', changedFiles: [], instructions: manualInstructions(task) };
   }
 }
@@ -317,7 +336,9 @@ export function executeTask(options: ExecuteTaskOptions): ExecuteTaskResult {
   if (
     task.type === 'wallet-replacement' ||
     task.type === 'storage-migration' ||
-    task.type === 'schema-driven-form'
+    task.type === 'schema-driven-form' ||
+    task.type === 'remove-stale-deps' ||
+    task.type === 'cleanup-scaffolding'
   ) {
     return {
       ok: true,

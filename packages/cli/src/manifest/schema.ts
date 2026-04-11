@@ -13,7 +13,9 @@ export type TaskType =
   | 'wallet-replacement'
   | 'storage-migration'
   | 'copy-agents'
-  | 'copy-skill';
+  | 'copy-skill'
+  | 'remove-stale-deps'
+  | 'cleanup-scaffolding';
 
 export type MigrationPhase =
   | 'setup'
@@ -79,6 +81,7 @@ export interface MigrationManifest {
   schemaVersion: string;
   catalogVersion: string;
   targetOzVersion: string;
+  initVersion?: string;
   projectRoot: string;
   framework: 'vite' | 'next' | 'cra' | 'unknown';
   sourceLibrary: string | null;

@@ -346,12 +346,60 @@ export function generateSchemaFormTasks(report: AnalysisReport): MigrationTask[]
   return [...deduped.values()];
 }
 
+/** @description Builds cleanup-phase tasks for removing stale source-library deps and migration scaffolding. */
+export function generateCleanupTasks(report: AnalysisReport): MigrationTask[] {
+  const tasks: MigrationTask[] = [];
+
+  const sourceLib = report.sourceLibrary;
+  if (sourceLib) {
+    const libs = loadSourceLibraries();
+    const lib = libs[sourceLib];
+    if (lib?.packages && lib.packages.length > 0) {
+      tasks.push({
+        id: 'cleanup-remove-stale-deps',
+        phase: 'cleanup',
+        phaseDetail: 'cleanup',
+        type: 'remove-stale-deps',
+        status: 'pending',
+        description: `Remove stale ${sourceLib} packages after migration: ${lib.packages.join(', ')}`,
+        dependsOn: [...FOUNDATION_DEPENDENCIES],
+        validation: buildValidation('cleanup-remove-stale-deps'),
+        notes: [
+          'Verify all component/form/wallet tasks are complete before removing source-library dependencies.',
+          `Packages to consider removing: ${lib.packages.join(', ')}`,
+        ],
+        manualReview: true,
+      });
+    }
+  }
+
+  tasks.push({
+    id: 'cleanup-scaffolding',
+    phase: 'cleanup',
+    phaseDetail: 'cleanup',
+    type: 'cleanup-scaffolding',
+    status: 'pending',
+    description:
+      'Remove migration scaffolding: runtime-providers stub, stale wrappers, and commit the manifest.',
+    dependsOn: [...FOUNDATION_DEPENDENCIES],
+    validation: buildValidation('cleanup-scaffolding'),
+    notes: [
+      'Remove src/oz/runtime-providers.tsx stub if OzProviders.tsx uses @openzeppelin/ui-react directly.',
+      'Ensure the entry file import was switched from the stub to OzProviders.',
+      'Commit migration-manifest.json as a git artifact.',
+    ],
+    manualReview: true,
+  });
+
+  return tasks;
+}
+
 export interface GeneratePlanOptions {
   scopeDir?: string;
   componentFilter?: string[];
 }
 
-/** @description Combines setup, component, wallet, and storage tasks into a full migration plan. */
+/** @description Combines all phase task generators into a complete migration plan. */
 export function generatePlanTasks(
   report: AnalysisReport,
   options: GeneratePlanOptions = {}
@@ -361,6 +409,14 @@ export function generatePlanTasks(
   const schemaFormTasks = generateSchemaFormTasks(report);
   const walletTasks = generateWalletTasks(report);
   const storageTasks = generateStorageTasks(report);
+  const cleanupTasks = generateCleanupTasks(report);
 
-  return [...setupTasks, ...componentTasks, ...schemaFormTasks, ...walletTasks, ...storageTasks];
+  return [
+    ...setupTasks,
+    ...componentTasks,
+    ...schemaFormTasks,
+    ...walletTasks,
+    ...storageTasks,
+    ...cleanupTasks,
+  ];
 }

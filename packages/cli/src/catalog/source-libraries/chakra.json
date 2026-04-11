@@ -1,5 +1,6 @@
 {
   "library": "Chakra UI",
+  "packages": ["@chakra-ui/react", "@chakra-ui/icons"],
   "importPatterns": ["@chakra-ui/react"],
   "mappings": {
     "Button": { "source": "Button", "effort": "medium", "notes": "colorScheme → variant, isLoading → LoadingButton" },

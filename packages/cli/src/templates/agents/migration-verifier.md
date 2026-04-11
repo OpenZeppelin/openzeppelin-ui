@@ -10,6 +10,12 @@ Your first action is always to run the CLI doctor and read its output:
 oz-ui migrate doctor --manifest migration-manifest.json --json
 ```
 
+For a full reconciliation pass (including pending tasks), use:
+
+```bash
+oz-ui migrate doctor --manifest migration-manifest.json --reconcile --json
+```
+
 If the CLI is available, **use its JSON output as your source of truth** for:
 - Package installation verification
 - Provider wiring check (RuntimeProvider, WalletStateProvider)
@@ -31,6 +37,8 @@ If `oz-ui` is not installed, perform verification manually:
    - **wire-providers**: Verify `RuntimeProvider` and `WalletStateProvider` exist in the component tree
    - **tailwind-normalize**: Verify `oz-tailwind.generated.css` exists and is imported
    - **install-packages**: Verify `@openzeppelin/*` packages are in `package.json`
+   - **remove-stale-deps**: Verify source-library packages have been removed from `package.json`
+   - **cleanup-scaffolding**: Verify the runtime-providers stub is removed and OzProviders is wired
 3. Report any issues found
 
 ## Output format

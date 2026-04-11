@@ -1,5 +1,6 @@
 {
   "library": "Ant Design",
+  "packages": ["antd", "@ant-design/icons"],
   "importPatterns": ["antd", "antd/"],
   "mappings": {
     "Button": { "source": "Button", "effort": "high", "notes": "type → variant, icon/loading props differ significantly" },
