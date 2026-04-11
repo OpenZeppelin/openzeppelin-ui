@@ -10,6 +10,8 @@ import {
   ensureTailwindConfigStubIfNeeded,
   installPackages,
   normalizeTailwind,
+  patchEntryFileWithConfigService,
+  writeAppConfigFiles,
   writeProviderTemplates,
 } from '../../init/setup';
 import { detectFramework, detectPackageManager } from '../../utils/framework';
@@ -32,6 +34,8 @@ interface InitResult extends JsonCommandResult<'migrate-init'> {
   agentsCopied: string[];
   skillCopied: string[];
   tailwindFixed: boolean;
+  appConfigWritten: boolean;
+  configServicePatched: string | null;
 }
 
 /**
@@ -64,6 +68,8 @@ export function registerInitCommand(parent: Command): void {
         );
 
         const templatesWritten = writeProviderTemplates(projectRoot);
+        const { configWritten: appConfigWritten } = writeAppConfigFiles(projectRoot);
+        const configServicePatched = patchEntryFileWithConfigService(projectRoot);
         const agentsCopied = copyAgentFiles(projectRoot);
         const skillCopied = copySkillFiles(projectRoot);
         const tailwindFixed = normalizeTailwind(projectRoot, CLI_FAMILIES, CLI_BRANDING);
@@ -81,6 +87,8 @@ export function registerInitCommand(parent: Command): void {
           agentsCopied,
           skillCopied,
           tailwindFixed,
+          appConfigWritten,
+          configServicePatched,
         };
 
         if (options.json) {
@@ -116,13 +124,28 @@ export function registerInitCommand(parent: Command): void {
           process.stdout.write(`  Tailwind configuration normalized\n`);
         }
 
+        if (appConfigWritten) {
+          process.stdout.write(
+            `  Generated ${pc.dim('public/app.config.json')} with wallet config defaults\n`
+          );
+        }
+
+        if (configServicePatched) {
+          process.stdout.write(
+            `  Patched ${pc.dim(configServicePatched)} with appConfigService bootstrap\n`
+          );
+        }
+
         process.stdout.write('\n' + pc.bold('Next steps:\n'));
         process.stdout.write(
-          `  1. Wrap your app root with <OzProviders> from src/oz/OzProviders.tsx\n`
+          `  1. Update ${pc.cyan('public/app.config.json')} with your WalletConnect project ID\n`
         );
-        process.stdout.write(`  2. Configure adapters in src/oz/resolve-runtime.ts\n`);
         process.stdout.write(
-          `  3. Run ${pc.cyan('oz-ui migrate analyze --project .')} to scan your codebase\n`
+          `  2. Wrap your app root with <OzProviders> from src/oz/OzProviders.tsx\n`
+        );
+        process.stdout.write(`  3. Configure adapters in src/oz/resolve-runtime.ts\n`);
+        process.stdout.write(
+          `  4. Run ${pc.cyan('oz-ui migrate analyze --project .')} to scan your codebase\n`
         );
       } catch (error) {
         printError(error, Boolean(options.json));
