@@ -4,8 +4,12 @@ Migrate an existing React application to the OpenZeppelin UI Kit. This skill orc
 
 ## Prerequisites
 
-- `@openzeppelin/ui-cli` (`oz-ui`) must be installed globally or locally
+- `@openzeppelin/ui-cli` must be installed as a dev dependency
 - The project must be a React application with a `package.json`
+
+> `oz-ui` is a locally-installed binary. Always run it via the project's package
+> manager: `npx oz-ui ...` or `pnpm exec oz-ui ...`. Bare `oz-ui` will fail
+> with "command not found".
 
 ## Workflow
 
@@ -13,19 +17,19 @@ Migrate an existing React application to the OpenZeppelin UI Kit. This skill orc
 
 For a full migration, keep this sequence (each step builds on the last):
 
-1. **`oz-ui migrate init`** — when there is no `migration-manifest.json` yet and OpenZeppelin UI packages are not wired (see Step 1).
-2. **`oz-ui migrate analyze`** — scan the repo; produce `migration-analysis.json`.
+1. **`npx oz-ui migrate init`** — when there is no `migration-manifest.json` yet and OpenZeppelin UI packages are not wired (see Step 1).
+2. **`npx oz-ui migrate analyze`** — scan the repo; produce `migration-analysis.json`.
 3. **Align** with the user on profile, scope, and ambiguous mappings (decisions inform the plan).
-4. **`oz-ui migrate plan`** — produce `migration-manifest.json` with phased tasks.
-5. **Execute** tasks from the manifest in phase order, using **`oz-ui migrate execute`** for deterministic work and manual edits only when the CLI returns a manual-review task.
-6. **Complete** with **`oz-ui migrate status`** and a full **`oz-ui migrate doctor`** pass on the manifest.
+4. **`npx oz-ui migrate plan`** — produce `migration-manifest.json` with phased tasks.
+5. **Execute** tasks from the manifest in phase order, using **`npx oz-ui migrate execute`** for deterministic work and manual edits only when the CLI returns a manual-review task.
+6. **Complete** with **`npx oz-ui migrate status`** and a full **`npx oz-ui migrate doctor`** pass on the manifest.
 
-Use `oz-ui migrate status --manifest migration-manifest.json --next` whenever you need the CLI to suggest the next command sequence.
+Use `npx oz-ui migrate status --manifest migration-manifest.json --next` whenever you need the CLI to suggest the next command sequence.
 
 If a manifest already exists, **resume** with status/doctor instead of re-running init.
 
 The **setup phase** must complete before analysis begins on a fresh project. Do not run
-`oz-ui migrate analyze` until `oz-ui migrate init` has finished and the provider / asset scaffolding is in place.
+`npx oz-ui migrate analyze` until `npx oz-ui migrate init` has finished and the provider / asset scaffolding is in place.
 
 ### Step 1: Resume or Initialize
 
@@ -36,8 +40,8 @@ ls migration-manifest.json 2>/dev/null
 ```
 
 **If manifest exists**, resume:
-1. Run `oz-ui migrate status --manifest migration-manifest.json` to see progress
-2. Run `oz-ui migrate doctor --manifest migration-manifest.json --json` to verify completed tasks
+1. Run `npx oz-ui migrate status --manifest migration-manifest.json` to see progress
+2. Run `npx oz-ui migrate doctor --manifest migration-manifest.json --json` to verify completed tasks
 3. Report the current state to the user and ask whether to continue, fix failures, or restart
 
 **If no manifest exists**, check for OZ packages:
@@ -47,7 +51,7 @@ ls migration-manifest.json 2>/dev/null
 If no manifest exists, run initialization before you skip to analysis.
 
 ```bash
-oz-ui migrate init --project .
+npx oz-ui migrate init --project .
 ```
 
 This installs OZ packages, wires `RuntimeProvider` + `WalletStateProvider`, normalizes Tailwind, and copies agent/skill files.
@@ -59,7 +63,7 @@ Tell the user to wrap their app root with `<OzProviders>` from `src/oz/OzProvide
 Delegate to the **migration-analyzer** subagent, or run directly:
 
 ```bash
-oz-ui migrate analyze --project . --json --output migration-analysis.json
+npx oz-ui migrate analyze --project . --json --output migration-analysis.json
 ```
 
 Present a summary to the user:
@@ -84,7 +88,7 @@ Record all decisions — they will be passed to the plan command using `--decisi
 ### Step 4: Generate Plan
 
 ```bash
-oz-ui migrate plan --report migration-analysis.json --json --profile <selected> [--scope <dir>] [--decision <key=value>]
+npx oz-ui migrate plan --report migration-analysis.json --json --profile <selected> [--scope <dir>] [--decision <key=value>]
 ```
 
 This creates `migration-manifest.json` with all phased tasks. Show the user the plan summary and get approval before proceeding.
@@ -94,7 +98,7 @@ This creates `migration-manifest.json` with all phased tasks. Show the user the 
 Delegate to the **migration-executor** subagent, or run directly:
 
 ```bash
-oz-ui migrate execute --manifest migration-manifest.json --json
+npx oz-ui migrate execute --manifest migration-manifest.json --json
 ```
 
 For each pending task in the manifest, in phase order:
@@ -108,19 +112,19 @@ For each pending task in the manifest, in phase order:
    - `wallet-replacement`: Replace wagmi/ethers hooks with OZ adapter hooks (`useRuntimeContext`, `useWalletState`)
    - `storage-migration`: Flag the file for manual review, add a TODO comment noting the affected storage keys
    - `schema-driven-form`: Review for `RenderFormSchema` / `TransactionForm` migration and verify the rendered UI
-4. **Run verification**: `oz-ui migrate doctor --manifest migration-manifest.json --check <task-id> --json`
+4. **Run verification**: `npx oz-ui migrate doctor --manifest migration-manifest.json --check <task-id> --json`
 5. **Update manifest state explicitly for manual tasks**:
-   - When verification passes: `oz-ui migrate complete --manifest migration-manifest.json --task <task-id>`
-   - When blocked: `oz-ui migrate fail --manifest migration-manifest.json --task <task-id> --reason "<blocker>"`
+   - When verification passes: `npx oz-ui migrate complete --manifest migration-manifest.json --task <task-id>`
+   - When blocked: `npx oz-ui migrate fail --manifest migration-manifest.json --task <task-id> --reason "<blocker>"`
 6. **Handle failure**: When doctor **fails**, stop, report diagnostics, then **retry** after fixing the issue, or record the blocker with `migrate fail` (do not silently **rollback** committed work without agreement).
 
-For any manual or resumed task, `oz-ui migrate status --manifest migration-manifest.json --next` should be treated as the source of truth for the next suggested command.
+For any manual or resumed task, `npx oz-ui migrate status --manifest migration-manifest.json --next` should be treated as the source of truth for the next suggested command.
 
 ### Step 6: Phase Gate
 
 After completing all tasks in a phase:
 
-1. Run `oz-ui migrate doctor --manifest migration-manifest.json --json` to verify all completed tasks
+1. Run `npx oz-ui migrate doctor --manifest migration-manifest.json --json` to verify all completed tasks
 2. Delegate to the **migration-verifier** subagent for a deeper structural review if the host supports it
 3. Report the verification results to the user
 4. Recommend manual testing:
@@ -140,8 +144,8 @@ These are manual-review tasks. Execute them, validate with doctor, then complete
 ### Step 8: Completion
 
 After all phases including cleanup are complete:
-1. Run `oz-ui migrate status --manifest migration-manifest.json` to confirm 100% completion
-2. Run `oz-ui migrate doctor --manifest migration-manifest.json --reconcile` for a full reconciliation pass against the codebase
+1. Run `npx oz-ui migrate status --manifest migration-manifest.json` to confirm 100% completion
+2. Run `npx oz-ui migrate doctor --manifest migration-manifest.json --reconcile` for a full reconciliation pass against the codebase
 3. Recommend the user:
    - Run their test suite
    - Do a visual review of the application

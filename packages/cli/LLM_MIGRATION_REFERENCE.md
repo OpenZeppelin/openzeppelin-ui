@@ -73,18 +73,23 @@ The target repo should end up with:
 
 The current setup flow installs or copies those assets through `oz-ui migrate init`.
 
+> **Important**: `oz-ui` is a locally-installed binary (dev dependency), not a global command.
+> Always run it through the project's package manager:
+> `npx oz-ui ...`, `pnpm exec oz-ui ...`, or `pnpm oz-ui ...` (if the project has an `oz-ui` script).
+> Never run bare `oz-ui` — it will fail with "command not found".
+
 ## What The User Should Say
 
 Bootstrap and migrate (fresh project):
 
 ```text
-Install @openzeppelin/ui-cli as a dev dependency, then run `oz-ui migrate init --project .` to set up the migration skill and OZ packages. Once init finishes, read the skill at .cursor/skills/migrate-to-oz-uikit/SKILL.md and follow it to migrate this app to OpenZeppelin UI Kit. Ask me only when you need profile/scope decisions or manual validation.
+Install @openzeppelin/ui-cli as a dev dependency, then run `npx oz-ui migrate init --project .` to set up the migration skill and OZ packages. Once init finishes, read the skill at .cursor/skills/migrate-to-oz-uikit/SKILL.md and follow it to migrate this app to OpenZeppelin UI Kit. Ask me only when you need profile/scope decisions or manual validation.
 ```
 
 With preferences:
 
 ```text
-Install @openzeppelin/ui-cli as a dev dependency, then run `oz-ui migrate init --project .` to set up the migration skill and OZ packages. Once init finishes, read the skill at .cursor/skills/migrate-to-oz-uikit/SKILL.md and follow it to migrate this app to OpenZeppelin UI Kit. Prefer the transactor profile. Migrate the whole app unless you find risky areas.
+Install @openzeppelin/ui-cli as a dev dependency, then run `npx oz-ui migrate init --project .` to set up the migration skill and OZ packages. Once init finishes, read the skill at .cursor/skills/migrate-to-oz-uikit/SKILL.md and follow it to migrate this app to OpenZeppelin UI Kit. Prefer the transactor profile. Migrate the whole app unless you find risky areas.
 ```
 
 Resume later (skill and manifest already exist):
@@ -100,7 +105,7 @@ Read the skill at .cursor/skills/migrate-to-oz-uikit/SKILL.md and resume the Ope
 The assistant prepares the repo for migration:
 
 1. installs `@openzeppelin/ui-cli` as a dev dependency
-2. runs `oz-ui migrate init --project .`
+2. runs `npx oz-ui migrate init --project .` (or `pnpm exec oz-ui migrate init --project .`)
 3. reads the skill file that init copied (`.cursor/skills/migrate-to-oz-uikit/SKILL.md`)
 4. follows that skill for all subsequent steps
 
@@ -230,10 +235,13 @@ The user should mostly see natural-language progress updates, not raw CLI operat
 If you want a single good user prompt, use this:
 
 ```text
-Install @openzeppelin/ui-cli as a dev dependency, then run `oz-ui migrate init --project .` to bootstrap the migration. Once init finishes, read the skill at .cursor/skills/migrate-to-oz-uikit/SKILL.md and follow it to migrate this app to OpenZeppelin UI Kit. Ask me only when you need profile/scope decisions or manual validation.
+Install @openzeppelin/ui-cli as a dev dependency, then run `npx oz-ui migrate init --project .` to bootstrap the migration. Once init finishes, read the skill at .cursor/skills/migrate-to-oz-uikit/SKILL.md and follow it to migrate this app to OpenZeppelin UI Kit. Ask me only when you need profile/scope decisions or manual validation.
 ```
 
-The key insight: the LLM does not know about the CLI or the skill until `init` copies everything into the repo. The prompt must be explicit about the install command, the init command, and the path to the skill file.
+The key insights:
+
+1. The LLM does not know about the CLI or the skill until `init` copies everything into the repo. The prompt must be explicit about the install command, the init command, and the path to the skill file.
+2. `oz-ui` is a locally-installed binary, not a global command. The prompt must use `npx oz-ui` (or `pnpm exec oz-ui`) — bare `oz-ui` will fail.
 
 ## Final Takeaway
 

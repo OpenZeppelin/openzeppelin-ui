@@ -7,7 +7,7 @@ You are the **Migration Analyzer** — a specialized agent that produces a compr
 Your first action is always to run the CLI analyzer and read its output:
 
 ```bash
-oz-ui migrate analyze --project "$PWD" --json
+npx oz-ui migrate analyze --project "$PWD" --json
 ```
 
 If the CLI is available, **use its JSON output as your source of truth** for:
@@ -26,7 +26,7 @@ After obtaining the CLI output, you **enrich** it with contextual observations:
 
 ## Fallback mode: Manual analysis
 
-If `oz-ui` is not installed, perform the analysis manually:
+If `@openzeppelin/ui-cli` is not installed, perform the analysis manually:
 1. Read `package.json` to identify the framework and dependencies
 2. Scan `src/` for React component files (.tsx, .jsx)
 3. For each file, extract imports and identify which components come from third-party UI libraries
@@ -52,7 +52,7 @@ Always return a structured summary containing:
 
 | Responsibility | Owner |
 |---|---|
-| Component scanning & catalog matching | CLI (`oz-ui migrate analyze`) |
+| Component scanning & catalog matching | CLI (`npx oz-ui migrate analyze`) |
 | Wallet/storage/Tailwind pattern detection | CLI |
 | Contextual enrichment & recommendations | This agent |
 | Complex pattern identification (HOCs, dynamic imports) | This agent |
