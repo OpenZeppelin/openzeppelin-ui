@@ -32,9 +32,10 @@ export function LearnTab(): React.ReactElement {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            The runtime&apos;s <code>contractLoading.loadContract(address)</code> capability fetches
-            the contract ABI from block explorers (Etherscan/Sourcify for EVM, Soroban RPC for
-            Stellar). This enables dynamic contract interaction without hardcoding ABIs.
+            The runtime&apos;s <code>contractLoading.loadContract(address)</code> capability (Tier
+            2) fetches the contract ABI from block explorers — Etherscan/Sourcify for EVM, Soroban
+            RPC for Stellar, and ecosystem-specific providers for other adapters. This enables
+            dynamic contract interaction without hardcoding ABIs.
           </p>
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Key Features</h4>
@@ -43,7 +44,7 @@ export function LearnTab(): React.ReactElement {
               <li>Proxy contract detection and implementation resolution</li>
               <li>Multiple provider fallback (Etherscan → Sourcify)</li>
               <li>Contract verification status reporting</li>
-              <li>Ecosystem-agnostic via the capability-based runtime</li>
+              <li>Available in Viewer, Transactor, Composer, and Operator profiles</li>
             </ul>
           </div>
           <CodeBlock code={LOAD_CONTRACT_EXAMPLE} language="tsx" />
