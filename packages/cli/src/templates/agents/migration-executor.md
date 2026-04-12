@@ -51,6 +51,16 @@ npx oz-ui migrate complete --manifest migration-manifest.json --task <task-id>
 npx oz-ui migrate fail --manifest migration-manifest.json --task <task-id> --reason "<blocker>"
 ```
 
+## Phase preconditions
+
+Before entering the **wallet-adapter** phase, verify the entry file (`src/main.tsx` or equivalent) imports providers from `@openzeppelin/ui-react` — **not** from the local stub at `src/oz/runtime-providers`. The CLI enforces this via the `setup-activate-providers` dependency, but you should also confirm it manually:
+
+```bash
+npx oz-ui migrate doctor --manifest migration-manifest.json --check setup-activate-providers --json
+```
+
+If the check fails, switch the entry file to use `OzProviders` from `src/oz/OzProviders.tsx` (or import `RuntimeProvider` and `WalletStateProvider` directly from `@openzeppelin/ui-react`) before proceeding. A stub provider creates a different React context than OZ hooks like `useWalletState()` expect, causing runtime errors.
+
 ## Execution loop
 
 For each task:

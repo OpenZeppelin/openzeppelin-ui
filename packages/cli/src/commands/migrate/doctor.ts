@@ -2,15 +2,27 @@ import path from 'node:path';
 import { Command } from 'commander';
 import pc from 'picocolors';
 
+import type { MigrationPhase } from '../../manifest';
 import { readManifest } from '../../manifest';
 import { printError, printJson } from '../../utils/logger';
 import { checkTask, type TaskCheckResult } from '../../verification/checker';
 import type { JsonCommandResult } from './json-results';
 
+const PHASE_ORDER: MigrationPhase[] = [
+  'setup',
+  'ui-components',
+  'form-fields',
+  'schema-forms',
+  'wallet-adapter',
+  'storage',
+  'cleanup',
+];
+
 interface DoctorOptions {
   manifest: string;
   check?: string;
   reconcile?: boolean;
+  phaseGate?: string;
   json?: boolean;
 }
 
@@ -38,6 +50,10 @@ export function registerDoctorCommand(parent: Command): void {
       '--reconcile',
       'Check all tasks (including pending) to reconcile codebase state against the manifest'
     )
+    .option(
+      '--phase-gate <phase>',
+      'Check completed tasks in the given phase AND preconditions for the next phase'
+    )
     .option('--json', 'Emit machine-readable JSON output')
     .action((options: DoctorOptions) => {
       try {
@@ -49,6 +65,26 @@ export function registerDoctorCommand(parent: Command): void {
           tasksToCheck = manifest.tasks.filter((t) => t.id === options.check);
         } else if (options.reconcile) {
           tasksToCheck = manifest.tasks;
+        } else if (options.phaseGate) {
+          const currentPhase = options.phaseGate as MigrationPhase;
+          const currentIdx = PHASE_ORDER.indexOf(currentPhase);
+          const nextPhase =
+            currentIdx >= 0 && currentIdx < PHASE_ORDER.length - 1
+              ? PHASE_ORDER[currentIdx + 1]
+              : null;
+
+          tasksToCheck = manifest.tasks.filter((t) => {
+            if (
+              t.phase === currentPhase &&
+              (t.status === 'completed' || t.status === 'in_progress')
+            ) {
+              return true;
+            }
+            if (nextPhase && t.phase === nextPhase && t.status === 'pending') {
+              return true;
+            }
+            return false;
+          });
         } else {
           tasksToCheck = manifest.tasks.filter(
             (t) => t.status === 'completed' || t.status === 'in_progress'

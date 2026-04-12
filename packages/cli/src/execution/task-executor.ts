@@ -21,7 +21,11 @@ import {
   type MigrationTask,
 } from '../manifest';
 import { rewriteFile, type RewriteContext } from '../rewriter/rewriteFile';
-import { checkTask, type TaskCheckResult } from '../verification/checker';
+import {
+  checkEntryFileProviderSource,
+  checkTask,
+  type TaskCheckResult,
+} from '../verification/checker';
 
 export interface ExecuteTaskOptions {
   manifestPath: string;
@@ -198,9 +202,16 @@ function manualInstructions(task: MigrationTask): string[] {
       : '';
 
   switch (task.type) {
+    case 'activate-providers':
+      return [
+        'Switch the app entry file (src/main.tsx or equivalent) to import RuntimeProvider and WalletStateProvider from @openzeppelin/ui-react — not from the local runtime-providers stub.',
+        'Use the generated OzProviders wrapper from src/oz/OzProviders.tsx, or import the providers directly from @openzeppelin/ui-react.',
+        'The stub creates a different React context than OZ hooks expect, causing runtime errors.',
+      ];
     case 'wallet-replacement':
       return [
         'Replace legacy wallet or chain hooks with OpenZeppelin runtime hooks such as useRuntimeContext() and useWalletState().',
+        'Prerequisite: entry file must import providers from @openzeppelin/ui-react, not a local stub.',
         fileHint,
         'Rerun doctor after the refactor to verify legacy imports are gone.',
       ].filter(Boolean);
@@ -234,6 +245,32 @@ function manualInstructions(task: MigrationTask): string[] {
   }
 }
 
+/**
+ * Checks preconditions that must be satisfied before a manual task can proceed.
+ * Returns a failing TaskCheckResult if a precondition is violated, or null if all clear.
+ */
+function checkManualTaskPreconditions(
+  task: MigrationTask,
+  projectRoot: string
+): TaskCheckResult | null {
+  if (task.type === 'wallet-replacement') {
+    const providerSource = checkEntryFileProviderSource(projectRoot);
+    if (providerSource.entryFile && providerSource.fromStub && !providerSource.fromOz) {
+      return {
+        taskId: task.id,
+        passed: false,
+        severity: 'fail',
+        diagnostics: [
+          `Precondition failed: ${providerSource.entryFile} imports providers from a local stub, not @openzeppelin/ui-react.`,
+          'Switch the entry file to use OzProviders (or import directly from @openzeppelin/ui-react) before starting wallet-replacement tasks.',
+        ],
+      };
+    }
+  }
+
+  return null;
+}
+
 function applyTask(
   task: MigrationTask,
   projectRoot: string,
@@ -249,6 +286,7 @@ function applyTask(
     case 'component-replacement':
     case 'form-field-replacement':
       return { mode: 'applied', ...executeRewriteTask(task, projectRoot, dryRun) };
+    case 'activate-providers':
     case 'wallet-replacement':
     case 'storage-migration':
     case 'schema-driven-form':
@@ -334,12 +372,38 @@ export function executeTask(options: ExecuteTaskOptions): ExecuteTaskResult {
   }
 
   if (
+    task.type === 'activate-providers' ||
     task.type === 'wallet-replacement' ||
     task.type === 'storage-migration' ||
     task.type === 'schema-driven-form' ||
     task.type === 'remove-stale-deps' ||
     task.type === 'cleanup-scaffolding'
   ) {
+    const preconditionFailure = checkManualTaskPreconditions(task, manifest.projectRoot);
+    if (preconditionFailure) {
+      return {
+        ok: false,
+        action: 'migrate-execute',
+        manifest: manifestPath,
+        dryRun: false,
+        task: {
+          id: task.id,
+          phase: task.phase,
+          phaseDetail: task.phaseDetail,
+          type: task.type,
+          description: task.description,
+          statusBefore: task.status,
+          statusAfter: task.status,
+        },
+        mode: 'manual',
+        changedFiles: [],
+        validation: preconditionFailure,
+        message: preconditionFailure.diagnostics.join(' '),
+        instructions: manualInstructions(task),
+        nextTaskId: task.id,
+      };
+    }
+
     return {
       ok: true,
       action: 'migrate-execute',

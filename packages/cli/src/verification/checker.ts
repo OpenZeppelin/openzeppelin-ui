@@ -82,7 +82,7 @@ const ENTRY_FILE_CANDIDATES = ['src/main.tsx', 'src/main.jsx', 'src/index.tsx', 
  * like `useWalletState()` will throw at runtime because they read from a
  * different React context than the one the stub provides.
  */
-function checkEntryFileProviderSource(projectRoot: string): {
+export function checkEntryFileProviderSource(projectRoot: string): {
   fromStub: boolean;
   fromOz: boolean;
   entryFile: string | null;
@@ -160,6 +160,52 @@ function checkWireProviders(task: MigrationTask, projectRoot: string): TaskCheck
     severity: passed ? (warnings.length > 0 ? 'warning' : 'pass') : 'fail',
     diagnostics,
     warnings: warnings.length > 0 ? warnings : undefined,
+  };
+}
+
+function checkActivateProviders(task: MigrationTask, projectRoot: string): TaskCheckResult {
+  const providerSource = checkEntryFileProviderSource(projectRoot);
+
+  if (!providerSource.entryFile) {
+    return {
+      taskId: task.id,
+      passed: false,
+      severity: 'fail',
+      diagnostics: [
+        'No entry file found (checked src/main.tsx, src/main.jsx, src/index.tsx, src/index.jsx).',
+      ],
+    };
+  }
+
+  if (providerSource.fromStub && !providerSource.fromOz) {
+    return {
+      taskId: task.id,
+      passed: false,
+      severity: 'fail',
+      diagnostics: [
+        `${providerSource.entryFile} imports providers from a local stub, not @openzeppelin/ui-react.`,
+        'Switch to OzProviders or import directly from @openzeppelin/ui-react before starting wallet-adapter tasks.',
+      ],
+    };
+  }
+
+  if (!providerSource.fromOz && !providerSource.fromStub) {
+    return {
+      taskId: task.id,
+      passed: true,
+      severity: 'warning',
+      diagnostics: [`No provider imports found in ${providerSource.entryFile}.`],
+      warnings: [
+        'Entry file has no RuntimeProvider/WalletStateProvider imports. Providers may be wired in a separate wrapper component.',
+      ],
+    };
+  }
+
+  return {
+    taskId: task.id,
+    passed: true,
+    severity: 'pass',
+    diagnostics: [`${providerSource.entryFile} imports providers from @openzeppelin/ui-react.`],
   };
 }
 
@@ -617,6 +663,8 @@ export function checkTask(task: MigrationTask, projectRoot: string): TaskCheckRe
       return checkInstallPackages(task, projectRoot);
     case 'wire-providers':
       return checkWireProviders(task, projectRoot);
+    case 'activate-providers':
+      return checkActivateProviders(task, projectRoot);
     case 'tailwind-normalize':
       return checkTailwindNormalize(task, projectRoot);
     case 'component-replacement':

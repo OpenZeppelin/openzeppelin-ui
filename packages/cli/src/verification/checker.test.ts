@@ -318,4 +318,74 @@ describe('checkTask', () => {
       expect(result.warnings).toBeUndefined();
     });
   });
+
+  describe('activate-providers gate', () => {
+    function activateProvidersTask(): MigrationTask {
+      return {
+        id: 'setup-activate-providers',
+        phase: 'setup',
+        type: 'activate-providers',
+        status: 'pending',
+        description: 'Verify entry file imports providers from @openzeppelin/ui-react',
+      };
+    }
+
+    it('fails when entry file uses stub providers', () => {
+      const dir = createTempDir();
+      writeFile(
+        path.join(dir, 'src', 'main.tsx'),
+        [
+          "import { RuntimeProvider, WalletStateProvider } from './oz/runtime-providers';",
+          '<RuntimeProvider><WalletStateProvider><App /></WalletStateProvider></RuntimeProvider>',
+        ].join('\n')
+      );
+
+      const result = checkTask(activateProvidersTask(), dir);
+      expect(result.passed).toBe(false);
+      expect(result.severity).toBe('fail');
+      expect(result.diagnostics.join('\n')).toMatch(/local stub/);
+    });
+
+    it('passes when entry file uses @openzeppelin/ui-react providers', () => {
+      const dir = createTempDir();
+      writeFile(
+        path.join(dir, 'src', 'main.tsx'),
+        [
+          "import { RuntimeProvider, WalletStateProvider } from '@openzeppelin/ui-react';",
+          '<RuntimeProvider><WalletStateProvider><App /></WalletStateProvider></RuntimeProvider>',
+        ].join('\n')
+      );
+
+      const result = checkTask(activateProvidersTask(), dir);
+      expect(result.passed).toBe(true);
+      expect(result.severity).toBe('pass');
+    });
+
+    it('fails when no entry file exists', () => {
+      const dir = createTempDir();
+      writeFile(path.join(dir, 'src', 'other.tsx'), 'export default {};');
+
+      const result = checkTask(activateProvidersTask(), dir);
+      expect(result.passed).toBe(false);
+      expect(result.severity).toBe('fail');
+      expect(result.diagnostics.join('\n')).toMatch(/No entry file found/);
+    });
+
+    it('warns when entry file has no provider imports at all', () => {
+      const dir = createTempDir();
+      writeFile(
+        path.join(dir, 'src', 'main.tsx'),
+        [
+          "import React from 'react';",
+          "import { OzProviders } from './oz/OzProviders';",
+          '<OzProviders><App /></OzProviders>',
+        ].join('\n')
+      );
+
+      const result = checkTask(activateProvidersTask(), dir);
+      expect(result.passed).toBe(true);
+      expect(result.severity).toBe('warning');
+      expect(result.warnings?.join('\n')).toMatch(/separate wrapper/);
+    });
+  });
 });

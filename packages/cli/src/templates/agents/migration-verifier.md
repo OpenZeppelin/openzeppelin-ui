@@ -24,9 +24,10 @@ If the CLI is available, **use its JSON output as your source of truth** for:
 
 After obtaining the CLI output, you **enrich** it with deeper structural checks:
 1. For component replacements: verify that the new OZ component props are correctly threaded (especially capability props like `addressing`, `typeMapping`)
-2. For provider wiring: verify the provider hierarchy is correct (RuntimeProvider must wrap WalletStateProvider)
+2. For provider wiring: verify the provider hierarchy is correct (RuntimeProvider must wrap WalletStateProvider) **and** that the entry file imports providers from `@openzeppelin/ui-react`, not from a local stub (`src/oz/runtime-providers.tsx`). A stub provider creates a different React context than `useWalletState()` expects — this is a **hard failure**, not a warning.
 3. For Tailwind: verify that `@openzeppelin/ui-styles/global.css` is properly imported
 4. Check for orphaned imports or unused variables left behind by the migration
+5. For wallet-replacement tasks: confirm `setup-activate-providers` passed before validating individual wallet tasks
 
 ## Fallback mode: Manual verification
 

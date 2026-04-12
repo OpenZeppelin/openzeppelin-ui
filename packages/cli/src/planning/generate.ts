@@ -14,6 +14,8 @@ const FOUNDATION_DEPENDENCIES = [
   'setup-tailwind-normalize',
 ] as const;
 
+const WALLET_DEPENDENCIES = [...FOUNDATION_DEPENDENCIES, 'setup-activate-providers'] as const;
+
 function buildValidation(taskId: string): MigrationTask['validation'] {
   return {
     command: `oz-ui migrate doctor --manifest migration-manifest.json --check ${taskId} --json`,
@@ -141,6 +143,23 @@ export function generateSetupTasks(): MigrationTask[] {
       validation: buildValidation('setup-tailwind-normalize'),
     },
     {
+      id: 'setup-activate-providers',
+      phase: 'setup',
+      phaseDetail: 'foundation',
+      type: 'activate-providers',
+      status: 'pending',
+      description:
+        'Verify entry file imports providers from @openzeppelin/ui-react (not the local stub)',
+      dependsOn: ['setup-wire-providers'],
+      validation: buildValidation('setup-activate-providers'),
+      notes: [
+        'The wire-providers task scaffolds a local stub for bootstrapping. Before wallet-adapter work begins,',
+        'the entry file must import RuntimeProvider and WalletStateProvider from @openzeppelin/ui-react',
+        '(or use the generated OzProviders wrapper). OZ hooks read from a different React context than the stub.',
+      ],
+      manualReview: true,
+    },
+    {
       id: 'setup-copy-agents',
       phase: 'setup',
       phaseDetail: 'foundation',
@@ -252,7 +271,7 @@ export function generateWalletTasks(report: AnalysisReport): MigrationTask[] {
         description: `Replace ${pattern.pattern} usage with OZ adapter in ${file}`,
         file,
         files: [file],
-        dependsOn: [...FOUNDATION_DEPENDENCIES],
+        dependsOn: [...WALLET_DEPENDENCIES],
         validation: buildValidation(
           `wallet-replacement-${pattern.pattern}-${file.replace(/[/\\]/g, '-')}`
         ),

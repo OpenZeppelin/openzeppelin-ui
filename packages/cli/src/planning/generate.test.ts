@@ -205,4 +205,21 @@ describe('generatePlanTasks', () => {
     expect(tasks[0]?.phaseDetail).toBe('schema-driven-forms');
     expect(tasks[0]?.manualReview).toBe(true);
   });
+
+  it('generates setup-activate-providers task that wallet tasks depend on', () => {
+    const report = createReport();
+    const tasks = generatePlanTasks(report);
+
+    const activateTask = tasks.find((t) => t.id === 'setup-activate-providers');
+    expect(activateTask).toBeDefined();
+    expect(activateTask?.type).toBe('activate-providers');
+    expect(activateTask?.phase).toBe('setup');
+    expect(activateTask?.dependsOn).toContain('setup-wire-providers');
+
+    const walletTasks = tasks.filter((t) => t.type === 'wallet-replacement');
+    expect(walletTasks.length).toBeGreaterThan(0);
+    for (const wt of walletTasks) {
+      expect(wt.dependsOn).toContain('setup-activate-providers');
+    }
+  });
 });

@@ -6,6 +6,7 @@ export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 's
 export type TaskType =
   | 'install-packages'
   | 'wire-providers'
+  | 'activate-providers'
   | 'tailwind-normalize'
   | 'component-replacement'
   | 'form-field-replacement'

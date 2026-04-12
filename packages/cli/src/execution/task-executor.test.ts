@@ -110,4 +110,74 @@ describe('executeTask', () => {
     expect(result.instructions?.join('\n')).toMatch(/useRuntimeContext|useWalletState/);
     expect(readManifest(manifestPath).tasks[0]?.status).toBe('pending');
   });
+
+  it('blocks wallet-replacement execution when entry file uses stub providers', () => {
+    const dir = createTempDir();
+    const manifestPath = path.join(dir, 'migration-manifest.json');
+
+    writeFile(
+      path.join(dir, 'src', 'main.tsx'),
+      [
+        "import { RuntimeProvider, WalletStateProvider } from './oz/runtime-providers';",
+        '<RuntimeProvider><WalletStateProvider><App /></WalletStateProvider></RuntimeProvider>',
+      ].join('\n')
+    );
+
+    const manifest = createBaseManifest(dir);
+    manifest.tasks = [
+      {
+        id: 'wallet-replacement-wagmi-src-hooks-useWallet.ts',
+        phase: 'wallet-adapter',
+        phaseDetail: 'wallet-and-adapters',
+        type: 'wallet-replacement',
+        status: 'pending',
+        description: 'Replace wagmi usage with OZ adapter in src/hooks/useWallet.ts',
+        file: 'src/hooks/useWallet.ts',
+        files: ['src/hooks/useWallet.ts'],
+      },
+    ];
+    writeManifest(manifestPath, manifest);
+
+    const result = executeTask({ manifestPath });
+
+    expect(result.ok).toBe(false);
+    expect(result.mode).toBe('manual');
+    expect(result.validation?.passed).toBe(false);
+    expect(result.message).toMatch(/stub/);
+    expect(readManifest(manifestPath).tasks[0]?.status).toBe('pending');
+  });
+
+  it('allows wallet-replacement execution when entry file uses real OZ providers', () => {
+    const dir = createTempDir();
+    const manifestPath = path.join(dir, 'migration-manifest.json');
+
+    writeFile(
+      path.join(dir, 'src', 'main.tsx'),
+      [
+        "import { RuntimeProvider, WalletStateProvider } from '@openzeppelin/ui-react';",
+        '<RuntimeProvider><WalletStateProvider><App /></WalletStateProvider></RuntimeProvider>',
+      ].join('\n')
+    );
+
+    const manifest = createBaseManifest(dir);
+    manifest.tasks = [
+      {
+        id: 'wallet-replacement-wagmi-src-hooks-useWallet.ts',
+        phase: 'wallet-adapter',
+        phaseDetail: 'wallet-and-adapters',
+        type: 'wallet-replacement',
+        status: 'pending',
+        description: 'Replace wagmi usage with OZ adapter in src/hooks/useWallet.ts',
+        file: 'src/hooks/useWallet.ts',
+        files: ['src/hooks/useWallet.ts'],
+      },
+    ];
+    writeManifest(manifestPath, manifest);
+
+    const result = executeTask({ manifestPath });
+
+    expect(result.ok).toBe(true);
+    expect(result.mode).toBe('manual');
+    expect(result.validation).toBeNull();
+  });
 });
