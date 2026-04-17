@@ -26,6 +26,10 @@
   --color-warning: oklch(0.8 0.17 80); /* Yellow/Orange */
   --color-info: oklch(0.5 0.2 200); /* Blue */
 
+  /* Selection colors — used to indicate a user-selected surface (cards, steps, rows, etc.) */
+  --color-selected: oklch(0.546 0.245 262.881); /* Blue ~ Tailwind blue-600 */
+  --color-selected-foreground: oklch(0.985 0 0); /* Near-white for contrast on --color-selected */
+
   /* Form and border colors */
   --color-border: oklch(0.922 0 0);
   --color-input: oklch(0.922 0 0);
@@ -137,6 +141,10 @@
   --warning: oklch(0.8 0.17 80); /* Yellow/Orange */
   --info: oklch(0.5 0.2 200); /* Blue */
 
+  /* Selection colors */
+  --selected: oklch(0.546 0.245 262.881); /* Blue ~ Tailwind blue-600 */
+  --selected-foreground: oklch(0.985 0 0); /* Near-white for contrast on --selected */
+
   /* Form and border colors */
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
@@ -199,6 +207,10 @@
   --warning: oklch(0.5 0.17 80); /* Darker yellow/orange */
   --info: oklch(0.396 0.18 225); /* Darker blue */
 
+  /* Selection colors — lighter/brighter blue so it retains contrast on dark surfaces */
+  --selected: oklch(0.707 0.165 254.624); /* ~ Tailwind blue-400 */
+  --selected-foreground: oklch(0.145 0 0); /* Near-black for contrast on --selected */
+
   /* Form and border colors */
   --border: oklch(0.439 0 0);
   --input: oklch(0.439 0 0);
@@ -243,6 +255,8 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-info: var(--info);
+  --color-selected: var(--selected);
+  --color-selected-foreground: var(--selected-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

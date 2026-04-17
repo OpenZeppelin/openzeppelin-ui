@@ -52,11 +52,11 @@ function StepCircle({ state, index }: { state: StepVisualState; index: number })
     <span
       className={cn(
         'flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-all',
-        state === 'completed' && 'bg-blue-600 text-white',
-        state === 'current' && 'bg-blue-600 text-white ring-2 ring-blue-200',
-        state === 'visited' && 'bg-blue-100 text-blue-600 ring-1 ring-blue-300',
-        state === 'invalid' && 'bg-red-100 text-red-600 ring-1 ring-red-300',
-        state === 'upcoming' && 'bg-zinc-100 text-zinc-400'
+        state === 'completed' && 'bg-selected text-selected-foreground',
+        state === 'current' && 'bg-selected text-selected-foreground ring-2 ring-selected/30',
+        state === 'visited' && 'bg-selected/10 text-selected ring-1 ring-selected/40',
+        state === 'invalid' && 'bg-destructive/10 text-destructive ring-1 ring-destructive/40',
+        state === 'upcoming' && 'bg-muted text-muted-foreground'
       )}
     >
       {state === 'completed' ? (
@@ -86,16 +86,16 @@ function StepLabel({
       <span
         className={cn(
           'text-sm font-medium transition-colors',
-          state === 'current' && 'text-blue-700',
-          state === 'completed' && 'text-zinc-700',
-          state === 'visited' && 'text-blue-600',
-          state === 'invalid' && 'text-red-600',
-          state === 'upcoming' && 'text-zinc-400'
+          state === 'current' && 'text-selected',
+          state === 'completed' && 'text-foreground',
+          state === 'visited' && 'text-selected',
+          state === 'invalid' && 'text-destructive',
+          state === 'upcoming' && 'text-muted-foreground'
         )}
       >
         {title}
       </span>
-      {isSkipped && <span className="mt-0.5 block text-[11px] text-zinc-400">Skipped</span>}
+      {isSkipped && <span className="mt-0.5 block text-[11px] text-muted-foreground">Skipped</span>}
     </div>
   );
 }
@@ -115,7 +115,7 @@ function VerticalStepper({
   return (
     <nav
       aria-label="Wizard steps"
-      className={cn('rounded-2xl border border-zinc-200 bg-white p-6', className)}
+      className={cn('rounded-2xl border border-border bg-card p-6', className)}
     >
       <div className="flex flex-col gap-1">
         {steps.map((step, index) => {
@@ -131,11 +131,12 @@ function VerticalStepper({
               className={cn(
                 'flex items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition-all duration-150',
                 clickable ? 'cursor-pointer' : 'cursor-not-allowed opacity-50',
-                state === 'current' && 'border-blue-200 bg-blue-50',
-                state === 'completed' && 'bg-white hover:bg-gray-50',
-                state === 'visited' && 'bg-white hover:bg-blue-50/50',
-                state === 'invalid' && 'border-red-200 bg-red-50 hover:bg-red-100/60',
-                state === 'upcoming' && 'bg-white'
+                state === 'current' && 'border-selected/40 bg-selected/5',
+                state === 'completed' && 'bg-card hover:bg-muted/40',
+                state === 'visited' && 'bg-card hover:bg-selected/5',
+                state === 'invalid' &&
+                  'border-destructive/40 bg-destructive/5 hover:bg-destructive/10',
+                state === 'upcoming' && 'bg-card'
               )}
               aria-current={state === 'current' ? 'step' : undefined}
             >
@@ -164,7 +165,7 @@ function HorizontalStepper({
   return (
     <nav
       aria-label="Wizard steps"
-      className={cn('rounded-2xl border border-zinc-200 bg-white p-6', className)}
+      className={cn('rounded-2xl border border-border bg-card p-6', className)}
     >
       <div className="flex w-full items-center">
         {steps.map((step, index) => {
@@ -181,11 +182,12 @@ function HorizontalStepper({
                 className={cn(
                   'flex items-center gap-2 rounded-xl border border-transparent px-3 py-2 text-left transition-all duration-150',
                   clickable ? 'cursor-pointer' : 'cursor-not-allowed opacity-50',
-                  state === 'current' && 'border-blue-200 bg-blue-50',
-                  state === 'completed' && 'bg-white hover:bg-gray-50',
-                  state === 'visited' && 'bg-white hover:bg-blue-50/50',
-                  state === 'invalid' && 'border-red-200 bg-red-50 hover:bg-red-100/60',
-                  state === 'upcoming' && 'bg-white'
+                  state === 'current' && 'border-selected/40 bg-selected/5',
+                  state === 'completed' && 'bg-card hover:bg-muted/40',
+                  state === 'visited' && 'bg-card hover:bg-selected/5',
+                  state === 'invalid' &&
+                    'border-destructive/40 bg-destructive/5 hover:bg-destructive/10',
+                  state === 'upcoming' && 'bg-card'
                 )}
                 aria-current={state === 'current' ? 'step' : undefined}
                 aria-label={`Step ${index + 1}: ${step.title}`}
@@ -204,7 +206,7 @@ function HorizontalStepper({
                 <div
                   className={cn(
                     'mx-1 h-px flex-1 transition-colors sm:mx-2',
-                    index < currentStepIndex ? 'bg-blue-600' : 'bg-zinc-200'
+                    index < currentStepIndex ? 'bg-selected' : 'bg-border'
                   )}
                 />
               )}
