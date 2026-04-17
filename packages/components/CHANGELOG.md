@@ -1,5 +1,11 @@
 # @openzeppelin/ui-components
 
+## 2.1.0
+
+### Minor Changes
+
+- [#124](https://github.com/OpenZeppelin/openzeppelin-ui/pull/124) [`56e2cc8`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/56e2cc89561c062ec3821b3808d3d1abf41e31ea) Thanks [@pasevin](https://github.com/pasevin)! - Add optional wizard footer controls: custom `nextLabel` / `lastStepLabel`, `hideLastStepPrimary`, `onLastStepPrimary` (paged last step) with `onComplete` fallback, `showLastStepPrimary` on `WizardNavigation`, and scrollable layout `scrollableCompleteLabel` / `hideScrollableCompleteButton`.
+
 ## 2.0.1
 
 ### Patch Changes
