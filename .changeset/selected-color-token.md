@@ -8,9 +8,13 @@ Introduce `--selected` / `--selected-foreground` semantic color tokens for UI se
 Adds a new pair of design tokens that express the new designer guideline: "selected" surfaces
 (current wizard step, selected cards, selected rows, selected radio options, active drop zones,
 highlighted autocomplete suggestions, etc.) should use a consistent blue across the product. The
-tokens are defined for both light and dark themes and are bridged through `@theme inline` so they
-are consumable from Tailwind as `bg-selected`, `text-selected`, `text-selected-foreground`,
-`border-selected/40`, `bg-selected/5`, `ring-selected/30`, etc.
+base value is the OpenZeppelin brand blue `hsl(238, 94%, 65%)`, stored as
+`oklch(55.43% 0.238 273.87)` for consistency with the rest of the palette; the dark-mode variant
+preserves the brand hue (`h = 273.87`) but lifts lightness to `L = 0.72` and trims chroma to
+`C = 0.18` so it stays readable on dark surfaces while remaining recognisably the brand color.
+The tokens are bridged through `@theme inline` so they are consumable from Tailwind as
+`bg-selected`, `text-selected`, `text-selected-foreground`, `border-selected/40`,
+`bg-selected/5`, `ring-selected/30`, etc.
 
 The following components are refactored to consume the new tokens in place of hard-coded color
 literals or mis-applied semantic tokens:

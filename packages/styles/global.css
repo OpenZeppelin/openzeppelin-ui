@@ -27,7 +27,7 @@
   --color-info: oklch(0.5 0.2 200); /* Blue */
 
   /* Selection colors — used to indicate a user-selected surface (cards, steps, rows, etc.) */
-  --color-selected: oklch(0.546 0.245 262.881); /* Blue ~ Tailwind blue-600 */
+  --color-selected: oklch(55.43% 0.238 273.87); /* OpenZeppelin brand blue — hsl(238, 94%, 65%) */
   --color-selected-foreground: oklch(0.985 0 0); /* Near-white for contrast on --color-selected */
 
   /* Form and border colors */
@@ -142,7 +142,7 @@
   --info: oklch(0.5 0.2 200); /* Blue */
 
   /* Selection colors */
-  --selected: oklch(0.546 0.245 262.881); /* Blue ~ Tailwind blue-600 */
+  --selected: oklch(55.43% 0.238 273.87); /* OpenZeppelin brand blue — hsl(238, 94%, 65%) */
   --selected-foreground: oklch(0.985 0 0); /* Near-white for contrast on --selected */
 
   /* Form and border colors */
@@ -207,8 +207,8 @@
   --warning: oklch(0.5 0.17 80); /* Darker yellow/orange */
   --info: oklch(0.396 0.18 225); /* Darker blue */
 
-  /* Selection colors — lighter/brighter blue so it retains contrast on dark surfaces */
-  --selected: oklch(0.707 0.165 254.624); /* ~ Tailwind blue-400 */
+  /* Selection colors — same brand hue as light, with lifted L for contrast on dark surfaces */
+  --selected: oklch(0.72 0.18 273.87); /* OpenZeppelin brand blue, dark-mode variant */
   --selected-foreground: oklch(0.145 0 0); /* Near-black for contrast on --selected */
 
   /* Form and border colors */
