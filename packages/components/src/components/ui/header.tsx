@@ -18,7 +18,7 @@ export const Header = ({ title, onOpenSidebar, rightContent }: HeaderProps): Rea
           type="button"
           aria-label="Open menu"
           onClick={onOpenSidebar}
-          className="mr-2 sm:mr-3 inline-flex items-center justify-center rounded-md p-2 text-primary hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary xl:hidden"
+          className="mr-2 sm:mr-3 inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary xl:hidden"
         >
           <Menu className="size-5" />
         </button>
