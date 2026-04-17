@@ -1,5 +1,11 @@
 # @openzeppelin/ui-components
 
+## 2.2.0
+
+### Minor Changes
+
+- [#126](https://github.com/OpenZeppelin/openzeppelin-ui/pull/126) [`49b479a`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/49b479a4f04fed51d7708b38d4d95dd82da27b58) Thanks [@pasevin](https://github.com/pasevin)! - Add optional secondary CTA for the wizard footer: `lastStepSecondaryLabel` / `onLastStepSecondary` / `lastStepSecondaryDisabled` on paged layouts, and matching `scrollableSecondary*` props on the scrollable variant. The secondary button uses the outline style and sits to the left of the primary action.
+
 ## 2.1.0
 
 ### Minor Changes
