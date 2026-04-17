@@ -16,6 +16,12 @@ export interface WizardNavigationProps {
   extraActions?: ReactNode;
   nextLabel?: string;
   lastStepLabel?: string;
+  /**
+   * When `false` on the last step, the primary Next/Finish button is omitted
+   * (e.g. when the step body provides its own primary action).
+   * @default true
+   */
+  showLastStepPrimary?: boolean;
   className?: string;
 }
 
@@ -35,8 +41,11 @@ export function WizardNavigation({
   extraActions,
   nextLabel = 'Next',
   lastStepLabel = 'Finish',
+  showLastStepPrimary = true,
   className,
 }: WizardNavigationProps) {
+  const showPrimary = !isLastStep || showLastStepPrimary;
+
   return (
     <div className={cn('flex items-center justify-between', className)}>
       <div className="flex gap-2">
@@ -56,10 +65,12 @@ export function WizardNavigation({
 
       <div className="flex gap-2">
         {extraActions}
-        <Button type="button" onClick={onNext} disabled={!canProceed} className="gap-2">
-          {isLastStep ? lastStepLabel : nextLabel}
-          {!isLastStep && <ChevronRight className="size-4" />}
-        </Button>
+        {showPrimary && (
+          <Button type="button" onClick={onNext} disabled={!canProceed} className="gap-2">
+            {isLastStep ? lastStepLabel : nextLabel}
+            {!isLastStep && <ChevronRight className="size-4" />}
+          </Button>
+        )}
       </div>
     </div>
   );
