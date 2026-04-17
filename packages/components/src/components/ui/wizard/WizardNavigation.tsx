@@ -17,6 +17,14 @@ export interface WizardNavigationProps {
   nextLabel?: string;
   lastStepLabel?: string;
   /**
+   * Optional secondary action on the **last step** only, shown to the left of the
+   * primary control with a less prominent (outline) style. Omitted when either
+   * `lastStepSecondaryLabel` or `onLastStepSecondary` is missing.
+   */
+  onLastStepSecondary?: () => void;
+  lastStepSecondaryLabel?: string;
+  lastStepSecondaryDisabled?: boolean;
+  /**
    * When `false` on the last step, the primary Next/Finish button is omitted
    * (e.g. when the step body provides its own primary action).
    * @default true
@@ -41,10 +49,18 @@ export function WizardNavigation({
   extraActions,
   nextLabel = 'Next',
   lastStepLabel = 'Finish',
+  onLastStepSecondary,
+  lastStepSecondaryLabel,
+  lastStepSecondaryDisabled,
   showLastStepPrimary = true,
   className,
 }: WizardNavigationProps) {
   const showPrimary = !isLastStep || showLastStepPrimary;
+  const showSecondary =
+    isLastStep &&
+    lastStepSecondaryLabel != null &&
+    lastStepSecondaryLabel !== '' &&
+    onLastStepSecondary != null;
 
   return (
     <div className={cn('flex items-center justify-between', className)}>
@@ -65,6 +81,17 @@ export function WizardNavigation({
 
       <div className="flex gap-2">
         {extraActions}
+        {showSecondary && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onLastStepSecondary}
+            disabled={lastStepSecondaryDisabled ?? false}
+            className="gap-2"
+          >
+            {lastStepSecondaryLabel}
+          </Button>
+        )}
         {showPrimary && (
           <Button type="button" onClick={onNext} disabled={!canProceed} className="gap-2">
             {isLastStep ? lastStepLabel : nextLabel}

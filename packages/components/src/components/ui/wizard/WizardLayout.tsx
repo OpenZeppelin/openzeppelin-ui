@@ -37,6 +37,14 @@ export interface WizardLayoutProps {
   /** Label for the primary control on the last step of paged layouts. @default "Finish" */
   lastStepLabel?: string;
   /**
+   * Optional secondary control on the **last step** of **paged** layouts only.
+   * Rendered to the left of the primary action with an outline style. Both
+   * `lastStepSecondaryLabel` and `onLastStepSecondary` must be set for it to appear.
+   */
+  onLastStepSecondary?: () => void;
+  lastStepSecondaryLabel?: string;
+  lastStepSecondaryDisabled?: boolean;
+  /**
    * When true, the primary Next/Finish control is omitted on the last step of
    * **paged** layouts. Use when the step content provides its own primary action.
    * @default false
@@ -50,6 +58,14 @@ export interface WizardLayoutProps {
   hideScrollableCompleteButton?: boolean;
   /** Label for the scrollable layout footer button. @default "Finish" */
   scrollableCompleteLabel?: string;
+  /**
+   * Optional secondary footer button for the **scrollable** layout (outline style),
+   * to the left of the complete button. Both `scrollableSecondaryLabel` and
+   * `onScrollableSecondary` must be set for it to appear.
+   */
+  onScrollableSecondary?: () => void;
+  scrollableSecondaryLabel?: string;
+  scrollableSecondaryDisabled?: boolean;
   /**
    * - `'vertical'` — Vertical sidebar stepper, one step visible at a time (paged).
    * - `'horizontal'` — Horizontal top stepper, one step visible at a time (paged).
@@ -87,6 +103,9 @@ function PagedLayout({
   onCancel,
   nextLabel,
   lastStepLabel,
+  onLastStepSecondary,
+  lastStepSecondaryLabel,
+  lastStepSecondaryDisabled,
   hideLastStepPrimary,
   navActions,
   header,
@@ -132,6 +151,9 @@ function PagedLayout({
       extraActions={navActions}
       nextLabel={nextLabel}
       lastStepLabel={lastStepLabel}
+      onLastStepSecondary={onLastStepSecondary}
+      lastStepSecondaryLabel={lastStepSecondaryLabel}
+      lastStepSecondaryDisabled={lastStepSecondaryDisabled}
       showLastStepPrimary={!hideLastStepPrimary}
     />
   );
@@ -206,6 +228,9 @@ function ScrollableLayout({
   onComplete,
   hideScrollableCompleteButton,
   scrollableCompleteLabel,
+  onScrollableSecondary,
+  scrollableSecondaryLabel,
+  scrollableSecondaryDisabled,
   scrollPadding,
   className,
 }: Pick<
@@ -217,6 +242,9 @@ function ScrollableLayout({
   | 'onComplete'
   | 'hideScrollableCompleteButton'
   | 'scrollableCompleteLabel'
+  | 'onScrollableSecondary'
+  | 'scrollableSecondaryLabel'
+  | 'scrollableSecondaryDisabled'
   | 'scrollPadding'
   | 'className'
 >) {
@@ -238,6 +266,13 @@ function ScrollableLayout({
   if (steps.length === 0) return null;
 
   const stepDefs = toStepDefs(steps, activeIndex);
+
+  const showScrollableSecondary =
+    onScrollableSecondary != null &&
+    scrollableSecondaryLabel != null &&
+    scrollableSecondaryLabel !== '';
+  const showScrollablePrimary = onComplete != null && !hideScrollableCompleteButton;
+  const showScrollableFooter = showScrollableSecondary || showScrollablePrimary;
 
   return (
     <div className={cn('flex h-full gap-6', className)}>
@@ -263,11 +298,23 @@ function ScrollableLayout({
           ))}
         </div>
 
-        {onComplete && !hideScrollableCompleteButton && (
-          <div className="flex justify-end pt-8">
-            <Button type="button" onClick={onComplete}>
-              {scrollableCompleteLabel ?? 'Finish'}
-            </Button>
+        {showScrollableFooter && (
+          <div className="flex justify-end gap-2 pt-8">
+            {showScrollableSecondary && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onScrollableSecondary}
+                disabled={scrollableSecondaryDisabled ?? false}
+              >
+                {scrollableSecondaryLabel}
+              </Button>
+            )}
+            {showScrollablePrimary && (
+              <Button type="button" onClick={onComplete}>
+                {scrollableCompleteLabel ?? 'Finish'}
+              </Button>
+            )}
           </div>
         )}
       </div>
@@ -314,6 +361,9 @@ export function WizardLayout(props: WizardLayoutProps) {
         onComplete={rest.onComplete}
         hideScrollableCompleteButton={rest.hideScrollableCompleteButton}
         scrollableCompleteLabel={rest.scrollableCompleteLabel}
+        onScrollableSecondary={rest.onScrollableSecondary}
+        scrollableSecondaryLabel={rest.scrollableSecondaryLabel}
+        scrollableSecondaryDisabled={rest.scrollableSecondaryDisabled}
         scrollPadding={rest.scrollPadding}
         className={rest.className}
       />
