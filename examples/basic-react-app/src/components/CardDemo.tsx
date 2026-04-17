@@ -1,5 +1,5 @@
-import { CreditCard, Settings, Shield, Users, Wallet } from 'lucide-react';
-import type { ReactElement } from 'react';
+import { Check, CreditCard, Lock, Settings, Shield, Users, Wallet } from 'lucide-react';
+import { useState, type ReactElement } from 'react';
 
 import {
   Button,
@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@openzeppelin/ui-components';
+import { cn } from '@openzeppelin/ui-utils';
 
 import { DemoSection } from './DemoSection';
 
@@ -269,6 +270,13 @@ export function CardDemo(): ReactElement {
         </Card>
       </div>
 
+      {/* Selectable Cards */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Selectable Cards</h3>
+        <SingleSelectCards />
+        <MultiSelectCards />
+      </div>
+
       {/* Card Grid Layout */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Card Grid Layout</h3>
@@ -292,5 +300,164 @@ export function CardDemo(): ReactElement {
         </div>
       </div>
     </DemoSection>
+  );
+}
+
+interface SelectableOption {
+  id: string;
+  title: string;
+  description: string;
+  icon: ReactElement;
+  disabled?: boolean;
+}
+
+const OWNERSHIP_OPTIONS: SelectableOption[] = [
+  {
+    id: 'eoa',
+    title: 'EOA',
+    description: 'A single externally-owned account holds admin rights.',
+    icon: <Users className="size-4" />,
+  },
+  {
+    id: 'multisig',
+    title: 'Multisig',
+    description: 'Multiple signers must approve every administrative action.',
+    icon: <Shield className="size-4" />,
+  },
+  {
+    id: 'dao',
+    title: 'DAO',
+    description: 'A governance contract decides administrative actions on-chain.',
+    icon: <Lock className="size-4" />,
+    disabled: true,
+  },
+];
+
+function SingleSelectCards(): ReactElement {
+  const [selected, setSelected] = useState<string>('multisig');
+  return (
+    <div className="grid gap-3 md:grid-cols-3">
+      {OWNERSHIP_OPTIONS.map((option) => {
+        const isSelected = selected === option.id;
+        return (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => !option.disabled && setSelected(option.id)}
+            disabled={option.disabled}
+            className={cn(
+              'flex w-full cursor-pointer items-start gap-3 rounded-lg border-2 p-4 text-left transition-colors',
+              isSelected
+                ? 'border-selected bg-selected/5'
+                : 'border-border hover:border-selected/40',
+              option.disabled && 'cursor-not-allowed opacity-50'
+            )}
+            aria-pressed={isSelected}
+          >
+            <div
+              className={cn(
+                'flex size-8 shrink-0 items-center justify-center rounded-md',
+                isSelected
+                  ? 'bg-selected text-selected-foreground'
+                  : 'bg-muted text-muted-foreground'
+              )}
+            >
+              {option.icon}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-medium">{option.title}</span>
+                {isSelected && (
+                  <span className="rounded-full bg-selected/10 px-2 py-0.5 text-xs font-medium text-selected">
+                    Selected
+                  </span>
+                )}
+              </div>
+              <p className="mt-0.5 text-sm text-muted-foreground">{option.description}</p>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+interface MultiSelectModule {
+  id: string;
+  title: string;
+  description: string;
+}
+
+const MODULE_OPTIONS: MultiSelectModule[] = [
+  {
+    id: 'supply-limit',
+    title: 'Supply Limit',
+    description: 'Enforces a maximum total supply for the token.',
+  },
+  {
+    id: 'max-balance',
+    title: 'Max Balance',
+    description: 'Caps the balance any single address can hold.',
+  },
+  {
+    id: 'allowlist',
+    title: 'Allowlist',
+    description: 'Restricts transfers to addresses present in an allowlist.',
+  },
+];
+
+function MultiSelectCards(): ReactElement {
+  const [selected, setSelected] = useState<Set<string>>(new Set(['supply-limit', 'allowlist']));
+
+  const toggle = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  return (
+    <div className="space-y-2">
+      {MODULE_OPTIONS.map((mod) => {
+        const isSelected = selected.has(mod.id);
+        return (
+          <div
+            key={mod.id}
+            role="checkbox"
+            tabIndex={0}
+            aria-checked={isSelected}
+            onClick={() => toggle(mod.id)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggle(mod.id);
+              }
+            }}
+            className={cn(
+              'flex cursor-pointer items-start gap-3 rounded-lg border-2 p-4 transition-colors',
+              isSelected
+                ? 'border-selected bg-selected/5'
+                : 'border-border hover:border-selected/40 hover:bg-muted/30'
+            )}
+          >
+            <div
+              className={cn(
+                'mt-0.5 flex size-5 shrink-0 items-center justify-center rounded border-2 transition-colors',
+                isSelected
+                  ? 'border-selected bg-selected text-selected-foreground'
+                  : 'border-border bg-background'
+              )}
+            >
+              {isSelected && <Check className="size-3.5" strokeWidth={3} />}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium">{mod.title}</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">{mod.description}</p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
