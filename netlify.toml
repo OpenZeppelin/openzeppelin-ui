@@ -1,0 +1,15 @@
+# Deploys the Vite example app from this monorepo.
+# In Netlify: connect https://github.com/OpenZeppelin/openzeppelin-ui and set the
+# production branch to `main` (Site configuration → Build & deploy → Branches).
+
+[build]
+  command = "pnpm --filter @openzeppelin/ui-example-basic-react-app... run build"
+  publish = "examples/basic-react-app/dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
