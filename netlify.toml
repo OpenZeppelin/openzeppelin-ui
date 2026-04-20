@@ -8,6 +8,8 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  # Vite bundling this app peaks above Node's default ~2GB heap on Netlify (OOM during "rendering chunks").
+  NODE_OPTIONS = "--max-old-space-size=4096"
 
 [[redirects]]
   from = "/*"
