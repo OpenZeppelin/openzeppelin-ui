@@ -104,6 +104,22 @@ const { capabilities, sampleAddresses } = useEcosystem();
           </div>
           <div className="space-y-2">
             <p className="text-muted-foreground text-sm">
+              <code className="bg-muted rounded px-1">truncateWhenLabeled</code> — full address
+              until a label is present
+            </p>
+            <p className="text-muted-foreground text-xs">
+              Without a label, the raw address stays fully visible. With a label, the address line
+              truncates so the alias carries the primary meaning.
+            </p>
+            <AddressDisplay address={sampleAddresses.wallet} truncateWhenLabeled />
+            <AddressDisplay
+              address={sampleAddresses.wallet}
+              label="Named account"
+              truncateWhenLabeled
+            />
+          </div>
+          <div className="space-y-2">
+            <p className="text-muted-foreground text-sm">
               Full address on hover (
               <code className="bg-muted rounded px-1">untruncateOnHover</code>)
             </p>
