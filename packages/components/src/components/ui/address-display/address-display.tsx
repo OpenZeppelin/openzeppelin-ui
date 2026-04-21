@@ -45,10 +45,19 @@ interface AddressDisplayProps extends React.HTMLAttributes<HTMLDivElement> {
   address: string;
 
   /**
-   * Whether to truncate the address in the middle
-   * @default true
+   * Whether to truncate the address in the middle.
+   * When omitted, defaults to `true` unless `truncateWhenLabeled` applies.
    */
   truncate?: boolean;
+
+  /**
+   * When `true` and `truncate` is **not** explicitly set, the address truncates
+   * only when a label is shown (via the `label` prop or
+   * `AddressLabelContext`). Use this when a long raw address should stay
+   * fully visible unless an alias already identifies the row.
+   * @default false
+   */
+  truncateWhenLabeled?: boolean;
 
   /**
    * When `truncate` is true, show the full address while the pointer is over
@@ -173,11 +182,15 @@ interface AddressDisplayProps extends React.HTMLAttributes<HTMLDivElement> {
  *
  * // Inline variant (no chip background) — useful inside wallet bars
  * <AddressDisplay address="0x742d35Cc..." variant="inline" showTooltip showCopyButton />
+ *
+ * // Truncate only when an alias/label is present (full address when unlabeled)
+ * <AddressDisplay address="G..." truncateWhenLabeled />
  * ```
  */
 export function AddressDisplay({
   address,
-  truncate = true,
+  truncate: truncateProp,
+  truncateWhenLabeled = false,
   untruncateOnHover = false,
   startChars = 6,
   endChars = 4,
@@ -209,6 +222,9 @@ export function AddressDisplay({
     ? undefined
     : (labelProp ?? resolver?.resolveLabel(address, networkId));
 
+  const effectiveTruncate =
+    truncateProp !== undefined ? truncateProp : truncateWhenLabeled ? Boolean(resolvedLabel) : true;
+
   const contextEditHandler = React.useCallback(() => {
     resolver?.onEditLabel?.(address, networkId);
   }, [resolver, address, networkId]);
@@ -217,13 +233,13 @@ export function AddressDisplay({
     ? undefined
     : (onLabelEditProp ?? (resolver?.onEditLabel ? contextEditHandler : undefined));
 
-  const canUntruncate = untruncateOnHover && truncate && !showTooltip;
-  const showFullAddress = !truncate || (canUntruncate && isHovered);
+  const canUntruncate = untruncateOnHover && effectiveTruncate && !showTooltip;
+  const showFullAddress = !effectiveTruncate || (canUntruncate && isHovered);
   const displayAddress = showFullAddress ? address : truncateMiddle(address, startChars, endChars);
 
   const addressTextClassName = cn(
     !showFullAddress && 'truncate',
-    (showFullAddress || !truncate) && 'break-all'
+    (showFullAddress || !effectiveTruncate) && 'break-all'
   );
 
   const expandInteractionClassName = canUntruncate && !prefersHover ? 'cursor-pointer' : undefined;
@@ -329,7 +345,7 @@ export function AddressDisplay({
     </>
   );
 
-  const shouldShowTooltip = showTooltip && truncate;
+  const shouldShowTooltip = showTooltip && effectiveTruncate;
 
   const wrapWithTooltip = (content: React.ReactElement): React.ReactElement => {
     if (!shouldShowTooltip) return content;
