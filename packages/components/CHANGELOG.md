@@ -1,5 +1,11 @@
 # @openzeppelin/ui-components
 
+## 2.3.0
+
+### Minor Changes
+
+- [#129](https://github.com/OpenZeppelin/openzeppelin-ui/pull/129) [`f605c6f`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/f605c6fc217ef4f0c65c5286f70a22ec7aaa725b) Thanks [@pasevin](https://github.com/pasevin)! - Add optional `truncateWhenLabeled` prop to `AddressDisplay`. When `truncate` is not set explicitly, the address truncates only when a label is present (explicit `label` or `AddressLabelContext`), so long raw addresses stay fully visible until an alias identifies the row.
+
 ## 2.2.0
 
 ### Minor Changes
