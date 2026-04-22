@@ -1,4 +1,4 @@
-import { useCallback, useId, useRef, type ReactNode } from 'react';
+import { useCallback, useId, useLayoutEffect, useRef, type ReactNode } from 'react';
 
 import { cn } from '@openzeppelin/ui-utils';
 
@@ -114,6 +114,15 @@ function PagedLayout({
 }: WizardLayoutProps & { variant: 'vertical' | 'horizontal' }) {
   const safeIndex = getSafeStepIndex(steps.length, currentStepIndex);
   const resolvedFurthestStepIndex = useFurthestStepIndex(safeIndex, furthestStepIndexProp);
+  const stepBodyScrollRef = useRef<HTMLDivElement>(null);
+
+  // Paged variants use an inner `overflow-y-auto` body; the document does not scroll.
+  // When the user changes steps, reset that panel to the top so the new step starts at the beginning.
+  useLayoutEffect(() => {
+    const el = stepBodyScrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+  }, [safeIndex]);
 
   if (steps.length === 0) return null;
 
@@ -179,7 +188,7 @@ function PagedLayout({
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-8">
+          <div ref={stepBodyScrollRef} className="flex-1 overflow-y-auto p-8">
             <div className="mx-auto max-w-5xl">
               {header}
               {currentStep?.component}
@@ -204,7 +213,7 @@ function PagedLayout({
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto p-8">
+        <div ref={stepBodyScrollRef} className="flex-1 overflow-y-auto p-8">
           <div className="mx-auto max-w-5xl">
             {header}
             {currentStep?.component}
