@@ -1,5 +1,11 @@
 # @openzeppelin/ui-components
 
+## 2.3.1
+
+### Patch Changes
+
+- [#134](https://github.com/OpenZeppelin/openzeppelin-ui/pull/134) [`cf9c53b`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/cf9c53bf58b22515a6454148de03f16b429ebd59) Thanks [@pasevin](https://github.com/pasevin)! - Reset scroll position in paged `WizardLayout` (vertical and horizontal) when the active step changes, so the next step is shown from the top.
+
 ## 2.3.0
 
 ### Minor Changes
