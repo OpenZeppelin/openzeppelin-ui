@@ -35,41 +35,33 @@ This warns users when they install the deprecated version but does not prevent i
 ### Step 2: Create a Patch Release
 
 1. **Create a fix branch**:
-
-   ```bash
+  ```bash
    git checkout main
    git pull origin main
    git checkout -b fix/{package}-{issue}
-   ```
-
+  ```
 2. **Apply the fix** to the affected package(s)
-
 3. **Create a changeset**:
-
-   ```bash
+  ```bash
    pnpm changeset
    # Select affected packages
    # Select "patch" for version bump
    # Describe the fix
-   ```
-
+  ```
 4. **Commit and push**:
-
-   ```bash
+  ```bash
    git add .
    git commit -m "fix({package}): description of fix"
    git push origin fix/{package}-{issue}
-   ```
-
+  ```
 5. **Create and merge PR**:
-   - Create PR to `main`
-   - Wait for CI to pass
-   - Merge PR
-
+  - Create PR to `main`
+  - Wait for CI to pass
+  - Merge PR
 6. **Version and publish**:
-   - Changesets bot creates "Version Packages" PR
-   - Review and merge the version PR
-   - Packages automatically publish with provenance
+  - Changesets bot creates "Version Packages" PR
+  - Review and merge the version PR
+  - Packages automatically publish with provenance
 
 ### Step 3: Verify Fix
 
@@ -146,13 +138,16 @@ pnpm -r publish --access public
 
 ### Build Failures
 
+
 | Symptom              | Cause                    | Resolution                     |
 | -------------------- | ------------------------ | ------------------------------ |
 | TypeScript errors    | Type incompatibility     | Check `pnpm typecheck` locally |
 | Missing dependencies | Package not in workspace | Run `pnpm install`             |
 | Out of memory        | Large build              | Increase NODE_OPTIONS memory   |
 
+
 ### Publish Failures
+
 
 | Symptom                  | Cause               | Resolution                          |
 | ------------------------ | ------------------- | ----------------------------------- |
@@ -161,13 +156,16 @@ pnpm -r publish --access public
 | Version already exists   | Duplicate publish   | Check npm, may already be published |
 | SLSA verification failed | Provenance mismatch | Re-run workflow from clean state    |
 
+
 ### GitHub App Issues
+
 
 | Symptom                 | Cause                    | Resolution                 |
 | ----------------------- | ------------------------ | -------------------------- |
 | Token generation failed | Missing GH_APP_ID        | Set as repository variable |
 | Push permission denied  | App not installed        | Install app on repository  |
 | Resource not accessible | Insufficient permissions | Update app permissions     |
+
 
 ### Rerunning Failed Workflows
 
@@ -220,5 +218,6 @@ Changes to prevent recurrence.
 For urgent issues:
 
 - **On-call rotation**: Check internal Slack channel
-- **npm support**: support@npmjs.com (for registry issues)
+- **npm support**: [support@npmjs.com](mailto:support@npmjs.com) (for registry issues)
 - **GitHub support**: support.github.com (for Actions issues)
+
