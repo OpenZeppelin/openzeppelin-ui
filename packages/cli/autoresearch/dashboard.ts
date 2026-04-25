@@ -258,10 +258,14 @@ async function runLiveEvaluation(
       { cwd: path.join(__dirname, '..'), timeout }
     );
     const parsed = JSON.parse(stdout.trim()) as EvalApiPayload;
-    return { capability, ...parsed };
+    return {
+      capability,
+      ...parsed,
+      error: parsed.error ? 'Live evaluation reported an error.' : undefined,
+    };
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    return { capability, fixtures: [], meanF1: 0, error: message };
+    logDashboardError(`live evaluation failed for ${capability}`, err);
+    return { capability, fixtures: [], meanF1: 0, error: 'Live evaluation failed.' };
   }
 }
 
@@ -284,8 +288,8 @@ async function regenerateFrozenReport(
     fs.writeFileSync(outputPath, JSON.stringify(report, null, 2) + '\n');
     return { ok: true, outputPath };
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    return { ok: false, outputPath, error: message };
+    logDashboardError(`failed to regenerate frozen report for ${fixtureName}`, err);
+    return { ok: false, outputPath, error: 'Failed to regenerate frozen report.' };
   }
 }
 
@@ -303,8 +307,8 @@ async function regenerateScaffold(
     });
     return { ok: true, outputPath };
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    return { ok: false, outputPath, error: message };
+    logDashboardError(`failed to regenerate scaffold for ${fixtureName}`, err);
+    return { ok: false, outputPath, error: 'Failed to regenerate scaffold.' };
   }
 }
 
@@ -332,8 +336,8 @@ async function regenerateAdversarial(
     });
     return { ok: true };
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    return { ok: false, error: message };
+    logDashboardError(`failed to regenerate adversarial fixtures for ${capability}`, err);
+    return { ok: false, error: 'Failed to regenerate adversarial fixtures.' };
   }
 }
 
@@ -361,7 +365,8 @@ function removeFixture(fixtureName: string): RemovalResult {
         removed.push(path.relative(__dirname, filePath));
       }
     } catch (err: unknown) {
-      errors.push(`${path.relative(__dirname, filePath)}: ${err instanceof Error ? err.message : String(err)}`);
+      logDashboardError(`failed to delete ${path.relative(__dirname, filePath)}`, err);
+      errors.push(`${path.relative(__dirname, filePath)}: failed to delete`);
     }
   };
 
@@ -388,7 +393,8 @@ function removeFixture(fixtureName: string): RemovalResult {
         edited.push(path.relative(__dirname, filePath));
       }
     } catch (err: unknown) {
-      errors.push(`${path.relative(__dirname, filePath)}: ${err instanceof Error ? err.message : String(err)}`);
+      logDashboardError(`failed to update ${path.relative(__dirname, filePath)}`, err);
+      errors.push(`${path.relative(__dirname, filePath)}: failed to update`);
     }
   };
 
@@ -409,7 +415,8 @@ function removeFixture(fixtureName: string): RemovalResult {
       }
     }
   } catch (err: unknown) {
-    errors.push(`fixtures/.gitignore: ${err instanceof Error ? err.message : String(err)}`);
+    logDashboardError('failed to update fixtures/.gitignore', err);
+    errors.push('fixtures/.gitignore: failed to update');
   }
 
   return { ok: errors.length === 0, removed, edited, errors };
@@ -511,7 +518,8 @@ function addExecutionFixture(body: AddExecutionFixtureRequest): AddFixtureResult
     fs.writeFileSync(path.join(dir, 'after.tsx'), body.after, 'utf8');
     steps.push(`Created ${path.relative(__dirname, dir)} with before.tsx, task.json, after.tsx`);
   } catch (err: unknown) {
-    errors.push(err instanceof Error ? err.message : String(err));
+    logDashboardError(`failed to add execution fixture ${body.relativePath}`, err);
+    errors.push('Failed to add execution fixture.');
     try {
       if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
     } catch {
@@ -543,7 +551,8 @@ function removeExecutionFixture(relativePath: string): RemovalResult {
     fs.rmSync(dir, { recursive: true, force: true });
     removed.push(path.relative(__dirname, dir));
   } catch (err: unknown) {
-    errors.push(err instanceof Error ? err.message : String(err));
+    logDashboardError(`failed to remove execution fixture ${relativePath}`, err);
+    errors.push('Failed to remove execution fixture.');
   }
   return { ok: errors.length === 0, removed, edited: [], errors };
 }
@@ -636,7 +645,8 @@ function addVerificationFixture(body: AddVerificationFixtureRequest): AddFixture
     steps.push(`Created ${path.relative(__dirname, jsonPath)}`);
     steps.push(`Created ${path.relative(__dirname, projectRoot)}/`);
   } catch (err: unknown) {
-    errors.push(err instanceof Error ? err.message : String(err));
+    logDashboardError(`failed to add verification fixture ${body.relativePath}`, err);
+    errors.push('Failed to add verification fixture.');
     try {
       if (fs.existsSync(jsonPath)) fs.unlinkSync(jsonPath);
       const parent = path.join(VERIFICATION_EXPECTED_DIR, ...normalized.split('/'));
@@ -677,7 +687,8 @@ function removeVerificationFixture(relativePath: string): RemovalResult {
     fs.unlinkSync(jsonPath);
     removed.push(path.relative(__dirname, jsonPath));
   } catch (err: unknown) {
-    errors.push(err instanceof Error ? err.message : String(err));
+    logDashboardError(`failed to remove verification fixture ${relativePath}`, err);
+    errors.push('Failed to remove verification fixture.');
     return { ok: false, removed, edited: [], errors };
   }
 
@@ -686,7 +697,8 @@ function removeVerificationFixture(relativePath: string): RemovalResult {
       fs.rmSync(projectAbs, { recursive: true, force: true });
       removed.push(path.relative(__dirname, projectAbs));
     } catch (err: unknown) {
-      errors.push(err instanceof Error ? err.message : String(err));
+      logDashboardError(`failed to remove verification project for ${relativePath}`, err);
+      errors.push('Failed to remove verification fixture project.');
     }
   }
 
@@ -752,7 +764,8 @@ function addOrchestrationFixture(body: AddOrchestrationFixtureRequest): AddFixtu
     fs.writeFileSync(jsonPath, JSON.stringify(spec, null, 2) + '\n', 'utf8');
     steps.push(`Created ${path.relative(__dirname, jsonPath)}`);
   } catch (err: unknown) {
-    errors.push(err instanceof Error ? err.message : String(err));
+    logDashboardError(`failed to add orchestration fixture ${name}`, err);
+    errors.push('Failed to add orchestration fixture.');
   }
   return { ok: errors.length === 0, steps, errors };
 }
@@ -780,7 +793,8 @@ function removeOrchestrationScenario(slug: string): RemovalResult {
     fs.unlinkSync(jsonPath);
     removed.push(path.relative(__dirname, jsonPath));
   } catch (err: unknown) {
-    errors.push(err instanceof Error ? err.message : String(err));
+    logDashboardError(`failed to remove orchestration scenario ${slug}`, err);
+    errors.push('Failed to remove orchestration scenario.');
   }
   return { ok: errors.length === 0, removed, edited: [], errors };
 }
@@ -801,6 +815,11 @@ interface AddFixtureResult {
   ok: boolean;
   steps: string[];
   errors: string[];
+}
+
+function logDashboardError(context: string, err: unknown): void {
+  const detail = err instanceof Error ? (err.stack ?? err.message) : String(err);
+  console.error(`[dashboard] ${context}: ${detail}`);
 }
 
 async function addFixture(body: AddFixtureRequest): Promise<AddFixtureResult> {
@@ -841,7 +860,8 @@ async function addFixture(body: AddFixtureRequest): Promise<AddFixtureResult> {
       fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
       steps.push('Added entry to fixtures/_external.json');
     } catch (err: unknown) {
-      errors.push(`_external.json: ${err instanceof Error ? err.message : String(err)}`);
+      logDashboardError('failed to update fixtures/_external.json', err);
+      errors.push('_external.json: failed to update');
     }
 
     const gitignorePath = path.join(fixturesDir, '.gitignore');
@@ -853,7 +873,8 @@ async function addFixture(body: AddFixtureRequest): Promise<AddFixtureResult> {
         steps.push('Added to fixtures/.gitignore');
       }
     } catch (err: unknown) {
-      errors.push(`.gitignore: ${err instanceof Error ? err.message : String(err)}`);
+      logDashboardError('failed to update fixtures/.gitignore', err);
+      errors.push('.gitignore: failed to update');
     }
   } else {
     const syntheticDir = path.join(fixturesDir, name);
@@ -880,7 +901,8 @@ async function addFixture(body: AddFixtureRequest): Promise<AddFixtureResult> {
       fs.writeFileSync(filePath, JSON.stringify(raw, null, 2) + '\n');
       steps.push(`Added default entry to ${label}`);
     } catch (err: unknown) {
-      errors.push(`${label}: ${err instanceof Error ? err.message : String(err)}`);
+      logDashboardError(`failed to update ${label}`, err);
+      errors.push(`${label}: failed to update`);
     }
   };
 
@@ -897,7 +919,8 @@ async function addFixture(body: AddFixtureRequest): Promise<AddFixtureResult> {
       });
       steps.push('Ran fetch-fixtures.ts to resolve source');
     } catch (err: unknown) {
-      errors.push(`fetch-fixtures: ${err instanceof Error ? err.message : String(err)}`);
+      logDashboardError(`failed to fetch fixture ${name}`, err);
+      errors.push('fetch-fixtures: failed to resolve source');
     }
   }
 
@@ -916,7 +939,8 @@ async function addFixture(body: AddFixtureRequest): Promise<AddFixtureResult> {
       );
       steps.push('Generated planning frozen report');
     } catch (err: unknown) {
-      errors.push(`frozen report: ${err instanceof Error ? err.message : String(err)}`);
+      logDashboardError(`failed to generate frozen report for ${name}`, err);
+      errors.push('frozen report: failed to generate');
     }
 
     try {
@@ -928,7 +952,8 @@ async function addFixture(body: AddFixtureRequest): Promise<AddFixtureResult> {
       });
       steps.push('Generated detection scaffold');
     } catch (err: unknown) {
-      errors.push(`scaffold: ${err instanceof Error ? err.message : String(err)}`);
+      logDashboardError(`failed to scaffold expected output for ${name}`, err);
+      errors.push('scaffold: failed to generate');
     }
   }
 
@@ -1134,7 +1159,8 @@ function main(): void {
           const result = await addFixture(body);
           serveJson(res, result);
         } catch (err: unknown) {
-          serveJson(res, { ok: false, steps: [], errors: [`Bad request: ${err instanceof Error ? err.message : String(err)}`] });
+          logDashboardError('invalid fixture request payload', err);
+          serveJson(res, { ok: false, steps: [], errors: ['Bad request: invalid JSON payload'] });
         }
         return;
       }
@@ -1147,7 +1173,8 @@ function main(): void {
           const result = addExecutionFixture(body);
           serveJson(res, result);
         } catch (err: unknown) {
-          serveJson(res, { ok: false, steps: [], errors: [`Bad request: ${err instanceof Error ? err.message : String(err)}`] });
+          logDashboardError('invalid execution fixture request payload', err);
+          serveJson(res, { ok: false, steps: [], errors: ['Bad request: invalid JSON payload'] });
         }
         return;
       }
@@ -1167,7 +1194,8 @@ function main(): void {
           const result = addVerificationFixture(body);
           serveJson(res, result);
         } catch (err: unknown) {
-          serveJson(res, { ok: false, steps: [], errors: [`Bad request: ${err instanceof Error ? err.message : String(err)}`] });
+          logDashboardError('invalid verification fixture request payload', err);
+          serveJson(res, { ok: false, steps: [], errors: ['Bad request: invalid JSON payload'] });
         }
         return;
       }
@@ -1187,7 +1215,8 @@ function main(): void {
           const result = addOrchestrationFixture(body);
           serveJson(res, result);
         } catch (err: unknown) {
-          serveJson(res, { ok: false, steps: [], errors: [`Bad request: ${err instanceof Error ? err.message : String(err)}`] });
+          logDashboardError('invalid orchestration fixture request payload', err);
+          serveJson(res, { ok: false, steps: [], errors: ['Bad request: invalid JSON payload'] });
         }
         return;
       }

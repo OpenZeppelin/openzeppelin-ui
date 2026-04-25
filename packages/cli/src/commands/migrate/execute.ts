@@ -12,6 +12,9 @@ interface ExecuteOptions {
   json?: boolean;
 }
 
+/**
+ *
+ */
 export function registerExecuteCommand(parent: Command): void {
   parent
     .command('execute')

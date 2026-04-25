@@ -1239,6 +1239,9 @@ export function analyzeComponents(
   );
 }
 
+/**
+ *
+ */
 export function analyzeHtmlElements(
   files: ScannedFile[],
   htmlLib: HtmlElementLibrary,

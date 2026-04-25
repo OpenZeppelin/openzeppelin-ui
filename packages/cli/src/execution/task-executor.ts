@@ -296,6 +296,9 @@ function applyTask(
   }
 }
 
+/**
+ *
+ */
 export function executeTask(options: ExecuteTaskOptions): ExecuteTaskResult {
   const manifestPath = path.resolve(options.manifestPath);
   const dryRun = Boolean(options.dryRun);

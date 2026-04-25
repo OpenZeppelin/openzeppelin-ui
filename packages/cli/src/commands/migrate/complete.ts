@@ -21,6 +21,9 @@ interface CompleteResult extends JsonCommandResult<'migrate-complete'> {
   validation: TaskCheckResult | null;
 }
 
+/**
+ *
+ */
 export function registerCompleteCommand(parent: Command): void {
   parent
     .command('complete')

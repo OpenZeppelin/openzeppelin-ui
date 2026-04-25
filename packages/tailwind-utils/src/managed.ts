@@ -8,9 +8,14 @@ function isAppSpecificStart(line: string): boolean {
     return false;
   }
 
+  const isLayerBlock =
+    trimmedLine.startsWith('@layer ') &&
+    trimmedLine.endsWith('{') &&
+    !trimmedLine.endsWith(';') &&
+    trimmedLine.slice('@layer '.length, -1).trim().length > 0;
+
   return (
-    (/^@layer\s+.+\{$/.test(trimmedLine) &&
-      trimmedLine !== '@layer base, components, utilities;') ||
+    (isLayerBlock && trimmedLine !== '@layer base, components, utilities;') ||
     trimmedLine.startsWith('@keyframes ') ||
     /^[.#[:]/.test(trimmedLine) ||
     /^[a-zA-Z_-][\w-]*\s*\{/.test(trimmedLine)

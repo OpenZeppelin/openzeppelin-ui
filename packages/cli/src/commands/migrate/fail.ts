@@ -20,6 +20,9 @@ interface FailResult extends JsonCommandResult<'migrate-fail'> {
   };
 }
 
+/**
+ *
+ */
 export function registerFailCommand(parent: Command): void {
   parent
     .command('fail')

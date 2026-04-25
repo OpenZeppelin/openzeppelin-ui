@@ -227,6 +227,9 @@ function scanFileWithRule(
   return null;
 }
 
+/**
+ *
+ */
 export function scanPatternObservations(files: ScannedFile[]): PatternObservation[] {
   const { rules } = loadPatternCatalog();
   const fileFacts = createFilePatternFacts(files);

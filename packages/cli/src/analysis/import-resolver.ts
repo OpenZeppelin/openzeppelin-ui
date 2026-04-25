@@ -93,6 +93,9 @@ export function discoverWorkspacePackages(
   return packages;
 }
 
+/**
+ *
+ */
 export function findWorkspacePackageForImport(
   source: string,
   packages: WorkspacePackageInfo[]
@@ -100,6 +103,9 @@ export function findWorkspacePackageForImport(
   return packages.find((pkg) => pkg.name === source) ?? null;
 }
 
+/**
+ *
+ */
 export function isFileInDesignSystemPackage(
   file: ScannedFile,
   packages: WorkspacePackageInfo[]

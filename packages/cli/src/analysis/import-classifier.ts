@@ -4,6 +4,9 @@ export type ImportSourceKind =
   | 'external-scoped'
   | 'external-bare';
 
+/**
+ *
+ */
 export function classifyImportSource(source: string): ImportSourceKind {
   if (source.startsWith('./') || source.startsWith('../')) return 'local-relative';
   if (source.startsWith('@/') || source.startsWith('~/')) return 'local-alias';
@@ -11,6 +14,9 @@ export function classifyImportSource(source: string): ImportSourceKind {
   return 'external-bare';
 }
 
+/**
+ *
+ */
 export function isLocalImport(kind: ImportSourceKind): boolean {
   return kind === 'local-relative' || kind === 'local-alias';
 }

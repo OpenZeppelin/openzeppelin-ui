@@ -33,6 +33,9 @@ export interface SetupResult {
   configServicePatched: string | null;
 }
 
+/**
+ *
+ */
 export function installPackages(
   projectRoot: string,
   packages: string[],
@@ -51,6 +54,9 @@ export function installPackages(
   }
 }
 
+/**
+ *
+ */
 export function writeProviderTemplates(projectRoot: string): string[] {
   const written: string[] = [];
   const srcDir = path.join(projectRoot, 'src', 'oz');
@@ -423,6 +429,9 @@ function injectConfigServiceWiring(source: string): string {
   return result;
 }
 
+/**
+ *
+ */
 export function copyAgentFiles(projectRoot: string): string[] {
   const copied: string[] = [];
 
@@ -435,6 +444,9 @@ export function copyAgentFiles(projectRoot: string): string[] {
   return copied;
 }
 
+/**
+ *
+ */
 export function copySkillFiles(projectRoot: string): string[] {
   const copied: string[] = [];
 
@@ -457,6 +469,9 @@ export function copySkillFiles(projectRoot: string): string[] {
   return copied;
 }
 
+/**
+ *
+ */
 export function normalizeTailwind(
   projectRoot: string,
   families: PackageFamilyMap,
