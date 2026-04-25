@@ -23,6 +23,7 @@
   "sideEffects": false,
   "files": [
     "dist",
+    "docs",
     "src/catalog",
     "src/templates",
     "README.md"
