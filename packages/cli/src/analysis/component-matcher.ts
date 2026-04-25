@@ -679,8 +679,8 @@ function tryInferredExportShapeLibraryMatch(
           sourceKind
         );
 
-  const detectorKind: ComponentDetectorKind =
-    binding.kind === 'namespace' ? 'namespace-mapping' : 'library-mapping';
+  // `namespace` imports already return null above; only named/default reach here.
+  const detectorKind: ComponentDetectorKind = 'library-mapping';
   const result: MatchResult = {
     reportName,
     canonicalFamily: mapping.source,

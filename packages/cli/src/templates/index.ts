@@ -27,7 +27,7 @@ export function writeTemplate(
 
   if (replacements) {
     for (const [key, value] of Object.entries(replacements)) {
-      content = content.replaceAll(`{{${key}}}`, value);
+      content = content.split(`{{${key}}}`).join(value);
     }
   }
 
