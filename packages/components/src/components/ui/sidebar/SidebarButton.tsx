@@ -40,10 +40,10 @@ export function SidebarButton({
     'group relative flex flex-wrap items-center gap-x-2 gap-y-0.5 px-3 py-2 rounded-lg font-semibold text-sm transition-colors',
     badge ? 'justify-between' : 'justify-start',
     disabled
-      ? 'text-gray-400 cursor-not-allowed'
+      ? 'text-muted-foreground/60 cursor-not-allowed'
       : isSelected
-        ? 'text-[#111928] bg-neutral-100'
-        : 'text-gray-600 hover:text-gray-700 cursor-pointer hover:before:content-[""] hover:before:absolute hover:before:inset-x-0 hover:before:top-1 hover:before:bottom-1 hover:before:bg-muted/80 hover:before:rounded-lg hover:before:-z-10',
+        ? 'text-selected bg-selected/10'
+        : 'text-muted-foreground hover:text-foreground cursor-pointer hover:before:content-[""] hover:before:absolute hover:before:inset-x-0 hover:before:top-1 hover:before:bottom-1 hover:before:bg-muted/80 hover:before:rounded-lg hover:before:-z-10',
     minHeight,
     className
   );

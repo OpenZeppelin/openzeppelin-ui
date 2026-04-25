@@ -86,6 +86,9 @@ function VerticalDemo() {
         currentStepIndex={step}
         onStepChange={setStep}
         onCancel={() => setStep(0)}
+        lastStepLabel="Deploy"
+        lastStepSecondaryLabel="Preview"
+        onLastStepSecondary={() => alert('Preview (secondary CTA)')}
       />
     </div>
   );
@@ -101,6 +104,8 @@ function HorizontalDemo() {
         currentStepIndex={step}
         onStepChange={setStep}
         onCancel={() => setStep(0)}
+        lastStepSecondaryLabel="Preview"
+        onLastStepSecondary={() => alert('Preview (secondary CTA)')}
       />
     </div>
   );
@@ -115,6 +120,8 @@ function ScrollableDemo() {
         steps={STEPS}
         currentStepIndex={step}
         onStepChange={setStep}
+        scrollableSecondaryLabel="Save draft"
+        onScrollableSecondary={() => alert('Save draft (secondary CTA)')}
         onComplete={() => alert('Wizard complete!')}
       />
     </div>
@@ -129,7 +136,7 @@ export function WizardDemo(): ReactElement {
   return (
     <DemoSection
       title="Wizard"
-      description="Multi-step wizard with three layout variants: vertical sidebar (paged), horizontal top bar (paged), and scrollable single-page. Includes step indicators, navigation, and visited-step tracking."
+      description="Multi-step wizard with three layout variants: vertical sidebar (paged), horizontal top bar (paged), and scrollable single-page. Includes step indicators, navigation, visited-step tracking, and an optional outline secondary CTA on the last step (paged) or beside Finish (scrollable)."
       codeExample={`import { WizardLayout, type WizardStepConfig } from '@openzeppelin/ui-components';
 
 const steps: WizardStepConfig[] = [
@@ -149,6 +156,8 @@ function MyWizard() {
       onStepChange={setStep}
       onCancel={() => setStep(0)}
       onComplete={() => console.log('Done!')}
+      lastStepSecondaryLabel="Preview"
+      onLastStepSecondary={() => console.log('Secondary')}
     />
   );
 }`}

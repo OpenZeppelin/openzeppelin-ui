@@ -296,8 +296,8 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
                         aria-selected={i === highlightedIndex}
                         className={cn(
                           'flex w-full flex-col px-3 py-2 text-left text-sm',
-                          'hover:bg-accent',
-                          i === highlightedIndex && 'bg-accent'
+                          'hover:bg-selected/10',
+                          i === highlightedIndex && 'bg-selected/10'
                         )}
                         onMouseDown={(e) => {
                           e.preventDefault();

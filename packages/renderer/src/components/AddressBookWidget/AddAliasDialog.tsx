@@ -66,18 +66,50 @@ export function AddAliasDialog({
     defaultPlaceholder
   );
 
-  useEffect(() => {
-    if (open) {
-      setSelectedNetwork(initialNetwork ?? null);
-      setActiveAddressing(defaultAddressing);
-      setActivePlaceholder(defaultPlaceholder);
-    }
-  }, [open, initialNetwork, defaultAddressing, defaultPlaceholder]);
-
   const { control, handleSubmit, reset, trigger, formState } = useForm<AddAliasFormData>({
     defaultValues: { address: '', alias: '' },
     mode: 'onChange',
   });
+
+  // When the dialog opens, seed network + addressing/placeholder from the props.
+  // If an `initialNetwork` is preselected and matching resolvers are provided,
+  // also resolve addressing/placeholder for that network so the AddressField has
+  // a network-specific validator from the first render. Without this, the field
+  // would only get the explicit `addressing` default (often `undefined`) until
+  // the user manually changed the network selector — silently accepting any
+  // non-empty input as valid in the meantime.
+  useEffect(() => {
+    if (!open) return;
+
+    setSelectedNetwork(initialNetwork ?? null);
+    setActiveAddressing(defaultAddressing);
+    setActivePlaceholder(
+      initialNetwork && resolveAddressPlaceholder
+        ? (resolveAddressPlaceholder(initialNetwork) ?? defaultPlaceholder)
+        : defaultPlaceholder
+    );
+
+    if (!initialNetwork || !resolveAddressing) return;
+
+    let cancelled = false;
+    void resolveAddressing(initialNetwork).then((nextAddressing) => {
+      if (cancelled) return;
+      setActiveAddressing(nextAddressing);
+      // Re-validate the address field once the network-specific validator is in place.
+      trigger('address');
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    open,
+    initialNetwork,
+    defaultAddressing,
+    defaultPlaceholder,
+    resolveAddressing,
+    resolveAddressPlaceholder,
+    trigger,
+  ]);
 
   const handleNetworkChange = useCallback(
     async (network: NetworkConfig) => {

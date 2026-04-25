@@ -246,7 +246,14 @@ export function NetworkSelector<T>({
                       className="gap-2"
                     >
                       {isMultiple ? (
-                        <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border border-primary">
+                        <div
+                          className={cn(
+                            'flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors',
+                            isSelected(network)
+                              ? 'border-selected bg-selected text-selected-foreground'
+                              : 'border-input bg-background'
+                          )}
+                        >
                           {isSelected(network) && <Check className="h-3 w-3" />}
                         </div>
                       ) : null}
@@ -260,7 +267,7 @@ export function NetworkSelector<T>({
                         )}
                       </div>
                       {!isMultiple && isSelected(network) && (
-                        <Check className="h-4 w-4 opacity-100" />
+                        <Check className="h-4 w-4 text-selected opacity-100" />
                       )}
                     </DropdownMenuItem>
                   ))}

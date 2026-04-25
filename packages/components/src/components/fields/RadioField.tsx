@@ -143,7 +143,7 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
                       htmlFor={optionId}
                       className={`group relative flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 transition-all duration-150 ${
                         isDisabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-muted/50'
-                      } ${isSelected && !hasError ? 'bg-primary/5' : ''}`}
+                      } ${isSelected && !hasError ? 'bg-selected/5' : ''}`}
                     >
                       <input
                         type="radio"
@@ -163,7 +163,7 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
                             isSelected
                               ? hasError
                                 ? 'border-destructive bg-destructive/10'
-                                : 'border-primary bg-primary/10'
+                                : 'border-selected bg-selected/10'
                               : hasError
                                 ? 'border-destructive/50'
                                 : 'border-muted-foreground/40 group-hover:border-muted-foreground/60'
@@ -176,7 +176,7 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
                             isSelected
                               ? hasError
                                 ? 'bg-destructive scale-100 opacity-100'
-                                : 'bg-primary scale-100 opacity-100'
+                                : 'bg-selected scale-100 opacity-100'
                               : 'scale-0 opacity-0'
                           }`}
                         />
@@ -199,7 +199,7 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
 
                       {/* Focus ring */}
                       <div
-                        className={`absolute -inset-1 rounded-lg ring-2 ring-primary ring-offset-2 ring-offset-background transition-opacity duration-150 ${
+                        className={`absolute -inset-1 rounded-lg ring-2 ring-selected ring-offset-2 ring-offset-background transition-opacity duration-150 ${
                           isSelected && !isDisabled
                             ? 'opacity-0 focus-within:opacity-100'
                             : 'opacity-0'

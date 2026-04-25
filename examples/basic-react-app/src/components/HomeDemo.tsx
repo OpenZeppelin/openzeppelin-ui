@@ -101,7 +101,7 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
                 }}
                 className={`flex items-center gap-2 rounded-lg border px-4 py-2 transition-all ${
                   isActive
-                    ? 'border-primary bg-primary/5 ring-primary/20 ring-2'
+                    ? 'border-selected bg-selected/5 ring-selected/20 ring-2'
                     : 'hover:bg-muted/50'
                 }`}
               >
@@ -162,7 +162,7 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
         <div className="grid gap-4 sm:grid-cols-2">
           <button
             onClick={() => onNavigate?.('wallet')}
-            className="group rounded-lg border p-5 text-left transition-colors hover:border-primary hover:bg-primary/5"
+            className="group rounded-lg border p-5 text-left transition-colors hover:border-selected hover:bg-selected/5"
           >
             <div className="flex items-center gap-2">
               <Wallet className="size-5 text-pink-600" />
@@ -180,7 +180,7 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
 
           <button
             onClick={() => onNavigate?.('renderer')}
-            className="group rounded-lg border p-5 text-left transition-colors hover:border-primary hover:bg-primary/5"
+            className="group rounded-lg border p-5 text-left transition-colors hover:border-selected hover:bg-selected/5"
           >
             <div className="flex items-center gap-2">
               <Wand2 className="size-5 text-purple-600" />
@@ -198,7 +198,7 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
 
           <button
             onClick={() => onNavigate?.('network')}
-            className="group rounded-lg border p-5 text-left transition-colors hover:border-primary hover:bg-primary/5"
+            className="group rounded-lg border p-5 text-left transition-colors hover:border-selected hover:bg-selected/5"
           >
             <div className="flex items-center gap-2">
               <Globe className="size-5 text-blue-600" />
@@ -216,7 +216,7 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
 
           <button
             onClick={() => onNavigate?.('type-mapping')}
-            className="group rounded-lg border p-5 text-left transition-colors hover:border-primary hover:bg-primary/5"
+            className="group rounded-lg border p-5 text-left transition-colors hover:border-selected hover:bg-selected/5"
           >
             <div className="flex items-center gap-2">
               <Shield className="size-5 text-cyan-600" />
@@ -274,7 +274,7 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
             href="https://builder.openzeppelin.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-start gap-4 rounded-lg border p-5 transition-colors hover:border-primary hover:bg-primary/5"
+            className="group flex items-start gap-4 rounded-lg border p-5 transition-colors hover:border-selected hover:bg-selected/5"
           >
             <div className="bg-primary/10 shrink-0 rounded-lg p-2.5">
               <Wand2 className="text-primary size-5" />
@@ -296,7 +296,7 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
             href="https://rolemanager.openzeppelin.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-start gap-4 rounded-lg border p-5 transition-colors hover:border-primary hover:bg-primary/5"
+            className="group flex items-start gap-4 rounded-lg border p-5 transition-colors hover:border-selected hover:bg-selected/5"
           >
             <div className="bg-primary/10 shrink-0 rounded-lg p-2.5">
               <Shield className="text-primary size-5" />
@@ -318,7 +318,7 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
             href="https://github.com/OpenZeppelin"
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-start gap-4 rounded-lg border p-5 transition-colors hover:border-primary hover:bg-primary/5"
+            className="group flex items-start gap-4 rounded-lg border p-5 transition-colors hover:border-selected hover:bg-selected/5"
           >
             <div className="bg-primary/10 shrink-0 rounded-lg p-2.5">
               <FileCode2 className="text-primary size-5" />
