@@ -4,9 +4,25 @@ Consumer CLI for scaffolding, migrating, and managing OpenZeppelin UI applicatio
 
 ## Installation
 
-```bash
-npm install -g @openzeppelin/ui-cli
-```
+`oz-ui` is the binary from this package. Use **either** a global install **or** a project dev dependency, depending on how you run commands.
+
+- **Global** (keeps `oz-ui` on your `PATH`):
+
+  ```bash
+  npm install -g @openzeppelin/ui-cli
+  ```
+
+  Then run: `oz-ui migrate init --project .`, `oz-ui --version`, etc.
+
+- **Local to a repo** (typical for CI and the migration workflow):
+
+  ```bash
+  npm install -D @openzeppelin/ui-cli
+  ```
+
+  Then run the binary via your package manager: `npx oz-ui …`, `pnpm exec oz-ui …`, or a script that invokes `oz-ui`.
+
+`pnpm add -D` / `yarn add -D` work the same way. The LLM migration doc assumes a local dev dependency by default, but a global install is valid and does not require `npx`/`pnpm exec`.
 
 ## Commands
 

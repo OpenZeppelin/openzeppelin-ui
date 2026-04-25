@@ -303,9 +303,11 @@ function allowAdapterPrereleases(pkg) {
   for (const depType of ['dependencies', 'devDependencies']) {
     if (!pkg[depType]) continue;
     for (const [name, range] of Object.entries(pkg[depType])) {
+      if (typeof range !== 'string') continue;
       if (!name.startsWith('@openzeppelin/adapter') && !name.startsWith('@openzeppelin/adapters-'))
         continue;
-      const m = range.match(/^\\^(\\d+)\\.(\\d+)\\.(\\d+)$/);
+      if (!range.startsWith('^')) continue;
+      const m = range.slice(1).match(/^(\\d+)\\.(\\d+)\\.(\\d+)$/);
       if (!m) continue;
       const maj = Number(m[1]), min = Number(m[2]), pat = Number(m[3]);
       const upper = maj > 0

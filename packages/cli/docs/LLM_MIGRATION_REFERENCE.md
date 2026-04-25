@@ -73,10 +73,8 @@ The target repo should end up with:
 
 The current setup flow installs or copies those assets through `oz-ui migrate init`.
 
-> **Important**: `oz-ui` is a locally-installed binary (dev dependency), not a global command.
-> Always run it through the project's package manager:
-> `npx oz-ui ...`, `pnpm exec oz-ui ...`, or `pnpm oz-ui ...` (if the project has an `oz-ui` script).
-> Never run bare `oz-ui` — it will fail with "command not found".
+> **Important**: Prefer installing `@openzeppelin/ui-cli` as a **dev dependency** in the app you are migrating, then run it with `npx oz-ui ...` or `pnpm exec oz-ui ...` (or an `package.json` script that calls `oz-ui`), so the version is pinned with the project.
+> If you install the package **globally** (`npm install -g @openzeppelin/ui-cli`), a bare `oz-ui` command is valid. With a **local** install only, you must use `npx` / `pnpm exec` (or a script) because `oz-ui` is not on the global `PATH`.
 
 ## What The User Should Say
 

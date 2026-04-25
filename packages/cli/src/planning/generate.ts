@@ -239,13 +239,9 @@ export function generateComponentTasks(
   return tasks;
 }
 
-type ExclusionsWithWalletPaths = {
-  walletPatternPathExclusions?: Record<string, string[]>;
-};
-
 /** @description Catalog rules: some wallet stacks appear in UI files only for types/helpers, not adapter migration. */
 function isWalletTaskExcludedForPath(patternKey: string, file: string): boolean {
-  const ex = loadExclusions() as ReturnType<typeof loadExclusions> & ExclusionsWithWalletPaths;
+  const ex = loadExclusions();
   const subs = ex.walletPatternPathExclusions?.[patternKey];
   if (!subs) return false;
   return subs.some((sub) => file.includes(sub));

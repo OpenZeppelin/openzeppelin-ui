@@ -1,6 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 describe('component-mappings.json', () => {
   const catalogPath = path.resolve(__dirname, 'component-mappings.json');

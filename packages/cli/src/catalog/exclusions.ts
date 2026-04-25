@@ -6,6 +6,8 @@ import { getCatalogPath } from '../utils/paths';
 export interface ExclusionList {
   excludedLibraries: string[];
   excludedPatterns: string[];
+  /** When set, skip wallet-adapter tasks for a pattern when the file path includes any of these substrings. */
+  walletPatternPathExclusions?: Record<string, string[]>;
 }
 
 let cached: ExclusionList | null = null;
