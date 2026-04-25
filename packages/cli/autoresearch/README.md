@@ -5,16 +5,16 @@ An autonomous experiment loop — inspired by [Karpathy's autoresearch](https://
 ## Capabilities
 
 
-| #   | Capability        | Metric                                              |
-| --- | ----------------- | --------------------------------------------------- |
-| 1   | **Detection**     | F1 on (name, ozTarget) tuples                       |
-| 2   | **Patterns**      | F1 on (pattern, file) tuples                        |
-| 3   | **Planning**      | Gated composite (Task F1 + Wallet F1 + Phase order) |
-| 4   | **Init**          | Weighted checklist score                            |
-| 5   | **Execution**     | AST parse + structural similarity                   |
-| 6   | **Verification**  | Classification accuracy + diagnostic precision      |
-| 7   | **Orchestration** | Structural checklist + scenario sequence scoring    |
-| 8   | **Runtime**       | Health-check assertion pass rate (browser validation)|
+| #   | Capability        | Metric                                                |
+| --- | ----------------- | ----------------------------------------------------- |
+| 1   | **Detection**     | F1 on (name, ozTarget) tuples                         |
+| 2   | **Patterns**      | F1 on (pattern, file) tuples                          |
+| 3   | **Planning**      | Gated composite (Task F1 + Wallet F1 + Phase order)   |
+| 4   | **Init**          | Weighted checklist score                              |
+| 5   | **Execution**     | AST parse + structural similarity                     |
+| 6   | **Verification**  | Classification accuracy + diagnostic precision        |
+| 7   | **Orchestration** | Structural checklist + scenario sequence scoring      |
+| 8   | **Runtime**       | Health-check assertion pass rate (browser validation) |
 
 
 Run `pnpm --filter @openzeppelin/ui-cli evaluate:all` to see live scores.
@@ -240,16 +240,16 @@ autoresearch/
 ## Editable surface per capability
 
 
-| Capability    | Editable files                                                      |
-| ------------- | ------------------------------------------------------------------- |
+| Capability    | Editable files                                                                                  |
+| ------------- | ----------------------------------------------------------------------------------------------- |
 | Detection     | `component-matcher.ts`, `import-classifier.ts`, `import-resolver.ts`, `source-libraries/*.json` |
-| Patterns      | `pattern-scanner.ts`, optional JSON pattern files                   |
-| Planning      | `planning/generate.ts`, `catalog/exclusions.json`                   |
-| Init          | `init/setup.ts`, `templates/**`                                     |
-| Execution     | `rewriter/rewriteFile.ts`, `source-libraries/*.json` (propMappings) |
-| Verification  | `verification/checker.ts`                                           |
-| Orchestration | `templates/skills/migrate-to-oz-uikit/SKILL.md`                     |
-| Runtime       | Migration execution, init templates, adapter integration              |
+| Patterns      | `pattern-scanner.ts`, optional JSON pattern files                                               |
+| Planning      | `planning/generate.ts`, `catalog/exclusions.json`                                               |
+| Init          | `init/setup.ts`, `templates/**`                                                                 |
+| Execution     | `rewriter/rewriteFile.ts`, `source-libraries/*.json` (propMappings)                             |
+| Verification  | `verification/checker.ts`                                                                       |
+| Orchestration | `templates/skills/migrate-to-oz-uikit/SKILL.md`                                                 |
+| Runtime       | Migration execution, init templates, adapter integration                                        |
 
 
 ## Dashboard
@@ -278,7 +278,7 @@ Fixtures without ground-truth labels show a ⚠ warning icon and appear under an
 
 API routes:
 
-- `**/api/capabilities**` — Summary JSON for all capabilities
+- `**/api/capabilities`** — Summary JSON for all capabilities
 - `**/api/results/:name**` — Results TSV data as JSON
 - `**/api/evaluate/:name**` — Live evaluation trigger
 - `**/api/fixture**` (POST) — Add a new fixture (register + fetch + scaffold)
@@ -291,6 +291,7 @@ API routes:
 Each capability has a separate `results-<capability>.tsv`:
 
 **Standard format (6 columns — includes generalization tracking):**
+
 ```
 <experiment_number>\t<status>\t<score>\t<adversarial_score|n/a>\t<why>\t<description>
 ```
@@ -298,6 +299,7 @@ Each capability has a separate `results-<capability>.tsv`:
 Used by: detection, patterns, planning, execution, verification.
 
 **Legacy format (4 columns — init, orchestration):**
+
 ```
 <experiment_number>\t<status>\t<score>\t<description>
 ```
@@ -314,13 +316,15 @@ Five capabilities (detection, patterns, planning, execution, verification) have 
 
 Each capability has a dedicated lint script that automatically extracts fixture-specific identifiers and blocks them from appearing in editable TypeScript code. Self-updating: adding a new fixture extends the lint.
 
-| Capability   | Lint script            | Editable surface checked                       |
-| ------------ | ---------------------- | ---------------------------------------------- |
+
+| Capability   | Lint script            | Editable surface checked                                             |
+| ------------ | ---------------------- | -------------------------------------------------------------------- |
 | Detection    | `lint-detection.ts`    | `component-matcher.ts`, `import-classifier.ts`, `import-resolver.ts` |
-| Patterns     | `lint-patterns.ts`     | `pattern-scanner.ts`                           |
-| Planning     | `lint-planning.ts`     | `plan.ts`, `generate.ts`, `exclusions.json`    |
-| Execution    | `lint-execution.ts`    | `rewriteFile.ts`                               |
-| Verification | `lint-verification.ts` | `checker.ts`                                   |
+| Patterns     | `lint-patterns.ts`     | `pattern-scanner.ts`                                                 |
+| Planning     | `lint-planning.ts`     | `plan.ts`, `generate.ts`, `exclusions.json`                          |
+| Execution    | `lint-execution.ts`    | `rewriteFile.ts`                                                     |
+| Verification | `lint-verification.ts` | `checker.ts`                                                         |
+
 
 All lint scripts share infrastructure from `lint-shared.ts` (fixture ID extraction, string-literal checking) and add capability-specific checks on top.
 
@@ -328,11 +332,13 @@ All lint scripts share infrastructure from `lint-shared.ts` (fixture ID extracti
 
 Capabilities with adversarial fixtures have auto-generated synthetic test cases with randomized names/structures:
 
-| Capability   | Generator script                        | What it randomizes                                    |
-| ------------ | --------------------------------------- | ----------------------------------------------------- |
-| Detection    | `generate-adversarial-fixture.ts`       | Package scopes, path aliases, directory structures    |
-| Execution    | `generate-adversarial-execution.ts`     | Component names, import paths, prop names             |
-| Verification | `generate-adversarial-verification.ts`  | Component names, import sources, project structures   |
+
+| Capability   | Generator script                       | What it randomizes                                  |
+| ------------ | -------------------------------------- | --------------------------------------------------- |
+| Detection    | `generate-adversarial-fixture.ts`      | Package scopes, path aliases, directory structures  |
+| Execution    | `generate-adversarial-execution.ts`    | Component names, import paths, prop names           |
+| Verification | `generate-adversarial-verification.ts` | Component names, import sources, project structures |
+
 
 ### Structural quality invariants
 
