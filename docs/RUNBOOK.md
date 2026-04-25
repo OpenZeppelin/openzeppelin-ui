@@ -113,11 +113,11 @@ If a publish fails partway through, some packages may be published while others 
 ### Check Published State
 
 ```bash
-# Check if a package version exists on npm
+# Check if a package version exists on npm (replace the version with the one you care about)
 npm view @openzeppelin/ui-types@1.0.0
 
-# Check all packages
-for pkg in types utils styles components renderer react storage; do
+# Check all public library and CLI packages (@openzeppelin/ui-<name>)
+for pkg in types utils styles components renderer react storage dev-cli cli; do
   npm view @openzeppelin/ui-${pkg}@1.0.0 version 2>/dev/null && echo "ui-${pkg}: published" || echo "ui-${pkg}: NOT published"
 done
 ```
