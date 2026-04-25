@@ -84,6 +84,36 @@ describe('executeTask', () => {
     expect(updatedSource).not.toContain('@/components/ui/button');
   });
 
+  it('rejects component replacement tasks that escape the project root', () => {
+    const dir = createTempDir();
+    const manifestPath = path.join(dir, 'migration-manifest.json');
+    const outsidePath = path.join(dir, '..', 'outside.tsx');
+    writeFile(outsidePath, "import { Button } from '@/components/ui/button';\n");
+
+    const manifest = createBaseManifest(dir);
+    manifest.tasks = [
+      {
+        id: 'component-replacement-Button-outside',
+        phase: 'ui-components',
+        phaseDetail: 'ui-primitives',
+        type: 'component-replacement',
+        status: 'pending',
+        description: 'Reject path traversal outside project root',
+        file: '../outside.tsx',
+        files: ['../outside.tsx'],
+        sourceComponent: 'Button',
+        targetComponent: 'Button',
+      },
+    ];
+    writeManifest(manifestPath, manifest);
+
+    const result = executeTask({ manifestPath });
+
+    expect(result.ok).toBe(false);
+    expect(result.message).toMatch(/escapes project root/);
+    expect(fs.readFileSync(outsidePath, 'utf8')).toContain('@/components/ui/button');
+  });
+
   it('returns manual instructions for wallet migration tasks without mutating manifest state', () => {
     const dir = createTempDir();
     const manifestPath = path.join(dir, 'migration-manifest.json');

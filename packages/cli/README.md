@@ -22,7 +22,7 @@ The `oz-ui` binary is organized by **command group** (e.g. `oz-ui <group> …`).
 
 > **Experimental** — Migration features are under active development. Do not expect perfect automation on every project. The workflow uses deterministic `oz-ui migrate` commands and has been exercised on small- to medium-sized apps; it should still beat a fully manual migration. For the full disclaimer and an **LLM-assisted** flow (prompts, manifest workflow, skills), see the [LLM-led migration reference](./docs/LLM_MIGRATION_REFERENCE.md) ([on GitHub](https://github.com/OpenZeppelin/openzeppelin-ui/blob/main/packages/cli/docs/LLM_MIGRATION_REFERENCE.md)).
 
-All `oz-ui migrate` * subcommands support `--json` and return machine-readable payloads with an `action` field plus command-specific data. Invoke each row as `oz-ui migrate <subcommand>` (or `npx` / `pnpm exec` as needed).
+All `oz-ui migrate *` subcommands support `--json` and return machine-readable payloads with an `action` field plus command-specific data. Invoke each row as `oz-ui migrate <subcommand>` (or `npx` / `pnpm exec` as needed).
 
 
 | Subcommand | Description                                                                                                                                                                                                                    |
@@ -67,16 +67,4 @@ pnpm --filter @openzeppelin/ui-cli build
 
 # Run tests
 pnpm --filter @openzeppelin/ui-cli test
-
-# Run evaluation harness
-pnpm --filter @openzeppelin/ui-cli evaluate
-
-# Start autoresearch dashboard
-pnpm --filter @openzeppelin/ui-cli dashboard
 ```
-
-## Autoresearch
-
-The CLI includes an autonomous experiment loop for improving component detection accuracy. An AI agent iteratively modifies detection logic, evaluates against benchmark fixtures, and keeps only changes that improve the F1 score — with a real-time dashboard for monitoring.
-
-See [autoresearch/README.md](autoresearch/README.md) for the full workflow and documentation.

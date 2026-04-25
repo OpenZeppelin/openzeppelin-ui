@@ -1,6 +1,0 @@
-# External fixtures — resolved from local sibling repos or fetched from remote.
-# Defined in _external.json. Run `npx tsx autoresearch/fetch-fixtures.ts` to populate.
-# Synthetic fixtures (radix-app, raw-html-app, shadcn-app) are committed and NOT ignored.
-zama-accounts-ui/
-accounts-ui/
-oz-oss-apps

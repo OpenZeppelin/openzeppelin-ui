@@ -1,8 +1,0 @@
-{
-  "fixture": "radix-app",
-  "benchmark": {
-    "fixtureSource": "synthetic",
-    "scannerPolicyHash": "9cb5f85fda531e1d1eb8dcbb65173a4c71006745"
-  },
-  "patterns": []
-}

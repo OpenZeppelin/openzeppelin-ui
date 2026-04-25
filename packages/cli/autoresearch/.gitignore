@@ -1,9 +1,0 @@
-results-*.tsv
-run.log
-progress.png
-.venv/
-__pycache__/
-.ipynb_checkpoints/
-expected/execution/adversarial/
-expected/verification/adversarial/
-resolved-fixtures/

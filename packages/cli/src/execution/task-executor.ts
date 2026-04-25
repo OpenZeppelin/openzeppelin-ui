@@ -89,6 +89,21 @@ function buildRewriteContext(task: MigrationTask, content: string): RewriteConte
   return {};
 }
 
+function resolveProjectFilePath(projectRoot: string, relativeFilePath: string): string {
+  if (path.isAbsolute(relativeFilePath)) {
+    throw new Error(`Task file must be relative to project root: ${relativeFilePath}`);
+  }
+
+  const root = path.resolve(projectRoot);
+  const resolved = path.resolve(root, relativeFilePath);
+  const relative = path.relative(root, resolved);
+  if (relative === '' || relative.startsWith('..') || path.isAbsolute(relative)) {
+    throw new Error(`Task file escapes project root: ${relativeFilePath}`);
+  }
+
+  return resolved;
+}
+
 function executeRewriteTask(
   task: MigrationTask,
   projectRoot: string,
@@ -98,7 +113,7 @@ function executeRewriteTask(
     throw new Error(`Task "${task.id}" is missing a target file.`);
   }
 
-  const filePath = path.join(projectRoot, task.file);
+  const filePath = resolveProjectFilePath(projectRoot, task.file);
   if (!fs.existsSync(filePath)) {
     throw new Error(`Target file not found: ${task.file}`);
   }

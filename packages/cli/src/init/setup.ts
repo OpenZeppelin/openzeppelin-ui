@@ -1,6 +1,5 @@
 /**
- * Pure init/setup logic extracted for reuse by the autoresearch evaluator
- * and the CLI command.
+ * Pure init/setup logic shared by the CLI command and tests.
  */
 
 import { execSync } from 'node:child_process';

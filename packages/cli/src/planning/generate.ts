@@ -1,6 +1,5 @@
 /**
- * Pure plan-generation logic, extracted for reuse by the autoresearch evaluator
- * and the CLI command.
+ * Pure plan-generation logic shared by the CLI command and tests.
  */
 
 import type { AnalysisReport } from '../analysis';
