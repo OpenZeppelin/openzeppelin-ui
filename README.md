@@ -2,25 +2,28 @@
 
 A modular React component library for building blockchain transaction interfaces.
 
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/OpenZeppelin/openzeppelin-ui/badge)](https://api.securityscorecards.dev/projects/github.com/OpenZeppelin/openzeppelin-ui)
-[![Scorecard supply-chain security](https://github.com/OpenZeppelin/openzeppelin-ui/actions/workflows/scorecard.yml/badge.svg)](https://github.com/OpenZeppelin/openzeppelin-ui/actions/workflows/scorecard.yml)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11780/badge)](https://www.bestpractices.dev/projects/11780)
-[![CLA Assistant](https://github.com/OpenZeppelin/openzeppelin-ui/actions/workflows/cla.yml/badge.svg)](https://github.com/OpenZeppelin/openzeppelin-ui/actions/workflows/cla.yml)
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/OpenZeppelin/openzeppelin-ui)
+[Scorecard supply-chain security](https://github.com/OpenZeppelin/openzeppelin-ui/actions/workflows/scorecard.yml)
+[OpenSSF Best Practices](https://www.bestpractices.dev/projects/11780)
+[CLA Assistant](https://github.com/OpenZeppelin/openzeppelin-ui/actions/workflows/cla.yml)
+[License: AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0)
 
 ## Packages
 
 This monorepo contains the following packages:
 
-| Package                                              | Description                                 | npm                                                                                                                               |
-| ---------------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| [@openzeppelin/ui-types](./packages/types)           | Shared TypeScript type definitions          | [![npm](https://img.shields.io/npm/v/@openzeppelin/ui-types.svg)](https://www.npmjs.com/package/@openzeppelin/ui-types)           |
-| [@openzeppelin/ui-utils](./packages/utils)           | Framework-agnostic utility functions        | [![npm](https://img.shields.io/npm/v/@openzeppelin/ui-utils.svg)](https://www.npmjs.com/package/@openzeppelin/ui-utils)           |
-| [@openzeppelin/ui-styles](./packages/styles)         | Centralized styling system (Tailwind CSS 4) | [![npm](https://img.shields.io/npm/v/@openzeppelin/ui-styles.svg)](https://www.npmjs.com/package/@openzeppelin/ui-styles)         |
-| [@openzeppelin/ui-components](./packages/components) | React UI components (shadcn/ui based)       | [![npm](https://img.shields.io/npm/v/@openzeppelin/ui-components.svg)](https://www.npmjs.com/package/@openzeppelin/ui-components) |
-| [@openzeppelin/ui-renderer](./packages/renderer)     | Transaction form rendering engine           | [![npm](https://img.shields.io/npm/v/@openzeppelin/ui-renderer.svg)](https://www.npmjs.com/package/@openzeppelin/ui-renderer)     |
-| [@openzeppelin/ui-react](./packages/react)           | React context providers and hooks           | [![npm](https://img.shields.io/npm/v/@openzeppelin/ui-react.svg)](https://www.npmjs.com/package/@openzeppelin/ui-react)           |
-| [@openzeppelin/ui-storage](./packages/storage)       | IndexedDB storage abstraction (Dexie.js)    | [![npm](https://img.shields.io/npm/v/@openzeppelin/ui-storage.svg)](https://www.npmjs.com/package/@openzeppelin/ui-storage)       |
+
+| Package                                              | Description                                           | npm                                                              |
+| ---------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------- |
+| [@openzeppelin/ui-types](./packages/types)           | Shared TypeScript type definitions                    | [npm](https://www.npmjs.com/package/@openzeppelin/ui-types)      |
+| [@openzeppelin/ui-utils](./packages/utils)           | Framework-agnostic utility functions                  | [npm](https://www.npmjs.com/package/@openzeppelin/ui-utils)      |
+| [@openzeppelin/ui-styles](./packages/styles)         | Centralized styling system (Tailwind CSS 4)           | [npm](https://www.npmjs.com/package/@openzeppelin/ui-styles)     |
+| [@openzeppelin/ui-components](./packages/components) | React UI components (shadcn/ui based)                 | [npm](https://www.npmjs.com/package/@openzeppelin/ui-components) |
+| [@openzeppelin/ui-renderer](./packages/renderer)     | Transaction form rendering engine                     | [npm](https://www.npmjs.com/package/@openzeppelin/ui-renderer)   |
+| [@openzeppelin/ui-react](./packages/react)           | React context providers and hooks                     | [npm](https://www.npmjs.com/package/@openzeppelin/ui-react)      |
+| [@openzeppelin/ui-storage](./packages/storage)       | IndexedDB storage abstraction (Dexie.js)              | [npm](https://www.npmjs.com/package/@openzeppelin/ui-storage)    |
+| [@openzeppelin/ui-cli](./packages/cli)               | CLI for new and existing OpenZeppelin UI applications | [npm](https://www.npmjs.com/package/@openzeppelin/ui-cli)        |
+
 
 ## Installation
 
@@ -123,6 +126,7 @@ function TransferPage() {
 
 ## Architecture
 
+
 | Layer | Package                       | Purpose                      |
 | ----- | ----------------------------- | ---------------------------- |
 | App   | Your Application              | Consumer application         |
@@ -133,6 +137,7 @@ function TransferPage() {
 | 3     | `@openzeppelin/ui-styles`     | Tailwind theme & variables   |
 | 2     | `@openzeppelin/ui-utils`      | Shared utilities             |
 | 1     | `@openzeppelin/ui-types`      | Type definitions             |
+
 
 ## Requirements
 
@@ -184,7 +189,8 @@ This project uses [GitHub Speckit](https://github.com/github/spec-kit) for spec-
 
 ## Documentation
 
-- [Migration Guide](./docs/MIGRATION.md) - Migrate from `@openzeppelin/ui-builder-*` packages
+- [Migration Guide](./docs/MIGRATION.md) - Migrate from `@openzeppelin/ui-builder-`* packages
+- [LLM-led migration reference](./packages/cli/docs/LLM_MIGRATION_REFERENCE.md) - AI-assisted workflow for `@openzeppelin/ui-cli` (optional)
 - [DevOps Setup Guide](./docs/DEVOPS_SETUP.md) - CI/CD secrets and GitHub App configuration
 - [Operations Runbook](./docs/RUNBOOK.md) - Release management and incident procedures
 
