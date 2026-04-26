@@ -57,43 +57,45 @@ flowchart TD
   more -->|No| finish
 ```
 
+
+
 ## What Must Exist First
 
 The target repo should end up with:
 
 - `@openzeppelin/ui-cli`
-- the migration skill:
-  - `.cursor/skills/migrate-to-oz-uikit/SKILL.md`
-  - `.claude/skills/migrate-to-oz-uikit/SKILL.md`
-- the migration agent prompts:
-  - `.cursor/agents/migration-analyzer.md`
-  - `.cursor/agents/migration-executor.md`
-  - `.cursor/agents/migration-verifier.md`
-  - and the same under `.claude/agents/`
+- the migration skill (chosen explicitly with `--agent-profile`):
+  - `.agents/skills/migrate-to-oz-uikit/SKILL.md` — tools that load the open `.agents/skills/` convention (e.g. Cursor, Codex-style hosts)
+  - `.claude/skills/migrate-to-oz-uikit/SKILL.md` — Claude Code native project skills
+  - optionally `.cursor/skills/migrate-to-oz-uikit/SKILL.md` if you pass `--agent-profile legacy-cursor` or `all`
+- the migration agent prompts (based on the selected profiles):
+  - `.cursor/agents/migration-*.md`
+  - `.claude/agents/migration-*.md`
 
-The current setup flow installs or copies those assets through `oz-ui migrate init`.
+The setup flow installs those assets through `oz-ui migrate init --agent-profile ...`.
 
-> **Important**: Prefer installing `@openzeppelin/ui-cli` as a **dev dependency** in the app you are migrating, then run it with `npx oz-ui ...` or `pnpm exec oz-ui ...` (or an `package.json` script that calls `oz-ui`), so the version is pinned with the project.
-> If you install the package **globally** (`npm install -g @openzeppelin/ui-cli`), a bare `oz-ui` command is valid. With a **local** install only, you must use `npx` / `pnpm exec` (or a script) because `oz-ui` is not on the global `PATH`.
+`**--agent-profile` is required.** Choose `standard`, `claude`, `legacy-cursor`, `all`, or `none` (comma-separated when needed). Common choices: `standard,claude` or just `standard`.
+
+> Prefer installing `@openzeppelin/ui-cli` as a dev dependency and running it with `npx oz-ui ...` or `pnpm exec oz-ui ...` so the CLI version is pinned to the project. A global install can use bare `oz-ui`.
 
 ## What The User Should Say
 
 Bootstrap and migrate (fresh project):
 
 ```text
-Install @openzeppelin/ui-cli as a dev dependency, then run `npx oz-ui migrate init --project .` to set up the migration skill and OZ packages. Once init finishes, read the skill at .cursor/skills/migrate-to-oz-uikit/SKILL.md and follow it to migrate this app to OpenZeppelin UI Kit. Ask me only when you need profile/scope decisions or manual validation.
+Install @openzeppelin/ui-cli as a dev dependency, ask me which `--agent-profile` to use if I have not already specified it, then run `npx oz-ui migrate init --project . --agent-profile <profiles>` to set up the migration skill and OZ packages. Once init finishes, read the skill at the selected path (for example `.agents/skills/migrate-to-oz-uikit/SKILL.md`, and `.claude/skills/.../SKILL.md` if Claude Code was selected) and follow it to migrate this app to OpenZeppelin UI Kit. Ask me only when you need profile/scope decisions or manual validation.
 ```
 
 With preferences:
 
 ```text
-Install @openzeppelin/ui-cli as a dev dependency, then run `npx oz-ui migrate init --project .` to set up the migration skill and OZ packages. Once init finishes, read the skill at .cursor/skills/migrate-to-oz-uikit/SKILL.md and follow it to migrate this app to OpenZeppelin UI Kit. Prefer the transactor profile. Migrate the whole app unless you find risky areas.
+Install @openzeppelin/ui-cli as a dev dependency, use `--agent-profile standard,claude` unless I choose a different assistant target, then run `npx oz-ui migrate init --project . --agent-profile <profiles>` to set up the migration skill and OZ packages. Once init finishes, read the skill at the selected path (for example `.agents/skills/migrate-to-oz-uikit/SKILL.md`, and `.claude/skills/.../SKILL.md` for Claude Code) and follow it to migrate this app to OpenZeppelin UI Kit. Prefer the transactor profile. Migrate the whole app unless you find risky areas.
 ```
 
 Resume later (skill and manifest already exist):
 
 ```text
-Read the skill at .cursor/skills/migrate-to-oz-uikit/SKILL.md and resume the OpenZeppelin UI migration from the existing migration-manifest.json.
+Read the skill at `.agents/skills/migrate-to-oz-uikit/SKILL.md` (or the path your host loads) and resume the OpenZeppelin UI migration from the existing migration-manifest.json.
 ```
 
 ## What The Assistant Does
@@ -103,9 +105,10 @@ Read the skill at .cursor/skills/migrate-to-oz-uikit/SKILL.md and resume the Ope
 The assistant prepares the repo for migration:
 
 1. installs `@openzeppelin/ui-cli` as a dev dependency
-2. runs `npx oz-ui migrate init --project .` (or `pnpm exec oz-ui migrate init --project .`)
-3. reads the skill file that init copied (`.cursor/skills/migrate-to-oz-uikit/SKILL.md`)
-4. follows that skill for all subsequent steps
+2. asks the user which assistant target(s) to install if the prompt did not specify `--agent-profile`
+3. runs `npx oz-ui migrate init --project . --agent-profile <profiles>` (or `pnpm exec oz-ui migrate init --project . --agent-profile <profiles>`)
+4. reads the skill file that init copied (for example `.agents/skills/migrate-to-oz-uikit/SKILL.md` plus `.claude/skills/.../SKILL.md` when that profile is selected)
+5. follows that skill for all subsequent steps
 
 The `init` command installs OZ packages, wires provider templates, normalizes Tailwind, and copies the skill and agent prompts into the repo.
 
@@ -233,7 +236,7 @@ The user should mostly see natural-language progress updates, not raw CLI operat
 If you want a single good user prompt, use this:
 
 ```text
-Install @openzeppelin/ui-cli as a dev dependency, then run `npx oz-ui migrate init --project .` to bootstrap the migration. Once init finishes, read the skill at .cursor/skills/migrate-to-oz-uikit/SKILL.md and follow it to migrate this app to OpenZeppelin UI Kit. Ask me only when you need profile/scope decisions or manual validation.
+Install @openzeppelin/ui-cli as a dev dependency, ask me which `--agent-profile` to use if I have not specified it, then run `npx oz-ui migrate init --project . --agent-profile <profiles>` to bootstrap the migration. Once init finishes, read the skill at the selected path (for example `.agents/skills/migrate-to-oz-uikit/SKILL.md`, and `.claude/skills/.../SKILL.md` for Claude Code) and follow it to migrate this app to OpenZeppelin UI Kit. Ask me only when you need profile/scope decisions or manual validation.
 ```
 
 The key insights:
@@ -250,3 +253,4 @@ The intended experience is:
 3. The assistant analyzes, plans, executes, verifies, and resumes from the manifest.
 4. The CLI provides reliability under the hood.
 5. Subagents may help internally, but the user should not need to think about them.
+

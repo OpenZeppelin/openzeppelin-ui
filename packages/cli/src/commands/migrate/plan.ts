@@ -3,6 +3,7 @@ import path from 'node:path';
 import { Command } from 'commander';
 import pc from 'picocolors';
 
+import { readAgentProfileSelection } from '../../agent-assets';
 import type { AnalysisReport } from '../../analysis';
 import { CLI_VERSION } from '../../branding';
 import { loadCatalog } from '../../catalog';
@@ -91,6 +92,7 @@ export function registerPlanCommand(parent: Command): void {
         const report = JSON.parse(fs.readFileSync(reportPath, 'utf8')) as AnalysisReport;
 
         const catalog = loadCatalog();
+        const agentAssetProfiles = readAgentProfileSelection(report.project);
         const componentFilter = options.components
           ? options.components.split(',').map((c) => c.trim())
           : undefined;
@@ -99,6 +101,7 @@ export function registerPlanCommand(parent: Command): void {
           catalogVersion: catalog.catalogVersion,
           targetOzVersion: CLI_VERSION,
           initVersion: CLI_VERSION,
+          agentAssetProfiles,
           framework: report.framework,
           sourceLibrary: report.sourceLibrary,
         });
@@ -136,6 +139,9 @@ export function registerPlanCommand(parent: Command): void {
 
         process.stdout.write(pc.green(`Migration plan generated → ${outputPath}\n`));
         process.stdout.write(`  Profile: ${manifest.profile ?? 'auto-detect'}\n`);
+        process.stdout.write(
+          `  Agent asset profiles: ${(manifest.agentAssetProfiles ?? []).join(', ') || 'none'}\n`
+        );
         process.stdout.write(`  Total tasks: ${manifest.tasks.length}\n`);
 
         const phaseCounts = new Map<string, number>();

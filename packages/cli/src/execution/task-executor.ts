@@ -1,6 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import {
+  expectedAgentPathsForProfiles,
+  expectedSkillPathsForProfiles,
+  resolveManifestAgentProfiles,
+  type AgentAssetProfile,
+} from '../agent-assets';
 import { CLI_BRANDING, CLI_FAMILIES, OZ_CORE_PACKAGES } from '../branding';
 import { loadSourceLibraries } from '../catalog';
 import type { JsonCommandResult, JsonTaskStateSummary } from '../commands/migrate/json-results';
@@ -139,7 +145,8 @@ function executeRewriteTask(
 function executeSetupTask(
   task: MigrationTask,
   projectRoot: string,
-  dryRun: boolean
+  dryRun: boolean,
+  agentAssetProfiles: AgentAssetProfile[]
 ): { changedFiles: string[]; instructions?: string[] } {
   if (dryRun) {
     switch (task.type) {
@@ -162,24 +169,30 @@ function executeSetupTask(
         };
       case 'tailwind-normalize':
         return { changedFiles: ['tailwind.config.ts'] };
-      case 'copy-agents':
+      case 'copy-agents': {
+        const files = expectedAgentPathsForProfiles(agentAssetProfiles);
         return {
-          changedFiles: [
-            '.cursor/agents/migration-analyzer.md',
-            '.cursor/agents/migration-executor.md',
-            '.cursor/agents/migration-verifier.md',
-            '.claude/agents/migration-analyzer.md',
-            '.claude/agents/migration-executor.md',
-            '.claude/agents/migration-verifier.md',
-          ],
+          changedFiles: files,
+          instructions:
+            files.length === 0
+              ? [
+                  'No agent asset profiles are selected in the manifest; nothing would be copied for copy-agents.',
+                ]
+              : undefined,
         };
-      case 'copy-skill':
+      }
+      case 'copy-skill': {
+        const files = expectedSkillPathsForProfiles(agentAssetProfiles);
         return {
-          changedFiles: [
-            '.cursor/skills/migrate-to-oz-uikit/SKILL.md',
-            '.claude/skills/migrate-to-oz-uikit/SKILL.md',
-          ],
+          changedFiles: files,
+          instructions:
+            files.length === 0
+              ? [
+                  'No agent asset profiles are selected in the manifest; nothing would be copied for copy-skill.',
+                ]
+              : undefined,
         };
+      }
       default:
         return { changedFiles: [] };
     }
@@ -201,9 +214,9 @@ function executeSetupTask(
       };
     }
     case 'copy-agents':
-      return { changedFiles: copyAgentFiles(projectRoot) };
+      return { changedFiles: copyAgentFiles(projectRoot, agentAssetProfiles) };
     case 'copy-skill':
-      return { changedFiles: copySkillFiles(projectRoot) };
+      return { changedFiles: copySkillFiles(projectRoot, agentAssetProfiles) };
     default:
       return { changedFiles: [] };
   }
@@ -289,7 +302,8 @@ function checkManualTaskPreconditions(
 function applyTask(
   task: MigrationTask,
   projectRoot: string,
-  dryRun: boolean
+  dryRun: boolean,
+  agentAssetProfiles: AgentAssetProfile[]
 ): { mode: 'applied' | 'manual'; changedFiles: string[]; instructions?: string[] } {
   switch (task.type) {
     case 'install-packages':
@@ -297,7 +311,10 @@ function applyTask(
     case 'tailwind-normalize':
     case 'copy-agents':
     case 'copy-skill':
-      return { mode: 'applied', ...executeSetupTask(task, projectRoot, dryRun) };
+      return {
+        mode: 'applied',
+        ...executeSetupTask(task, projectRoot, dryRun, agentAssetProfiles),
+      };
     case 'component-replacement':
     case 'form-field-replacement':
       return { mode: 'applied', ...executeRewriteTask(task, projectRoot, dryRun) };
@@ -318,6 +335,7 @@ export function executeTask(options: ExecuteTaskOptions): ExecuteTaskResult {
   const manifestPath = path.resolve(options.manifestPath);
   const dryRun = Boolean(options.dryRun);
   const manifest = readManifest(manifestPath);
+  const agentAssetProfiles = resolveManifestAgentProfiles(manifest);
   const task = resolveTask(manifest, options.taskId);
 
   if (!task) {
@@ -366,7 +384,7 @@ export function executeTask(options: ExecuteTaskOptions): ExecuteTaskResult {
   }
 
   if (dryRun) {
-    const applied = applyTask(task, manifest.projectRoot, true);
+    const applied = applyTask(task, manifest.projectRoot, true, agentAssetProfiles);
     return {
       ok: true,
       action: 'migrate-execute',
@@ -448,8 +466,10 @@ export function executeTask(options: ExecuteTaskOptions): ExecuteTaskResult {
   writeManifest(manifestPath, workingManifest);
 
   try {
-    const applied = applyTask(task, manifest.projectRoot, false);
-    const validation = checkTask(task, manifest.projectRoot);
+    const applied = applyTask(task, manifest.projectRoot, false, agentAssetProfiles);
+    const validation = checkTask(task, manifest.projectRoot, {
+      agentAssetProfiles,
+    });
 
     if (!validation.passed) {
       workingManifest = updateTaskStatus(

@@ -2,6 +2,7 @@ import path from 'node:path';
 import { Command } from 'commander';
 import pc from 'picocolors';
 
+import { resolveManifestAgentProfiles } from '../../agent-assets';
 import type { MigrationPhase } from '../../manifest';
 import { readManifest } from '../../manifest';
 import { printError, printJson } from '../../utils/logger';
@@ -95,9 +96,10 @@ export function registerDoctorCommand(parent: Command): void {
           throw new Error(`Task "${options.check}" not found in manifest.`);
         }
 
+        const agentAssetProfiles = resolveManifestAgentProfiles(manifest);
         const results: TaskCheckResult[] = [];
         for (const task of tasksToCheck) {
-          results.push(checkTask(task, manifest.projectRoot));
+          results.push(checkTask(task, manifest.projectRoot, { agentAssetProfiles }));
         }
 
         const passed = results.filter((r) => r.passed).length;

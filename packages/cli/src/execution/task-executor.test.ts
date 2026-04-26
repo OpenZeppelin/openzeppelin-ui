@@ -28,6 +28,7 @@ function createBaseManifest(dir: string): MigrationManifest {
   return createEmptyManifest(dir, {
     catalogVersion: '1.0.0',
     targetOzVersion: '0.1.0',
+    agentAssetProfiles: ['standard', 'claude'],
     framework: 'vite',
     sourceLibrary: 'shadcn',
   });

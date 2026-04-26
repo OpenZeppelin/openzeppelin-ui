@@ -4,6 +4,7 @@ import path from 'node:path';
 import { Command } from 'commander';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { writeAgentProfileSelection } from '../../agent-assets';
 import { createEmptyManifest, writeManifest } from '../../manifest';
 import type { MigrationManifest } from '../../manifest';
 import { registerAnalyzeCommand } from './analyze';
@@ -54,6 +55,7 @@ function createBaseManifest(dir: string): MigrationManifest {
   return createEmptyManifest(dir, {
     catalogVersion: '1.0.0',
     targetOzVersion: '0.1.0',
+    agentAssetProfiles: ['standard', 'claude'],
     framework: 'vite',
     sourceLibrary: 'shadcn',
   });
@@ -118,15 +120,29 @@ describe('migrate command JSON output', () => {
     registerInitCommand(root);
 
     const stdout = await captureStdout(async () => {
-      await root.parseAsync(['init', '--project', dir, '--skip-install', '--json'], {
-        from: 'user',
-      });
+      await root.parseAsync(
+        [
+          'init',
+          '--project',
+          dir,
+          '--skip-install',
+          '--agent-profile',
+          'standard,claude',
+          '--json',
+        ],
+        {
+          from: 'user',
+        }
+      );
     });
 
     const payload = JSON.parse(stdout);
     expect(payload.action).toBe('migrate-init');
     expect(payload.ok).toBe(true);
     expect(payload.project).toBe(dir);
+    expect(payload.agentAssetProfiles).toEqual(['standard', 'claude']);
+    expect(payload.agentProfileSelectionWritten).toBe('.oz-ui-migrate.json');
+    expect(fs.existsSync(path.join(dir, '.oz-ui-migrate.json'))).toBe(true);
     expect(Array.isArray(payload.templatesWritten)).toBe(true);
   });
 
@@ -165,6 +181,7 @@ describe('migrate command JSON output', () => {
     });
     const analyzePayload = JSON.parse(analyzeStdout);
     writeJson(reportPath, analyzePayload.report);
+    writeAgentProfileSelection(dir, ['standard', 'claude']);
 
     const planRoot = new Command();
     registerPlanCommand(planRoot);
@@ -182,6 +199,7 @@ describe('migrate command JSON output', () => {
     expect(payload.manifestPath).toContain('migration-manifest.json');
     expect(payload.totalTasks).toBeGreaterThan(0);
     expect(Array.isArray(payload.manifest.tasks)).toBe(true);
+    expect(payload.manifest.agentAssetProfiles).toEqual(['standard', 'claude']);
   });
 
   it('status --json includes next task metadata and phase descriptions', async () => {

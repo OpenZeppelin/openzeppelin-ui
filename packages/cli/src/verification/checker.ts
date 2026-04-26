@@ -3,6 +3,11 @@ import path from 'node:path';
 
 import { doctorTailwindProject } from '@openzeppelin/ui-tailwind-utils';
 
+import {
+  expectedAgentPathsForProfiles,
+  expectedSkillPathsForProfiles,
+  type AgentAssetProfile,
+} from '../agent-assets';
 import { CLI_BRANDING, CLI_FAMILIES } from '../branding';
 import { loadCatalog, loadHtmlElementMappings } from '../catalog';
 import type { MigrationTask } from '../manifest';
@@ -13,6 +18,11 @@ export interface TaskCheckResult {
   severity: 'pass' | 'warning' | 'fail';
   diagnostics: string[];
   warnings?: string[];
+}
+
+/** @description Copy-skill / copy-agents checks require explicit manifest-selected profiles. */
+export interface CheckTaskOptions {
+  agentAssetProfiles?: AgentAssetProfile[];
 }
 
 function taskFiles(task: MigrationTask): string[] {
@@ -550,36 +560,39 @@ function checkSchemaDrivenForm(task: MigrationTask, projectRoot: string): TaskCh
   };
 }
 
-function checkCopiedArtifacts(
+function checkProfileAwareArtifacts(
   task: MigrationTask,
   projectRoot: string,
-  requiredArtifacts: string[],
-  optionalArtifacts: string[],
+  artifactPaths: string[],
   label: string
 ): TaskCheckResult {
-  const missingRequired = requiredArtifacts.filter(
+  if (artifactPaths.length === 0) {
+    return {
+      taskId: task.id,
+      passed: true,
+      severity: 'pass',
+      diagnostics: [`No ${label} locations selected; nothing to verify.`],
+    };
+  }
+
+  const missing = artifactPaths.filter(
     (artifactPath) => !fs.existsSync(path.join(projectRoot, artifactPath))
   );
 
-  if (missingRequired.length > 0) {
+  if (missing.length > 0) {
     return {
       taskId: task.id,
       passed: false,
       severity: 'fail',
-      diagnostics: missingRequired.map((artifactPath) => `Missing ${label}: ${artifactPath}`),
+      diagnostics: missing.map((artifactPath) => `Missing ${label}: ${artifactPath}`),
     };
   }
-
-  const warnings = optionalArtifacts
-    .filter((artifactPath) => !fs.existsSync(path.join(projectRoot, artifactPath)))
-    .map((artifactPath) => `Missing optional ${label} mirror: ${artifactPath}`);
 
   return {
     taskId: task.id,
     passed: true,
-    severity: warnings.length > 0 ? 'warning' : 'pass',
-    diagnostics: requiredArtifacts.map((artifactPath) => `${label} present at ${artifactPath}`),
-    warnings: warnings.length > 0 ? warnings : undefined,
+    severity: 'pass',
+    diagnostics: artifactPaths.map((artifactPath) => `${label} present at ${artifactPath}`),
   };
 }
 
@@ -654,10 +667,23 @@ function checkCleanupScaffolding(task: MigrationTask, projectRoot: string): Task
   };
 }
 
+function effectiveCopyProfiles(options?: CheckTaskOptions): AgentAssetProfile[] {
+  if (options?.agentAssetProfiles !== undefined) {
+    return [...options.agentAssetProfiles];
+  }
+  throw new Error(
+    'Missing agentAssetProfiles for assistant asset validation. Re-run `oz-ui migrate init --agent-profile <profiles>`, regenerate the migration plan, and retry.'
+  );
+}
+
 /**
  *
  */
-export function checkTask(task: MigrationTask, projectRoot: string): TaskCheckResult {
+export function checkTask(
+  task: MigrationTask,
+  projectRoot: string,
+  checkOptions?: CheckTaskOptions
+): TaskCheckResult {
   switch (task.type) {
     case 'install-packages':
       return checkInstallPackages(task, projectRoot);
@@ -676,30 +702,14 @@ export function checkTask(task: MigrationTask, projectRoot: string): TaskCheckRe
       return checkStorageMigration(task, projectRoot);
     case 'schema-driven-form':
       return checkSchemaDrivenForm(task, projectRoot);
-    case 'copy-agents':
-      return checkCopiedArtifacts(
-        task,
-        projectRoot,
-        [
-          '.cursor/agents/migration-analyzer.md',
-          '.cursor/agents/migration-executor.md',
-          '.cursor/agents/migration-verifier.md',
-        ],
-        [
-          '.claude/agents/migration-analyzer.md',
-          '.claude/agents/migration-executor.md',
-          '.claude/agents/migration-verifier.md',
-        ],
-        'agent file'
-      );
-    case 'copy-skill':
-      return checkCopiedArtifacts(
-        task,
-        projectRoot,
-        ['.cursor/skills/migrate-to-oz-uikit/SKILL.md'],
-        ['.claude/skills/migrate-to-oz-uikit/SKILL.md'],
-        'skill file'
-      );
+    case 'copy-agents': {
+      const agentExpected = expectedAgentPathsForProfiles(effectiveCopyProfiles(checkOptions));
+      return checkProfileAwareArtifacts(task, projectRoot, agentExpected, 'agent file');
+    }
+    case 'copy-skill': {
+      const skillExpected = expectedSkillPathsForProfiles(effectiveCopyProfiles(checkOptions));
+      return checkProfileAwareArtifacts(task, projectRoot, skillExpected, 'skill file');
+    }
     case 'remove-stale-deps':
       return checkRemoveStaleDeps(task, projectRoot);
     case 'cleanup-scaffolding':

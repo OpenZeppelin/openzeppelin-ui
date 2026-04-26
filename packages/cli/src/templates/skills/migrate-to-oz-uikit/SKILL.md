@@ -49,9 +49,10 @@ ls migration-manifest.json 2>/dev/null
 - Otherwise, run initialization:
 
 If no manifest exists, run initialization before you skip to analysis.
+Ask the user which assistant target(s) to install if they have not already specified an `--agent-profile` value. Valid values are `standard`, `claude`, `legacy-cursor`, `all`, and `none`; there is no default.
 
 ```bash
-npx oz-ui migrate init --project .
+npx oz-ui migrate init --project . --agent-profile <profiles>
 ```
 
 This installs OZ packages, wires `RuntimeProvider` + `WalletStateProvider`, normalizes Tailwind, and copies agent/skill files.
@@ -80,8 +81,9 @@ Present a summary to the user:
 
 Ask the user to confirm:
 1. **Profile selection**: "Based on your wallet usage, I recommend the `transactor` profile. Confirm or override?"
-2. **Scope**: "Migrate the entire project or a specific directory?"
-3. **Ambiguous components**: For any components where the mapping is unclear, present options and ask the user to decide
+2. **Assistant target selection**: "Which agent profile should the manifest use (`standard`, `claude`, `legacy-cursor`, `all`, or `none`)?"
+3. **Scope**: "Migrate the entire project or a specific directory?"
+4. **Ambiguous components**: For any components where the mapping is unclear, present options and ask the user to decide
 
 Record all decisions — they will be passed to the plan command using `--decision key=value` flags and persisted in the manifest.
 

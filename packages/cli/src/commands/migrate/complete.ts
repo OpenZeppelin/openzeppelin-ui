@@ -2,6 +2,7 @@ import path from 'node:path';
 import { Command } from 'commander';
 import pc from 'picocolors';
 
+import { resolveManifestAgentProfiles } from '../../agent-assets';
 import { readManifest, resolveTask, transitionTaskStatus, writeManifest } from '../../manifest';
 import { printError, printJson } from '../../utils/logger';
 import { checkTask, type TaskCheckResult } from '../../verification/checker';
@@ -39,7 +40,10 @@ export function registerCompleteCommand(parent: Command): void {
         const manifestPath = path.resolve(options.manifest);
         const manifest = readManifest(manifestPath);
         const task = resolveTask(manifest, options.task);
-        const validation = options.force ? null : checkTask(task, manifest.projectRoot);
+        const agentAssetProfiles = resolveManifestAgentProfiles(manifest);
+        const validation = options.force
+          ? null
+          : checkTask(task, manifest.projectRoot, { agentAssetProfiles });
 
         if (validation && !validation.passed) {
           const result: CompleteResult = {

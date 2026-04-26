@@ -1,6 +1,9 @@
 export const MANIFEST_FILENAME = 'migration-manifest.json';
 export const CURRENT_SCHEMA_VERSION = '1.0.0';
 
+/** @description Where the CLI copies migration `SKILL.md` and agent `.md` assets (see `oz-ui migrate init --help`). */
+export type AgentAssetProfile = 'standard' | 'claude' | 'legacy-cursor';
+
 export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'skipped';
 
 export type TaskType =
@@ -83,6 +86,11 @@ export interface MigrationManifest {
   catalogVersion: string;
   targetOzVersion: string;
   initVersion?: string;
+  /**
+   * Selected assistant asset install targets (e.g. `.agents/skills`, `.claude/skills`).
+   * Chosen during `migrate init --agent-profile` and copied into the manifest by `migrate plan`.
+   */
+  agentAssetProfiles: AgentAssetProfile[];
   projectRoot: string;
   framework: 'vite' | 'next' | 'cra' | 'unknown';
   sourceLibrary: string | null;

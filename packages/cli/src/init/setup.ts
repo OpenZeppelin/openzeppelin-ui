@@ -13,13 +13,23 @@ import {
   type TailwindBrandingOptions,
 } from '@openzeppelin/ui-tailwind-utils';
 
+import {
+  agentDirectoriesForProfiles,
+  skillDirectoriesForProfiles,
+  writeAgentProfileSelection,
+} from '../agent-assets';
 import { CLI_BRANDING, CLI_FAMILIES, OZ_CORE_PACKAGES } from '../branding';
+import type { AgentAssetProfile } from '../manifest/schema';
 import { copyTemplateDirectory, writeTemplate } from '../templates';
 import { buildInstallCommand, detectPackageManager } from '../utils/framework';
 
 export interface SetupOptions {
   projectRoot: string;
   skipInstall?: boolean;
+  /**
+   * Where to place migration `SKILL.md` and agent assets. Must be chosen by the caller.
+   */
+  agentAssetProfiles: readonly AgentAssetProfile[];
 }
 
 export interface SetupResult {
@@ -27,6 +37,7 @@ export interface SetupResult {
   templatesWritten: string[];
   agentsCopied: string[];
   skillCopied: string[];
+  agentProfileSelectionWritten: string;
   tailwindFixed: boolean;
   appConfigWritten: boolean;
   configServicePatched: string | null;
@@ -429,40 +440,44 @@ function injectConfigServiceWiring(source: string): string {
 }
 
 /**
- *
+ * @description Installs migration `*.md` agent files into Cursor and/or Claude trees per selected profiles.
  */
-export function copyAgentFiles(projectRoot: string): string[] {
+export function copyAgentFiles(
+  projectRoot: string,
+  profiles: readonly AgentAssetProfile[]
+): string[] {
+  if (profiles.length === 0) return [];
   const copied: string[] = [];
+  const root = path.resolve(projectRoot);
 
-  const cursorResult = copyTemplateDirectory('agents', path.join(projectRoot, '.cursor', 'agents'));
-  copied.push(...cursorResult.copied.map((f) => `.cursor/agents/${f}`));
-
-  const claudeResult = copyTemplateDirectory('agents', path.join(projectRoot, '.claude', 'agents'));
-  copied.push(...claudeResult.copied.map((f) => `.claude/agents/${f}`));
+  for (const directory of agentDirectoriesForProfiles(profiles)) {
+    const result = copyTemplateDirectory('agents', path.join(root, directory));
+    copied.push(...result.copied.map((f) => `${directory}/${f}`));
+  }
 
   return copied;
 }
 
+const SKILL_TEMPLATE = 'skills/migrate-to-oz-uikit';
+
 /**
- *
+ * @description Installs `migrate-to-oz-uikit` skill assets per selected profiles.
  */
-export function copySkillFiles(projectRoot: string): string[] {
+export function copySkillFiles(
+  projectRoot: string,
+  profiles: readonly AgentAssetProfile[]
+): string[] {
+  if (profiles.length === 0) return [];
   const copied: string[] = [];
+  const root = path.resolve(projectRoot);
 
-  try {
-    const cursorResult = copyTemplateDirectory(
-      'skills/migrate-to-oz-uikit',
-      path.join(projectRoot, '.cursor', 'skills', 'migrate-to-oz-uikit')
-    );
-    copied.push(...cursorResult.copied.map((f) => `.cursor/skills/migrate-to-oz-uikit/${f}`));
-
-    const claudeResult = copyTemplateDirectory(
-      'skills/migrate-to-oz-uikit',
-      path.join(projectRoot, '.claude', 'skills', 'migrate-to-oz-uikit')
-    );
-    copied.push(...claudeResult.copied.map((f) => `.claude/skills/migrate-to-oz-uikit/${f}`));
-  } catch {
-    // Skill templates may not exist yet
+  for (const directory of skillDirectoriesForProfiles(profiles)) {
+    try {
+      const result = copyTemplateDirectory(SKILL_TEMPLATE, path.join(root, directory));
+      copied.push(...result.copied.map((f) => `${directory}/${f}`));
+    } catch {
+      // Skill templates may not exist yet
+    }
   }
 
   return copied;
@@ -529,7 +544,7 @@ export function ensurePnpmWorkspaceIsolation(projectRoot: string): boolean {
 
 /** @description Runs OZ UI kit project setup: packages, provider templates, app config, agents, skill, and Tailwind fixes. */
 export function runSetup(options: SetupOptions): SetupResult {
-  const { projectRoot, skipInstall = false } = options;
+  const { projectRoot, skipInstall = false, agentAssetProfiles } = options;
 
   if (!fs.existsSync(path.join(projectRoot, 'package.json'))) {
     throw new Error(`No package.json found in ${projectRoot}. Is this a Node.js project?`);
@@ -541,8 +556,9 @@ export function runSetup(options: SetupOptions): SetupResult {
   const templatesWritten = writeProviderTemplates(projectRoot);
   const { configWritten: appConfigWritten } = writeAppConfigFiles(projectRoot);
   const configServicePatched = patchEntryFileWithConfigService(projectRoot);
-  const agentsCopied = copyAgentFiles(projectRoot);
-  const skillCopied = copySkillFiles(projectRoot);
+  const agentsCopied = copyAgentFiles(projectRoot, agentAssetProfiles);
+  const skillCopied = copySkillFiles(projectRoot, agentAssetProfiles);
+  const agentProfileSelectionWritten = writeAgentProfileSelection(projectRoot, agentAssetProfiles);
   const tailwindFixed = normalizeTailwind(projectRoot, CLI_FAMILIES, CLI_BRANDING);
   ensureTailwindConfigStubIfNeeded(projectRoot, CLI_FAMILIES);
 
@@ -551,6 +567,7 @@ export function runSetup(options: SetupOptions): SetupResult {
     templatesWritten,
     agentsCopied,
     skillCopied,
+    agentProfileSelectionWritten,
     tailwindFixed,
     appConfigWritten,
     configServicePatched,

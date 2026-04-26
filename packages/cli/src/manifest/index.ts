@@ -1,6 +1,7 @@
 export {
   MANIFEST_FILENAME,
   CURRENT_SCHEMA_VERSION,
+  type AgentAssetProfile,
   type TaskStatus,
   type TaskType,
   type MigrationPhase,

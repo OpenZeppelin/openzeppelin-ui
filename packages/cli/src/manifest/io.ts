@@ -1,9 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { isAgentAssetProfile } from '../agent-assets';
 import {
   CURRENT_SCHEMA_VERSION,
   MANIFEST_FILENAME,
+  type AgentAssetProfile,
   type MigrationManifest,
   type MigrationTask,
   type PhaseProgress,
@@ -176,6 +178,20 @@ function validateManifest(manifest: MigrationManifest): void {
   if (!manifest.phases || !Array.isArray(manifest.phases)) {
     throw new Error('Manifest is missing or has invalid phases array.');
   }
+
+  if (!Array.isArray(manifest.agentAssetProfiles)) {
+    throw new Error(
+      'Manifest is missing agentAssetProfiles. Re-run `oz-ui migrate init --agent-profile <profiles>`, then regenerate the migration plan with `oz-ui migrate plan`.'
+    );
+  }
+  for (const entry of manifest.agentAssetProfiles) {
+    if (typeof entry !== 'string' || !isAgentAssetProfile(entry)) {
+      throw new Error(
+        `Invalid agentAssetProfiles entry: ${String(entry)}. ` +
+          `Expected one of: standard, claude, legacy-cursor.`
+      );
+    }
+  }
 }
 
 /**
@@ -187,6 +203,8 @@ export function createEmptyManifest(
     catalogVersion: string;
     targetOzVersion: string;
     initVersion?: string;
+    /** @description Explicit assistant asset target selection from `--agent-profile`. */
+    agentAssetProfiles: AgentAssetProfile[];
     framework: MigrationManifest['framework'];
     sourceLibrary: string | null;
   }
@@ -197,6 +215,7 @@ export function createEmptyManifest(
     catalogVersion: options.catalogVersion,
     targetOzVersion: options.targetOzVersion,
     initVersion: options.initVersion,
+    agentAssetProfiles: options.agentAssetProfiles,
     projectRoot,
     framework: options.framework,
     sourceLibrary: options.sourceLibrary,

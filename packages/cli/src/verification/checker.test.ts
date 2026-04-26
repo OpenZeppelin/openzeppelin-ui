@@ -107,9 +107,10 @@ describe('checkTask', () => {
     expect(result.warnings?.join('\n')).toMatch(/manual review/);
   });
 
-  it('warns when Claude skill mirrors are missing', () => {
+  it('fails copy-skill when a manifest-selected profile path is missing', () => {
     const dir = createTempDir();
-    writeFile(path.join(dir, '.cursor', 'skills', 'migrate-to-oz-uikit', 'SKILL.md'), '# skill');
+    writeFile(path.join(dir, '.agents', 'skills', 'migrate-to-oz-uikit', 'SKILL.md'), '# skill');
+    // Missing .claude mirror expected by selected profiles
 
     const task: MigrationTask = {
       id: 'setup-copy-skill',
@@ -119,17 +120,39 @@ describe('checkTask', () => {
       description: 'Copy migration skill file to project',
     };
 
-    const result = checkTask(task, dir);
-    expect(result.passed).toBe(true);
-    expect(result.severity).toBe('warning');
-    expect(result.warnings?.join('\n')).toMatch(/\.claude\/skills/);
+    const result = checkTask(task, dir, { agentAssetProfiles: ['standard', 'claude'] });
+    expect(result.passed).toBe(false);
+    expect(result.diagnostics.join('\n')).toMatch(/\.claude\/skills/);
   });
 
-  it('passes when analyzer, executor, and verifier agents exist in Cursor', () => {
+  it('passes copy-skill for legacy-cursor+claude when only those paths are present', () => {
     const dir = createTempDir();
-    writeFile(path.join(dir, '.cursor', 'agents', 'migration-analyzer.md'), '# analyzer');
-    writeFile(path.join(dir, '.cursor', 'agents', 'migration-executor.md'), '# executor');
-    writeFile(path.join(dir, '.cursor', 'agents', 'migration-verifier.md'), '# verifier');
+    writeFile(path.join(dir, '.cursor', 'skills', 'migrate-to-oz-uikit', 'SKILL.md'), '# a');
+    writeFile(path.join(dir, '.claude', 'skills', 'migrate-to-oz-uikit', 'SKILL.md'), '# b');
+
+    const task: MigrationTask = {
+      id: 'setup-copy-skill',
+      phase: 'setup',
+      type: 'copy-skill',
+      status: 'pending',
+      description: 'Copy migration skill file to project',
+    };
+
+    const result = checkTask(task, dir, { agentAssetProfiles: ['legacy-cursor', 'claude'] });
+    expect(result.passed).toBe(true);
+    expect(result.severity).toBe('pass');
+  });
+
+  it('passes when analyzer, executor, and verifier agents exist for selected cursor+claude layout', () => {
+    const dir = createTempDir();
+    for (const name of [
+      'migration-analyzer',
+      'migration-executor',
+      'migration-verifier',
+    ] as const) {
+      writeFile(path.join(dir, '.cursor', 'agents', `${name}.md`), `# ${name}`);
+      writeFile(path.join(dir, '.claude', 'agents', `${name}.md`), `# ${name}`);
+    }
 
     const task: MigrationTask = {
       id: 'setup-copy-agents',
@@ -139,7 +162,7 @@ describe('checkTask', () => {
       description: 'Copy migration agent files to project',
     };
 
-    const result = checkTask(task, dir);
+    const result = checkTask(task, dir, { agentAssetProfiles: ['standard', 'claude'] });
     expect(result.passed).toBe(true);
     expect(result.diagnostics.join('\n')).toMatch(/migration-executor/);
   });

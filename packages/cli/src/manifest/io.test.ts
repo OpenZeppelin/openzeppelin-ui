@@ -33,6 +33,7 @@ describe('createEmptyManifest', () => {
     const manifest = createEmptyManifest('/tmp/project', {
       catalogVersion: '1.0.0',
       targetOzVersion: '0.1.0',
+      agentAssetProfiles: ['standard', 'claude'],
       framework: 'vite',
       sourceLibrary: 'shadcn',
     });
@@ -40,6 +41,7 @@ describe('createEmptyManifest', () => {
     expect(manifest.schemaVersion).toBe('1.0.0');
     expect(manifest.framework).toBe('vite');
     expect(manifest.sourceLibrary).toBe('shadcn');
+    expect(manifest.agentAssetProfiles).toEqual(['standard', 'claude']);
     expect(manifest.tasks).toEqual([]);
     expect(manifest.phases).toHaveLength(7);
     expect(manifest.phaseDescriptions?.setup).toMatch(/Foundation/);
@@ -53,6 +55,7 @@ describe('writeManifest / readManifest', () => {
     const manifest = createEmptyManifest(dir, {
       catalogVersion: '1.0.0',
       targetOzVersion: '0.1.0',
+      agentAssetProfiles: ['standard', 'claude'],
       framework: 'vite',
       sourceLibrary: null,
     });
@@ -67,6 +70,38 @@ describe('writeManifest / readManifest', () => {
   it('throws when manifest is missing', () => {
     expect(() => readManifest('/nonexistent/path/manifest.json')).toThrow(/Manifest not found/);
   });
+
+  it('throws when agentAssetProfiles is missing', () => {
+    const dir = createTempDir();
+    const manifestPath = path.join(dir, 'migration-manifest.json');
+    const manifest = createEmptyManifest(dir, {
+      catalogVersion: '1.0.0',
+      targetOzVersion: '0.1.0',
+      agentAssetProfiles: ['standard'],
+      framework: 'vite',
+      sourceLibrary: null,
+    });
+    delete (manifest as Partial<MigrationManifest>).agentAssetProfiles;
+    writeManifest(manifestPath, manifest as MigrationManifest);
+
+    expect(() => readManifest(manifestPath)).toThrow(/missing agentAssetProfiles/);
+  });
+
+  it('throws when agentAssetProfiles has invalid entries', () => {
+    const dir = createTempDir();
+    const manifestPath = path.join(dir, 'migration-manifest.json');
+    const manifest = createEmptyManifest(dir, {
+      catalogVersion: '1.0.0',
+      targetOzVersion: '0.1.0',
+      agentAssetProfiles: ['standard', 'claude'],
+      framework: 'vite',
+      sourceLibrary: null,
+    });
+    (manifest as { agentAssetProfiles?: string[] }).agentAssetProfiles = ['invalid'];
+    writeManifest(manifestPath, manifest);
+
+    expect(() => readManifest(manifestPath)).toThrow(/Invalid agentAssetProfiles/);
+  });
 });
 
 describe('updateTaskStatus', () => {
@@ -74,6 +109,7 @@ describe('updateTaskStatus', () => {
     const manifest = createEmptyManifest('/tmp/project', {
       catalogVersion: '1.0.0',
       targetOzVersion: '0.1.0',
+      agentAssetProfiles: ['standard', 'claude'],
       framework: 'vite',
       sourceLibrary: null,
     });
@@ -95,6 +131,7 @@ describe('updateTaskStatus', () => {
     const manifest = createEmptyManifest('/tmp/project', {
       catalogVersion: '1.0.0',
       targetOzVersion: '0.1.0',
+      agentAssetProfiles: ['standard', 'claude'],
       framework: 'vite',
       sourceLibrary: null,
     });
@@ -117,6 +154,7 @@ describe('updateTaskStatus', () => {
     const manifest = createEmptyManifest('/tmp/project', {
       catalogVersion: '1.0.0',
       targetOzVersion: '0.1.0',
+      agentAssetProfiles: ['standard', 'claude'],
       framework: 'vite',
       sourceLibrary: null,
     });
@@ -130,6 +168,7 @@ describe('updateTaskStatus', () => {
     const manifest = createEmptyManifest('/tmp/project', {
       catalogVersion: '1.0.0',
       targetOzVersion: '0.1.0',
+      agentAssetProfiles: ['standard', 'claude'],
       framework: 'vite',
       sourceLibrary: null,
     });
@@ -154,6 +193,7 @@ describe('transitionTaskStatus', () => {
     const manifest = createEmptyManifest('/tmp/project', {
       catalogVersion: '1.0.0',
       targetOzVersion: '0.1.0',
+      agentAssetProfiles: ['standard', 'claude'],
       framework: 'vite',
       sourceLibrary: null,
     });
@@ -176,6 +216,7 @@ describe('transitionTaskStatus', () => {
     const manifest = createEmptyManifest('/tmp/project', {
       catalogVersion: '1.0.0',
       targetOzVersion: '0.1.0',
+      agentAssetProfiles: ['standard', 'claude'],
       framework: 'vite',
       sourceLibrary: null,
     });
@@ -201,6 +242,7 @@ describe('computePhaseProgress', () => {
       ...createEmptyManifest('/tmp/project', {
         catalogVersion: '1.0.0',
         targetOzVersion: '0.1.0',
+        agentAssetProfiles: ['standard', 'claude'],
         framework: 'vite',
         sourceLibrary: null,
       }),
