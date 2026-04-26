@@ -57,6 +57,7 @@
   "license": "AGPL-3.0",
   "dependencies": {
     "@clack/prompts": "^0.10.0",
+    "@openzeppelin/ui-tailwind-utils": "workspace:*",
     "commander": "^13.1.0",
     "picocolors": "^1.1.1"
   },

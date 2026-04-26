@@ -293,21 +293,48 @@ function rewriteDependencies(pkg, context, cacheDir, familyKey, family) {
   }
 }
 
-function readPackage(pkg, context) {
-  if (!isAnyLocalFamilyEnabled()) {
-    return pkg;
-  }
-
-  const workspaceRoot = __dirname;
-  const projectConfig = readProjectConfig(workspaceRoot);
-
-  for (const [familyKey, family] of Object.entries(projectConfig.families)) {
-    if (process.env[family.envFlag] !== 'true') {
-      continue;
+/**
+ * Widen caret ranges on adapter packages so pnpm can resolve pre-release
+ * versions (e.g. 2.0.0-rc.1) that a plain ^2.0.0 would exclude.
+ * Follows standard caret semantics for the upper bound.
+ * Skips deps already rewritten to file: paths by local-dev mode.
+ */
+function allowAdapterPrereleases(pkg) {
+  for (const depType of ['dependencies', 'devDependencies']) {
+    if (!pkg[depType]) continue;
+    for (const [name, range] of Object.entries(pkg[depType])) {
+      if (typeof range !== 'string') continue;
+      if (!name.startsWith('@openzeppelin/adapter') && !name.startsWith('@openzeppelin/adapters-'))
+        continue;
+      if (!range.startsWith('^')) continue;
+      const m = range.slice(1).match(/^(\\d+)\\.(\\d+)\\.(\\d+)$/);
+      if (!m) continue;
+      const maj = Number(m[1]), min = Number(m[2]), pat = Number(m[3]);
+      const upper = maj > 0
+        ? \`\${maj + 1}.0.0\`
+        : min > 0
+          ? \`0.\${min + 1}.0\`
+          : \`0.0.\${pat + 1}\`;
+      pkg[depType][name] = \`>=\${maj}.\${min}.\${pat}-0 <\${upper}\`;
     }
-
-    rewriteDependencies(pkg, context, projectConfig.cacheDir, familyKey, family);
   }
+}
+
+function readPackage(pkg, context) {
+  if (isAnyLocalFamilyEnabled()) {
+    const workspaceRoot = __dirname;
+    const projectConfig = readProjectConfig(workspaceRoot);
+
+    for (const [familyKey, family] of Object.entries(projectConfig.families)) {
+      if (process.env[family.envFlag] !== 'true') {
+        continue;
+      }
+
+      rewriteDependencies(pkg, context, projectConfig.cacheDir, familyKey, family);
+    }
+  }
+
+  allowAdapterPrereleases(pkg);
 
   return pkg;
 }

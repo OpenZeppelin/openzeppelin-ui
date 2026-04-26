@@ -1,0 +1,52 @@
+{
+  "name": "@openzeppelin/ui-tailwind-utils",
+  "private": false,
+  "version": "0.1.0",
+  "description": "Shared Tailwind CSS normalization logic for OpenZeppelin UI CLIs.",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/index.d.mts",
+        "require": "./dist/index.d.cts"
+      },
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenZeppelin/openzeppelin-ui",
+    "directory": "packages/tailwind-utils"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint \"src/**/*.ts\" --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint \"src/**/*.ts\" --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\""
+  },
+  "author": "OpenZeppelin",
+  "license": "AGPL-3.0",
+  "devDependencies": {
+    "@types/node": "^22.19.15",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}

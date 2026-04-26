@@ -1,11 +1,12 @@
 import pc from 'picocolors';
 
-import { DoctorResult, StatusResult, UseLocalResult, UseRemoteResult } from '../lib/localDev';
-import {
+import type {
   TailwindDoctorResult,
   TailwindFixResult,
   TailwindPrintResult,
-} from '../lib/tailwind/types';
+} from '@openzeppelin/ui-tailwind-utils';
+
+import { DoctorResult, StatusResult, UseLocalResult, UseRemoteResult } from '../lib/localDev';
 
 function writeStdout(message: string): void {
   process.stdout.write(`${message}\n`);
