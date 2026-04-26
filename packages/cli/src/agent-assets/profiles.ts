@@ -108,6 +108,9 @@ export function parseAgentProfileArg(raw: string | undefined): AgentAssetProfile
   return out;
 }
 
+/**
+ * @description Type guard for manifest and stored profile id strings.
+ */
 export function isAgentAssetProfile(value: string): value is AgentAssetProfile {
   return (AGENT_ASSET_PROFILE_IDS as readonly string[]).includes(value);
 }
@@ -146,10 +149,17 @@ function validateAgentProfiles(profiles: unknown): AgentAssetProfile[] {
   return profiles;
 }
 
+/**
+ * @description Absolute path to the init persistence file for `agentAssetProfiles`.
+ */
 export function getAgentProfileSelectionPath(projectRoot: string): string {
   return path.join(projectRoot, AGENT_PROFILE_SELECTION_FILENAME);
 }
 
+/**
+ * @description Writes the chosen profiles to disk so `migrate plan` can load them without repeating flags.
+ * @returns Relative path of the written file (for CLI output).
+ */
 export function writeAgentProfileSelection(
   projectRoot: string,
   profiles: readonly AgentAssetProfile[]
@@ -163,6 +173,9 @@ export function writeAgentProfileSelection(
   return AGENT_PROFILE_SELECTION_FILENAME;
 }
 
+/**
+ * @description Reads profiles written by `writeAgentProfileSelection`; used when generating the migration manifest.
+ */
 export function readAgentProfileSelection(projectRoot: string): AgentAssetProfile[] {
   const filePath = getAgentProfileSelectionPath(projectRoot);
   if (!fs.existsSync(filePath)) {
@@ -194,6 +207,9 @@ export function expectedSkillPathsForProfiles(profiles: AgentAssetProfile[]): st
   return skillDirectoriesForProfiles(profiles).map((directory) => `${directory}/SKILL.md`);
 }
 
+/**
+ * @description Unique agent template destination roots (e.g. `.cursor/agents`) for the given profiles.
+ */
 export function agentDirectoriesForProfiles(profiles: readonly AgentAssetProfile[]): string[] {
   const directories = new Set<string>();
   for (const profile of profiles) {
@@ -205,6 +221,9 @@ export function agentDirectoriesForProfiles(profiles: readonly AgentAssetProfile
   return [...directories].sort();
 }
 
+/**
+ * @description Skill install directory per profile (under `AGENT_ASSET_PROFILE_REGISTRY`), de-duplicated.
+ */
 export function skillDirectoriesForProfiles(profiles: readonly AgentAssetProfile[]): string[] {
   return [
     ...new Set(profiles.map((profile) => AGENT_ASSET_PROFILE_REGISTRY[profile].skillDirectory)),
