@@ -146,6 +146,33 @@ describe('migrate command JSON output', () => {
     expect(Array.isArray(payload.templatesWritten)).toBe(true);
   });
 
+  it('init --json reuses a stored --agent-profile when the flag is omitted', async () => {
+    const dir = createTempDir();
+    writeJson(path.join(dir, 'package.json'), {
+      name: 'fixture-app',
+      version: '0.0.0',
+      type: 'module',
+      dependencies: {
+        react: '^19.0.0',
+      },
+    });
+    writeAgentProfileSelection(dir, ['standard', 'claude']);
+
+    const root = new Command();
+    registerInitCommand(root);
+
+    const stdout = await captureStdout(async () => {
+      await root.parseAsync(['init', '--project', dir, '--skip-install', '--json'], {
+        from: 'user',
+      });
+    });
+
+    const payload = JSON.parse(stdout);
+    expect(payload.action).toBe('migrate-init');
+    expect(payload.ok).toBe(true);
+    expect(payload.agentAssetProfiles).toEqual(['standard', 'claude']);
+  });
+
   it('analyze --json returns a structured payload with the report nested', async () => {
     const dir = createTempDir();
     createAnalyzeFixture(dir);

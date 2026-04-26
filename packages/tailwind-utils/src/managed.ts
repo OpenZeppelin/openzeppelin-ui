@@ -2,9 +2,41 @@ import fs from 'node:fs';
 
 import type { TailwindBrandingOptions, TailwindProjectContext, TailwindSourcePlan } from './types';
 
+function isIdentLikeSelectorOpenBlock(trimmedLine: string): boolean {
+  const openBrace = trimmedLine.indexOf('{');
+  if (openBrace === -1) {
+    return false;
+  }
+  const beforeBrace = trimmedLine.slice(0, openBrace);
+  const idPart = beforeBrace.trimEnd();
+  if (idPart.length === 0) {
+    return false;
+  }
+  if (!/^[a-zA-Z_-]$/u.test(idPart[0]!)) {
+    return false;
+  }
+  for (let i = 1; i < idPart.length; i += 1) {
+    if (!/[\w-]/u.test(idPart[i]!)) {
+      return false;
+    }
+  }
+  for (let j = idPart.length; j < beforeBrace.length; j += 1) {
+    const w = beforeBrace[j]!;
+    if (w !== ' ' && w !== '\t' && w !== '\n' && w !== '\r') {
+      return false;
+    }
+  }
+  return true;
+}
+
 function isAppSpecificStart(line: string): boolean {
   const trimmedLine = line.trim();
   if (trimmedLine === '') {
+    return false;
+  }
+
+  // Avoid unbounded regex backtracking on adversarial CSS lines (CodeQL ReDoS).
+  if (trimmedLine.length > 20_000) {
     return false;
   }
 
@@ -14,12 +46,19 @@ function isAppSpecificStart(line: string): boolean {
     !trimmedLine.endsWith(';') &&
     trimmedLine.slice('@layer '.length, -1).trim().length > 0;
 
-  return (
-    (isLayerBlock && trimmedLine !== '@layer base, components, utilities;') ||
-    trimmedLine.startsWith('@keyframes ') ||
-    /^[.#[:]/.test(trimmedLine) ||
-    /^[a-zA-Z_-][\w-]*\s*\{/.test(trimmedLine)
-  );
+  if (isLayerBlock && trimmedLine !== '@layer base, components, utilities;') {
+    return true;
+  }
+  if (trimmedLine.startsWith('@keyframes ')) {
+    return true;
+  }
+
+  const c0 = trimmedLine[0]!;
+  if (c0 === '.' || c0 === '#' || c0 === '[' || c0 === ':') {
+    return true;
+  }
+
+  return isIdentLikeSelectorOpenBlock(trimmedLine);
 }
 
 function isRecognizedSetupDirective(line: string): boolean {

@@ -7,6 +7,7 @@ import {
   AGENT_PROFILE_SELECTION_FILENAME,
   parseAgentProfileArg,
   readAgentProfileSelection,
+  resolveAgentProfilesForInit,
   writeAgentProfileSelection,
 } from './profiles';
 
@@ -66,5 +67,25 @@ describe('agent profile selection persistence', () => {
     const dir = createTempDir();
 
     expect(() => readAgentProfileSelection(dir)).toThrow(/Agent profile selection not found/);
+  });
+});
+
+describe('resolveAgentProfilesForInit', () => {
+  it('reuses a stored selection when --agent-profile is omitted', () => {
+    const dir = createTempDir();
+    writeAgentProfileSelection(dir, ['claude', 'standard']);
+    expect(resolveAgentProfilesForInit(dir, undefined)).toEqual(['claude', 'standard']);
+  });
+
+  it('uses explicit --agent-profile when set', () => {
+    const dir = createTempDir();
+    expect(resolveAgentProfilesForInit(dir, 'none')).toEqual([]);
+  });
+
+  it('throws if profile is omitted and there is no stored file', () => {
+    const dir = createTempDir();
+    expect(() => resolveAgentProfilesForInit(dir, undefined)).toThrow(
+      /Missing required --agent-profile/
+    );
   });
 });

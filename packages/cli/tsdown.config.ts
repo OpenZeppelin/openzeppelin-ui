@@ -7,6 +7,6 @@ export default defineConfig({
   dts: true,
   clean: true,
   sourcemap: true,
-  // Private monorepo package — bundle it so published @openzeppelin/ui-cli does not depend on npm.
+  // Internal package — bundle into the published tarball so @openzeppelin/ui-cli has no extra runtime dependency.
   noExternal: ['@openzeppelin/ui-tailwind-utils'],
 });

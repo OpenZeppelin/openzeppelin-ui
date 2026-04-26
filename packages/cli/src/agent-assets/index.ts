@@ -10,6 +10,7 @@ export {
   isAgentAssetProfile,
   parseAgentProfileArg,
   readAgentProfileSelection,
+  resolveAgentProfilesForInit,
   resolveManifestAgentProfiles,
   skillDirectoriesForProfiles,
   writeAgentProfileSelection,

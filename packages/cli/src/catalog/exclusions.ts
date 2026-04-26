@@ -12,6 +12,38 @@ export interface ExclusionList {
 
 let cached: ExclusionList | null = null;
 
+function readExclusionListFile(filePath: string): ExclusionList {
+  const data: unknown = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  if (data === null || typeof data !== 'object' || Array.isArray(data)) {
+    return { excludedLibraries: [], excludedPatterns: [] };
+  }
+  const o = data as Record<string, unknown>;
+  const excludedLibraries = Array.isArray(o.excludedLibraries)
+    ? o.excludedLibraries.filter((e): e is string => typeof e === 'string')
+    : [];
+  const excludedPatterns = Array.isArray(o.excludedPatterns)
+    ? o.excludedPatterns.filter((e): e is string => typeof e === 'string')
+    : [];
+
+  let walletPatternPathExclusions: ExclusionList['walletPatternPathExclusions'];
+  if (
+    o.walletPatternPathExclusions &&
+    typeof o.walletPatternPathExclusions === 'object' &&
+    o.walletPatternPathExclusions !== null
+  ) {
+    const w = o.walletPatternPathExclusions as Record<string, unknown>;
+    const next: NonNullable<ExclusionList['walletPatternPathExclusions']> = {};
+    for (const [key, val] of Object.entries(w)) {
+      if (Array.isArray(val) && val.every((v): v is string => typeof v === 'string')) {
+        next[key] = val;
+      }
+    }
+    walletPatternPathExclusions = Object.keys(next).length > 0 ? next : undefined;
+  }
+
+  return { excludedLibraries, excludedPatterns, walletPatternPathExclusions };
+}
+
 /** @description Loads and caches catalog exclusion rules from exclusions.json. */
 export function loadExclusions(): ExclusionList {
   if (cached) return cached;
@@ -22,7 +54,7 @@ export function loadExclusions(): ExclusionList {
     return cached;
   }
 
-  cached = JSON.parse(fs.readFileSync(filePath, 'utf8')) as ExclusionList;
+  cached = readExclusionListFile(filePath);
   return cached;
 }
 

@@ -46,6 +46,28 @@ export const AGENT_ASSET_PROFILE_IDS = Object.keys(
 ) as AgentAssetProfile[];
 
 /**
+ * @description For `migrate init`: uses `--agent-profile` when set; when omitted, reuses profiles from `.oz-ui-migrate.json` after a previous init.
+ * @returns Resolved profile list, or throws if the flag is missing and there is no stored selection.
+ */
+export function resolveAgentProfilesForInit(
+  projectRoot: string,
+  raw: string | undefined
+): AgentAssetProfile[] {
+  if (raw !== undefined && raw.trim() !== '') {
+    return parseAgentProfileArg(raw);
+  }
+  try {
+    return readAgentProfileSelection(projectRoot);
+  } catch {
+    throw new Error(
+      `Missing required --agent-profile. Choose one of: ${AGENT_ASSET_PROFILE_IDS.join(
+        ', '
+      )}, all, none. (After the first run, you may omit it to reuse the stored selection in ${AGENT_PROFILE_SELECTION_FILENAME}.)`
+    );
+  }
+}
+
+/**
  * @description Comma- / repeated-flag friendly parser for `oz-ui migrate init --agent-profile`.
  * - `all` → every profile; `none` → empty; missing/blank values fail because the user must choose.
  */

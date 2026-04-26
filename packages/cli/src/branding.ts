@@ -4,7 +4,8 @@ import type { PackageFamilyMap, TailwindBrandingOptions } from '@openzeppelin/ui
 
 export const CLI_BRANDING: TailwindBrandingOptions = {
   managedComment: '/* Managed by oz-ui migrate init */',
-  suggestedFixCommand: 'oz-ui migrate doctor --manifest migration-manifest.json',
+  // Tailwind auto-fixes run as part of migrate init; doctor verifies state afterward.
+  suggestedFixCommand: 'npx oz-ui migrate init --project .',
 };
 
 export const CLI_FAMILIES: PackageFamilyMap = {

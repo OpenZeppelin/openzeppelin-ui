@@ -3,7 +3,7 @@ import path from 'node:path';
 import { Command } from 'commander';
 import pc from 'picocolors';
 
-import { parseAgentProfileArg } from '../../agent-assets';
+import { resolveAgentProfilesForInit } from '../../agent-assets';
 import { CLI_VERSION } from '../../branding';
 import { runSetup } from '../../init/setup';
 import { detectFramework, detectPackageManager } from '../../utils/framework';
@@ -48,7 +48,7 @@ export function registerInitCommand(parent: Command): void {
     .option('--skip-install', 'Skip package installation')
     .option(
       '--agent-profile <list>',
-      'Required. Where to install migration assets: comma-separated standard, claude, legacy-cursor, or all, none'
+      'Required on first init: comma-separated standard, claude, legacy-cursor, all, or none. On later inits, omit to reuse the selection stored in .oz-ui-migrate.json'
     )
     .action((options: InitOptions) => {
       try {
@@ -61,7 +61,7 @@ export function registerInitCommand(parent: Command): void {
         const framework = detectFramework(projectRoot);
         const packageManager = detectPackageManager(projectRoot);
 
-        const agentAssetProfiles = parseAgentProfileArg(options.agentProfile);
+        const agentAssetProfiles = resolveAgentProfilesForInit(projectRoot, options.agentProfile);
 
         const {
           packagesInstalled,
