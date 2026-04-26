@@ -1,5 +1,25 @@
 # @openzeppelin/ui-dev-cli
 
+## 0.6.0
+
+### Minor Changes
+
+- [#138](https://github.com/OpenZeppelin/openzeppelin-ui/pull/138) [`dee027a`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/dee027af1eb070715cd2811571c867b364573b00) Thanks [@pasevin](https://github.com/pasevin)! - Add `allowAdapterPrereleases` hook to the generated `.pnpmfile.cjs` so consumer
+  apps can resolve pre-release adapter versions (e.g. `2.0.0-rc.1`) without manual
+  pnpmfile edits. Uses correct caret semantics for `0.x` upper bounds.
+
+### Patch Changes
+
+- [#138](https://github.com/OpenZeppelin/openzeppelin-ui/pull/138) [`549a438`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/549a438b14e55a21d279330709fc0c1031a251cf) Thanks [@pasevin](https://github.com/pasevin)! - Publish `@openzeppelin/ui-tailwind-utils` on npm so `@openzeppelin/ui-dev-cli` can resolve its runtime dependency outside the monorepo.
+
+- [#113](https://github.com/OpenZeppelin/openzeppelin-ui/pull/113) [`f88f86b`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/f88f86bb9be61fdb42c58143164df7267671a027) Thanks [@pasevin](https://github.com/pasevin)! - Fix local adapter development installs by resolving first-party workspace packages that are
+  outside the public family package map. Derive pnpmfile family data from the canonical
+  `STANDARD_FAMILIES` definition instead of maintaining a hardcoded duplicate. Also formalize
+  partial `UiKitConfiguration` overrides in the public types and ensure wallet state initializes
+  adapter-managed UI kits consistently.
+- Updated dependencies [[`549a438`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/549a438b14e55a21d279330709fc0c1031a251cf)]:
+  - @openzeppelin/ui-tailwind-utils@0.1.1
+
 ## 0.5.1
 
 ### Patch Changes
