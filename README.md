@@ -191,6 +191,8 @@ This project uses [GitHub Speckit](https://github.com/github/spec-kit) for spec-
 
 - [Migration Guide](./docs/MIGRATION.md) - Migrate from `@openzeppelin/ui-builder-`* packages
 - [LLM-led migration reference](./packages/cli/docs/LLM_MIGRATION_REFERENCE.md) - AI-assisted workflow for `@openzeppelin/ui-cli` (optional)
+- [CLI create matrix](./packages/cli/docs/CREATE_MATRIX.md) - Presets, options, features, generated files, and supported combinations for `oz-ui create`
+- [CLI create recipes](./packages/cli/docs/CREATE_RECIPES.md) - Architecture for `oz-ui create` presets, layouts, and feature combinations
 - [DevOps Setup Guide](./docs/DEVOPS_SETUP.md) - CI/CD secrets and GitHub App configuration
 - [Operations Runbook](./docs/RUNBOOK.md) - Release management and incident procedures
 
