@@ -1,5 +1,7 @@
 # `oz-ui create` Recipes
 
+For the user-facing preset and generated-output reference, see [Create matrix](./CREATE_MATRIX.md).
+
 The `create` command resolves user input in two stages:
 
 1. `resolveCreateOptions` validates CLI flags and expands feature implications.

@@ -95,8 +95,11 @@ export function registerCreateCommand(program: Command): void {
     .option('--ecosystem <ecosystem>', 'Target ecosystem (v1: evm)', 'evm')
     .option('--wallet <wallet>', 'none, custom, or rainbowkit')
     .option('--routing <routing>', 'none or react-router')
-    .option('--with <features>', 'Comma-separated feature toggles to include')
-    .option('--without <features>', 'Comma-separated feature toggles to exclude')
+    .option(
+      '--with <features>',
+      'Comma-separated features: wallet, router, sidebar, theme, toasts, tooltips, wizard, status-panel'
+    )
+    .option('--without <features>', 'Comma-separated features to remove from the preset defaults')
     .option('--package-manager <pm>', 'npm, pnpm, or yarn')
     .option('--skip-install', 'Generate files without installing dependencies')
     .option('--force', 'Overwrite generated files in a non-empty target directory')

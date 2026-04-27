@@ -267,6 +267,81 @@ describe('create command', () => {
     );
   });
 
+  it('generates no wallet wiring when wallet is disabled', async () => {
+    const dir = createTempDir();
+    const stdout = await runCreate([
+      'no-wallet-app',
+      '--directory',
+      dir,
+      '--preset',
+      'dapp',
+      '--wallet',
+      'none',
+      '--skip-install',
+      '--yes',
+      '--json',
+    ]);
+    const payload = JSON.parse(stdout);
+    const projectRoot = path.join(dir, 'no-wallet-app');
+    const packageJson = readFile(path.join(projectRoot, 'package.json'));
+    const app = readFile(path.join(projectRoot, 'src', 'App.tsx'));
+
+    expect(payload.wallet).toBe('none');
+    expect(payload.features).not.toContain('wallet');
+    expect(fs.existsSync(path.join(projectRoot, 'src', 'oz'))).toBe(false);
+    expect(packageJson).not.toContain('@wagmi/core');
+    expect(packageJson).not.toContain('@openzeppelin/ui-react');
+    expect(app).toContain('<div className="ml-auto">{null}</div>');
+  });
+
+  it('respects removable optional features', async () => {
+    const dir = createTempDir();
+    const stdout = await runCreate([
+      'quiet-app',
+      '--directory',
+      dir,
+      '--preset',
+      'dapp',
+      '--without',
+      'toasts,status-panel',
+      '--skip-install',
+      '--yes',
+      '--json',
+    ]);
+    const payload = JSON.parse(stdout);
+    const projectRoot = path.join(dir, 'quiet-app');
+    const main = readFile(path.join(projectRoot, 'src', 'main.tsx'));
+    const app = readFile(path.join(projectRoot, 'src', 'App.tsx'));
+
+    expect(payload.features).not.toContain('toasts');
+    expect(payload.features).not.toContain('status-panel');
+    expect(main).not.toContain('Toaster');
+    expect(app).not.toContain('RuntimeStatus');
+    expect(fs.existsSync(path.join(projectRoot, 'src', 'components', 'RuntimeStatus.tsx'))).toBe(
+      false
+    );
+  });
+
+  it('documents available feature names in create help', async () => {
+    const root = new Command();
+    registerCreateCommand(root);
+    const createCommand = root.commands.find((command) => command.name() === 'create');
+    const stdout = createCommand?.helpInformation() ?? '';
+
+    for (const feature of [
+      'wallet',
+      'router',
+      'sidebar',
+      'theme',
+      'toasts',
+      'tooltips',
+      'wizard',
+    ]) {
+      expect(stdout).toContain(feature);
+    }
+    expect(stdout).toContain('status-panel');
+  });
+
   it('rejects contradictory wallet options', async () => {
     const dir = createTempDir();
 
