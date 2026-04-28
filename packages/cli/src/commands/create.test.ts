@@ -4,6 +4,8 @@ import path from 'node:path';
 import { Command } from 'commander';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { CLI_PACKAGE_NAME, JSON_SCHEMA_VERSION } from './migrate/json-results';
+
 import { resolveCreateOptions } from '../create/options';
 import { resolveCreateAppSpec } from '../create/recipes';
 import { scaffoldProject } from '../create/scaffold';
@@ -69,6 +71,8 @@ describe('create command', () => {
 
     expect(payload.action).toBe('create');
     expect(payload.ok).toBe(true);
+    expect(payload.schemaVersion).toBe(JSON_SCHEMA_VERSION);
+    expect(payload.cli).toEqual({ name: CLI_PACKAGE_NAME, version: expect.any(String) });
     expect(payload.preset).toBe('dapp');
     expect(payload.wallet).toBe('custom');
     expect(payload.routing).toBe('none');

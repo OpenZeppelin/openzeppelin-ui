@@ -124,6 +124,46 @@ oz-ui migrate complete --manifest migration-manifest.json --task <task-id>
 oz-ui migrate fail --manifest migration-manifest.json --task <task-id> --reason "<blocker>"
 ```
 
+## JSON output envelope
+
+Every `oz-ui --json` payload (success **and** error) ships with a stable envelope so agents and CI can detect drift without parsing command-specific fields:
+
+
+| Field               | Description                                                                                              |
+| ------------------- | -------------------------------------------------------------------------------------------------------- |
+| `schemaVersion`     | Semantic version of the JSON envelope contract. Bumped on breaking changes to the agent-facing payloads. |
+| `cli.name`          | Always `@openzeppelin/ui-cli`.                                                                           |
+| `cli.version`       | Version of the binary that produced the output.                                                          |
+| `ok`                | `true` for successful runs, `false` for errors.                                                          |
+| `action`            | Command identifier such as `create`, `migrate-init`, `migrate-analyze`. Absent on error payloads.        |
+
+
+Example success payload (truncated):
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "cli": { "name": "@openzeppelin/ui-cli", "version": "0.1.0" },
+  "ok": true,
+  "action": "create",
+  "preset": "dapp",
+  "filesWritten": ["package.json", "src/main.tsx", "src/App.tsx"]
+}
+```
+
+Example error payload:
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "cli": { "name": "@openzeppelin/ui-cli", "version": "0.1.0" },
+  "ok": false,
+  "error": "Project name is required."
+}
+```
+
+Agent guidance: read `schemaVersion` once at startup and refuse to operate when the major version is newer than supported, mirroring the `migration-manifest.json` versioning model.
+
 ## Development
 
 ```bash
