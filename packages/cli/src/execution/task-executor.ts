@@ -4,6 +4,7 @@ import path from 'node:path';
 import {
   expectedAgentPathsForProfiles,
   expectedSkillPathsForProfiles,
+  MIGRATE_SKILL_ID,
   resolveManifestAgentProfiles,
   type AgentAssetProfile,
 } from '../agent-assets';
@@ -182,7 +183,7 @@ function executeSetupTask(
         };
       }
       case 'copy-skill': {
-        const files = expectedSkillPathsForProfiles(agentAssetProfiles);
+        const files = expectedSkillPathsForProfiles(agentAssetProfiles, MIGRATE_SKILL_ID);
         return {
           changedFiles: files,
           instructions:

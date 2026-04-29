@@ -36,6 +36,19 @@ The `oz-ui` binary is organized by **command group** (e.g. `oz-ui <group> …`).
 
 The create internals use normalized layout/content recipes so feature combinations such as `--preset wizard --with sidebar` keep the wizard as the primary content while changing only the surrounding shell. See the [create recipes architecture](./docs/CREATE_RECIPES.md).
 
+All `oz-ui create`  subcommands support `--json` and return machine-readable payloads with an `action` field plus command-specific data. Invoke each row as `oz-ui create <subcommand>` (or `npx` / `pnpm exec` as needed). The bare command (no subcommand) scaffolds a project; `init` only installs the AI skill.
+
+
+| Subcommand       | Description                                                                                                                                                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[project-name]` | Default action (no subcommand). Scaffold a new Vite + React + TypeScript app with OpenZeppelin UI wiring. Human mode runs an interactive prompt flow; agents and CI should pass `--yes --json`.                  |
+| `init`           | Install the `scaffold-dapp` AI skill into a workspace so an assistant can orchestrate `oz-ui create` from natural-language intent. Does **not** generate project files. Requires `--agent-profile` on first run. |
+
+
+#### `create [project-name]`
+
+Generates a runnable app under `<project-name>/` with the selected preset, wallet, and feature toggles.
+
 
 | Preset      | Description                                                                                                       |
 | ----------- | ----------------------------------------------------------------------------------------------------------------- |
@@ -44,8 +57,6 @@ The create internals use normalized layout/content recipes so feature combinatio
 | `app-shell` | Adds React Router, sidebar/header/footer shell, and placeholder routes. Sidebar implies router.                   |
 | `wizard`    | Adds a generic multi-step wizard shell for guided workflows.                                                      |
 
-
-Key options:
 
 
 | Option                 | Description                                                                                   |
@@ -79,7 +90,32 @@ Generated apps keep OpenZeppelin-specific integration code in `src/oz/` so it is
 - `src/oz/config.ts` initializes `appConfigService`
 - `public/app.config.json` stores runtime service defaults
 
-Create documentation:
+#### `create init`
+
+Installs the `scaffold-dapp` skill template into the selected agent profile destinations and records the selection in `.oz-ui-create.json` so follow-up runs can reuse it. Run it from a *parent* directory like `~/projects` — the skill is most useful before a new project exists.
+
+
+| Option                   | Description                                                                                                                                                             |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--target <path>`        | Workspace directory where skill assets and `.oz-ui-create.json` are written. Defaults to the current directory.                                                         |
+| `--agent-profile <list>` | Comma-separated list: `standard`, `claude`, `legacy-cursor`, `all`, or `none`. Required on first run; on subsequent runs you can omit it to reuse the stored selection. |
+| `--json`                 | Emit a machine-readable payload with `action: "create-init"`.                                                                                                           |
+
+
+Examples:
+
+```bash
+# Install for Claude Code and the shared .agents directory
+oz-ui create init --agent-profile claude,standard
+
+# Install for legacy Cursor (.cursor/skills) only
+oz-ui create init --agent-profile legacy-cursor
+
+# Re-run after editing the skill template; reuses the stored selection
+oz-ui create init
+```
+
+#### Create documentation
 
 - [Create generation matrix](./docs/CREATE_MATRIX.md) - User-facing matrix of presets, options, features, generated files, and combinations.
 - [Create recipes architecture](./docs/CREATE_RECIPES.md) - How `oz-ui create` resolves presets, layouts, content, and feature combinations.
@@ -88,7 +124,7 @@ Create documentation:
 
 > **Experimental** — Migration features are under active development. Do not expect perfect automation on every project. The workflow uses deterministic `oz-ui migrate` commands and has been exercised on small- to medium-sized apps; it should still beat a fully manual migration. For the full disclaimer and an **LLM-assisted** flow (prompts, manifest workflow, skills), see the [LLM-led migration reference](./docs/LLM_MIGRATION_REFERENCE.md) ([on GitHub](https://github.com/OpenZeppelin/openzeppelin-ui/blob/main/packages/cli/docs/LLM_MIGRATION_REFERENCE.md)).
 
-All `oz-ui migrate` * subcommands support `--json` and return machine-readable payloads with an `action` field plus command-specific data. Invoke each row as `oz-ui migrate <subcommand>` (or `npx` / `pnpm exec` as needed).
+All `oz-ui migrate`  subcommands support `--json` and return machine-readable payloads with an `action` field plus command-specific data. Invoke each row as `oz-ui migrate <subcommand>` (or `npx` / `pnpm exec` as needed).
 
 
 | Subcommand | Description                                                                                                                                                                                                                                                                              |
@@ -129,13 +165,13 @@ oz-ui migrate fail --manifest migration-manifest.json --task <task-id> --reason 
 Every `oz-ui --json` payload (success **and** error) ships with a stable envelope so agents and CI can detect drift without parsing command-specific fields:
 
 
-| Field               | Description                                                                                              |
-| ------------------- | -------------------------------------------------------------------------------------------------------- |
-| `schemaVersion`     | Semantic version of the JSON envelope contract. Bumped on breaking changes to the agent-facing payloads. |
-| `cli.name`          | Always `@openzeppelin/ui-cli`.                                                                           |
-| `cli.version`       | Version of the binary that produced the output.                                                          |
-| `ok`                | `true` for successful runs, `false` for errors.                                                          |
-| `action`            | Command identifier such as `create`, `migrate-init`, `migrate-analyze`. Absent on error payloads.        |
+| Field           | Description                                                                                                      |
+| --------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `schemaVersion` | Semantic version of the JSON envelope contract. Bumped on breaking changes to the agent-facing payloads.         |
+| `cli.name`      | Always `@openzeppelin/ui-cli`.                                                                                   |
+| `cli.version`   | Version of the binary that produced the output.                                                                  |
+| `ok`            | `true` for successful runs, `false` for errors.                                                                  |
+| `action`        | Command identifier such as `create`, `create-init`, `migrate-init`, `migrate-analyze`. Absent on error payloads. |
 
 
 Example success payload (truncated):

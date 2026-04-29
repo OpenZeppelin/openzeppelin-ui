@@ -15,6 +15,7 @@ import {
 
 import {
   agentDirectoriesForProfiles,
+  MIGRATE_SKILL_ID,
   skillDirectoriesForProfiles,
   writeAgentProfileSelection,
 } from '../agent-assets';
@@ -458,7 +459,7 @@ export function copyAgentFiles(
   return copied;
 }
 
-const SKILL_TEMPLATE = 'skills/migrate-to-oz-uikit';
+const MIGRATE_SKILL_TEMPLATE = `skills/${MIGRATE_SKILL_ID}`;
 
 /**
  * @description Installs `migrate-to-oz-uikit` skill assets per selected profiles.
@@ -471,9 +472,9 @@ export function copySkillFiles(
   const copied: string[] = [];
   const root = path.resolve(projectRoot);
 
-  for (const directory of skillDirectoriesForProfiles(profiles)) {
+  for (const directory of skillDirectoriesForProfiles(profiles, MIGRATE_SKILL_ID)) {
     try {
-      const result = copyTemplateDirectory(SKILL_TEMPLATE, path.join(root, directory));
+      const result = copyTemplateDirectory(MIGRATE_SKILL_TEMPLATE, path.join(root, directory));
       copied.push(...result.copied.map((f) => `${directory}/${f}`));
     } catch {
       // Skill templates may not exist yet

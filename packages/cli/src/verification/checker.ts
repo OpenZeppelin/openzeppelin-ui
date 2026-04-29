@@ -6,6 +6,7 @@ import { doctorTailwindProject } from '@openzeppelin/ui-tailwind-utils';
 import {
   expectedAgentPathsForProfiles,
   expectedSkillPathsForProfiles,
+  MIGRATE_SKILL_ID,
   type AgentAssetProfile,
 } from '../agent-assets';
 import { CLI_BRANDING, CLI_FAMILIES } from '../branding';
@@ -707,7 +708,10 @@ export function checkTask(
       return checkProfileAwareArtifacts(task, projectRoot, agentExpected, 'agent file');
     }
     case 'copy-skill': {
-      const skillExpected = expectedSkillPathsForProfiles(effectiveCopyProfiles(checkOptions));
+      const skillExpected = expectedSkillPathsForProfiles(
+        effectiveCopyProfiles(checkOptions),
+        MIGRATE_SKILL_ID
+      );
       return checkProfileAwareArtifacts(task, projectRoot, skillExpected, 'skill file');
     }
     case 'remove-stale-deps':
