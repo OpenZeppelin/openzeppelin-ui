@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { ContractAdapter } from '@openzeppelin/ui-types';
+import type { AddressingCapability } from '@openzeppelin/ui-types';
 import { FieldType, FormFieldType } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
 
@@ -18,15 +18,15 @@ import {
   getDefaultValueByFieldType,
 } from '../formUtils';
 
-// Mock adapter
-const mockAdapter: Partial<ContractAdapter> = {
+// Mock addressing capability
+const mockAddressing: AddressingCapability = {
   isValidAddress: vi.fn((address: string) => address.startsWith('0x') && address.length === 42),
 };
 
 describe('Transform Utilities', () => {
   describe('createAddressTransform', () => {
     it('should handle empty values', () => {
-      const transform = createAddressTransform(mockAdapter as ContractAdapter);
+      const transform = createAddressTransform(mockAddressing);
 
       if (transform.input) {
         expect(transform.input('')).toBe('');
@@ -37,7 +37,7 @@ describe('Transform Utilities', () => {
     });
 
     it('should validate addresses on output', () => {
-      const transform = createAddressTransform(mockAdapter as ContractAdapter);
+      const transform = createAddressTransform(mockAddressing);
 
       if (transform.output) {
         expect(transform.output('0x1234567890123456789012345678901234567890')).toBe(
@@ -449,9 +449,9 @@ describe('createArrayObjectTransform', () => {
 
 describe('createTransformForFieldType', () => {
   // A more minimal mock, cast to unknown first if direct cast fails due to missing props
-  const mockAdapterMinimal = {
+  const mockAddressingMinimal = {
     isValidAddress: (address: string) => address.startsWith('0x') && address.length === 42,
-  } as unknown as ContractAdapter;
+  } as AddressingCapability;
 
   it('should return createTextTransform for text type', () => {
     const transform = createTransformForFieldType('text');
@@ -472,15 +472,15 @@ describe('createTransformForFieldType', () => {
     expect(transform.output!('false')).toBe(false);
   });
 
-  it('should return createAddressTransform for blockchain-address type with adapter', () => {
-    const transform = createTransformForFieldType('blockchain-address', mockAdapterMinimal);
+  it('should return createAddressTransform for blockchain-address type with addressing capability', () => {
+    const transform = createTransformForFieldType('blockchain-address', mockAddressingMinimal);
     // Basic check, deeper checks are in createAddressTransform tests
     expect(transform.input!('0x123')).toBe('0x123');
   });
 
-  it('should throw error for blockchain-address type without adapter', () => {
+  it('should throw error for blockchain-address type without addressing capability', () => {
     expect(() => createTransformForFieldType('blockchain-address')).toThrowError(
-      "createTransformForFieldType: Adapter is required for 'blockchain-address' field type but was not provided."
+      "createTransformForFieldType: Addressing capability is required for 'blockchain-address' field type but was not provided."
     );
   });
 

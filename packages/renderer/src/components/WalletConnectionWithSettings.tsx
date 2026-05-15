@@ -3,6 +3,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import { Button, useNetworkErrors } from '@openzeppelin/ui-components';
 import { useWalletState, WalletConnectionUI } from '@openzeppelin/ui-react';
+import type { UiKitConfiguration } from '@openzeppelin/ui-types';
+import { appConfigService } from '@openzeppelin/ui-utils';
 
 import { NetworkSettingsDialog } from './network/NetworkSettingsDialog';
 
@@ -11,7 +13,8 @@ import { NetworkSettingsDialog } from './network/NetworkSettingsDialog';
  * Used in exported apps to provide access to RPC and Explorer configuration.
  */
 export const WalletConnectionWithSettings: React.FC = () => {
-  const { isAdapterLoading, activeAdapter, activeNetworkConfig } = useWalletState();
+  const { isRuntimeLoading, activeRuntime, activeNetworkConfig, reconfigureActiveUiKit } =
+    useWalletState();
   const { setOpenNetworkSettingsHandler } = useNetworkErrors();
 
   // Network settings dialog state
@@ -21,7 +24,7 @@ export const WalletConnectionWithSettings: React.FC = () => {
   const openNetworkSettings = useCallback(
     (networkId: string) => {
       // In exported apps, we only support the current network
-      // The dialog will show tabs based on adapter.getNetworkServiceForms()
+      // The dialog will show tabs based on relayer.getNetworkServiceForms()
       if (activeNetworkConfig && networkId === activeNetworkConfig.id) {
         setShowNetworkSettings(true);
       }
@@ -34,7 +37,7 @@ export const WalletConnectionWithSettings: React.FC = () => {
     setOpenNetworkSettingsHandler(openNetworkSettings);
   }, [openNetworkSettings, setOpenNetworkSettingsHandler]);
 
-  if (isAdapterLoading) {
+  if (isRuntimeLoading) {
     return <div className="h-9 w-28 animate-pulse rounded bg-muted"></div>;
   }
 
@@ -44,7 +47,7 @@ export const WalletConnectionWithSettings: React.FC = () => {
         <WalletConnectionUI />
 
         {/* Settings Button */}
-        {activeAdapter && activeNetworkConfig && (
+        {activeRuntime?.relayer && activeNetworkConfig && (
           <Button
             variant="ghost"
             size="icon"
@@ -62,7 +65,14 @@ export const WalletConnectionWithSettings: React.FC = () => {
         isOpen={showNetworkSettings}
         onOpenChange={setShowNetworkSettings}
         networkConfig={activeNetworkConfig}
-        adapter={activeAdapter}
+        relayer={activeRuntime?.relayer ?? null}
+        onSettingsChanged={() => {
+          const cfg = appConfigService.getTypedNestedConfig<UiKitConfiguration>(
+            'walletui',
+            'config'
+          );
+          reconfigureActiveUiKit(cfg ?? { kitName: 'custom', kitConfig: {} });
+        }}
       />
     </>
   );

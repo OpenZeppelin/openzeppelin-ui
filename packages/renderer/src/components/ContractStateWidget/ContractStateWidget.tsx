@@ -2,15 +2,18 @@ import { FileText, Loader2, Minimize2 } from 'lucide-react';
 import { JSX, useEffect, useMemo, useState } from 'react';
 
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@openzeppelin/ui-components';
-import type { ContractFunction, ContractSchema, FullContractAdapter } from '@openzeppelin/ui-types';
+import type {
+  ContractFunction,
+  ContractSchema,
+  ContractStateCapabilityProps,
+} from '@openzeppelin/ui-types';
 import { cn } from '@openzeppelin/ui-utils';
 
 import { ViewFunctionsPanel } from './components/ViewFunctionsPanel';
 
-interface ContractStateWidgetProps {
+interface ContractStateWidgetProps extends ContractStateCapabilityProps {
   contractSchema: ContractSchema | null;
   contractAddress: string | null;
-  adapter: FullContractAdapter;
   isVisible?: boolean;
   onToggle?: () => void;
   className?: string;
@@ -24,7 +27,8 @@ interface ContractStateWidgetProps {
 export function ContractStateWidget({
   contractSchema,
   contractAddress,
-  adapter,
+  query,
+  schema,
   isVisible = true,
   onToggle,
   className,
@@ -35,7 +39,7 @@ export function ContractStateWidget({
     'entering' | 'entered' | 'exiting' | 'exited'
   >(isVisible ? 'entered' : 'exited');
 
-  const networkConfig = adapter?.networkConfig;
+  const networkConfig = query?.networkConfig;
 
   // Preserve the last known schema so transient reloads don't flip the UI to a loading state
   const [lastSchema, setLastSchema] = useState<ContractSchema | null>(contractSchema ?? null);
@@ -47,11 +51,11 @@ export function ContractStateWidget({
   const effectiveSchema = useMemo(() => contractSchema ?? lastSchema, [contractSchema, lastSchema]);
 
   useEffect((): void => {
-    if (!effectiveSchema || !adapter) return;
+    if (!effectiveSchema) return;
     // Filter functions to only simple view functions (no parameters)
-    const viewFns = effectiveSchema.functions.filter((fn) => adapter.isViewFunction(fn));
+    const viewFns = effectiveSchema.functions.filter((fn) => schema.isViewFunction(fn));
     setViewFunctions(viewFns.filter((fn) => fn.inputs.length === 0));
-  }, [effectiveSchema, adapter]);
+  }, [effectiveSchema, schema]);
 
   // Control the animation state based on isVisible prop changes
   useEffect(() => {
@@ -76,7 +80,7 @@ export function ContractStateWidget({
     }
   };
 
-  if (!contractAddress || !adapter || !networkConfig) {
+  if (!contractAddress || !networkConfig) {
     return null;
   }
 
@@ -141,7 +145,7 @@ export function ContractStateWidget({
               <p className="font-medium text-center">Error loading contract state</p>
               <p className="mt-1 text-xs text-center">{error.message}</p>
             </div>
-          ) : (!effectiveSchema && !lastSchema) || !adapter ? (
+          ) : !effectiveSchema && !lastSchema ? (
             <div className="flex flex-col items-center justify-center h-full space-y-3 py-6">
               <Loader2 className="h-8 w-8 text-primary animate-spin opacity-70" />
               <div className="text-center space-y-1">
@@ -157,7 +161,8 @@ export function ContractStateWidget({
             <ViewFunctionsPanel
               functions={viewFunctions}
               contractAddress={contractAddress}
-              adapter={adapter}
+              query={query}
+              schema={schema}
               contractSchema={effectiveSchema}
               className="flex-grow flex flex-col min-h-0"
             />

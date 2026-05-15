@@ -2,7 +2,11 @@ import { RefreshCw } from 'lucide-react';
 import { JSX, useCallback, useEffect, useState } from 'react';
 
 import { Button } from '@openzeppelin/ui-components';
-import type { ContractAdapter, ContractFunction, ContractSchema } from '@openzeppelin/ui-types';
+import type {
+  ContractFunction,
+  ContractSchema,
+  ContractStateCapabilityProps,
+} from '@openzeppelin/ui-types';
 import {
   cn,
   logger,
@@ -13,10 +17,9 @@ import {
 
 import { FunctionResult } from './FunctionResult';
 
-interface ViewFunctionsPanelProps {
+interface ViewFunctionsPanelProps extends ContractStateCapabilityProps {
   functions: ContractFunction[];
   contractAddress: string;
-  adapter: ContractAdapter;
   contractSchema: ContractSchema;
   className?: string;
 }
@@ -27,12 +30,13 @@ interface ViewFunctionsPanelProps {
 export function ViewFunctionsPanel({
   functions,
   contractAddress,
-  adapter,
+  query,
+  schema,
   contractSchema,
   className,
 }: ViewFunctionsPanelProps): JSX.Element {
-  const safeFunctions = adapter.filterAutoQueryableFunctions
-    ? adapter.filterAutoQueryableFunctions(functions)
+  const safeFunctions = schema.filterAutoQueryableFunctions
+    ? schema.filterAutoQueryableFunctions(functions)
     : functions;
   const [results, setResults] = useState<Record<string, unknown>>({});
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
@@ -63,7 +67,7 @@ export function ViewFunctionsPanel({
       const queryFunctions = safeFunctions.map(
         (func) => async (): Promise<{ funcId: string; success: boolean }> => {
           try {
-            const result = await adapter.queryViewFunction(
+            const result = await query.queryViewFunction(
               contractAddress,
               func.id,
               [],
@@ -73,7 +77,9 @@ export function ViewFunctionsPanel({
             // Format the result immediately
             let formattedResult: string;
             try {
-              formattedResult = adapter.formatFunctionResult(result, func);
+              const nextResult = query.formatFunctionResult(result, func);
+              formattedResult =
+                typeof nextResult === 'string' ? nextResult : JSON.stringify(nextResult, null, 2);
             } catch (formatError) {
               logger.error(
                 'ViewFunctionsPanel',
@@ -111,7 +117,7 @@ export function ViewFunctionsPanel({
       setHasQueried(true);
       setIsQueryInProgress(false);
     }
-  }, [safeFunctions, contractAddress, adapter, contractSchema, isQueryInProgress]);
+  }, [contractAddress, contractSchema, isQueryInProgress, query, safeFunctions]);
 
   // Auto-query all functions on component mount
   useEffect(() => {
@@ -141,8 +147,8 @@ export function ViewFunctionsPanel({
 
   // Listen for RPC configuration changes
   useEffect(() => {
-    // Get the network ID from the adapter
-    const networkId = adapter.networkConfig?.id;
+    // Get the network ID from the query capability
+    const networkId = query.networkConfig?.id;
     if (!networkId) return;
 
     // Subscribe to RPC config changes for this network
@@ -154,7 +160,7 @@ export function ViewFunctionsPanel({
 
     // Cleanup subscription on unmount
     return unsubscribe;
-  }, [adapter.networkConfig?.id, handleQueryAll]);
+  }, [handleQueryAll, query.networkConfig?.id]);
 
   if (safeFunctions.length === 0) {
     return (

@@ -1,36 +1,36 @@
 /**
  * useAdapterContext.ts
  *
- * This file provides a hook to access the AdapterContext throughout the application.
- * It's a critical part of the adapter singleton pattern, allowing components to
- * access the centralized adapter registry.
+ * This file provides a hook to access the runtime context throughout the application.
+ * It's a critical part of the runtime singleton pattern, allowing components to
+ * access the centralized runtime registry.
  *
- * The adapter singleton pattern ensures:
- * - Only one adapter instance exists per network
+ * The runtime singleton pattern ensures:
+ * - Only one runtime instance exists per network
  * - Wallet connection state is consistent across the app
- * - Better performance by eliminating redundant adapter initialization
+ * - Better performance by eliminating redundant runtime initialization
  */
 import { useContext } from 'react';
 
-import { AdapterContext, AdapterContextValue } from './AdapterContext';
+import { RuntimeContext, RuntimeContextValue } from './AdapterContext';
 
 /**
- * Hook to access the adapter context
+ * Hook to access the runtime context
  *
- * This hook provides access to the getAdapterForNetwork function which
- * retrieves or creates adapter instances from the singleton registry.
+ * This hook provides access to the `getRuntimeForNetwork` function which
+ * retrieves or creates runtime instances from the singleton registry.
  *
- * Components should typically use useConfiguredAdapterSingleton instead
+ * Components should typically use the higher-level wallet/runtime hooks instead
  * of this hook directly, as it handles React state update timing properly.
  *
- * @throws Error if used outside of an AdapterProvider context
- * @returns The adapter context value
+ * @throws Error if used outside of a RuntimeProvider context
+ * @returns The runtime context value
  */
-export function useAdapterContext(): AdapterContextValue {
-  const context = useContext(AdapterContext);
+export function useRuntimeContext(): RuntimeContextValue {
+  const context = useContext(RuntimeContext);
 
   if (!context) {
-    throw new Error('useAdapterContext must be used within an AdapterProvider');
+    throw new Error('useRuntimeContext must be used within a RuntimeProvider');
   }
 
   return context;

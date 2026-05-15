@@ -8,7 +8,7 @@
  * This follows the same shared-type pattern used by `AddressLabelResolver`.
  */
 
-import type { ContractAdapter } from '../adapters/base';
+import type { AddressingCapability } from '../adapters/capabilities/addressing';
 import type { NetworkConfig } from '../networks/config';
 
 /**
@@ -71,11 +71,11 @@ export interface AddressBookWidgetProps {
   /** Resolve a full explorer URL for an address (ecosystem-aware) */
   resolveExplorerUrl?: (address: string, networkId?: string) => string | undefined;
 
-  /** Adapter for chain-specific address validation (used as default when no network selected) */
-  adapter?: ContractAdapter;
+  /** Addressing capability for chain-specific validation (used as default when no network selected) */
+  addressing?: AddressingCapability;
 
-  /** Resolve an adapter for a given network (enables validation when user changes network) */
-  resolveAdapter?: (network: NetworkConfig) => Promise<ContractAdapter | undefined>;
+  /** Resolve addressing capability for a given network (enables validation when user changes network) */
+  resolveAddressing?: (network: NetworkConfig) => Promise<AddressingCapability | undefined>;
 
   /** Ecosystem-aware address placeholder (used as default when no network selected) */
   addressPlaceholder?: string;

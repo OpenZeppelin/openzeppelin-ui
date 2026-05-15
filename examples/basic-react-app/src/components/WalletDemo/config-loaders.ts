@@ -41,14 +41,14 @@ export function buildAppliedConfigSnippet(kitName: string): string {
 import { useWalletState } from '@openzeppelin/ui-react';
 
 export function KitSwitcher() {
-  const { reconfigureActiveAdapterUiKit } = useWalletState();
+  const { reconfigureActiveUiKit } = useWalletState();
 
   const config: Partial<UiKitConfiguration> = {
     kitName: '${kitName}',
   };
 
   return (
-    <button onClick={() => reconfigureActiveAdapterUiKit(config)}>
+    <button onClick={() => reconfigureActiveUiKit(config)}>
       Switch kit
     </button>
   );

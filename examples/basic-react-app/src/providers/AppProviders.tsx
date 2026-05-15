@@ -3,25 +3,26 @@
  *
  * This module provides the core providers for the application following the
  * UI Builder pattern. It integrates:
- * - AdapterProvider: Manages adapter instances per network
+ * - RuntimeProvider: Manages runtime instances per network
  * - WalletStateProvider: Manages global wallet/network state
  * - EcosystemProvider: Demo-specific ecosystem context for UI elements
  *
- * LAZY LOADING: Adapters are loaded on-demand via ecosystemManager.
+ * LAZY LOADING: Runtimes are loaded on-demand via ecosystemManager.
  * State is managed using Zustand which persists across component remounts.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { AddressLabelProvider, AddressSuggestionProvider } from '@openzeppelin/ui-components';
-import { AdapterProvider, useWalletState, WalletStateProvider } from '@openzeppelin/ui-react';
+import { RuntimeProvider, useWalletState, WalletStateProvider } from '@openzeppelin/ui-react';
 import { useAliasLabelResolver, useAliasSuggestionResolver } from '@openzeppelin/ui-storage';
 import type { NativeConfigLoader } from '@openzeppelin/ui-types';
 
 import { EcosystemContext, type EcosystemContextValue } from '../context/ecosystemContextDef';
 import { demoDb } from '../core/demoDb';
 import { getNetworkById, type DemoEcosystem } from '../core/ecosystemManager';
-import { resolveAdapter } from '../core/networkUtils';
+import { resolveRuntime } from '../core/networkUtils';
+import { toDemoCapabilities, type DemoRuntime } from '../core/runtimeCapabilities';
 import { useEcosystemStore } from '../stores';
 
 // ============================================================================
@@ -39,7 +40,7 @@ const kitConfigImportersAlt = import.meta.glob('../config/wallet/*.config.ts');
 
 /**
  * Loads a native configuration module for a wallet kit (e.g., RainbowKit).
- * The adapter calls this when configuring the UI kit, passing a conventional path.
+ * The runtime calls this when configuring the UI kit, passing a conventional path.
  *
  * @param relativePath - The conventional path like './config/wallet/rainbowkit.config.ts'
  * @returns The configuration object or null if not found
@@ -94,7 +95,7 @@ interface EcosystemProviderInnerProps {
  * Uses Zustand store for ecosystem state - state persists across remounts.
  */
 function EcosystemProviderInner({ children }: EcosystemProviderInnerProps): React.ReactElement {
-  const { setActiveNetworkId } = useWalletState();
+  const { activeRuntime, isRuntimeLoading, setActiveNetworkId } = useWalletState();
 
   // Get state and actions from Zustand store
   // State persists even when this component remounts
@@ -104,7 +105,6 @@ function EcosystemProviderInner({ children }: EcosystemProviderInnerProps): Reac
     network,
     setNetwork,
     availableNetworks,
-    adapter,
     metadata,
     sampleAddresses,
     isLoading,
@@ -132,6 +132,13 @@ function EcosystemProviderInner({ children }: EcosystemProviderInnerProps): Reac
     }
   }, [network?.id]);
 
+  const matchingRuntime =
+    network?.id && activeRuntime?.networkConfig.id === network.id
+      ? (activeRuntime as DemoRuntime)
+      : null;
+  const capabilities = useMemo(() => toDemoCapabilities(matchingRuntime), [matchingRuntime]);
+  const isRuntimePending = Boolean(network?.id && (!matchingRuntime || isRuntimeLoading));
+
   // Memoized context value for EcosystemContext
   // This bridges the Zustand store to the React context for components
   // that use the useEcosystem() hook
@@ -142,10 +149,11 @@ function EcosystemProviderInner({ children }: EcosystemProviderInnerProps): Reac
       network,
       setNetwork,
       availableNetworks,
-      adapter,
+      runtime: matchingRuntime,
+      capabilities,
       metadata,
       sampleAddresses,
-      isLoading,
+      isLoading: isLoading || isRuntimePending,
     }),
     [
       ecosystem,
@@ -153,10 +161,12 @@ function EcosystemProviderInner({ children }: EcosystemProviderInnerProps): Reac
       network,
       setNetwork,
       availableNetworks,
-      adapter,
+      matchingRuntime,
+      capabilities,
       metadata,
       sampleAddresses,
       isLoading,
+      isRuntimePending,
     ]
   );
 
@@ -201,7 +211,7 @@ function AliasProviderBridge({
  * AppProviders Component
  *
  * Wraps the application with all necessary providers for:
- * 1. Adapter management (AdapterProvider from ui-react)
+ * 1. Runtime management (RuntimeProvider from ui-react)
  * 2. Wallet state management (WalletStateProvider from ui-react)
  * 3. Demo ecosystem context (EcosystemContext for UI demos)
  *
@@ -225,6 +235,7 @@ export function AppProviders({
   // Initialize the ecosystem store on mount
   const initialize = useEcosystemStore((s) => s.initialize);
   const storeNetwork = useEcosystemStore((s) => s.network);
+  const storeError = useEcosystemStore((s) => s.error);
 
   useEffect(() => {
     let mounted = true;
@@ -256,6 +267,19 @@ export function AppProviders({
   }, []);
 
   // Show loading state while initializing
+  if (storeError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-6">
+        <div className="max-w-xl text-center">
+          <p className="text-sm font-medium text-destructive">
+            Failed to initialize the example app
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">{storeError}</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!isInitialized || !initialNetworkId) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -265,7 +289,7 @@ export function AppProviders({
   }
 
   return (
-    <AdapterProvider resolveAdapter={resolveAdapter}>
+    <RuntimeProvider resolveRuntime={resolveRuntime}>
       <WalletStateProvider
         initialNetworkId={initialNetworkId}
         getNetworkConfigById={getNetworkConfigById}
@@ -273,7 +297,7 @@ export function AppProviders({
       >
         <EcosystemProviderInner>{children}</EcosystemProviderInner>
       </WalletStateProvider>
-    </AdapterProvider>
+    </RuntimeProvider>
   );
 }
 

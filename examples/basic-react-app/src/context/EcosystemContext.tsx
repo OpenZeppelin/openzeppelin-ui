@@ -8,17 +8,22 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
 
 import {
-  createAdapter,
   getDefaultNetwork,
   getEcosystemMetadata,
   getNetworksForEcosystem,
+  getRuntime,
   getSampleAddresses,
   type DemoEcosystem,
   type EcosystemMetadata,
 } from '../core/ecosystemManager';
+import {
+  toDemoCapabilities,
+  type DemoCapabilities,
+  type DemoRuntime,
+} from '../core/runtimeCapabilities';
 import { EcosystemContext, type EcosystemContextValue } from './ecosystemContextDef';
 
 // ============================================================================
@@ -33,7 +38,7 @@ interface EcosystemProviderProps {
 
 /**
  * Standalone provider component that manages ecosystem state.
- * Uses async loading for adapters (lazy loading pattern).
+ * Uses async loading for runtimes (lazy loading pattern).
  */
 export function EcosystemProvider({
   children,
@@ -42,7 +47,8 @@ export function EcosystemProvider({
   // State
   const [ecosystem, setEcosystemState] = useState<DemoEcosystem>(initialEcosystem);
   const [network, setNetworkState] = useState<NetworkConfig | null>(null);
-  const [adapter, setAdapterState] = useState<ContractAdapter | null>(null);
+  const [runtime, setRuntimeState] = useState<DemoRuntime | null>(null);
+  const [capabilities, setCapabilitiesState] = useState<DemoCapabilities | null>(null);
   const [metadata, setMetadataState] = useState<EcosystemMetadata | null>(null);
   const [availableNetworks, setAvailableNetworksState] = useState<NetworkConfig[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,14 +72,15 @@ export function EcosystemProvider({
 
         if (!mounted) return;
 
-        const loadedAdapter = await createAdapter(defaultNetwork);
+        const loadedRuntime = await getRuntime(defaultNetwork);
 
         if (!mounted) return;
 
         setMetadataState(loadedMetadata);
         setAvailableNetworksState(loadedNetworks);
         setNetworkState(defaultNetwork);
-        setAdapterState(loadedAdapter);
+        setRuntimeState(loadedRuntime);
+        setCapabilitiesState(toDemoCapabilities(loadedRuntime));
       } finally {
         if (mounted) {
           setIsLoading(false);
@@ -100,14 +107,24 @@ export function EcosystemProvider({
       setIsLoading(true);
 
       try {
-        // If network belongs to a different ecosystem, switch ecosystem too
+        const loadedRuntime = await getRuntime(newNetwork);
+
+        // If network belongs to a different ecosystem, refresh ecosystem metadata too.
         if (newNetwork.ecosystem !== ecosystem) {
-          setEcosystemState(newNetwork.ecosystem as DemoEcosystem);
+          const nextEcosystem = newNetwork.ecosystem as DemoEcosystem;
+          const [loadedMetadata, loadedNetworks] = await Promise.all([
+            getEcosystemMetadata(nextEcosystem),
+            getNetworksForEcosystem(nextEcosystem),
+          ]);
+
+          setEcosystemState(nextEcosystem);
+          setMetadataState(loadedMetadata);
+          setAvailableNetworksState(loadedNetworks);
         }
 
-        const newAdapter = await createAdapter(newNetwork);
         setNetworkState(newNetwork);
-        setAdapterState(newAdapter);
+        setRuntimeState(loadedRuntime);
+        setCapabilitiesState(toDemoCapabilities(loadedRuntime));
       } finally {
         setIsLoading(false);
       }
@@ -122,7 +139,8 @@ export function EcosystemProvider({
       network,
       setNetwork,
       availableNetworks,
-      adapter,
+      runtime,
+      capabilities,
       metadata,
       sampleAddresses,
       isLoading,
@@ -133,7 +151,8 @@ export function EcosystemProvider({
       network,
       setNetwork,
       availableNetworks,
-      adapter,
+      runtime,
+      capabilities,
       metadata,
       sampleAddresses,
       isLoading,

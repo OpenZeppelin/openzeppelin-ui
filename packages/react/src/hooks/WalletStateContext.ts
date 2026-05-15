@@ -1,7 +1,7 @@
 import React, { createContext } from 'react';
 
 import type {
-  ContractAdapter,
+  EcosystemRuntime,
   EcosystemSpecificReactHooks,
   NetworkConfig,
   UiKitConfiguration,
@@ -13,14 +13,14 @@ export interface WalletStateContextValue {
   setActiveNetworkId: (networkId: string | null) => void;
   activeNetworkConfig: NetworkConfig | null;
 
-  // Active adapter state
-  activeAdapter: ContractAdapter | null;
-  isAdapterLoading: boolean;
+  // Active runtime state
+  activeRuntime: EcosystemRuntime | null;
+  isRuntimeLoading: boolean;
 
-  // Facade hooks object from the active adapter
+  // Facade hooks object from the active runtime's UI kit
   // Consumers will call these hooks (e.g., walletFacadeHooks.useAccount())
   walletFacadeHooks: EcosystemSpecificReactHooks | null;
-  reconfigureActiveAdapterUiKit: (uiKitConfig?: Partial<UiKitConfiguration>) => void;
+  reconfigureActiveUiKit: (uiKitConfig?: Partial<UiKitConfiguration>) => void;
 }
 
 /**
@@ -33,7 +33,7 @@ export interface WalletStateContextValue {
  * consuming package's bundle. This creates MULTIPLE instances of this module:
  *
  * 1. The app's direct import → packages/react/dist/index.js
- * 2. The adapter's inlined copy → .vite/deps/@openzeppelin_ui-builder-adapter-evm.js
+ * 2. The adapter package's inlined copy → .vite/deps/@openzeppelin_adapter_evm.js
  *
  * Since React contexts use referential identity, these two module instances have
  * DIFFERENT context objects. When the adapter's components call useWalletState(),

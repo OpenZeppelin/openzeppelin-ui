@@ -114,56 +114,79 @@ function withPackedManifest(familyKey, packages, fn) {
   }
 }
 
+function withoutPackedManifest(familyKey, fn) {
+  const manifestPath = getPackedManifestPath(familyKey);
+  const hadManifest = fs.existsSync(manifestPath);
+  const previous = hadManifest ? fs.readFileSync(manifestPath, 'utf8') : null;
+
+  if (hadManifest) {
+    fs.unlinkSync(manifestPath);
+  }
+
+  try {
+    return fn();
+  } finally {
+    if (hadManifest) {
+      fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
+      fs.writeFileSync(manifestPath, previous);
+    }
+  }
+}
+
 test('rewrites adapter dependencies when LOCAL_ADAPTERS_PATH is set', () => {
-  const preferredRepo = createAdaptersRepo('adapters-preferred');
-  const logs = [];
-  const { hooks } = loadHook();
+  withoutPackedManifest('adapters', () => {
+    const preferredRepo = createAdaptersRepo('adapters-preferred');
+    const logs = [];
+    const { hooks } = loadHook();
 
-  const pkg = withEnv(
-    {
-      LOCAL_ADAPTERS: 'true',
-      LOCAL_ADAPTERS_PATH: preferredRepo,
-    },
-    () =>
-      hooks.readPackage(createPackage(), {
-        dir: process.cwd(),
-        log: (message) => logs.push(message),
-      })
-  );
+    const pkg = withEnv(
+      {
+        LOCAL_ADAPTERS: 'true',
+        LOCAL_ADAPTERS_PATH: preferredRepo,
+      },
+      () =>
+        hooks.readPackage(createPackage(), {
+          dir: process.cwd(),
+          log: (message) => logs.push(message),
+        })
+    );
 
-  const canonicalPackageRoot = fs.realpathSync(path.join(preferredRepo, 'packages', 'adapter-evm'));
-  const canonicalVitePackageRoot = fs.realpathSync(
-    path.join(preferredRepo, 'packages', 'adapters-vite')
-  );
-  assert.equal(
-    pkg.dependencies['@openzeppelin/adapter-evm'],
-    `file:${canonicalPackageRoot}`
-  );
-  assert.equal(pkg.devDependencies['@openzeppelin/adapters-vite'], `file:${canonicalVitePackageRoot}`);
-  assert.ok(logs.some((entry) => /@openzeppelin\/adapter-evm/.test(entry)));
-  assert.ok(logs.some((entry) => /@openzeppelin\/adapters-vite/.test(entry)));
+    const canonicalPackageRoot = fs.realpathSync(path.join(preferredRepo, 'packages', 'adapter-evm'));
+    const canonicalVitePackageRoot = fs.realpathSync(
+      path.join(preferredRepo, 'packages', 'adapters-vite')
+    );
+    assert.equal(
+      pkg.dependencies['@openzeppelin/adapter-evm'],
+      `file:${canonicalPackageRoot}`
+    );
+    assert.equal(pkg.devDependencies['@openzeppelin/adapters-vite'], `file:${canonicalVitePackageRoot}`);
+    assert.ok(logs.some((entry) => /@openzeppelin\/adapter-evm/.test(entry)));
+    assert.ok(logs.some((entry) => /@openzeppelin\/adapters-vite/.test(entry)));
+  });
 });
 
 test('throws a clear error when the configured adapters path does not exist', () => {
-  const missingRepo = path.join(os.tmpdir(), 'missing-openzeppelin-adapters');
-  const { hooks } = loadHook();
+  withoutPackedManifest('adapters', () => {
+    const missingRepo = path.join(os.tmpdir(), 'missing-openzeppelin-adapters');
+    const { hooks } = loadHook();
 
-  assert.throws(
-    () =>
-      withEnv(
-        {
-          LOCAL_ADAPTERS: 'true',
-          LOCAL_ADAPTERS_PATH: missingRepo,
-        },
-        () => hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
-      ),
-    (error) => {
-      assert.match(error.message, /openzeppelin-adapters checkout not found/);
-      assert.match(error.message, /LOCAL_ADAPTERS_PATH/);
-      assert.match(error.message, new RegExp(missingRepo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-      return true;
-    }
-  );
+    assert.throws(
+      () =>
+        withEnv(
+          {
+            LOCAL_ADAPTERS: 'true',
+            LOCAL_ADAPTERS_PATH: missingRepo,
+          },
+          () => hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
+        ),
+      (error) => {
+        assert.match(error.message, /openzeppelin-adapters checkout not found/);
+        assert.match(error.message, /LOCAL_ADAPTERS_PATH/);
+        assert.match(error.message, new RegExp(missingRepo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+        return true;
+      }
+    );
+  });
 });
 
 test('prefers packed local tarballs when a manifest is present', () => {
@@ -203,25 +226,27 @@ test('prefers packed local tarballs when a manifest is present', () => {
 });
 
 test('throws a clear error when a configured package directory is missing package.json', () => {
-  const adaptersRepo = createTemporaryDirectory('adapters-without-package-json-');
-  fs.mkdirSync(path.join(adaptersRepo, 'packages', 'adapter-evm'), { recursive: true });
-  const { hooks } = loadHook();
+  withoutPackedManifest('adapters', () => {
+    const adaptersRepo = createTemporaryDirectory('adapters-without-package-json-');
+    fs.mkdirSync(path.join(adaptersRepo, 'packages', 'adapter-evm'), { recursive: true });
+    const { hooks } = loadHook();
 
-  assert.throws(
-    () =>
-      withEnv(
-        {
-          LOCAL_ADAPTERS: 'true',
-          LOCAL_ADAPTERS_PATH: adaptersRepo,
-        },
-        () => hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
-      ),
-    (error) => {
-      assert.match(error.message, /package\.json/);
-      assert.match(error.message, /@openzeppelin\/adapter-evm/);
-      return true;
-    }
-  );
+    assert.throws(
+      () =>
+        withEnv(
+          {
+            LOCAL_ADAPTERS: 'true',
+            LOCAL_ADAPTERS_PATH: adaptersRepo,
+          },
+          () => hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
+        ),
+      (error) => {
+        assert.match(error.message, /package\.json/);
+        assert.match(error.message, /@openzeppelin\/adapter-evm/);
+        return true;
+      }
+    );
+  });
 });
 
 test('resolves default family paths from the workspace root instead of context.dir', () => {
@@ -347,39 +372,41 @@ test('rejects cache directories that escape the workspace root', () => {
 });
 
 test('canonicalizes symlinked repository roots before rewriting file dependencies', () => {
-  const containerRoot = createTemporaryDirectory('pnpmfile-symlink-');
-  const actualRepo = createAdaptersRepo('adapters-realpath-target');
-  const symlinkRepo = path.join(containerRoot, 'adapters-link');
-  fs.symlinkSync(actualRepo, symlinkRepo);
-  const logs = [];
-  const { hooks } = loadHook();
+  withoutPackedManifest('adapters', () => {
+    const containerRoot = createTemporaryDirectory('pnpmfile-symlink-');
+    const actualRepo = createAdaptersRepo('adapters-realpath-target');
+    const symlinkRepo = path.join(containerRoot, 'adapters-link');
+    fs.symlinkSync(actualRepo, symlinkRepo);
+    const logs = [];
+    const { hooks } = loadHook();
 
-  const pkg = withEnv(
-    {
-      LOCAL_ADAPTERS: 'true',
-      LOCAL_ADAPTERS_PATH: symlinkRepo,
-    },
-    () =>
-      hooks.readPackage(createPackage(), {
-        dir: process.cwd(),
-        log: (message) => logs.push(message),
-      })
-  );
+    const pkg = withEnv(
+      {
+        LOCAL_ADAPTERS: 'true',
+        LOCAL_ADAPTERS_PATH: symlinkRepo,
+      },
+      () =>
+        hooks.readPackage(createPackage(), {
+          dir: process.cwd(),
+          log: (message) => logs.push(message),
+        })
+    );
 
-  const canonicalPackageRoot = fs.realpathSync(path.join(actualRepo, 'packages', 'adapter-evm'));
-  const canonicalVitePackageRoot = fs.realpathSync(
-    path.join(actualRepo, 'packages', 'adapters-vite')
-  );
-  assert.equal(pkg.dependencies['@openzeppelin/adapter-evm'], `file:${canonicalPackageRoot}`);
-  assert.equal(pkg.devDependencies['@openzeppelin/adapters-vite'], `file:${canonicalVitePackageRoot}`);
-  assert.ok(
-    logs.some((entry) =>
-      new RegExp(canonicalPackageRoot.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(entry)
-    )
-  );
-  assert.ok(
-    logs.some((entry) =>
-      new RegExp(canonicalVitePackageRoot.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(entry)
-    )
-  );
+    const canonicalPackageRoot = fs.realpathSync(path.join(actualRepo, 'packages', 'adapter-evm'));
+    const canonicalVitePackageRoot = fs.realpathSync(
+      path.join(actualRepo, 'packages', 'adapters-vite')
+    );
+    assert.equal(pkg.dependencies['@openzeppelin/adapter-evm'], `file:${canonicalPackageRoot}`);
+    assert.equal(pkg.devDependencies['@openzeppelin/adapters-vite'], `file:${canonicalVitePackageRoot}`);
+    assert.ok(
+      logs.some((entry) =>
+        new RegExp(canonicalPackageRoot.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(entry)
+      )
+    );
+    assert.ok(
+      logs.some((entry) =>
+        new RegExp(canonicalVitePackageRoot.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(entry)
+      )
+    );
+  });
 });

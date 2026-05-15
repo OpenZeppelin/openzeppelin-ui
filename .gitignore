@@ -35,9 +35,11 @@ pnpm-debug.log*
 
 # Test artifacts
 test-results/
+packages/cli/autoresearch/
 
 # Temporary files
 *.tmp
 .temp/
 .pnpm-store
 .vercel
+/.packed-packages

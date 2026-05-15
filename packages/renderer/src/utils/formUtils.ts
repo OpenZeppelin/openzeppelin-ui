@@ -4,7 +4,7 @@
  * Utilities for form field transformations, validation, and more.
  * These functions handle converting between UI and blockchain data formats.
  */
-import type { ContractAdapter } from '@openzeppelin/ui-types';
+import type { AddressingCapability } from '@openzeppelin/ui-types';
 import { FieldTransforms, FieldType, FormFieldType, FormValues } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
 
@@ -53,10 +53,10 @@ export function validateField(
 /**
  * Creates a transform for address fields
  *
- * @param adapter The blockchain adapter to use for validation
+ * @param addressing The addressing capability to use for validation
  * @returns Transform functions for address fields
  */
-export function createAddressTransform(adapter: ContractAdapter): FieldTransforms<string> {
+export function createAddressTransform(addressing: AddressingCapability): FieldTransforms<string> {
   return {
     input: (value: unknown): string => {
       if (value === null || value === undefined) return '';
@@ -64,7 +64,7 @@ export function createAddressTransform(adapter: ContractAdapter): FieldTransform
     },
     output: (value: unknown): string => {
       const address = String(value || '');
-      if (adapter.isValidAddress?.(address)) {
+      if (addressing.isValidAddress(address)) {
         return address;
       }
       return '';
@@ -186,7 +186,7 @@ export function createTextTransform(): FieldTransforms<string> {
  * Creates a transform function based on field type
  *
  * @param fieldType The type of field to create transforms for
- * @param adapter Optional adapter for address validation
+ * @param addressing Optional addressing capability for address validation
  * @returns Transform functions for the field type
  */
 // TODO: Refine the return type of this function using conditional types
@@ -195,16 +195,16 @@ export function createTextTransform(): FieldTransforms<string> {
 // Currently, it returns FieldTransforms<unknown>, which is type-safe but loses specificity.
 export function createTransformForFieldType(
   fieldType: FieldType,
-  adapter?: ContractAdapter
+  addressing?: AddressingCapability
 ): FieldTransforms<unknown> {
   switch (fieldType) {
     case 'blockchain-address':
-      if (!adapter) {
+      if (!addressing) {
         throw new Error(
-          `createTransformForFieldType: Adapter is required for 'blockchain-address' field type but was not provided.`
+          `createTransformForFieldType: Addressing capability is required for 'blockchain-address' field type but was not provided.`
         );
       }
-      return createAddressTransform(adapter) as FieldTransforms<unknown>;
+      return createAddressTransform(addressing) as FieldTransforms<unknown>;
     case 'number':
     case 'amount':
       return createNumberTransform() as FieldTransforms<unknown>;

@@ -72,7 +72,16 @@ The system uses CSS variables for all theme colors and properties. These variabl
 
 ## Usage
 
-Import the global styles in your application's entry CSS file:
+For consumer apps that use `@openzeppelin/ui-dev-cli`, the recommended workflow is to let the CLI generate and maintain the Tailwind wiring:
+
+```bash
+pnpm exec oz-ui-dev tailwind doctor --project "$PWD"
+pnpm exec oz-ui-dev tailwind fix --project "$PWD"
+```
+
+That produces a managed `oz-tailwind.generated.css` file and keeps the required `@source` entries aligned with your installed OpenZeppelin dependencies.
+
+If you need to wire things manually, import the global styles in your application's entry CSS file:
 
 ```css
 /* Define layer order first - critical for predictability */

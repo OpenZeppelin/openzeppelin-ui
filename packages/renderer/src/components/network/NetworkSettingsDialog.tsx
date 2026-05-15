@@ -11,8 +11,8 @@ import {
   TabsList,
   TabsTrigger,
 } from '@openzeppelin/ui-components';
-import type { ContractAdapter, UiKitConfiguration } from '@openzeppelin/ui-types';
-import { appConfigService, filterEnabledServiceForms } from '@openzeppelin/ui-utils';
+import type { RelayerCapability } from '@openzeppelin/ui-types';
+import { filterEnabledServiceForms } from '@openzeppelin/ui-utils';
 
 import { NetworkServiceSettingsPanel } from './NetworkServiceSettingsPanel';
 
@@ -20,16 +20,18 @@ interface Props {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   networkConfig: { id: string; name: string } | null;
-  adapter: ContractAdapter | null;
+  relayer: RelayerCapability | null;
+  onSettingsChanged?: () => void;
 }
 
 export const NetworkSettingsDialog: React.FC<Props> = ({
   isOpen,
   onOpenChange,
   networkConfig,
-  adapter,
+  relayer,
+  onSettingsChanged,
 }) => {
-  const services = filterEnabledServiceForms(adapter?.getNetworkServiceForms?.() ?? []);
+  const services = filterEnabledServiceForms(relayer?.getNetworkServiceForms() ?? []);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -39,7 +41,7 @@ export const NetworkSettingsDialog: React.FC<Props> = ({
           <DialogDescription>Configure settings for {networkConfig?.name}</DialogDescription>
         </DialogHeader>
 
-        {networkConfig && adapter && services.length > 0 ? (
+        {networkConfig && relayer && services.length > 0 ? (
           <Tabs defaultValue={services[0]?.id} className="w-full">
             <TabsList
               className={`grid w-full ${services.length <= 2 ? 'grid-cols-2' : services.length === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}
@@ -53,18 +55,10 @@ export const NetworkSettingsDialog: React.FC<Props> = ({
             {services.map((svc) => (
               <TabsContent key={svc.id} value={svc.id} className="px-2">
                 <NetworkServiceSettingsPanel
-                  adapter={adapter}
+                  relayer={relayer}
                   networkId={networkConfig.id}
                   service={svc}
-                  onSettingsChanged={() => {
-                    // Reconfigure the adapter's UI kit so wallet transports pick up new RPCs
-                    const cfg = appConfigService.getTypedNestedConfig<UiKitConfiguration>(
-                      'walletui',
-                      'config'
-                    );
-                    // Optional chaining because not all adapters expose this method
-                    adapter.configureUiKit?.(cfg ?? { kitName: 'custom', kitConfig: {} });
-                  }}
+                  onSettingsChanged={onSettingsChanged}
                 />
               </TabsContent>
             ))}

@@ -1,5 +1,10 @@
-import type { ContractAdapter } from '../adapters/base';
 import type { EnumValue, MapEntry } from '../common';
+import type {
+  ContractStateCapabilities,
+  DynamicFormCapabilities,
+  ExecutionConfigCapabilities,
+  TransactionStatusCapabilities,
+} from '../common/capability-bundles';
 import type { Ecosystem } from '../common/ecosystem';
 import type { ContractSchema } from '../contracts/schema';
 import type { ExecutionConfig } from '../execution';
@@ -139,6 +144,14 @@ export type TransactionSuccessPayload = {
 };
 
 /**
+ * Capability intersection required to render and submit {@link TransactionFormProps}.
+ */
+export type TransactionFormCapabilities = DynamicFormCapabilities &
+  TransactionStatusCapabilities &
+  ExecutionConfigCapabilities &
+  ContractStateCapabilities;
+
+/**
  * Props for the top-level TransactionForm component
  */
 export interface TransactionFormProps {
@@ -155,10 +168,10 @@ export interface TransactionFormProps {
   contractSchema: ContractSchema;
 
   /**
-   * The chain-specific adapter instance, pre-configured for a specific network.
-   * It should contain the networkConfig internally.
+   * Execution, schema, and type-mapping capabilities for the active network
+   * (typically sourced from a profile runtime).
    */
-  adapter: ContractAdapter;
+  adapter: TransactionFormCapabilities;
 
   /**
    * Optional flag indicating if a wallet is currently connected.

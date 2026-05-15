@@ -283,12 +283,12 @@ export function FileUploadField<TFieldValues extends FieldValues = FieldValues>(
                 relative rounded-lg border-2 border-dashed transition-all duration-200
                 ${
                   isDragOver
-                    ? 'border-primary bg-primary/5'
+                    ? 'border-selected bg-selected/5'
                     : hasError
                       ? 'border-destructive bg-destructive/5'
                       : fileName
                         ? 'border-border bg-muted/30'
-                        : 'border-border bg-background hover:border-primary/50 hover:bg-muted/50'
+                        : 'border-border bg-background hover:border-selected/50 hover:bg-muted/50'
                 }
                 ${readOnly || isProcessing ? 'cursor-not-allowed opacity-60' : fileName ? 'cursor-default' : 'cursor-pointer'}
                 p-6
@@ -299,12 +299,12 @@ export function FileUploadField<TFieldValues extends FieldValues = FieldValues>(
                 <div className="flex flex-col items-center justify-center gap-3 text-center">
                   <div
                     className={`rounded-full p-3 transition-colors ${
-                      isDragOver ? 'bg-primary/10' : 'bg-muted'
+                      isDragOver ? 'bg-selected/10' : 'bg-muted'
                     }`}
                   >
                     <Upload
                       className={`h-8 w-8 transition-colors ${
-                        isDragOver ? 'text-primary' : 'text-muted-foreground'
+                        isDragOver ? 'text-selected' : 'text-muted-foreground'
                       }`}
                     />
                   </div>

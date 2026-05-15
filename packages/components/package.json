@@ -1,6 +1,6 @@
 {
   "name": "@openzeppelin/ui-components",
-  "version": "1.7.0",
+  "version": "3.0.0",
   "private": false,
   "description": "Shared React UI components for the OpenZeppelin UI ecosystem.",
   "type": "module",
@@ -83,7 +83,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "lodash": "^4.17.23",
+    "lodash": "^4.18.1",
     "lucide-react": "^0.510.0",
     "next-themes": "^0.4.6",
     "react-day-picker": "^9.12.0",

@@ -2,10 +2,10 @@ import React from 'react';
 import { Control, Controller, FieldValues, useFormContext } from 'react-hook-form';
 
 import type {
-  ContractAdapter,
   ContractSchema,
   FormFieldType,
   FunctionParameter,
+  TypeMappingCapability,
 } from '@openzeppelin/ui-types';
 
 // TODO: Consider if FunctionParameter is the most appropriate type for `components` here,
@@ -45,10 +45,10 @@ export interface ObjectFieldProps<TFieldValues extends FieldValues = FieldValues
   showCard?: boolean;
 
   /**
-   * The adapter for chain-specific type mapping.
+   * The type-mapping capability for chain-specific field generation.
    * Essential for correctly determining field types for object properties.
    */
-  adapter?: ContractAdapter;
+  typeMapping?: TypeMappingCapability;
 
   /**
    * Optional contract schema for nested metadata (structs/enums).
@@ -80,7 +80,7 @@ export function ObjectField<TFieldValues extends FieldValues = FieldValues>({
   renderProperty,
   showCard = true,
   readOnly,
-  adapter,
+  typeMapping,
   contractSchema,
 }: ObjectFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
@@ -137,18 +137,21 @@ export function ObjectField<TFieldValues extends FieldValues = FieldValues>({
                 </div>
               ) : (
                 components.map((component) => {
-                  // Generate field using adapter to get full configuration including elementType for arrays
-                  if (!adapter) {
+                  // Generate field using the type-mapping capability to preserve nested array/object metadata.
+                  if (!typeMapping) {
                     throw new Error(
-                      `ObjectField: No adapter provided for field generation. Cannot generate field for "${component.name}"`
+                      `ObjectField: No typeMapping capability provided for field generation. Cannot generate field for "${component.name}"`
                     );
                   }
 
-                  const generatedField = adapter.generateDefaultField(component, contractSchema);
+                  const generatedField = typeMapping.generateDefaultField(
+                    component,
+                    contractSchema
+                  );
 
                   // Override with object-specific configuration
                   const propertyField: FormFieldType = {
-                    ...generatedField, // Include elementType and other adapter-specific properties
+                    ...generatedField, // Include elementType and other capability-specific properties
                     id: `${id}-${component.name}`,
                     name: `${name}.${component.name}`,
                     label: component.displayName || component.name,
@@ -157,7 +160,7 @@ export function ObjectField<TFieldValues extends FieldValues = FieldValues>({
                     // 2. Override 'required' from parent validation if specified
                     // This preserves min/max bounds while allowing parent to control required state
                     validation: {
-                      ...generatedField.validation, // Preserve validation from adapter (includes min/max bounds)
+                      ...generatedField.validation, // Preserve validation from type mapping (includes min/max bounds)
                       required: validation?.required, // Override required from parent
                     },
                     placeholder: `Enter ${component.displayName || component.name}`,

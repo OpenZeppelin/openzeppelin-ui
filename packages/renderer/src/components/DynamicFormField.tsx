@@ -1,7 +1,12 @@
 import React, { useCallback } from 'react';
 import { Control, useWatch } from 'react-hook-form';
 
-import type { ContractAdapter, ContractSchema, FunctionParameter } from '@openzeppelin/ui-types';
+import type {
+  ContractSchema,
+  DynamicFormContextProps,
+  FunctionParameter,
+  TypeMappingCapability,
+} from '@openzeppelin/ui-types';
 import { FieldCondition, FormFieldType, FormValues } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
 
@@ -12,7 +17,7 @@ import { fieldComponents } from './fieldRegistry';
 /**
  * Props for the DynamicFormField component
  */
-interface DynamicFormFieldProps {
+interface DynamicFormFieldProps extends DynamicFormContextProps {
   /**
    * The field configuration to render
    */
@@ -22,16 +27,6 @@ interface DynamicFormFieldProps {
    * The React Hook Form control
    */
   control: Control<FormValues>;
-
-  /**
-   * The adapter for chain-specific validation and formatting
-   */
-  adapter: ContractAdapter;
-
-  /**
-   * Optional contract schema for nested metadata lookups
-   */
-  contractSchema?: ContractSchema;
 
   /**
    * The field error message, if any (Kept for potential direct use, though RHF handles it)
@@ -106,9 +101,22 @@ function useShouldRenderField(field: FormFieldType, control: Control<FormValues>
 export function DynamicFormField({
   field,
   control,
-  adapter,
+  addressing,
+  typeMapping,
   contractSchema,
 }: DynamicFormFieldProps): React.ReactElement | null {
+  const requireTypeMapping = useCallback(
+    (fieldName: string, fieldType: string): TypeMappingCapability => {
+      if (!typeMapping) {
+        throw new Error(
+          `DynamicFormField: Missing typeMapping capability for field "${fieldName}" (${fieldType}).`
+        );
+      }
+      return typeMapping;
+    },
+    [typeMapping]
+  );
+
   // Memoized render functions to prevent unnecessary re-renders
   // These must be called before any early returns to satisfy React Hooks rules
   const renderPayloadField = useCallback(
@@ -116,7 +124,10 @@ export function DynamicFormField({
       let enhancedPayloadField: FormFieldType;
 
       if (payloadField.originalParameterType) {
-        const generatedField = adapter.generateDefaultField(
+        const generatedField = requireTypeMapping(
+          payloadField.name,
+          payloadField.type
+        ).generateDefaultField(
           {
             name: payloadField.name || `payload_${payloadIndex}`,
             type: payloadField.originalParameterType,
@@ -144,19 +155,22 @@ export function DynamicFormField({
           key={`${field.id}-payload-${payloadIndex}`}
           field={enhancedPayloadField}
           control={control}
-          adapter={adapter}
+          addressing={addressing}
+          typeMapping={typeMapping}
           contractSchema={contractSchema}
         />
       );
     },
-    [field.id, control, adapter, contractSchema]
+    [field.id, control, contractSchema, addressing, requireTypeMapping, typeMapping]
   );
 
   const renderKeyField = useCallback(
     (keyField: FormFieldType, entryIndex: number): React.ReactElement => {
-      // Map the key type using the adapter if originalParameterType is available
+      // Map the key type using the type-mapping capability if originalParameterType is available
       const mappedKeyType = keyField.originalParameterType
-        ? adapter.mapParameterTypeToFieldType(keyField.originalParameterType)
+        ? requireTypeMapping(keyField.name, keyField.type).mapParameterTypeToFieldType(
+            keyField.originalParameterType
+          )
         : keyField.type;
 
       // Create enhanced field with proper type mapping
@@ -172,19 +186,22 @@ export function DynamicFormField({
           key={`${field.id}-key-${entryIndex}`}
           field={enhancedKeyField}
           control={control}
-          adapter={adapter}
+          addressing={addressing}
+          typeMapping={typeMapping}
           contractSchema={contractSchema}
         />
       );
     },
-    [field.id, field.readOnly, control, adapter, contractSchema]
+    [field.id, field.readOnly, control, contractSchema, addressing, requireTypeMapping, typeMapping]
   );
 
   const renderValueField = useCallback(
     (valueField: FormFieldType, entryIndex: number): React.ReactElement => {
-      // Map the value type using the adapter if originalParameterType is available
+      // Map the value type using the type-mapping capability if originalParameterType is available
       const mappedValueType = valueField.originalParameterType
-        ? adapter.mapParameterTypeToFieldType(valueField.originalParameterType)
+        ? requireTypeMapping(valueField.name, valueField.type).mapParameterTypeToFieldType(
+            valueField.originalParameterType
+          )
         : valueField.type;
 
       // Create enhanced field with proper type mapping
@@ -200,12 +217,13 @@ export function DynamicFormField({
           key={`${field.id}-value-${entryIndex}`}
           field={enhancedValueField}
           control={control}
-          adapter={adapter}
+          addressing={addressing}
+          typeMapping={typeMapping}
           contractSchema={contractSchema}
         />
       );
     },
-    [field.id, field.readOnly, control, adapter, contractSchema]
+    [field.id, field.readOnly, control, contractSchema, addressing, requireTypeMapping, typeMapping]
   );
 
   // Check if the field should be rendered based on visibility conditions
@@ -248,7 +266,8 @@ export function DynamicFormField({
             readOnly: elementField.readOnly ?? field.readOnly,
           }}
           control={control}
-          adapter={adapter}
+          addressing={addressing}
+          typeMapping={typeMapping}
           contractSchema={contractSchema}
         />
       ),
@@ -264,7 +283,8 @@ export function DynamicFormField({
             readOnly: propertyField.readOnly ?? field.readOnly,
           }}
           control={control}
-          adapter={adapter}
+          addressing={addressing}
+          typeMapping={typeMapping}
           contractSchema={contractSchema}
         />
       ),
@@ -284,7 +304,8 @@ export function DynamicFormField({
             readOnly: propertyField.readOnly ?? field.readOnly,
           }}
           control={control}
-          adapter={adapter}
+          addressing={addressing}
+          typeMapping={typeMapping}
           contractSchema={contractSchema}
         />
       ),
@@ -303,7 +324,8 @@ export function DynamicFormField({
       validation={field.validation}
       control={control as unknown as Control<FormValues>}
       name={field.name}
-      adapter={adapter}
+      addressing={addressing}
+      typeMapping={typeMapping}
       readOnly={field.readOnly}
       contractSchema={contractSchema}
       {...enhancedProps}

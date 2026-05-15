@@ -73,16 +73,12 @@ export interface AdapterExportBootstrap {
   imports?: string[];
 
   /**
-   * Optional initialization code to run after adapter construction.
-   * This code will be injected inside the resolveAdapter function,
-   * right after the adapter instance is created.
+   * Optional initialization code to run after the exported app resolves its active
+   * adapter/runtime integration surface.
    *
-   * Example:
-   * ```
-   * if (typeof (adapter as any).loadContractWithMetadata === "function") {
-   *   await (adapter as any).loadContractWithMetadata(midnightArtifacts);
-   * }
-   * ```
+   * The property name is retained for backward compatibility with existing export
+   * templates, but the injected code should target the current capability/runtime
+   * surface used by the generated app.
    */
   initAfterAdapterConstruct?: string;
 }

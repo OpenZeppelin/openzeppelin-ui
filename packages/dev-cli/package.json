@@ -1,11 +1,11 @@
 {
   "name": "@openzeppelin/ui-dev-cli",
   "private": false,
-  "version": "0.2.2",
+  "version": "0.6.0",
   "description": "Shared local development CLI for OpenZeppelin UI consumer applications.",
   "type": "module",
   "bin": {
-    "oz-dev": "dist/index.mjs"
+    "oz-ui-dev": "dist/index.mjs"
   },
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
@@ -57,6 +57,7 @@
   "license": "AGPL-3.0",
   "dependencies": {
     "@clack/prompts": "^0.10.0",
+    "@openzeppelin/ui-tailwind-utils": "workspace:*",
     "commander": "^13.1.0",
     "picocolors": "^1.1.1"
   },

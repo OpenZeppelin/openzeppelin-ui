@@ -1,4 +1,4 @@
-import { useCallback, useId, useRef, type ReactNode } from 'react';
+import { useCallback, useId, useLayoutEffect, useRef, type ReactNode } from 'react';
 
 import { cn } from '@openzeppelin/ui-utils';
 
@@ -19,8 +19,53 @@ export interface WizardLayoutProps {
   steps: WizardStepConfig[];
   currentStepIndex: number;
   onStepChange: (index: number) => void;
+  /**
+   * Called when the user completes the wizard from the **scrollable** layout footer
+   * (when that footer is shown), or as a fallback when the last step is confirmed
+   * in **paged** layouts — see `onLastStepPrimary`.
+   */
   onComplete?: () => void;
+  /**
+   * Called when the user activates the primary control on the **last step** of a
+   * **paged** layout (`vertical` / `horizontal`). When omitted, `onComplete` is
+   * invoked instead for that interaction.
+   */
+  onLastStepPrimary?: () => void;
   onCancel?: () => void;
+  /** Label for the primary control on non-final steps. @default "Next" */
+  nextLabel?: string;
+  /** Label for the primary control on the last step of paged layouts. @default "Finish" */
+  lastStepLabel?: string;
+  /**
+   * Optional secondary control on the **last step** of **paged** layouts only.
+   * Rendered to the left of the primary action with an outline style. Both
+   * `lastStepSecondaryLabel` and `onLastStepSecondary` must be set for it to appear.
+   */
+  onLastStepSecondary?: () => void;
+  lastStepSecondaryLabel?: string;
+  lastStepSecondaryDisabled?: boolean;
+  /**
+   * When true, the primary Next/Finish control is omitted on the last step of
+   * **paged** layouts. Use when the step content provides its own primary action.
+   * @default false
+   */
+  hideLastStepPrimary?: boolean;
+  /**
+   * When true, the optional footer button at the bottom of the **scrollable**
+   * layout is omitted (even if `onComplete` is set).
+   * @default false
+   */
+  hideScrollableCompleteButton?: boolean;
+  /** Label for the scrollable layout footer button. @default "Finish" */
+  scrollableCompleteLabel?: string;
+  /**
+   * Optional secondary footer button for the **scrollable** layout (outline style),
+   * to the left of the complete button. Both `scrollableSecondaryLabel` and
+   * `onScrollableSecondary` must be set for it to appear.
+   */
+  onScrollableSecondary?: () => void;
+  scrollableSecondaryLabel?: string;
+  scrollableSecondaryDisabled?: boolean;
   /**
    * - `'vertical'` — Vertical sidebar stepper, one step visible at a time (paged).
    * - `'horizontal'` — Horizontal top stepper, one step visible at a time (paged).
@@ -54,7 +99,14 @@ function PagedLayout({
   furthestStepIndex: furthestStepIndexProp,
   onStepChange,
   onComplete,
+  onLastStepPrimary,
   onCancel,
+  nextLabel,
+  lastStepLabel,
+  onLastStepSecondary,
+  lastStepSecondaryLabel,
+  lastStepSecondaryDisabled,
+  hideLastStepPrimary,
   navActions,
   header,
   variant,
@@ -62,6 +114,15 @@ function PagedLayout({
 }: WizardLayoutProps & { variant: 'vertical' | 'horizontal' }) {
   const safeIndex = getSafeStepIndex(steps.length, currentStepIndex);
   const resolvedFurthestStepIndex = useFurthestStepIndex(safeIndex, furthestStepIndexProp);
+  const stepBodyScrollRef = useRef<HTMLDivElement>(null);
+
+  // Paged variants use an inner `overflow-y-auto` body; the document does not scroll.
+  // When the user changes steps, reset that panel to the top so the new step starts at the beginning.
+  useLayoutEffect(() => {
+    const el = stepBodyScrollRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+  }, [safeIndex]);
 
   if (steps.length === 0) return null;
 
@@ -72,7 +133,11 @@ function PagedLayout({
 
   const handleNext = () => {
     if (isLastStep) {
-      onComplete?.();
+      if (onLastStepPrimary) {
+        onLastStepPrimary();
+      } else {
+        onComplete?.();
+      }
       return;
     }
     onStepChange(safeIndex + 1);
@@ -93,6 +158,12 @@ function PagedLayout({
       onNext={handleNext}
       onCancel={onCancel}
       extraActions={navActions}
+      nextLabel={nextLabel}
+      lastStepLabel={lastStepLabel}
+      onLastStepSecondary={onLastStepSecondary}
+      lastStepSecondaryLabel={lastStepSecondaryLabel}
+      lastStepSecondaryDisabled={lastStepSecondaryDisabled}
+      showLastStepPrimary={!hideLastStepPrimary}
     />
   );
 
@@ -117,7 +188,7 @@ function PagedLayout({
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-8">
+          <div ref={stepBodyScrollRef} className="flex-1 overflow-y-auto p-8">
             <div className="mx-auto max-w-5xl">
               {header}
               {currentStep?.component}
@@ -142,7 +213,7 @@ function PagedLayout({
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto p-8">
+        <div ref={stepBodyScrollRef} className="flex-1 overflow-y-auto p-8">
           <div className="mx-auto max-w-5xl">
             {header}
             {currentStep?.component}
@@ -164,6 +235,11 @@ function ScrollableLayout({
   onStepChange,
   header,
   onComplete,
+  hideScrollableCompleteButton,
+  scrollableCompleteLabel,
+  onScrollableSecondary,
+  scrollableSecondaryLabel,
+  scrollableSecondaryDisabled,
   scrollPadding,
   className,
 }: Pick<
@@ -173,6 +249,11 @@ function ScrollableLayout({
   | 'onStepChange'
   | 'header'
   | 'onComplete'
+  | 'hideScrollableCompleteButton'
+  | 'scrollableCompleteLabel'
+  | 'onScrollableSecondary'
+  | 'scrollableSecondaryLabel'
+  | 'scrollableSecondaryDisabled'
   | 'scrollPadding'
   | 'className'
 >) {
@@ -194,6 +275,13 @@ function ScrollableLayout({
   if (steps.length === 0) return null;
 
   const stepDefs = toStepDefs(steps, activeIndex);
+
+  const showScrollableSecondary =
+    onScrollableSecondary != null &&
+    scrollableSecondaryLabel != null &&
+    scrollableSecondaryLabel !== '';
+  const showScrollablePrimary = onComplete != null && !hideScrollableCompleteButton;
+  const showScrollableFooter = showScrollableSecondary || showScrollablePrimary;
 
   return (
     <div className={cn('flex h-full gap-6', className)}>
@@ -219,11 +307,23 @@ function ScrollableLayout({
           ))}
         </div>
 
-        {onComplete && (
-          <div className="flex justify-end pt-8">
-            <Button type="button" onClick={onComplete}>
-              Finish
-            </Button>
+        {showScrollableFooter && (
+          <div className="flex justify-end gap-2 pt-8">
+            {showScrollableSecondary && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onScrollableSecondary}
+                disabled={scrollableSecondaryDisabled ?? false}
+              >
+                {scrollableSecondaryLabel}
+              </Button>
+            )}
+            {showScrollablePrimary && (
+              <Button type="button" onClick={onComplete}>
+                {scrollableCompleteLabel ?? 'Finish'}
+              </Button>
+            )}
           </div>
         )}
       </div>
@@ -268,6 +368,11 @@ export function WizardLayout(props: WizardLayoutProps) {
         onStepChange={rest.onStepChange}
         header={rest.header}
         onComplete={rest.onComplete}
+        hideScrollableCompleteButton={rest.hideScrollableCompleteButton}
+        scrollableCompleteLabel={rest.scrollableCompleteLabel}
+        onScrollableSecondary={rest.onScrollableSecondary}
+        scrollableSecondaryLabel={rest.scrollableSecondaryLabel}
+        scrollableSecondaryDisabled={rest.scrollableSecondaryDisabled}
         scrollPadding={rest.scrollPadding}
         className={rest.className}
       />
