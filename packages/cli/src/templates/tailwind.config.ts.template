@@ -1,0 +1,11 @@
+/**
+ * OpenZeppelin UI kit: scan app sources and published @openzeppelin packages for class names.
+ * Add tailwindcss (and @tailwindcss/vite for Vite) to devDependencies when you enable Tailwind builds.
+ */
+export default {
+  content: [
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}',
+    './node_modules/@openzeppelin/**/*.{js,mjs,cjs,ts,tsx}',
+  ],
+};

@@ -15,6 +15,10 @@ import { TransactionExecuteButton } from './transaction/TransactionExecuteButton
 
 import { createDefaultFormValues } from '../utils/formUtils';
 import { extractRuntimeSecrets } from '../utils/runtimeSecretExtractor';
+import {
+  buildTransactionSuccessPayload,
+  invokeOnTransactionSuccess,
+} from '../utils/transactionSuccessCallback';
 import { DynamicFormField } from './DynamicFormField';
 import { TransactionStatusDisplay } from './transaction';
 
@@ -47,6 +51,7 @@ export function TransactionForm({
   adapter,
   isWalletConnected = false,
   executionConfig,
+  onTransactionSuccess,
 }: TransactionFormProps): React.ReactElement {
   const [formError, setFormError] = useState<string | null>(null);
   const [executionConfigError, setExecutionConfigError] = useState<string | null>(null);
@@ -182,10 +187,22 @@ export function TransactionForm({
         logger.info('TransactionForm', 'Execution result received:', result);
       }
 
+      const reportTransactionSuccess = (): void => {
+        const executionMethod = executionConfig?.method ?? 'eoa';
+        const payload = buildTransactionSuccessPayload({
+          networkId: adapter.networkConfig.id,
+          ecosystem: adapter.networkConfig.ecosystem,
+          executionMethod,
+          finalTxHash,
+        });
+        invokeOnTransactionSuccess(onTransactionSuccess, payload, logger);
+      };
+
       // Functions that execute locally don't need confirmation - they complete immediately
       if (canExecuteLocally) {
         setTxStatus('success');
         setTxError(null);
+        reportTransactionSuccess();
         return;
       }
 
@@ -202,6 +219,7 @@ export function TransactionForm({
           );
           setTxStatus('success');
           setTxError(null);
+          reportTransactionSuccess();
         } else {
           logger.error(
             'TransactionForm',
@@ -221,6 +239,7 @@ export function TransactionForm({
         );
         setTxStatus('success'); // Or maybe a different status like 'submitted'?
         setTxError(null);
+        reportTransactionSuccess();
       }
       // --> End: Wait for confirmation <--
     } catch (error) {
@@ -246,7 +265,8 @@ export function TransactionForm({
             field={field}
             control={methods.control}
             error={errors[field.name]?.message as string}
-            adapter={adapter}
+            addressing={adapter}
+            typeMapping={adapter}
             contractSchema={contractSchema}
           />
         ))}
@@ -337,7 +357,8 @@ export function TransactionForm({
               customMessage={txStatusDetails?.message}
               result={txResult}
               functionDetails={currentFunction}
-              adapter={adapter}
+              query={adapter}
+              explorer={adapter}
             />
           </div>
         )}
@@ -362,7 +383,8 @@ export function TransactionForm({
             <div className="w-full">
               <ExecutionConfigDisplay
                 executionConfig={executionConfig}
-                adapter={adapter}
+                execution={adapter}
+                relayer={adapter}
                 error={executionConfigError}
                 onRuntimeApiKeyChange={setRuntimeApiKey}
               />

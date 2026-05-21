@@ -2,8 +2,8 @@ import type {
   ContractFunction,
   ContractSchema,
   FormFieldType,
-  FullContractAdapter,
   RenderFormSchema,
+  TypeMappingCapability,
 } from '@openzeppelin/ui-types';
 
 /**
@@ -12,12 +12,12 @@ import type {
 export function createFormSchemaFromFunction(
   contractAddress: string,
   fn: ContractFunction,
-  adapter: FullContractAdapter,
+  typeMapping: TypeMappingCapability,
   contractSchema: ContractSchema
 ): RenderFormSchema {
   // Pass contractSchema to generateDefaultField so it can resolve enum types and other complex types
   const fields: FormFieldType[] = fn.inputs.map((input) =>
-    adapter.generateDefaultField(input, contractSchema)
+    typeMapping.generateDefaultField(input, contractSchema)
   );
 
   return {

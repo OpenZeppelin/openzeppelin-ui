@@ -1,10 +1,13 @@
+// Package version (injected at build time)
+export { VERSION } from './version';
+
 // Contexts and Providers
 export {
-  AdapterContext,
-  type AdapterContextValue,
-  type AdapterRegistry,
+  RuntimeContext,
+  type RuntimeContextValue,
+  type RuntimeRegistry,
 } from './hooks/AdapterContext';
-export { AdapterProvider, type AdapterProviderProps } from './hooks/AdapterProvider';
+export { RuntimeProvider, type RuntimeProviderProps } from './hooks/AdapterProvider';
 export { WalletStateContext, type WalletStateContextValue } from './hooks/WalletStateContext';
 export { WalletStateProvider, type WalletStateProviderProps } from './hooks/WalletStateProvider';
 
@@ -14,7 +17,7 @@ export { AnalyticsProvider, type AnalyticsProviderProps } from './hooks/Analytic
 export { useAnalytics } from './hooks/useAnalytics';
 
 // Consumer Hooks
-export { useAdapterContext } from './hooks/useAdapterContext';
+export { useRuntimeContext } from './hooks/useAdapterContext';
 export { useWalletState } from './hooks/WalletStateContext';
 export { useWalletComponents } from './hooks/useWalletComponents';
 export {

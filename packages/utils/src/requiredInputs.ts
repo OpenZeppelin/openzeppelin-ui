@@ -1,4 +1,4 @@
-import type { ContractAdapter, FormFieldType, FormValues } from '@openzeppelin/ui-types';
+import type { ContractLoadingCapability, FormFieldType, FormValues } from '@openzeppelin/ui-types';
 
 type RequiredInputSnapshot = Record<string, unknown>;
 
@@ -22,13 +22,13 @@ function normalizeSnapshotValue(value: unknown): unknown {
   return value;
 }
 
-function extractRequiredFields(adapter: ContractAdapter | null): FormFieldType[] {
-  if (!adapter || typeof adapter.getContractDefinitionInputs !== 'function') {
+function extractRequiredFields(contractLoading: ContractLoadingCapability | null): FormFieldType[] {
+  if (!contractLoading) {
     return [];
   }
 
   try {
-    const inputs = adapter.getContractDefinitionInputs() || [];
+    const inputs = contractLoading.getContractDefinitionInputs() || [];
     return inputs.filter((field) => field.validation?.required);
   } catch {
     return [];
@@ -42,14 +42,14 @@ function extractRequiredFields(adapter: ContractAdapter | null): FormFieldType[]
  * @returns Snapshot of required field values, or null if no required fields
  */
 export function buildRequiredInputSnapshot(
-  adapter: ContractAdapter | null,
+  contractLoading: ContractLoadingCapability | null,
   formValues: FormValues | null | undefined
 ): RequiredInputSnapshot | null {
   if (!formValues) {
     return null;
   }
 
-  const requiredFields = extractRequiredFields(adapter);
+  const requiredFields = extractRequiredFields(contractLoading);
   if (requiredFields.length === 0) {
     return null;
   }

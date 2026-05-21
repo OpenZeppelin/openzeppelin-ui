@@ -1,5 +1,11 @@
 import pc from 'picocolors';
 
+import type {
+  TailwindDoctorResult,
+  TailwindFixResult,
+  TailwindPrintResult,
+} from '@openzeppelin/ui-tailwind-utils';
+
 import { DoctorResult, StatusResult, UseLocalResult, UseRemoteResult } from '../lib/localDev';
 
 function writeStdout(message: string): void {
@@ -81,6 +87,76 @@ export function printDoctorResult(result: DoctorResult): void {
   for (const issue of result.issues) {
     const color = issue.severity === 'error' ? pc.red : pc.yellow;
     writeStdout(color(`  [${issue.severity}] ${issue.family}: ${issue.message}`));
+  }
+}
+
+/**
+ * Prints a human-readable summary for `tailwind doctor`.
+ */
+export function printTailwindDoctorResult(result: TailwindDoctorResult): void {
+  if (result.issues.length === 0) {
+    writeStdout(pc.green(`Tailwind doctor passed for ${result.projectRoot}`));
+    if (result.cssPath) {
+      writeStdout(`  stylesheet: ${result.cssPath}`);
+    }
+    return;
+  }
+
+  writeStdout(
+    result.ok
+      ? pc.yellow(`Tailwind doctor warnings for ${result.projectRoot}`)
+      : pc.red(`Tailwind doctor found issues for ${result.projectRoot}`)
+  );
+  for (const issue of result.issues) {
+    const color =
+      issue.severity === 'error' ? pc.red : issue.severity === 'warning' ? pc.yellow : pc.blue;
+    const location = issue.file ? ` (${issue.file})` : '';
+    writeStdout(color(`  [${issue.severity}] ${issue.code}${location}: ${issue.message}`));
+  }
+}
+
+/**
+ * Prints a human-readable summary for `tailwind fix`.
+ */
+export function printTailwindFixResult(result: TailwindFixResult, dryRun: boolean): void {
+  if (!result.ok) {
+    writeStdout(pc.red(`Tailwind fix could not resolve a stylesheet for ${result.projectRoot}`));
+    return;
+  }
+
+  const heading = dryRun
+    ? `Tailwind fix dry run for ${result.projectRoot}`
+    : `Tailwind fix completed for ${result.projectRoot}`;
+  writeStdout(pc.green(heading));
+
+  if (result.changes.length === 0) {
+    writeStdout(pc.dim('  No file changes were needed.'));
+    return;
+  }
+
+  for (const change of result.changes) {
+    writeStdout(`  ${pc.bold(change.action)} ${change.path} - ${change.summary}`);
+  }
+}
+
+/**
+ * Prints a human-readable summary for `tailwind print`.
+ */
+export function printTailwindPrintResult(result: TailwindPrintResult): void {
+  if (!result.ok || !result.sourcePlan) {
+    writeStdout(pc.red(`Could not resolve a Tailwind source plan for ${result.projectRoot}`));
+    return;
+  }
+
+  writeStdout(pc.bold(`Tailwind source plan for ${result.projectRoot}`));
+  if (result.cssPath) {
+    writeStdout(`  stylesheet: ${result.cssPath}`);
+  }
+  if (result.generatedCssPath) {
+    writeStdout(`  managed file: ${result.generatedCssPath}`);
+  }
+  for (const source of result.sourcePlan.sources) {
+    writeStdout(`  @source ${source}`);
   }
 }
 

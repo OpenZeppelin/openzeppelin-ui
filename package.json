@@ -14,9 +14,10 @@
     "install-pnpm": "npm install -g pnpm@10.22.0",
     "install-deps": "pnpm install --frozen-lockfile --ignore-scripts --prefer-offline",
     "dev": "pnpm build && pnpm --filter=@openzeppelin/ui-example-basic-react-app dev",
-    "build:cli": "pnpm --filter @openzeppelin/ui-dev-cli build",
-    "dev:adapters:local": "pnpm build:cli && LOCAL_ADAPTERS_PATH=${LOCAL_ADAPTERS_PATH:-../openzeppelin-adapters} && LOCAL_ADAPTERS_PATH=\"$LOCAL_ADAPTERS_PATH\" oz-dev use local --project \"$PWD\" --family adapters",
-    "dev:local": "pnpm build:cli && LOCAL_ADAPTERS_PATH=${LOCAL_ADAPTERS_PATH:-../openzeppelin-adapters} && LOCAL_ADAPTERS_PATH=\"$LOCAL_ADAPTERS_PATH\" oz-dev use local --project \"$PWD\" --family adapters",
+    "build:dev-cli": "pnpm --filter @openzeppelin/ui-dev-cli build",
+    "build:cli": "pnpm --filter @openzeppelin/ui-cli build",
+    "dev:adapters:local": "pnpm build:dev-cli && LOCAL_ADAPTERS_PATH=${LOCAL_ADAPTERS_PATH:-../openzeppelin-adapters} && LOCAL_ADAPTERS_PATH=\"$LOCAL_ADAPTERS_PATH\" oz-ui-dev use local --project \"$PWD\" --family adapters",
+    "dev:local": "pnpm build:dev-cli && LOCAL_ADAPTERS_PATH=${LOCAL_ADAPTERS_PATH:-../openzeppelin-adapters} && LOCAL_ADAPTERS_PATH=\"$LOCAL_ADAPTERS_PATH\" oz-ui-dev use local --project \"$PWD\" --family adapters",
     "clean": "pnpm -r clean",
     "build": "pnpm -r build",
     "test": "node --test .pnpmfile.test.cjs && pnpm -r test",
@@ -32,7 +33,7 @@
     "changeset": "changeset",
     "version": "changeset version",
     "release": "pnpm build && changeset publish",
-    "dev:npm": "pnpm build:cli && oz-dev use remote --project \"$PWD\""
+    "dev:npm": "pnpm build:cli && oz-ui-dev use remote --project \"$PWD\""
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",
@@ -63,6 +64,15 @@
   },
   "engines": {
     "node": ">=20.19.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ],
+    "supportedArchitectures": {
+      "os": ["current"],
+      "cpu": ["arm64", "x64"]
+    }
   },
   "packageManager": "pnpm@10.22.0",
   "author": "OpenZeppelin",

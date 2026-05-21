@@ -32,6 +32,7 @@ const STANDARD_FAMILIES = {
     envNames: ['LOCAL_ADAPTERS_PATH'],
     defaultPath: '../openzeppelin-adapters',
     packageMap: {
+      '@openzeppelin/adapters-vite': 'packages/adapters-vite',
       '@openzeppelin/adapter-evm': 'packages/adapter-evm',
       '@openzeppelin/adapter-midnight': 'packages/adapter-midnight',
       '@openzeppelin/adapter-polkadot': 'packages/adapter-polkadot',
@@ -171,6 +172,46 @@ function resolvePackageDirectory(workspaceRoot, family, packageName, packagePath
   return absolutePath;
 }
 
+function findWorkspacePackage(repoRoot, packageName) {
+  const packagesDir = path.join(repoRoot, 'packages');
+  if (!fs.existsSync(packagesDir)) {
+    return null;
+  }
+
+  for (const entry of fs.readdirSync(packagesDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+
+    const packageRoot = path.join(packagesDir, entry.name);
+    const packageJsonPath = path.join(packageRoot, 'package.json');
+    if (!fs.existsSync(packageJsonPath)) {
+      continue;
+    }
+
+    try {
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+      if (packageJson.name === packageName) {
+        return getRealPath(packageRoot);
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+}
+
+function resolvePackageDirectoryByName(workspaceRoot, family, packageName) {
+  const explicitPackagePath = family.packageMap[packageName];
+  if (explicitPackagePath) {
+    return resolvePackageDirectory(workspaceRoot, family, packageName, explicitPackagePath);
+  }
+
+  const repoRoot = resolveRepoRoot(workspaceRoot, family);
+  return findWorkspacePackage(repoRoot, packageName);
+}
+
 function readPackedManifest(cacheDir, familyKey) {
   const manifestPath = path.join(cacheDir, `${familyKey}.json`);
   if (!fs.existsSync(manifestPath)) {
@@ -192,9 +233,7 @@ function rewriteDependencies(pkg, context, cacheDir, familyKey, family) {
   for (const depType of ['dependencies', 'devDependencies']) {
     if (!pkg[depType]) continue;
 
-    for (const [npmName, packagePath] of Object.entries(family.packageMap)) {
-      if (!pkg[depType][npmName]) continue;
-
+    for (const npmName of Object.keys(pkg[depType])) {
       const packedTarballPath = packedPackages && packedPackages[npmName];
       if (packedTarballPath && fs.existsSync(packedTarballPath)) {
         pkg[depType][npmName] = `file:${packedTarballPath}`;
@@ -202,9 +241,17 @@ function rewriteDependencies(pkg, context, cacheDir, familyKey, family) {
         continue;
       }
 
-      const absolutePath = resolvePackageDirectory(workspaceRoot, family, npmName, packagePath);
+      const absolutePath = resolvePackageDirectoryByName(workspaceRoot, family, npmName);
+      if (!absolutePath) {
+        continue;
+      }
+
       pkg[depType][npmName] = `file:${absolutePath}`;
-      context.log(`[local-dev] ${npmName} → ${absolutePath}`);
+      const source =
+        Object.prototype.hasOwnProperty.call(family.packageMap, npmName)
+          ? ''
+          : ' (workspace fallback)';
+      context.log(`[local-dev] ${npmName} → ${absolutePath}${source}`);
     }
   }
 }

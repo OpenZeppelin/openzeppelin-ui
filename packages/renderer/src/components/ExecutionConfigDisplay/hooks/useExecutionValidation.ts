@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import type { ContractAdapter, ExecutionConfig } from '@openzeppelin/ui-types';
+import type { ExecutionCapability, ExecutionConfig } from '@openzeppelin/ui-types';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -9,13 +9,13 @@ export interface ValidationResult {
 
 export interface UseExecutionValidationProps {
   executionConfig: ExecutionConfig;
-  adapter?: ContractAdapter;
+  execution?: ExecutionCapability;
   runtimeApiKey?: string;
 }
 
 export const useExecutionValidation = ({
   executionConfig,
-  adapter,
+  execution,
   runtimeApiKey,
 }: UseExecutionValidationProps): ValidationResult => {
   const [validationResult, setValidationResult] = useState<ValidationResult>({
@@ -23,16 +23,16 @@ export const useExecutionValidation = ({
   });
 
   const validateConfig = useCallback(async () => {
-    if (!adapter) {
+    if (!execution) {
       setValidationResult({
         isValid: false,
-        error: 'No adapter available for validation',
+        error: 'No execution capability available for validation',
       });
       return;
     }
 
     try {
-      const result = await adapter.validateExecutionConfig(executionConfig);
+      const result = await execution.validateExecutionConfig(executionConfig);
 
       if (result === true) {
         // Additional validation for runtime requirements
@@ -62,7 +62,7 @@ export const useExecutionValidation = ({
         error: error instanceof Error ? error.message : 'Validation failed',
       });
     }
-  }, [executionConfig, adapter, runtimeApiKey]);
+  }, [execution, executionConfig, runtimeApiKey]);
 
   useEffect(() => {
     validateConfig();

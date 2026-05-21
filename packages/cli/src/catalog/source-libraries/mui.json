@@ -1,0 +1,19 @@
+{
+  "library": "Material UI (MUI)",
+  "packages": ["@mui/material", "@mui/icons-material", "@mui/system", "@emotion/react", "@emotion/styled"],
+  "importPatterns": ["@mui/material/", "@mui/material"],
+  "mappings": {
+    "Button": { "source": "Button", "effort": "medium", "notes": "Prop translation: variant='contained' → variant='default', color/size differ" },
+    "Accordion": { "source": "Accordion", "effort": "medium", "notes": "MuiAccordionSummary/Details → OZ compound pattern" },
+    "Alert": { "source": "Alert", "effort": "medium", "notes": "severity → variant mapping" },
+    "Card": { "source": "Card", "effort": "medium", "notes": "CardContent/CardActions → OZ compound pattern" },
+    "Checkbox": { "source": "Checkbox", "effort": "medium", "notes": "FormControlLabel wrapper removal" },
+    "Dialog": { "source": "Dialog", "effort": "medium", "notes": "DialogTitle/Content/Actions → OZ compound" },
+    "Input": { "source": "TextField", "effort": "medium", "notes": "variant='outlined' is default OZ style" },
+    "Select": { "source": "Select", "effort": "medium", "notes": "MenuItem children → OZ options pattern" },
+    "Tabs": { "source": "Tabs", "effort": "medium", "notes": "Tab → TabsTrigger, TabPanel → TabsContent" },
+    "Tooltip": { "source": "Tooltip", "effort": "low", "notes": "Near 1:1 with title → content" },
+    "Progress": { "source": "LinearProgress", "effort": "medium", "notes": "variant/value prop translation" },
+    "RadioGroup": { "source": "RadioGroup", "effort": "medium", "notes": "FormControlLabel wrapper removal" }
+  }
+}

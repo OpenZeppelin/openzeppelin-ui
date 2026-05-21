@@ -1,0 +1,202 @@
+{
+  "catalogVersion": "1.0.0",
+  "generatedAt": "2026-04-04T00:00:00.000Z",
+  "rules": [
+    {
+      "id": "wagmi-import",
+      "displayName": "wagmi",
+      "canonicalPattern": "wagmi",
+      "category": "wallet",
+      "kind": "import",
+      "description": "wagmi wallet library",
+      "confidence": "high",
+      "migrationRelevance": "Wallet stack imports usually require provider and hook migration planning.",
+      "matcher": {
+        "packages": ["wagmi"],
+        "matchMode": "package-or-subpath"
+      }
+    },
+    {
+      "id": "wagmi-core-import",
+      "displayName": "@wagmi/core",
+      "canonicalPattern": "wagmi",
+      "category": "wallet",
+      "kind": "import",
+      "description": "wagmi core package",
+      "confidence": "high",
+      "migrationRelevance": "Core wagmi imports are part of the same wallet stack and should roll up into the canonical wagmi family.",
+      "matcher": {
+        "packages": ["@wagmi/core"],
+        "matchMode": "package-or-subpath"
+      }
+    },
+    {
+      "id": "viem-import",
+      "displayName": "viem",
+      "canonicalPattern": "viem",
+      "category": "wallet",
+      "kind": "import",
+      "description": "viem Ethereum library",
+      "confidence": "high",
+      "migrationRelevance": "Low-level chain clients and helpers often shape provider wiring and utility migration scope.",
+      "matcher": {
+        "packages": ["viem"],
+        "matchMode": "package-or-subpath"
+      }
+    },
+    {
+      "id": "rainbowkit-import",
+      "displayName": "rainbowkit",
+      "canonicalPattern": "rainbowkit",
+      "category": "wallet",
+      "kind": "import",
+      "description": "RainbowKit wallet UI",
+      "confidence": "high",
+      "migrationRelevance": "Wallet connection UI libraries drive migration tasks around providers and connect flows.",
+      "matcher": {
+        "packages": ["@rainbow-me/rainbowkit"],
+        "matchMode": "package-or-subpath"
+      }
+    },
+    {
+      "id": "ethers-import",
+      "displayName": "ethers",
+      "canonicalPattern": "ethers",
+      "category": "wallet",
+      "kind": "import",
+      "description": "ethers.js library",
+      "confidence": "high",
+      "migrationRelevance": "Ethers usage signals low-level blockchain integration work beyond visual component migration.",
+      "matcher": {
+        "packages": ["ethers"],
+        "matchMode": "package-or-subpath"
+      }
+    },
+    {
+      "id": "web3modal-import",
+      "displayName": "web3modal",
+      "canonicalPattern": "web3modal",
+      "category": "wallet",
+      "kind": "import",
+      "description": "Web3Modal",
+      "confidence": "high",
+      "migrationRelevance": "Wallet modal dependencies can imply connection UX and provider bootstrapping work.",
+      "matcher": {
+        "packages": ["@web3modal"],
+        "matchMode": "package-or-subpath"
+      }
+    },
+    {
+      "id": "connectkit-import",
+      "displayName": "connectkit",
+      "canonicalPattern": "connectkit",
+      "category": "wallet",
+      "kind": "import",
+      "description": "ConnectKit",
+      "confidence": "high",
+      "migrationRelevance": "Connection kit usage often implies upstream wallet UI and provider coupling.",
+      "matcher": {
+        "packages": ["connectkit"],
+        "matchMode": "package-or-subpath"
+      }
+    },
+    {
+      "id": "local-storage-usage",
+      "displayName": "localStorage",
+      "canonicalPattern": "localStorage",
+      "category": "storage",
+      "kind": "content",
+      "description": "Browser localStorage usage",
+      "confidence": "high",
+      "migrationRelevance": "Persistent browser storage can affect client-side state and migration safety.",
+      "matcher": {
+        "regex": "localStorage\\.(getItem|setItem|removeItem)",
+        "flags": "g"
+      }
+    },
+    {
+      "id": "session-storage-usage",
+      "displayName": "sessionStorage",
+      "canonicalPattern": "sessionStorage",
+      "category": "storage",
+      "kind": "content",
+      "description": "Browser sessionStorage usage",
+      "confidence": "high",
+      "migrationRelevance": "Session storage often indicates transient client-side workflow state that migration should preserve.",
+      "matcher": {
+        "regex": "sessionStorage\\.(getItem|setItem|removeItem)",
+        "flags": "g"
+      }
+    },
+    {
+      "id": "indexeddb-usage",
+      "displayName": "indexedDB",
+      "canonicalPattern": "indexedDB",
+      "category": "storage",
+      "kind": "content",
+      "description": "IndexedDB direct usage",
+      "confidence": "medium",
+      "migrationRelevance": "IndexedDB can signal complex local persistence beyond simple UI migration.",
+      "matcher": {
+        "regex": "indexedDB\\.open",
+        "flags": "g"
+      }
+    },
+    {
+      "id": "dexie-import",
+      "displayName": "dexie",
+      "canonicalPattern": "dexie",
+      "category": "storage",
+      "kind": "import",
+      "description": "Dexie.js IndexedDB wrapper",
+      "confidence": "high",
+      "migrationRelevance": "Dexie usually indicates a structured browser persistence layer that deserves migration attention.",
+      "matcher": {
+        "packages": ["dexie"],
+        "matchMode": "package-or-subpath"
+      }
+    },
+    {
+      "id": "oz-ui-components-import",
+      "displayName": "oz-ui-components",
+      "canonicalPattern": "oz-ui-components",
+      "category": "oz-existing",
+      "kind": "import",
+      "description": "OZ UI Components already installed",
+      "confidence": "high",
+      "migrationRelevance": "Existing OZ packages reduce migration scope and can change recommendation logic.",
+      "matcher": {
+        "packages": ["@openzeppelin/ui-components"],
+        "matchMode": "package-or-subpath"
+      }
+    },
+    {
+      "id": "oz-ui-react-import",
+      "displayName": "oz-ui-react",
+      "canonicalPattern": "oz-ui-react",
+      "category": "oz-existing",
+      "kind": "import",
+      "description": "OZ UI React already installed",
+      "confidence": "high",
+      "migrationRelevance": "Existing OZ React bindings may indicate partial migration has already happened.",
+      "matcher": {
+        "packages": ["@openzeppelin/ui-react"],
+        "matchMode": "package-or-subpath"
+      }
+    },
+    {
+      "id": "oz-adapter-import",
+      "displayName": "oz-adapter",
+      "canonicalPattern": "oz-adapter",
+      "category": "oz-existing",
+      "kind": "import",
+      "description": "OZ Adapter already installed",
+      "confidence": "high",
+      "migrationRelevance": "Existing adapters imply OZ ecosystem adoption and may shrink migration work.",
+      "matcher": {
+        "packages": ["@openzeppelin/adapter-"],
+        "matchMode": "package-or-subpath"
+      }
+    }
+  ]
+}

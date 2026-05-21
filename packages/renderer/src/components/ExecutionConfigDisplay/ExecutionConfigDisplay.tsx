@@ -14,9 +14,9 @@ import {
   PasswordField,
 } from '@openzeppelin/ui-components';
 import type {
-  ContractAdapter,
   EoaExecutionConfig,
   ExecutionConfig,
+  ExecutionConfigCapabilityProps,
   RelayerDetailsRich,
   RelayerExecutionConfig,
 } from '@openzeppelin/ui-types';
@@ -27,9 +27,8 @@ import { ExecutionMethodTrigger } from './components/ExecutionMethodTrigger';
 import { RelayerConfigDetails } from './components/RelayerConfigDetails';
 import { useExecutionValidation } from './hooks/useExecutionValidation';
 
-interface ExecutionConfigDisplayProps {
+interface ExecutionConfigDisplayProps extends ExecutionConfigCapabilityProps {
   executionConfig: ExecutionConfig;
-  adapter?: ContractAdapter;
   error?: string | null;
   connectedWalletAddress?: string;
   onRuntimeApiKeyChange?: (apiKey: string) => void;
@@ -41,7 +40,8 @@ interface ApiKeyFormData {
 
 export const ExecutionConfigDisplay: React.FC<ExecutionConfigDisplayProps> = ({
   executionConfig,
-  adapter,
+  execution,
+  relayer,
   error,
   onRuntimeApiKeyChange,
 }) => {
@@ -66,7 +66,7 @@ export const ExecutionConfigDisplay: React.FC<ExecutionConfigDisplayProps> = ({
   // Use the validation hook to determine if the execution config is valid
   const { isValid, error: validationError } = useExecutionValidation({
     executionConfig,
-    adapter,
+    execution,
     runtimeApiKey,
   });
 
@@ -77,11 +77,11 @@ export const ExecutionConfigDisplay: React.FC<ExecutionConfigDisplayProps> = ({
 
   // Fetch enhanced relayer details when dialog opens and it's a relayer execution
   useEffect(() => {
-    if (isOpen && executionConfig.method === 'relayer' && runtimeApiKey && adapter?.getRelayer) {
+    if (isOpen && executionConfig.method === 'relayer' && runtimeApiKey && relayer?.getRelayer) {
       const relayerConfig = executionConfig as RelayerExecutionConfig;
       setRelayerDetailsLoading(true);
 
-      adapter
+      relayer
         .getRelayer(relayerConfig.serviceUrl, runtimeApiKey, relayerConfig.relayer.relayerId)
         .then((details) => {
           setEnhancedRelayerDetails(details);
@@ -95,7 +95,7 @@ export const ExecutionConfigDisplay: React.FC<ExecutionConfigDisplayProps> = ({
           setRelayerDetailsLoading(false);
         });
     }
-  }, [isOpen, executionConfig, runtimeApiKey, adapter]);
+  }, [executionConfig, isOpen, relayer, runtimeApiKey]);
 
   // Determine the content to display based on execution method
   const getExecutionContent = (): React.ReactNode => {

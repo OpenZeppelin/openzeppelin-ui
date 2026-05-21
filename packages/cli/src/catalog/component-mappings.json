@@ -1,0 +1,363 @@
+{
+  "catalogVersion": "1.0.0",
+  "generatedAt": "2026-04-02T21:43:56.329Z",
+  "components": {
+    "Accordion": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/accordion",
+      "category": "ui",
+      "capabilities": []
+    },
+    "AddressDisplay": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/address-display",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Alert": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/alert",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Banner": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/banner",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Button": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/button",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Calendar": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/calendar",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Card": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/card",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Checkbox": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/checkbox",
+      "category": "ui",
+      "capabilities": []
+    },
+    "DateRangePicker": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/date-range-picker",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Dialog": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/dialog",
+      "category": "ui",
+      "capabilities": []
+    },
+    "DropdownMenu": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/dropdown-menu",
+      "category": "ui",
+      "capabilities": []
+    },
+    "EcosystemDropdown": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/ecosystem-dropdown",
+      "category": "ui",
+      "capabilities": []
+    },
+    "EcosystemIcon": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/ecosystem-icon",
+      "category": "ui",
+      "capabilities": []
+    },
+    "EmptyState": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/empty-state",
+      "category": "ui",
+      "capabilities": []
+    },
+    "ExternalLink": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/external-link",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Footer": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/footer",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Form": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/form",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Header": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/header",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Input": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/input",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Label": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/label",
+      "category": "ui",
+      "capabilities": []
+    },
+    "LoadingButton": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/loading-button",
+      "category": "ui",
+      "capabilities": []
+    },
+    "NetworkIcon": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/network-icon",
+      "category": "ui",
+      "capabilities": []
+    },
+    "NetworkSelector": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/network-selector",
+      "category": "ui",
+      "capabilities": []
+    },
+    "NetworkStatusBadge": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/network-status-badge",
+      "category": "ui",
+      "capabilities": []
+    },
+    "OverflowMenu": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/overflow-menu",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Popover": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/popover",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Progress": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/progress",
+      "category": "ui",
+      "capabilities": []
+    },
+    "RadioGroup": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/radio-group",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Select": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/select",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Sidebar": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/sidebar",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Tabs": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/tabs",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Textarea": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/textarea",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Tooltip": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/tooltip",
+      "category": "ui",
+      "capabilities": []
+    },
+    "ViewContractStateButton": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/view-contract-state-button",
+      "category": "ui",
+      "capabilities": []
+    },
+    "Wizard": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "ui/wizard",
+      "category": "ui",
+      "capabilities": []
+    },
+    "AddressField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": [
+        "AddressingCapability"
+      ]
+    },
+    "AmountField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": []
+    },
+    "ArrayField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": []
+    },
+    "ArrayObjectField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": [
+        "TypeMappingCapability"
+      ]
+    },
+    "BaseField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": []
+    },
+    "BigIntField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": []
+    },
+    "BooleanField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": []
+    },
+    "BytesField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": []
+    },
+    "DateTimeField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": []
+    },
+    "EnumField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": []
+    },
+    "FileUploadField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": []
+    },
+    "MapField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": []
+    },
+    "NumberField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": []
+    },
+    "ObjectField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": [
+        "TypeMappingCapability"
+      ]
+    },
+    "PasswordField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": []
+    },
+    "RadioField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": []
+    },
+    "SelectField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": []
+    },
+    "SelectGroupedField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": []
+    },
+    "TextAreaField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": []
+    },
+    "TextField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": []
+    },
+    "UrlField": {
+      "package": "@openzeppelin/ui-components",
+      "importPath": "fields",
+      "category": "field",
+      "capabilities": []
+    }
+  },
+  "capabilities": [
+    "AccessControlCapability",
+    "AddressingCapability",
+    "ContractLoadingCapability",
+    "ExecutionCapability",
+    "ExplorerCapability",
+    "NetworkCatalogCapability",
+    "QueryCapability",
+    "RelayerCapability",
+    "SchemaCapability",
+    "TypeMappingCapability",
+    "UiKitCapability",
+    "UiLabelsCapability",
+    "WalletCapability"
+  ]
+}

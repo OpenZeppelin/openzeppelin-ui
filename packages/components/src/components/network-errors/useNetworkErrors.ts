@@ -2,7 +2,7 @@
 
 import { useCallback, useContext } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-types';
+import type { RuntimeCapability } from '@openzeppelin/ui-types';
 
 import { NetworkErrorContext } from './NetworkErrorContext';
 
@@ -41,9 +41,9 @@ export function useNetworkErrors(): NetworkErrorContextValue {
 }
 
 /**
- * Hook for reporting network errors for a specific adapter
+ * Hook for reporting network errors for a specific runtime-bound capability
  */
-export function useNetworkErrorReporter(adapter: ContractAdapter | null): {
+export function useNetworkErrorReporter(capability: RuntimeCapability | null): {
   reportRpcError: (message: string) => void;
   reportExplorerError: (message: string) => void;
 } {
@@ -51,18 +51,28 @@ export function useNetworkErrorReporter(adapter: ContractAdapter | null): {
 
   const reportRpcError = useCallback(
     (message: string) => {
-      if (!adapter) return;
-      reportNetworkError('rpc', adapter.networkConfig.id, adapter.networkConfig.name, message);
+      if (!capability) return;
+      reportNetworkError(
+        'rpc',
+        capability.networkConfig.id,
+        capability.networkConfig.name,
+        message
+      );
     },
-    [adapter, reportNetworkError]
+    [capability, reportNetworkError]
   );
 
   const reportExplorerError = useCallback(
     (message: string) => {
-      if (!adapter) return;
-      reportNetworkError('explorer', adapter.networkConfig.id, adapter.networkConfig.name, message);
+      if (!capability) return;
+      reportNetworkError(
+        'explorer',
+        capability.networkConfig.id,
+        capability.networkConfig.name,
+        message
+      );
     },
-    [adapter, reportNetworkError]
+    [capability, reportNetworkError]
   );
 
   return {

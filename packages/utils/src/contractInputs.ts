@@ -1,14 +1,14 @@
-import type { ContractAdapter, FormValues } from '@openzeppelin/ui-types';
+import type { ContractLoadingCapability, FormValues } from '@openzeppelin/ui-types';
 
 /**
  * Returns names of adapter-declared required inputs that are missing/empty in values.
  */
 export function getMissingRequiredContractInputs(
-  adapter: ContractAdapter,
+  contractLoading: ContractLoadingCapability,
   values: FormValues
 ): string[] {
   try {
-    const inputs = adapter.getContractDefinitionInputs ? adapter.getContractDefinitionInputs() : [];
+    const inputs = contractLoading.getContractDefinitionInputs();
     const required = inputs.filter((field: unknown) => {
       const f = field as { validation?: { required?: boolean } };
       return f?.validation?.required === true;
@@ -35,9 +35,9 @@ export function getMissingRequiredContractInputs(
  * True if any adapter-declared required inputs are missing/empty.
  */
 export function hasMissingRequiredContractInputs(
-  adapter: ContractAdapter | null | undefined,
+  contractLoading: ContractLoadingCapability | null | undefined,
   values: FormValues
 ): boolean {
-  if (!adapter) return false;
-  return getMissingRequiredContractInputs(adapter, values).length > 0;
+  if (!contractLoading) return false;
+  return getMissingRequiredContractInputs(contractLoading, values).length > 0;
 }

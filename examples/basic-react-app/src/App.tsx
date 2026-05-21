@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   ArrowLeftRight,
+  BookOpen,
   BookUser,
   Calendar,
   CalendarRange,
@@ -80,6 +81,7 @@ import {
   WalletDemo,
   WizardDemo,
 } from './components';
+import { DOCS_ECOSYSTEM_ADAPTERS, DOCS_UIKIT } from './docsUrls';
 import { useUiStore } from './stores';
 
 // ============================================================================
@@ -494,16 +496,50 @@ function App(): React.ReactElement {
         </SidebarSection>
 
         {/* Package reference section */}
-        <SidebarSection title="Packages" className="mt-8">
+        <SidebarSection title="UI Packages" className="mt-8">
           <ul className="text-muted-foreground space-y-1.5 text-sm">
-            <li>@openzeppelin/ui-components</li>
-            <li>@openzeppelin/ui-renderer</li>
             <li>@openzeppelin/ui-types</li>
             <li>@openzeppelin/ui-utils</li>
             <li>@openzeppelin/ui-styles</li>
-            <li>@openzeppelin/ui-storage</li>
+            <li>@openzeppelin/ui-components</li>
             <li>@openzeppelin/ui-react</li>
+            <li>@openzeppelin/ui-renderer</li>
+            <li>@openzeppelin/ui-storage</li>
           </ul>
+        </SidebarSection>
+        <SidebarSection title="Adapter Packages" className="mt-4">
+          <ul className="text-muted-foreground space-y-1.5 text-sm">
+            <li>@openzeppelin/adapter-evm</li>
+            <li>@openzeppelin/adapter-stellar</li>
+            <li>@openzeppelin/adapter-polkadot</li>
+            <li>@openzeppelin/adapter-midnight</li>
+            <li>@openzeppelin/adapters-vite</li>
+          </ul>
+        </SidebarSection>
+
+        <SidebarSection title="Documentation" className="mt-8">
+          <nav className="flex flex-col gap-2">
+            <a
+              href={DOCS_UIKIT}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-sm transition-colors"
+            >
+              <BookOpen className="size-3.5 shrink-0" />
+              UIKit
+              <ExternalLinkIcon className="size-3 shrink-0 opacity-70" aria-hidden />
+            </a>
+            <a
+              href={DOCS_ECOSYSTEM_ADAPTERS}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-sm transition-colors"
+            >
+              <BookOpen className="size-3.5 shrink-0" />
+              Ecosystem Adapters
+              <ExternalLinkIcon className="size-3 shrink-0 opacity-70" aria-hidden />
+            </a>
+          </nav>
         </SidebarSection>
       </SidebarLayout>
 
@@ -514,8 +550,24 @@ function App(): React.ReactElement {
           title="OpenZeppelin UI"
           onOpenSidebar={() => setMobileOpen(true)}
           rightContent={
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
               <EcosystemSwitcher />
+              <a
+                href={DOCS_UIKIT}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground hidden text-sm transition-colors sm:inline"
+              >
+                UIKit docs
+              </a>
+              <a
+                href={DOCS_ECOSYSTEM_ADAPTERS}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground hidden text-sm transition-colors sm:inline"
+              >
+                Adapters docs
+              </a>
               <a
                 href="https://github.com/OpenZeppelin/openzeppelin-ui"
                 target="_blank"

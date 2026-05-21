@@ -6,6 +6,9 @@
  *
  */
 
+// Package version (injected at build time)
+export { VERSION } from './version';
+
 // Export all types directly
 export * from './adapters';
 export * from './common';

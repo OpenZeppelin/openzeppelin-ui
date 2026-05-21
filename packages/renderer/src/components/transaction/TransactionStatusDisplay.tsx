@@ -2,12 +2,16 @@ import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import React from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@openzeppelin/ui-components';
-import type { ContractFunction, FullContractAdapter, TxStatus } from '@openzeppelin/ui-types';
+import type {
+  ContractFunction,
+  TransactionStatusCapabilityProps,
+  TxStatus,
+} from '@openzeppelin/ui-types';
 import { cn } from '@openzeppelin/ui-utils';
 
 import { TransactionHashDisplay } from './TransactionHashDisplay';
 
-interface TransactionStatusDisplayProps {
+interface TransactionStatusDisplayProps extends TransactionStatusCapabilityProps {
   status: TxStatus;
   txHash: string | null;
   error: string | null;
@@ -16,10 +20,9 @@ interface TransactionStatusDisplayProps {
   // Optional adapter-provided copy
   customTitle?: string;
   customMessage?: string;
-  // Optional execution result and adapter for formatting
+  // Optional execution result and capabilities for formatting / explorer linking
   result?: unknown;
   functionDetails?: ContractFunction;
-  adapter?: FullContractAdapter;
 }
 
 /**
@@ -67,7 +70,8 @@ export function TransactionStatusDisplay({
   customMessage,
   result,
   functionDetails,
-  adapter,
+  query,
+  explorer,
 }: TransactionStatusDisplayProps): React.ReactElement | null {
   if (status === 'idle') {
     return null;
@@ -110,9 +114,13 @@ export function TransactionStatusDisplay({
 
   // Format result if available (chain-agnostic, adapter-led formatting)
   let formattedResult: string | null = null;
-  if (result !== undefined && result !== null && adapter && functionDetails) {
+  if (result !== undefined && result !== null && query && functionDetails) {
     try {
-      formattedResult = adapter.formatFunctionResult(result, functionDetails);
+      const nextFormattedResult = query.formatFunctionResult(result, functionDetails);
+      formattedResult =
+        typeof nextFormattedResult === 'string'
+          ? nextFormattedResult
+          : JSON.stringify(nextFormattedResult, null, 2);
     } catch {
       // Fallback to JSON.stringify if formatting fails
       formattedResult = JSON.stringify(result, null, 2);
@@ -121,6 +129,12 @@ export function TransactionStatusDisplay({
     // Fallback formatting when adapter/functionDetails not available
     formattedResult = JSON.stringify(result, null, 2);
   }
+
+  const resolvedExplorerUrl =
+    explorerUrl ??
+    (txHash
+      ? (explorer?.getExplorerTxUrl?.(txHash) ?? explorer?.getExplorerUrl(txHash) ?? null)
+      : null);
 
   let content: React.ReactNode = null;
   if (status === 'error') {
@@ -133,7 +147,7 @@ export function TransactionStatusDisplay({
         ) : (
           <span className="break-word">An unknown error occurred.</span>
         )}
-        {txHash && <TransactionHashDisplay txHash={txHash} explorerUrl={explorerUrl || null} />}
+        {txHash && <TransactionHashDisplay txHash={txHash} explorerUrl={resolvedExplorerUrl} />}
       </div>
     );
   } else {
@@ -141,7 +155,7 @@ export function TransactionStatusDisplay({
     content = (
       <div className="space-y-3">
         {messageText && <p>{messageText}</p>}
-        {txHash && <TransactionHashDisplay txHash={txHash} explorerUrl={explorerUrl || null} />}
+        {txHash && <TransactionHashDisplay txHash={txHash} explorerUrl={resolvedExplorerUrl} />}
         {formattedResult && (
           <div className="mt-3 pt-3 border-t border-border">
             <p className="text-sm font-medium mb-2">Result:</p>

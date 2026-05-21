@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-import type { ContractAdapter } from '@openzeppelin/ui-types';
+import type { RuntimeCapability } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
 
 import { useDerivedAccountStatus } from './useDerivedAccountStatus';
@@ -13,13 +13,13 @@ import { useDerivedAccountStatus } from './useDerivedAccountStatus';
  * This hook detects that scenario and invokes a callback to re-queue the network switch.
  *
  * @param selectedNetworkConfigId - Currently selected network in the app
- * @param selectedAdapter - Currently active adapter instance
+ * @param selectedCapability - Currently active wallet capability instance
  * @param networkToSwitchTo - Current network switch queue state (null if no switch pending)
  * @param onRequeueSwitch - Callback invoked when a network switch should be re-queued
  */
 export function useWalletReconnectionHandler(
   selectedNetworkConfigId: string | null,
-  selectedAdapter: ContractAdapter | null,
+  selectedCapability: RuntimeCapability | null,
   networkToSwitchTo: string | null,
   onRequeueSwitch: (networkId: string) => void
 ): void {
@@ -34,7 +34,7 @@ export function useWalletReconnectionHandler(
     // Update ref for next render
     prevConnectedRef.current = isConnected;
 
-    if (!isReconnection || !selectedNetworkConfigId || !selectedAdapter) {
+    if (!isReconnection || !selectedNetworkConfigId || !selectedCapability) {
       return;
     }
 
@@ -43,13 +43,13 @@ export function useWalletReconnectionHandler(
       return;
     }
 
-    // Check if adapter config has chainId (only EVM chains support network switching)
-    const adapterConfig = selectedAdapter.networkConfig;
-    if (!('chainId' in adapterConfig) || !walletChainId) {
+    // Check if the selected capability config has chainId (only EVM chains support network switching)
+    const selectedNetworkConfig = selectedCapability.networkConfig;
+    if (!('chainId' in selectedNetworkConfig) || !walletChainId) {
       return;
     }
 
-    const targetChainId = Number(adapterConfig.chainId);
+    const targetChainId = Number(selectedNetworkConfig.chainId);
     if (walletChainId !== targetChainId) {
       logger.info(
         'useWalletReconnectionHandler',
@@ -61,7 +61,7 @@ export function useWalletReconnectionHandler(
     isConnected,
     walletChainId,
     selectedNetworkConfigId,
-    selectedAdapter,
+    selectedCapability,
     networkToSwitchTo,
     onRequeueSwitch,
   ]);

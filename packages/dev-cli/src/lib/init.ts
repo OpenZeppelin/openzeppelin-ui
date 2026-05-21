@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { PROJECT_CONFIG_FILE } from './config';
-import { FamilyKey } from './families';
+import { STANDARD_FAMILIES, type FamilyKey } from './families';
 import { CLI_PACKAGE_NAME, getCliDependencyRange } from './packageInfo';
 
 export interface InitProjectOptions {
@@ -49,7 +49,22 @@ function createProjectConfig(options: InitProjectOptions): string {
   )}\n`;
 }
 
+function serializePnpmfileFamilies(): string {
+  const subset: Record<string, unknown> = {};
+  for (const [key, family] of Object.entries(STANDARD_FAMILIES)) {
+    subset[key] = {
+      repoName: family.repoName,
+      envFlag: family.envFlag,
+      envNames: [...family.envNames],
+      defaultPath: family.defaultPath,
+      packageMap: { ...family.packageMap },
+    };
+  }
+  return JSON.stringify(subset, null, 2);
+}
+
 function createPnpmfileContent(): string {
+  const familiesJson = serializePnpmfileFamilies();
   return `/**
  * pnpm hook for config-driven local development.
  *
@@ -62,36 +77,7 @@ const fs = require('fs');
 const path = require('path');
 
 const CONFIG_FILE = '.openzeppelin-dev.json';
-const STANDARD_FAMILIES = {
-  ui: {
-    repoName: 'openzeppelin-ui',
-    envFlag: 'LOCAL_UI',
-    envNames: ['LOCAL_UI_PATH'],
-    defaultPath: '../openzeppelin-ui',
-    packageMap: {
-      '@openzeppelin/ui-types': 'packages/types',
-      '@openzeppelin/ui-utils': 'packages/utils',
-      '@openzeppelin/ui-styles': 'packages/styles',
-      '@openzeppelin/ui-components': 'packages/components',
-      '@openzeppelin/ui-renderer': 'packages/renderer',
-      '@openzeppelin/ui-react': 'packages/react',
-      '@openzeppelin/ui-storage': 'packages/storage',
-    },
-  },
-  adapters: {
-    repoName: 'openzeppelin-adapters',
-    envFlag: 'LOCAL_ADAPTERS',
-    envNames: ['LOCAL_ADAPTERS_PATH'],
-    defaultPath: '../openzeppelin-adapters',
-    packageMap: {
-      '@openzeppelin/adapter-evm': 'packages/adapter-evm',
-      '@openzeppelin/adapter-midnight': 'packages/adapter-midnight',
-      '@openzeppelin/adapter-polkadot': 'packages/adapter-polkadot',
-      '@openzeppelin/adapter-solana': 'packages/adapter-solana',
-      '@openzeppelin/adapter-stellar': 'packages/adapter-stellar',
-    },
-  },
-};
+const STANDARD_FAMILIES = ${familiesJson};
 
 function isObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -225,6 +211,46 @@ function resolvePackageDirectory(workspaceRoot, family, packageName, packagePath
   return absolutePath;
 }
 
+function findWorkspacePackage(repoRoot, packageName) {
+  const packagesDir = path.join(repoRoot, 'packages');
+  if (!fs.existsSync(packagesDir)) {
+    return null;
+  }
+
+  for (const entry of fs.readdirSync(packagesDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+
+    const packageRoot = path.join(packagesDir, entry.name);
+    const packageJsonPath = path.join(packageRoot, 'package.json');
+    if (!fs.existsSync(packageJsonPath)) {
+      continue;
+    }
+
+    try {
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+      if (packageJson.name === packageName) {
+        return getRealPath(packageRoot);
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+}
+
+function resolvePackageDirectoryByName(workspaceRoot, family, packageName) {
+  const explicitPackagePath = family.packageMap[packageName];
+  if (explicitPackagePath) {
+    return resolvePackageDirectory(workspaceRoot, family, packageName, explicitPackagePath);
+  }
+
+  const repoRoot = resolveRepoRoot(workspaceRoot, family);
+  return findWorkspacePackage(repoRoot, packageName);
+}
+
 function readPackedManifest(cacheDir, familyKey) {
   const manifestPath = path.join(cacheDir, \`\${familyKey}.json\`);
   if (!fs.existsSync(manifestPath)) {
@@ -246,9 +272,7 @@ function rewriteDependencies(pkg, context, cacheDir, familyKey, family) {
   for (const depType of ['dependencies', 'devDependencies']) {
     if (!pkg[depType]) continue;
 
-    for (const [npmName, packagePath] of Object.entries(family.packageMap)) {
-      if (!pkg[depType][npmName]) continue;
-
+    for (const npmName of Object.keys(pkg[depType])) {
       const packedTarballPath = packedPackages && packedPackages[npmName];
       if (packedTarballPath && fs.existsSync(packedTarballPath)) {
         pkg[depType][npmName] = \`file:\${packedTarballPath}\`;
@@ -256,28 +280,61 @@ function rewriteDependencies(pkg, context, cacheDir, familyKey, family) {
         continue;
       }
 
-      const absolutePath = resolvePackageDirectory(workspaceRoot, family, npmName, packagePath);
+      const absolutePath = resolvePackageDirectoryByName(workspaceRoot, family, npmName);
+      if (!absolutePath) {
+        continue;
+      }
+
       pkg[depType][npmName] = \`file:\${absolutePath}\`;
-      context.log(\`[local-dev] \${npmName} → \${absolutePath}\`);
+      const source =
+        Object.prototype.hasOwnProperty.call(family.packageMap, npmName) ? '' : ' (workspace fallback)';
+      context.log(\`[local-dev] \${npmName} → \${absolutePath}\${source}\`);
+    }
+  }
+}
+
+/**
+ * Widen caret ranges on adapter packages so pnpm can resolve pre-release
+ * versions (e.g. 2.0.0-rc.1) that a plain ^2.0.0 would exclude.
+ * Follows standard caret semantics for the upper bound.
+ * Skips deps already rewritten to file: paths by local-dev mode.
+ */
+function allowAdapterPrereleases(pkg) {
+  for (const depType of ['dependencies', 'devDependencies']) {
+    if (!pkg[depType]) continue;
+    for (const [name, range] of Object.entries(pkg[depType])) {
+      if (typeof range !== 'string') continue;
+      if (!name.startsWith('@openzeppelin/adapter') && !name.startsWith('@openzeppelin/adapters-'))
+        continue;
+      if (!range.startsWith('^')) continue;
+      const m = range.slice(1).match(/^(\\d+)\\.(\\d+)\\.(\\d+)$/);
+      if (!m) continue;
+      const maj = Number(m[1]), min = Number(m[2]), pat = Number(m[3]);
+      const upper = maj > 0
+        ? \`\${maj + 1}.0.0\`
+        : min > 0
+          ? \`0.\${min + 1}.0\`
+          : \`0.0.\${pat + 1}\`;
+      pkg[depType][name] = \`>=\${maj}.\${min}.\${pat}-0 <\${upper}\`;
     }
   }
 }
 
 function readPackage(pkg, context) {
-  if (!isAnyLocalFamilyEnabled()) {
-    return pkg;
-  }
+  if (isAnyLocalFamilyEnabled()) {
+    const workspaceRoot = __dirname;
+    const projectConfig = readProjectConfig(workspaceRoot);
 
-  const workspaceRoot = __dirname;
-  const projectConfig = readProjectConfig(workspaceRoot);
+    for (const [familyKey, family] of Object.entries(projectConfig.families)) {
+      if (process.env[family.envFlag] !== 'true') {
+        continue;
+      }
 
-  for (const [familyKey, family] of Object.entries(projectConfig.families)) {
-    if (process.env[family.envFlag] !== 'true') {
-      continue;
+      rewriteDependencies(pkg, context, projectConfig.cacheDir, familyKey, family);
     }
-
-    rewriteDependencies(pkg, context, projectConfig.cacheDir, familyKey, family);
   }
+
+  allowAdapterPrereleases(pkg);
 
   return pkg;
 }
@@ -312,26 +369,26 @@ function createManagedScripts(options: InitProjectOptions): Record<string, strin
       `${localUiPrefix} && ` +
       `${localAdaptersPrefix} && ` +
       `LOCAL_UI_PATH="$LOCAL_UI_PATH" LOCAL_ADAPTERS_PATH="$LOCAL_ADAPTERS_PATH" ` +
-      `oz-dev use local --project "$PWD" --family ui --family adapters`;
+      `oz-ui-dev use local --project "$PWD" --family ui --family adapters`;
     scripts['dev:uikit:local'] =
       `${localUiPrefix} && ` +
-      `LOCAL_UI_PATH="$LOCAL_UI_PATH" oz-dev use local --project "$PWD" --family ui`;
+      `LOCAL_UI_PATH="$LOCAL_UI_PATH" oz-ui-dev use local --project "$PWD" --family ui`;
     scripts['dev:adapters:local'] =
       `${localAdaptersPrefix} && ` +
-      `LOCAL_ADAPTERS_PATH="$LOCAL_ADAPTERS_PATH" oz-dev use local --project "$PWD" --family adapters`;
+      `LOCAL_ADAPTERS_PATH="$LOCAL_ADAPTERS_PATH" oz-ui-dev use local --project "$PWD" --family adapters`;
   } else if (options.families.includes('adapters')) {
     scripts['dev:local'] =
       `${localAdaptersPrefix} && ` +
-      `LOCAL_ADAPTERS_PATH="$LOCAL_ADAPTERS_PATH" oz-dev use local --project "$PWD" --family adapters`;
+      `LOCAL_ADAPTERS_PATH="$LOCAL_ADAPTERS_PATH" oz-ui-dev use local --project "$PWD" --family adapters`;
     scripts['dev:adapters:local'] = scripts['dev:local'];
   } else {
     scripts['dev:local'] =
       `${localUiPrefix} && ` +
-      `LOCAL_UI_PATH="$LOCAL_UI_PATH" oz-dev use local --project "$PWD" --family ui`;
+      `LOCAL_UI_PATH="$LOCAL_UI_PATH" oz-ui-dev use local --project "$PWD" --family ui`;
     scripts['dev:uikit:local'] = scripts['dev:local'];
   }
 
-  scripts['dev:npm'] = 'oz-dev use remote --project "$PWD"';
+  scripts['dev:npm'] = 'oz-ui-dev use remote --project "$PWD"';
 
   return scripts;
 }
@@ -342,7 +399,7 @@ function shouldReplaceManagedScript(existingScript: string | undefined): boolean
     existingScript.includes('packages/dev-cli/dist/index.mjs') ||
     existingScript.includes('pnpm --filter @openzeppelin/ui-dev-cli build') ||
     existingScript.includes('pnpm dlx @openzeppelin/ui-dev-cli@') ||
-    existingScript.includes('oz-dev use ') ||
+    existingScript.includes('oz-ui-dev use ') ||
     existingScript.includes('LOCAL_UI=true pnpm install --force') ||
     existingScript.includes('LOCAL_ADAPTERS=true pnpm install --force') ||
     existingScript.includes('setup-local-dev.mjs') ||

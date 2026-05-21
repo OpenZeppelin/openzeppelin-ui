@@ -16,15 +16,15 @@ import {
   NetworkSelector,
   TextField,
 } from '@openzeppelin/ui-components';
-import type { ContractAdapter, NetworkConfig } from '@openzeppelin/ui-types';
+import type { AddressingCapability, NetworkConfig } from '@openzeppelin/ui-types';
 
 interface AddAliasDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (input: { address: string; alias: string; networkId?: string }) => Promise<string>;
   currentNetworkId?: string;
-  adapter?: ContractAdapter;
-  resolveAdapter?: (network: NetworkConfig) => Promise<ContractAdapter | undefined>;
+  addressing?: AddressingCapability;
+  resolveAddressing?: (network: NetworkConfig) => Promise<AddressingCapability | undefined>;
   addressPlaceholder?: string;
   resolveAddressPlaceholder?: (network: NetworkConfig) => string | undefined;
   resolveNetwork?: (networkId: string) => NetworkConfig | undefined;
@@ -42,8 +42,8 @@ export function AddAliasDialog({
   onOpenChange,
   onSave,
   currentNetworkId,
-  adapter: defaultAdapter,
-  resolveAdapter,
+  addressing: defaultAddressing,
+  resolveAddressing,
   addressPlaceholder: defaultPlaceholder,
   resolveAddressPlaceholder,
   resolveNetwork,
@@ -59,23 +59,57 @@ export function AddAliasDialog({
   const [selectedNetwork, setSelectedNetwork] = useState<NetworkConfig | null>(
     initialNetwork ?? null
   );
-  const [activeAdapter, setActiveAdapter] = useState<ContractAdapter | undefined>(defaultAdapter);
+  const [activeAddressing, setActiveAddressing] = useState<AddressingCapability | undefined>(
+    defaultAddressing
+  );
   const [activePlaceholder, setActivePlaceholder] = useState<string | undefined>(
     defaultPlaceholder
   );
-
-  useEffect(() => {
-    if (open) {
-      setSelectedNetwork(initialNetwork ?? null);
-      setActiveAdapter(defaultAdapter);
-      setActivePlaceholder(defaultPlaceholder);
-    }
-  }, [open, initialNetwork, defaultAdapter, defaultPlaceholder]);
 
   const { control, handleSubmit, reset, trigger, formState } = useForm<AddAliasFormData>({
     defaultValues: { address: '', alias: '' },
     mode: 'onChange',
   });
+
+  // When the dialog opens, seed network + addressing/placeholder from the props.
+  // If an `initialNetwork` is preselected and matching resolvers are provided,
+  // also resolve addressing/placeholder for that network so the AddressField has
+  // a network-specific validator from the first render. Without this, the field
+  // would only get the explicit `addressing` default (often `undefined`) until
+  // the user manually changed the network selector — silently accepting any
+  // non-empty input as valid in the meantime.
+  useEffect(() => {
+    if (!open) return;
+
+    setSelectedNetwork(initialNetwork ?? null);
+    setActiveAddressing(defaultAddressing);
+    setActivePlaceholder(
+      initialNetwork && resolveAddressPlaceholder
+        ? (resolveAddressPlaceholder(initialNetwork) ?? defaultPlaceholder)
+        : defaultPlaceholder
+    );
+
+    if (!initialNetwork || !resolveAddressing) return;
+
+    let cancelled = false;
+    void resolveAddressing(initialNetwork).then((nextAddressing) => {
+      if (cancelled) return;
+      setActiveAddressing(nextAddressing);
+      // Re-validate the address field once the network-specific validator is in place.
+      trigger('address');
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    open,
+    initialNetwork,
+    defaultAddressing,
+    defaultPlaceholder,
+    resolveAddressing,
+    resolveAddressPlaceholder,
+    trigger,
+  ]);
 
   const handleNetworkChange = useCallback(
     async (network: NetworkConfig) => {
@@ -85,13 +119,13 @@ export function AddAliasDialog({
         setActivePlaceholder(resolveAddressPlaceholder(network));
       }
 
-      if (resolveAdapter) {
-        const newAdapter = await resolveAdapter(network);
-        setActiveAdapter(newAdapter);
+      if (resolveAddressing) {
+        const nextAddressing = await resolveAddressing(network);
+        setActiveAddressing(nextAddressing);
         trigger('address');
       }
     },
-    [resolveAdapter, resolveAddressPlaceholder, trigger]
+    [resolveAddressing, resolveAddressPlaceholder, trigger]
   );
 
   const canSubmit = formState.isValid && !saving;
@@ -120,12 +154,12 @@ export function AddAliasDialog({
       if (!nextOpen) {
         reset();
         setSelectedNetwork(initialNetwork ?? null);
-        setActiveAdapter(defaultAdapter);
+        setActiveAddressing(defaultAddressing);
         setActivePlaceholder(defaultPlaceholder);
       }
       onOpenChange(nextOpen);
     },
-    [defaultAdapter, defaultPlaceholder, initialNetwork, onOpenChange, reset]
+    [defaultAddressing, defaultPlaceholder, initialNetwork, onOpenChange, reset]
   );
 
   const hasNetworkSelection = networks && networks.length > 0;
@@ -164,7 +198,7 @@ export function AddAliasDialog({
             placeholder={activePlaceholder}
             control={control}
             validation={{ required: true }}
-            adapter={activeAdapter}
+            addressing={activeAddressing}
           />
           <TextField
             id="new-alias-name"

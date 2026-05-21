@@ -1,0 +1,19 @@
+{
+  "library": "Chakra UI",
+  "packages": ["@chakra-ui/react", "@chakra-ui/icons"],
+  "importPatterns": ["@chakra-ui/react"],
+  "mappings": {
+    "Button": { "source": "Button", "effort": "medium", "notes": "colorScheme → variant, isLoading → LoadingButton" },
+    "Accordion": { "source": "Accordion", "effort": "medium", "notes": "AccordionItem/Button/Panel → OZ compound" },
+    "Alert": { "source": "Alert", "effort": "medium", "notes": "status → variant mapping" },
+    "Card": { "source": "Card", "effort": "low", "notes": "CardHeader/Body/Footer → OZ compound" },
+    "Checkbox": { "source": "Checkbox", "effort": "medium", "notes": "isChecked → checked" },
+    "Input": { "source": "Input", "effort": "medium", "notes": "InputGroup/LeftElement patterns differ" },
+    "Select": { "source": "Select", "effort": "medium", "notes": "Chakra native select → OZ Select" },
+    "Tabs": { "source": "Tabs", "effort": "medium", "notes": "TabList/Tab/TabPanel → OZ Tabs compound" },
+    "Tooltip": { "source": "Tooltip", "effort": "low", "notes": "label → content" },
+    "Progress": { "source": "Progress", "effort": "medium", "notes": "colorScheme removal, value maps" },
+    "RadioGroup": { "source": "RadioGroup", "effort": "medium", "notes": "Stack wrapper removal" },
+    "Dialog": { "source": "Modal", "effort": "medium", "notes": "ModalOverlay/Content/Header → OZ Dialog compound" }
+  }
+}

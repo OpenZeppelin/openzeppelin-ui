@@ -36,8 +36,9 @@ export function FacadeHooksSection(): React.ReactElement {
           Facade Hooks
         </CardTitle>
         <CardDescription>
-          Unified React hooks that provide consistent wallet state across all adapters. These hooks
-          abstract away blockchain-specific libraries like wagmi.
+          Unified React hooks that provide consistent wallet state across all ecosystem adapters.
+          These hooks abstract away blockchain-specific libraries like wagmi and
+          stellar-wallets-kit.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -84,7 +85,7 @@ export function WalletComponentsSection(): React.ReactElement {
           Wallet UI Components
         </CardTitle>
         <CardDescription>
-          The WalletConnectionUI component dynamically renders wallet UI from the active adapter,
+          The WalletConnectionUI component dynamically renders wallet UI from the active runtime,
           supporting multiple UI kits.
         </CardDescription>
       </CardHeader>
@@ -139,8 +140,8 @@ export function UiKitSwitchingSection(): React.ReactElement {
           Runtime UI Kit Switching
         </CardTitle>
         <CardDescription>
-          Switch between wallet UI kits (RainbowKit, custom) at runtime without losing connection
-          state.
+          Switch between wallet UI kits (RainbowKit, Stellar Wallets Kit, custom) at runtime without
+          losing connection state. Powered by the UiKit capability (Tier 3).
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -155,9 +156,9 @@ export function UiKitSwitchingSection(): React.ReactElement {
             <AccordionTrigger>Seamless switching explained</AccordionTrigger>
             <AccordionContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Kit switching uses <code>reconfigureActiveAdapterUiKit</code> which triggers a
-                version bump in WalletStateProvider. This causes the adapter to reconfigure its UI
-                kit manager without unmounting the entire provider tree.
+                Kit switching uses <code>reconfigureActiveUiKit</code> which triggers a version bump
+                in WalletStateProvider. This causes the runtime to reconfigure its UI kit manager
+                without unmounting the entire provider tree.
               </p>
               <ul className="ml-4 list-disc space-y-1 text-sm text-muted-foreground">
                 <li>Connection state is preserved across kit switches</li>

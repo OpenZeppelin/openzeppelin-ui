@@ -1,20 +1,12 @@
 import { describe, expect, test } from 'vitest';
 
-import type {
-  ContractAdapter,
-  ContractFunction,
-  ContractSchema,
-  FormFieldType,
-  FormValues,
-  FunctionParameter,
-  RelayerDetailsRich,
-} from '@openzeppelin/ui-types';
+import type { ContractLoadingCapability, FormFieldType, FormValues } from '@openzeppelin/ui-types';
 
 import { buildRequiredInputSnapshot, requiredSnapshotsEqual } from '../requiredInputs';
 
-function makeAdapter(
+function makeContractLoading(
   fields: Array<Partial<FormFieldType> & { id: string; name?: string; required?: boolean }>
-): ContractAdapter {
+): ContractLoadingCapability {
   const inputs: FormFieldType[] = fields.map((f) => ({
     id: f.id,
     name: f.name ?? f.id,
@@ -24,8 +16,8 @@ function makeAdapter(
   })) as FormFieldType[];
 
   return {
-    networkConfig: {} as unknown as ContractAdapter['networkConfig'],
-    initialAppServiceKitName: 'custom',
+    networkConfig: {} as ContractLoadingCapability['networkConfig'],
+    dispose: () => {},
     loadContract: async () => ({
       name: 'x',
       ecosystem: 'evm',
@@ -33,41 +25,19 @@ function makeAdapter(
       functions: [],
       events: [],
     }),
-    getWritableFunctions: (s: ContractSchema): ContractFunction[] => s.functions,
-    mapParameterTypeToFieldType: () => 'text',
-    getCompatibleFieldTypes: () => ['text'],
-    generateDefaultField: (p: FunctionParameter) => ({
-      id: p.name,
-      name: p.name,
-      label: p.name,
-      type: 'text',
-      validation: {},
-    }),
-    signAndBroadcast: async () => ({ txHash: '0x' }),
-    isValidAddress: () => true,
-    getSupportedExecutionMethods: async () => [],
-    validateExecutionConfig: async () => true,
-    isViewFunction: () => true,
-    queryViewFunction: async () => ({}),
-    formatFunctionResult: () => '',
-    getExplorerUrl: () => null,
-    getCurrentBlock: async () => 12345,
-    getAvailableUiKits: async () => [],
-    getRelayers: async () => [],
-    getRelayer: async () => ({}) as unknown as RelayerDetailsRich,
     getContractDefinitionInputs: () => inputs,
-  } as unknown as ContractAdapter;
+  } as unknown as ContractLoadingCapability;
 }
 
 describe('buildRequiredInputSnapshot', () => {
   test('returns null when formValues is null', () => {
-    const adapter = makeAdapter([{ id: 'a', required: true }]);
-    expect(buildRequiredInputSnapshot(adapter, null)).toBeNull();
+    const contractLoading = makeContractLoading([{ id: 'a', required: true }]);
+    expect(buildRequiredInputSnapshot(contractLoading, null)).toBeNull();
   });
 
   test('returns null when formValues is undefined', () => {
-    const adapter = makeAdapter([{ id: 'a', required: true }]);
-    expect(buildRequiredInputSnapshot(adapter, undefined)).toBeNull();
+    const contractLoading = makeContractLoading([{ id: 'a', required: true }]);
+    expect(buildRequiredInputSnapshot(contractLoading, undefined)).toBeNull();
   });
 
   test('returns null when adapter is null', () => {
@@ -76,24 +46,32 @@ describe('buildRequiredInputSnapshot', () => {
   });
 
   test('returns null when adapter has no required fields', () => {
-    const adapter = makeAdapter([
+    const contractLoading = makeContractLoading([
       { id: 'optional1', required: false },
       { id: 'optional2', required: false },
     ]);
     const values: FormValues = { optional1: 'value1', optional2: 'value2' };
-    expect(buildRequiredInputSnapshot(adapter, values)).toBeNull();
+    expect(buildRequiredInputSnapshot(contractLoading, values)).toBeNull();
   });
 
   test('returns null when adapter has no getContractDefinitionInputs method', () => {
-    const adapter = {
-      networkConfig: {} as unknown as ContractAdapter['networkConfig'],
-    } as unknown as ContractAdapter;
+    const contractLoading = {
+      networkConfig: {} as ContractLoadingCapability['networkConfig'],
+      dispose: () => {},
+      loadContract: async () => ({
+        name: 'x',
+        ecosystem: 'evm',
+        address: '0x',
+        functions: [],
+        events: [],
+      }),
+    } as unknown as ContractLoadingCapability;
     const values: FormValues = { a: 'value' };
-    expect(buildRequiredInputSnapshot(adapter, values)).toBeNull();
+    expect(buildRequiredInputSnapshot(contractLoading, values)).toBeNull();
   });
 
   test('builds snapshot with required fields only', () => {
-    const adapter = makeAdapter([
+    const contractLoading = makeContractLoading([
       { id: 'contractAddress', required: true },
       { id: 'privateStateId', required: true },
       { id: 'optionalField', required: false },
@@ -103,7 +81,7 @@ describe('buildRequiredInputSnapshot', () => {
       privateStateId: 'state-1',
       optionalField: 'ignored',
     };
-    const snapshot = buildRequiredInputSnapshot(adapter, values);
+    const snapshot = buildRequiredInputSnapshot(contractLoading, values);
     expect(snapshot).toEqual({
       contractAddress: '0xabc',
       privateStateId: 'state-1',
@@ -111,17 +89,17 @@ describe('buildRequiredInputSnapshot', () => {
   });
 
   test('normalizes string values by trimming whitespace', () => {
-    const adapter = makeAdapter([{ id: 'address', required: true }]);
+    const contractLoading = makeContractLoading([{ id: 'address', required: true }]);
     const values: FormValues = { address: '  0x123  ' };
-    const snapshot = buildRequiredInputSnapshot(adapter, values);
+    const snapshot = buildRequiredInputSnapshot(contractLoading, values);
     expect(snapshot).toEqual({ address: '0x123' });
   });
 
   test('normalizes File objects to metadata', () => {
-    const adapter = makeAdapter([{ id: 'file', required: true }]);
+    const contractLoading = makeContractLoading([{ id: 'file', required: true }]);
     const file = new File(['content'], 'test.zip', { type: 'application/zip' });
     const values: FormValues = { file };
-    const snapshot = buildRequiredInputSnapshot(adapter, values);
+    const snapshot = buildRequiredInputSnapshot(contractLoading, values);
     expect(snapshot).toEqual({
       file: {
         name: 'test.zip',
@@ -132,14 +110,14 @@ describe('buildRequiredInputSnapshot', () => {
   });
 
   test('normalizes undefined to null', () => {
-    const adapter = makeAdapter([{ id: 'field', required: true }]);
+    const contractLoading = makeContractLoading([{ id: 'field', required: true }]);
     const values: FormValues = { field: undefined };
-    const snapshot = buildRequiredInputSnapshot(adapter, values);
+    const snapshot = buildRequiredInputSnapshot(contractLoading, values);
     expect(snapshot).toEqual({ field: null });
   });
 
   test('preserves other types as-is', () => {
-    const adapter = makeAdapter([
+    const contractLoading = makeContractLoading([
       { id: 'number', required: true },
       { id: 'boolean', required: true },
       { id: 'object', required: true },
@@ -149,7 +127,7 @@ describe('buildRequiredInputSnapshot', () => {
       boolean: true,
       object: { nested: 'value' },
     };
-    const snapshot = buildRequiredInputSnapshot(adapter, values);
+    const snapshot = buildRequiredInputSnapshot(contractLoading, values);
     expect(snapshot).toEqual({
       number: 42,
       boolean: true,
@@ -158,7 +136,7 @@ describe('buildRequiredInputSnapshot', () => {
   });
 
   test('uses field.name when available, falls back to field.id', () => {
-    const adapter = makeAdapter([
+    const contractLoading = makeContractLoading([
       { id: 'fieldId', name: 'fieldName', required: true },
       { id: 'noName', required: true },
     ]);
@@ -166,7 +144,7 @@ describe('buildRequiredInputSnapshot', () => {
       fieldName: 'value1',
       noName: 'value2',
     };
-    const snapshot = buildRequiredInputSnapshot(adapter, values);
+    const snapshot = buildRequiredInputSnapshot(contractLoading, values);
     expect(snapshot).toEqual({
       fieldName: 'value1',
       noName: 'value2',
@@ -174,25 +152,33 @@ describe('buildRequiredInputSnapshot', () => {
   });
 
   test('skips fields without name or id', () => {
-    const adapter = makeAdapter([
+    const contractLoading = makeContractLoading([
       { id: '', name: '', required: true },
       { id: 'valid', required: true },
     ]);
     const values: FormValues = { valid: 'value' };
-    const snapshot = buildRequiredInputSnapshot(adapter, values);
+    const snapshot = buildRequiredInputSnapshot(contractLoading, values);
     expect(snapshot).toEqual({ valid: 'value' });
   });
 
   test('handles adapter throwing errors gracefully', () => {
-    const badAdapter = {
-      networkConfig: {} as unknown as ContractAdapter['networkConfig'],
+    const badContractLoading = {
+      networkConfig: {} as ContractLoadingCapability['networkConfig'],
+      dispose: () => {},
+      loadContract: async () => ({
+        name: 'x',
+        ecosystem: 'evm',
+        address: '0x',
+        functions: [],
+        events: [],
+      }),
       getContractDefinitionInputs: () => {
         throw new Error('boom');
       },
-    } as unknown as ContractAdapter;
+    } as unknown as ContractLoadingCapability;
     const values: FormValues = { a: 'value' };
-    expect(() => buildRequiredInputSnapshot(badAdapter, values)).not.toThrow();
-    expect(buildRequiredInputSnapshot(badAdapter, values)).toBeNull();
+    expect(() => buildRequiredInputSnapshot(badContractLoading, values)).not.toThrow();
+    expect(buildRequiredInputSnapshot(badContractLoading, values)).toBeNull();
   });
 });
 
@@ -297,7 +283,7 @@ describe('requiredSnapshotsEqual', () => {
   });
 
   test('real-world Midnight adapter scenario', () => {
-    const adapter = makeAdapter([
+    const contractLoading = makeContractLoading([
       { id: 'contractAddress', required: true },
       { id: 'privateStateId', required: true },
       { id: 'contractArtifactsZip', required: true },
@@ -309,7 +295,7 @@ describe('requiredSnapshotsEqual', () => {
       contractArtifactsZip: new File(['zip content'], 'artifacts.zip'),
     };
 
-    const snapshot1 = buildRequiredInputSnapshot(adapter, initialValues);
+    const snapshot1 = buildRequiredInputSnapshot(contractLoading, initialValues);
     expect(snapshot1).not.toBeNull();
 
     const changedValues: FormValues = {
@@ -318,7 +304,7 @@ describe('requiredSnapshotsEqual', () => {
       contractArtifactsZip: new File(['zip content'], 'artifacts.zip'),
     };
 
-    const snapshot2 = buildRequiredInputSnapshot(adapter, changedValues);
+    const snapshot2 = buildRequiredInputSnapshot(contractLoading, changedValues);
     expect(requiredSnapshotsEqual(snapshot1, snapshot2)).toBe(false);
   });
 });

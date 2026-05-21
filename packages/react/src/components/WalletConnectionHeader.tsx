@@ -1,6 +1,4 @@
-import React, { useEffect } from 'react';
-
-import { logger } from '@openzeppelin/ui-utils';
+import React from 'react';
 
 import { useWalletState } from '../hooks/WalletStateContext';
 import { WalletConnectionUI } from './WalletConnectionUI';
@@ -10,18 +8,9 @@ import { WalletConnectionUI } from './WalletConnectionUI';
  * Uses useWalletState to get its data.
  */
 export const WalletConnectionHeader: React.FC = () => {
-  const { isAdapterLoading, activeAdapter } = useWalletState();
+  const { isRuntimeLoading } = useWalletState();
 
-  useEffect(() => {
-    logger.debug('WalletConnectionHeader', '[Debug] State from useWalletState:', {
-      adapterPresent: !!activeAdapter,
-      adapterNetwork: activeAdapter?.networkConfig.id,
-      isLoading: isAdapterLoading,
-    });
-  }, [activeAdapter, isAdapterLoading]);
-
-  if (isAdapterLoading) {
-    logger.debug('WalletConnectionHeader', '[Debug] Adapter loading, showing skeleton.');
+  if (isRuntimeLoading) {
     return <div className="h-9 w-28 animate-pulse rounded bg-muted"></div>;
   }
 

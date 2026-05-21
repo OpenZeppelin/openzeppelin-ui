@@ -1,5 +1,57 @@
 # @openzeppelin/ui-types
 
+## 3.0.0
+
+### Major Changes
+
+- [#113](https://github.com/OpenZeppelin/openzeppelin-ui/pull/113) [`5fc43ce`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/5fc43cead09bff7a54951c2cd9911641158017b9) Thanks [@pasevin](https://github.com/pasevin)! - BREAKING: Replace monolithic `ContractAdapter` with 13 capability interfaces, profile runtime types, `EcosystemRuntime`, `CapabilityFactoryMap`, and updated `EcosystemExport` (`capabilities` + `createRuntime`). Removes `ContractAdapter`, `FullContractAdapter`, and `ContractStateCapabilities`.
+
+- [#113](https://github.com/OpenZeppelin/openzeppelin-ui/pull/113) [`6f09f66`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/6f09f66fe3e647ae234bb507795e0caa362b29aa) Thanks [@pasevin](https://github.com/pasevin)! - Migrate shared UI packages from monolithic adapter APIs to capability-based runtime APIs.
+
+  BREAKING CHANGE: shared component props, helper types, and React context exports now use
+  narrow capability interfaces and runtime-oriented names instead of `ContractAdapter` and
+  `FullContractAdapter` surfaces.
+
+### Patch Changes
+
+- [#113](https://github.com/OpenZeppelin/openzeppelin-ui/pull/113) [`f88f86b`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/f88f86bb9be61fdb42c58143164df7267671a027) Thanks [@pasevin](https://github.com/pasevin)! - Fix local adapter development installs by resolving first-party workspace packages that are
+  outside the public family package map. Derive pnpmfile family data from the canonical
+  `STANDARD_FAMILIES` definition instead of maintaining a hardcoded duplicate. Also formalize
+  partial `UiKitConfiguration` overrides in the public types and ensure wallet state initializes
+  adapter-managed UI kits consistently.
+
+## 2.0.0
+
+### Major Changes
+
+- [#113](https://github.com/OpenZeppelin/openzeppelin-ui/pull/113) [`52f2823`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/52f2823734d1a123b607f1ce8804b0f6d57cf728) Thanks [@pasevin](https://github.com/pasevin)! - BREAKING: Replace monolithic `ContractAdapter` with 13 capability interfaces, profile runtime types, `EcosystemRuntime`, `CapabilityFactoryMap`, and updated `EcosystemExport` (`capabilities` + `createRuntime`). Removes `ContractAdapter`, `FullContractAdapter`, and `ContractStateCapabilities`.
+
+- [#113](https://github.com/OpenZeppelin/openzeppelin-ui/pull/113) [`52f2823`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/52f2823734d1a123b607f1ce8804b0f6d57cf728) Thanks [@pasevin](https://github.com/pasevin)! - Migrate shared UI packages from monolithic adapter APIs to capability-based runtime APIs.
+
+  BREAKING CHANGE: shared component props, helper types, and React context exports now use
+  narrow capability interfaces and runtime-oriented names instead of `ContractAdapter` and
+  `FullContractAdapter` surfaces.
+
+### Patch Changes
+
+- [#113](https://github.com/OpenZeppelin/openzeppelin-ui/pull/113) [`52f2823`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/52f2823734d1a123b607f1ce8804b0f6d57cf728) Thanks [@pasevin](https://github.com/pasevin)! - Fix local adapter development installs by resolving first-party workspace packages that are
+  outside the public family package map. Derive pnpmfile family data from the canonical
+  `STANDARD_FAMILIES` definition instead of maintaining a hardcoded duplicate. Also formalize
+  partial `UiKitConfiguration` overrides in the public types and ensure wallet state initializes
+  adapter-managed UI kits consistently.
+
+## 1.13.0
+
+### Minor Changes
+
+- [#100](https://github.com/OpenZeppelin/openzeppelin-ui/pull/100) [`4ef354a`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/4ef354a1c7da7c31e9ff0e18e617904c5029dc4c) Thanks [@pasevin](https://github.com/pasevin)! - Add optional `onTransactionSuccess` callback to `TransactionForm` so host apps can run side effects (for example analytics) when a transaction completes successfully. The callback receives `network_id`, `ecosystem`, `execution_method`, and optionally `transaction_hash` when the adapter provides one.
+
+## 1.12.0
+
+### Minor Changes
+
+- [#96](https://github.com/OpenZeppelin/openzeppelin-ui/pull/96) [`b7f6eb5`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/b7f6eb5d8c1c0a0090f8cc22370c1c397435d71a) Thanks [@pasevin](https://github.com/pasevin)! - Add VERSION export to all public packages for runtime peer compatibility validation. Each package now exports a `VERSION` constant that reflects the package version at build time, enabling consuming libraries (such as adapters) to verify compatible versions are installed and throw actionable errors on mismatch.
+
 ## 1.11.1
 
 ### Patch Changes

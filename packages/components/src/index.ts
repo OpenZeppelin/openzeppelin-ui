@@ -1,3 +1,6 @@
+// Package version (injected at build time)
+export { VERSION } from './version';
+
 // UI Components
 export * from './components/ui';
 export * from './components/fields';

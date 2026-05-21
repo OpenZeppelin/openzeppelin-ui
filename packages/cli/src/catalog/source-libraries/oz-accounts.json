@@ -1,0 +1,9 @@
+{
+  "library": "OZ Accounts UI",
+  "importPatterns": ["@openzeppelin/accounts-ui-components"],
+  "catalogFallback": true,
+  "mappings": {
+    "CopyableAddress": { "source": "AddressDisplay", "effort": "low", "notes": "Accounts UI helper maps to AddressDisplay" },
+    "NetworkSelector": { "source": "NetworkSelector", "effort": "low", "notes": "Near 1:1 API parity" }
+  }
+}

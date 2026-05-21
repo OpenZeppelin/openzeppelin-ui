@@ -1,12 +1,4 @@
-<!--
-Sync Impact Report
-Version: 1.0.1 → 1.0.2
-Modified Principles:
-- Section I: Swapped layers 5 and 6 (ui-react → Layer 5, ui-renderer → Layer 6) to reflect actual dependency graph
-Templates:
-- ✅ No template updates needed
-Follow-up TODOs: none
--->
+
 
 # OpenZeppelin UI Constitution
 
@@ -20,7 +12,7 @@ Follow-up TODOs: none
   - Layer 2: `@openzeppelin/ui-utils` — Framework-agnostic utilities
   - Layer 3: `@openzeppelin/ui-styles` — Tailwind CSS theme and variables
   - Layer 4: `@openzeppelin/ui-components` — React UI primitives (shadcn/ui based)
-  - Layer 5: `@openzeppelin/ui-react` — React context providers and hooks (wallet state, adapter context)
+  - Layer 5: `@openzeppelin/ui-react` — React context providers and hooks (wallet state, runtime registry)
   - Layer 6: `@openzeppelin/ui-renderer` — Contract UI rendering (forms, state widgets, transaction status)
   - Layer 7: `@openzeppelin/ui-storage` — IndexedDB storage abstraction
 - Lower-layer packages MUST NOT depend on higher-layer packages; circular dependencies are forbidden.
@@ -29,10 +21,10 @@ Follow-up TODOs: none
 
 ### II. Chain-Agnostic Design (NON-NEGOTIABLE)
 
-- This library MUST remain entirely chain-agnostic; all blockchain-specific logic, dependencies, and polyfills belong exclusively in adapter packages (maintained in consuming repositories like `ui-builder`).
+- This library MUST remain entirely chain-agnostic; all blockchain-specific logic, dependencies, and polyfills belong exclusively in adapter packages (maintained in the `openzeppelin-adapters` repository and consumed by apps such as `ui-builder`).
 - Packages MUST NOT import or reference any chain-specific SDKs (ethers, viem, web3.js, @stellar/sdk, etc.).
-- Type definitions in `@openzeppelin/ui-types` define adapter interfaces (`ContractAdapter`, `NetworkConfig`, etc.) that adapters implement; the library consumes these interfaces without implementing chain behavior.
-- Validation utilities MUST accept chain-agnostic callbacks or adapter methods; do not hardcode address formats or chain rules.
+- Type definitions in `@openzeppelin/ui-types` define **capability interfaces**, **EcosystemRuntime**, **EcosystemExport**, and shared types such as `NetworkConfig`; published `@openzeppelin/adapter-*` packages implement these contracts. This monorepo consumes those types without implementing chain behavior.
+- Validation utilities MUST accept chain-agnostic callbacks or capability methods; do not hardcode address formats or chain rules.
 - Rationale: Preserves ecosystem neutrality, allowing the library to support EVM, Stellar, Solana, and future chains without modification.
 
 ### III. Type Safety & API Stability (NON-NEGOTIABLE)
@@ -82,7 +74,7 @@ Follow-up TODOs: none
   - Include migration documentation in the package CHANGELOG
   - Update the migration guide at `docs/MIGRATION.md` if affecting cross-package changes
 - New features SHOULD be designed with the UI Builder and Role Manager use cases in mind; validate designs against real consumer scenarios.
-- Local development against consumer repos MUST be supported via the shared `oz-dev init` bootstrap flow, which writes `.openzeppelin-dev.json` and configures `.pnpmfile.cjs` hooks.
+- Local development against consumer repos MUST be supported via the shared `oz-ui-dev init` bootstrap flow, which writes `.openzeppelin-dev.json` and configures `.pnpmfile.cjs` hooks.
 - Rationale: This library exists to serve consuming applications; their needs drive design decisions.
 
 ## Additional Constraints
@@ -128,4 +120,4 @@ Follow-up TODOs: none
   - MINOR: New features, non-breaking additions
   - PATCH: Bug fixes, documentation improvements
 
-**Version**: 1.0.2 | **Ratified**: 2026-01-06 | **Last Amended**: 2026-01-06
+**Version**: 1.0.3 | **Ratified**: 2026-01-06 | **Last Amended**: 2026-04-02

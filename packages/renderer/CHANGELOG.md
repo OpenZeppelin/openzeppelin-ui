@@ -1,5 +1,72 @@
 # @openzeppelin/ui-renderer
 
+## 3.0.0
+
+### Major Changes
+
+- [#113](https://github.com/OpenZeppelin/openzeppelin-ui/pull/113) [`6f09f66`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/6f09f66fe3e647ae234bb507795e0caa362b29aa) Thanks [@pasevin](https://github.com/pasevin)! - Migrate shared UI packages from monolithic adapter APIs to capability-based runtime APIs.
+
+  BREAKING CHANGE: shared component props, helper types, and React context exports now use
+  narrow capability interfaces and runtime-oriented names instead of `ContractAdapter` and
+  `FullContractAdapter` surfaces.
+
+### Patch Changes
+
+- Updated dependencies [[`5fc43ce`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/5fc43cead09bff7a54951c2cd9911641158017b9), [`6f09f66`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/6f09f66fe3e647ae234bb507795e0caa362b29aa), [`f88f86b`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/f88f86bb9be61fdb42c58143164df7267671a027)]:
+  - @openzeppelin/ui-types@3.0.0
+  - @openzeppelin/ui-components@3.0.0
+  - @openzeppelin/ui-react@3.0.0
+  - @openzeppelin/ui-utils@3.0.0
+
+## 2.0.1
+
+### Patch Changes
+
+- [#132](https://github.com/OpenZeppelin/openzeppelin-ui/pull/132) [`536d982`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/536d9827002b21336fa51de161e55d7503bcac12) Thanks [@pasevin](https://github.com/pasevin)! - fix(renderer): resolve initial addressing in `AddAliasDialog` for the preselected network
+
+  `AddAliasDialog` previously seeded `activeAddressing` from the explicit
+  `addressing` prop only. When opened with a preselected network (via
+  `currentNetworkId` + `resolveNetwork`) and a `resolveAddressing` resolver, the
+  network-specific `AddressingCapability` was never applied until the user
+  manually changed the network selector. As a result, `AddressField` had no
+  network validator on first render and silently treated any non-empty input as
+  valid (e.g., accepting `"adad"` as a valid Stellar Testnet address).
+
+  The open-effect now also calls `resolveAddressing(initialNetwork)` and
+  `resolveAddressPlaceholder(initialNetwork)` when the matching resolvers are
+  provided, then re-triggers validation on the address field once the validator
+  is in place. Behavior with no `initialNetwork`, no resolvers, or an explicit
+  `addressing` default is preserved.
+
+## 2.0.0
+
+### Major Changes
+
+- [#113](https://github.com/OpenZeppelin/openzeppelin-ui/pull/113) [`52f2823`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/52f2823734d1a123b607f1ce8804b0f6d57cf728) Thanks [@pasevin](https://github.com/pasevin)! - Migrate shared UI packages from monolithic adapter APIs to capability-based runtime APIs.
+
+  BREAKING CHANGE: shared component props, helper types, and React context exports now use
+  narrow capability interfaces and runtime-oriented names instead of `ContractAdapter` and
+  `FullContractAdapter` surfaces.
+
+### Patch Changes
+
+- Updated dependencies [[`52f2823`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/52f2823734d1a123b607f1ce8804b0f6d57cf728), [`52f2823`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/52f2823734d1a123b607f1ce8804b0f6d57cf728), [`52f2823`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/52f2823734d1a123b607f1ce8804b0f6d57cf728)]:
+  - @openzeppelin/ui-types@2.0.0
+  - @openzeppelin/ui-components@2.0.0
+  - @openzeppelin/ui-react@2.0.0
+  - @openzeppelin/ui-utils@2.0.0
+
+## 1.2.0
+
+### Minor Changes
+
+- [#100](https://github.com/OpenZeppelin/openzeppelin-ui/pull/100) [`4ef354a`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/4ef354a1c7da7c31e9ff0e18e617904c5029dc4c) Thanks [@pasevin](https://github.com/pasevin)! - Add optional `onTransactionSuccess` callback to `TransactionForm` so host apps can run side effects (for example analytics) when a transaction completes successfully. The callback receives `network_id`, `ecosystem`, `execution_method`, and optionally `transaction_hash` when the adapter provides one.
+
+### Patch Changes
+
+- Updated dependencies [[`4ef354a`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/4ef354a1c7da7c31e9ff0e18e617904c5029dc4c)]:
+  - @openzeppelin/ui-types@1.13.0
+
 ## 1.1.1
 
 ### Patch Changes

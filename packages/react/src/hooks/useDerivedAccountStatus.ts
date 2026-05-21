@@ -5,6 +5,10 @@ import { useWalletState } from './WalletStateContext';
 
 export interface DerivedAccountStatus {
   isConnected: boolean;
+  isConnecting: boolean;
+  isDisconnected: boolean;
+  isReconnecting: boolean;
+  status: string;
   address?: string;
   chainId?: number;
   // Potentially add other commonly used and safely extracted properties from useAccount's result
@@ -12,6 +16,10 @@ export interface DerivedAccountStatus {
 
 const defaultAccountStatus: DerivedAccountStatus = {
   isConnected: false,
+  isConnecting: false,
+  isDisconnected: true,
+  isReconnecting: false,
+  status: 'disconnected',
   address: undefined,
   chainId: undefined,
 };
@@ -35,6 +43,22 @@ export function useDerivedAccountStatus(): DerivedAccountStatus {
       'isConnected' in accountHookOutput && typeof accountHookOutput.isConnected === 'boolean'
         ? accountHookOutput.isConnected
         : defaultAccountStatus.isConnected;
+    const isConnecting =
+      'isConnecting' in accountHookOutput && typeof accountHookOutput.isConnecting === 'boolean'
+        ? accountHookOutput.isConnecting
+        : defaultAccountStatus.isConnecting;
+    const isDisconnected =
+      'isDisconnected' in accountHookOutput && typeof accountHookOutput.isDisconnected === 'boolean'
+        ? accountHookOutput.isDisconnected
+        : defaultAccountStatus.isDisconnected;
+    const isReconnecting =
+      'isReconnecting' in accountHookOutput && typeof accountHookOutput.isReconnecting === 'boolean'
+        ? accountHookOutput.isReconnecting
+        : defaultAccountStatus.isReconnecting;
+    const status =
+      'status' in accountHookOutput && typeof accountHookOutput.status === 'string'
+        ? accountHookOutput.status
+        : defaultAccountStatus.status;
     const address =
       'address' in accountHookOutput && typeof accountHookOutput.address === 'string'
         ? accountHookOutput.address
@@ -43,7 +67,15 @@ export function useDerivedAccountStatus(): DerivedAccountStatus {
       'chainId' in accountHookOutput && typeof accountHookOutput.chainId === 'number'
         ? accountHookOutput.chainId
         : defaultAccountStatus.chainId;
-    return { isConnected, address, chainId };
+    return {
+      isConnected,
+      isConnecting,
+      isDisconnected,
+      isReconnecting,
+      status,
+      address,
+      chainId,
+    };
   }
   return defaultAccountStatus;
 }

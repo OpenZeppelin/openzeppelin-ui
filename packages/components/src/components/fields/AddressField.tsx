@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, FieldValues, useWatch } from 'react-hook-form';
 
-import type { AddressSuggestion, ContractAdapter } from '@openzeppelin/ui-types';
+import type { AddressingCapability, AddressSuggestion } from '@openzeppelin/ui-types';
 import { cn } from '@openzeppelin/ui-utils';
 
 import { AddressSuggestionContext } from './address-suggestion/context';
@@ -22,7 +22,7 @@ const MAX_SUGGESTIONS = 5;
 
 interface AddressFieldProps<TFieldValues extends FieldValues = FieldValues>
   extends BaseFieldProps<TFieldValues> {
-  adapter?: ContractAdapter;
+  addressing?: AddressingCapability;
 
   /**
    * Explicit suggestion list. When provided, overrides context-based resolution.
@@ -49,13 +49,13 @@ interface AddressFieldProps<TFieldValues extends FieldValues = FieldValues>
  * 2. TransactionForm renders the overall form structure with React Hook Form
  * 3. DynamicFormField selects the appropriate field component (like AddressField) based on field type
  * 4. BaseField provides consistent layout and hook form integration
- * 5. This component handles blockchain address-specific rendering and validation using the passed adapter
+ * 5. This component handles blockchain address-specific rendering and validation using the passed addressing capability
  *
  * The component includes:
  * - Integration with React Hook Form
- * - Blockchain address validation through adapter-provided custom validation
+ * - Blockchain address validation through the provided addressing capability
  * - Automatic error handling and reporting
- * - Chain-agnostic design (validation handled by adapters)
+ * - Chain-agnostic design (validation handled by capabilities)
  * - Full accessibility support with ARIA attributes
  * - Keyboard navigation
  *
@@ -79,7 +79,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   name,
   width = 'full',
   validation,
-  adapter,
+  addressing,
   readOnly,
   suggestions: suggestionsProp,
   onSuggestionSelect,
@@ -183,9 +183,9 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
               return standardValidationResult;
             }
 
-            // Perform adapter-specific address validation if adapter exists
-            if (adapter && typeof value === 'string') {
-              if (!adapter.isValidAddress(value)) {
+            // Perform capability-specific address validation if addressing exists
+            if (addressing && typeof value === 'string') {
+              if (!addressing.isValidAddress(value)) {
                 return 'Invalid address format for the selected chain';
               }
             }
@@ -296,8 +296,8 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
                         aria-selected={i === highlightedIndex}
                         className={cn(
                           'flex w-full flex-col px-3 py-2 text-left text-sm',
-                          'hover:bg-accent',
-                          i === highlightedIndex && 'bg-accent'
+                          'hover:bg-selected/10',
+                          i === highlightedIndex && 'bg-selected/10'
                         )}
                         onMouseDown={(e) => {
                           e.preventDefault();

@@ -1,0 +1,6 @@
+{
+  "library": "OZ UI Kit",
+  "importPatterns": ["@openzeppelin/ui-components"],
+  "catalogFallback": true,
+  "mappings": {}
+}

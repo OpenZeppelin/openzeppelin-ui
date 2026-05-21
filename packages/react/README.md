@@ -25,74 +25,74 @@ pnpm add react react-dom @tanstack/react-query
 
 ## Overview
 
-This package provides core React context providers and hooks that centralize the management of global wallet state, active network selection, active adapter instances, and the consumption of adapter-specific UI capabilities.
+This package provides core React context providers and hooks that centralize the management of global wallet state, active network selection, **`EcosystemRuntime` instances** (capability bundles per network), and ecosystem-specific UI kit hooks.
 
-It is a foundational package that can be used to ensure consistent wallet and adapter integration patterns across applications.
+It is a foundational package that can be used to ensure consistent wallet and runtime integration patterns across applications.
 
 ## Core Responsibilities
 
-- **Adapter Instance Management:** Provides `AdapterProvider` which maintains a registry of `ContractAdapter` instances, ensuring only one instance exists per network configuration (singleton pattern).
-- **Global Wallet/Network State Management:** Provides `WalletStateProvider` which manages:
-  - The globally selected active network ID and its corresponding `NetworkConfig`.
-  - The active `ContractAdapter` instance for this global network and its loading state.
-  - The `EcosystemSpecificReactHooks` (facade hooks) provided by the active adapter.
-  - Orchestration of rendering the active adapter's UI context provider.
-- **Consistent State Access:** Exports consumer hooks for components to access this managed state and functionality.
+- **Runtime instance management:** `RuntimeProvider` keeps a registry of `EcosystemRuntime` instances (one per network id, with disposal on teardown), using a `resolveRuntime` function you supply (typically delegating to an adapter package’s `ecosystemDefinition.createRuntime`).
+- **Global wallet / network state:** `WalletStateProvider` manages:
+  - Globally selected network id and `NetworkConfig`
+  - The active `EcosystemRuntime` and its loading state (`isRuntimeLoading`)
+  - `EcosystemSpecificReactHooks` from the active runtime’s UI kit
+  - Orchestration of the active ecosystem’s React UI provider (when configured)
+- **Consistent access:** Hooks expose this state to components.
 
 ## Key Exports
 
 ### Providers
 
-- `AdapterProvider`: Manages adapter instances. Requires a `resolveAdapter` prop to fetch/create adapters.
-- `WalletStateProvider`: Manages global active network/adapter/wallet state.
+- **`RuntimeProvider`**: Registry + loading state; requires `resolveRuntime: (networkConfig) => Promise<EcosystemRuntime>`.
+- **`WalletStateProvider`**: Global active network / runtime / wallet facade hooks; requires `getNetworkConfigById` and optionally `loadConfigModule` for UI kit config modules.
 
 ### Hooks
 
-- `useAdapterContext()`: Access `AdapterProvider`'s `getAdapterForNetwork` function.
-- `useWalletState()`: Access global state like `activeNetworkId`, `activeAdapter`, `walletFacadeHooks`, and `setActiveNetworkId`.
+- **`useRuntimeContext()`**: Low-level access to `getRuntimeForNetwork` / loading helpers from `RuntimeProvider`.
+- **`useWalletState()`**: `activeNetworkId`, `activeNetworkConfig`, **`activeRuntime`**, **`isRuntimeLoading`**, `walletFacadeHooks`, `setActiveNetworkId`, `reconfigureActiveUiKit`.
 
-### Derived Hooks
+### Derived hooks
 
-These hooks abstract wallet interactions and work with any adapter implementing the facade pattern:
+These abstract wallet interactions across ecosystems:
 
-- `useDerivedAccountStatus()`: Returns connection status, address, and current chain ID.
-- `useDerivedSwitchChainStatus()`: Returns the `switchChain` function and switching state.
-- `useDerivedChainInfo()`: Returns current chain information.
-- `useDerivedConnectStatus()`: Returns wallet connection functions and state.
-- `useDerivedDisconnect()`: Returns the disconnect function.
-- `useWalletReconnectionHandler()`: Detects wallet reconnection and triggers network switch re-queue.
+- `useDerivedAccountStatus()`, `useDerivedSwitchChainStatus()`, `useDerivedChainInfo()`, `useDerivedConnectStatus()`, `useDerivedDisconnect()`, `useWalletReconnectionHandler()`.
 
-### UI Components
+### UI components
 
-- `WalletConnectionHeader`: Compact wallet connection status display.
-- `WalletConnectionUI`: Full wallet connection interface.
-- `WalletConnectionWithSettings`: Wallet connection UI with settings controls.
-- `NetworkSwitchManager`: Handles automatic wallet network switching for EVM chains.
+- `WalletConnectionHeader`, `WalletConnectionUI`, `WalletConnectionWithSettings`
+- **`NetworkSwitchManager`**: Pass **`wallet`** and **`networkCatalog`** from the active runtime (see below), plus `targetNetworkId` and optional `onNetworkSwitchComplete`.
 
 ## Usage
 
-### Application Setup
+### Application setup
 
 ```tsx
-import { AdapterProvider, WalletStateProvider } from '@openzeppelin/ui-react';
+import { RuntimeProvider, WalletStateProvider } from '@openzeppelin/ui-react';
 
-import { getAdapter, getNetworkById } from './core/ecosystemManager';
+import { ecosystemDefinition } from '@openzeppelin/adapter-evm';
+import { getNetworkById } from './core/ecosystemManager';
+
+async function resolveRuntime(networkConfig) {
+  return ecosystemDefinition.createRuntime('composer', networkConfig, {
+    /* profile-specific options if needed */
+  });
+}
 
 function AppRoot() {
   return (
-    <AdapterProvider resolveAdapter={getAdapter}>
+    <RuntimeProvider resolveRuntime={resolveRuntime}>
       <WalletStateProvider
         initialNetworkId="ethereum-mainnet"
         getNetworkConfigById={getNetworkById}
       >
-        {/* Your application components */}
+        {/* Your application */}
       </WalletStateProvider>
-    </AdapterProvider>
+    </RuntimeProvider>
   );
 }
 ```
 
-### Consuming Global State
+### Consuming global state
 
 ```tsx
 import { useWalletState } from '@openzeppelin/ui-react';
@@ -101,13 +101,13 @@ function MyWalletComponent() {
   const {
     activeNetworkId,
     activeNetworkConfig,
-    activeAdapter,
-    isAdapterLoading,
+    activeRuntime,
+    isRuntimeLoading,
     walletFacadeHooks,
     setActiveNetworkId,
   } = useWalletState();
 
-  if (isAdapterLoading || !activeAdapter) {
+  if (isRuntimeLoading || !activeRuntime) {
     return <p>Loading wallet information...</p>;
   }
 
@@ -116,33 +116,39 @@ function MyWalletComponent() {
 
   return (
     <div>
-      <p>Current Network: {activeNetworkConfig?.name || 'None'}</p>
+      <p>Current Network: {activeNetworkConfig?.name ?? 'None'}</p>
       <p>Wallet Connected: {isConnected ? 'Yes' : 'No'}</p>
     </div>
   );
 }
 ```
 
-### Using NetworkSwitchManager
+### NetworkSwitchManager
+
+Use capabilities from the active runtime — **not** a monolithic adapter instance:
 
 ```tsx
 import { useState } from 'react';
 
-import { NetworkSwitchManager } from '@openzeppelin/ui-react';
+import { NetworkSwitchManager, useWalletState } from '@openzeppelin/ui-react';
 
 function MyApp() {
   const [networkToSwitchTo, setNetworkToSwitchTo] = useState<string | null>(null);
-  const adapter = useMyAdapter();
+  const { activeRuntime } = useWalletState();
 
   const handleNetworkSwitchComplete = () => {
     setNetworkToSwitchTo(null);
   };
 
+  const wallet = activeRuntime?.wallet;
+  const networkCatalog = activeRuntime?.networkCatalog;
+
   return (
     <>
-      {adapter && networkToSwitchTo && (
+      {wallet && networkCatalog && networkToSwitchTo && (
         <NetworkSwitchManager
-          adapter={adapter}
+          wallet={wallet}
+          networkCatalog={networkCatalog}
           targetNetworkId={networkToSwitchTo}
           onNetworkSwitchComplete={handleNetworkSwitchComplete}
         />
@@ -157,9 +163,9 @@ function MyApp() {
 ```text
 react/
 ├── src/
-│   ├── components/             # UI components (WalletConnection*, NetworkSwitchManager)
-│   ├── hooks/                  # Context providers and consumer hooks
-│   └── index.ts                # Main package exports
+│   ├── components/             # WalletConnection*, NetworkSwitchManager
+│   ├── hooks/                  # RuntimeProvider, WalletStateProvider, derived hooks
+│   └── index.ts
 ├── package.json
 ├── tsconfig.json
 ├── tsdown.config.ts
@@ -168,25 +174,14 @@ react/
 
 ## Dependencies
 
-This package has minimal dependencies to maintain a lightweight footprint:
-
-- **@openzeppelin/ui-types**: Shared type definitions
-- **@openzeppelin/ui-utils**: Shared utility functions
-- **@openzeppelin/ui-components**: UI components
-- **react**: Peer dependency for React hooks and context
-- **react-dom**: Peer dependency for React DOM utilities
-- **@tanstack/react-query**: Peer dependency for data fetching
+- **@openzeppelin/ui-types**, **@openzeppelin/ui-utils**, **@openzeppelin/ui-components**
+- **react**, **react-dom**, **@tanstack/react-query** (peers)
 
 ## Development
 
 ```bash
-# Build the package
 pnpm build
-
-# Run tests
 pnpm test
-
-# Lint
 pnpm lint
 ```
 

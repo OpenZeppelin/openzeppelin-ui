@@ -1,3 +1,6 @@
+// Package version (injected at build time)
+export { VERSION } from './version';
+
 export * from './contractInputs';
 export * from './requiredInputs';
 export * from './addressNormalization';
@@ -27,3 +30,4 @@ export * from './access/errors';
 export * from './walletComponentSizing';
 export * from './serviceErrorDetection';
 export * from './networkServiceFilter';
+export * from './peerValidation';

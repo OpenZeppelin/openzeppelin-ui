@@ -3,10 +3,10 @@ import React from 'react';
 import { Controller, FieldValues, useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 
 import type {
-  ContractAdapter,
   ContractSchema,
   FormFieldType,
   FunctionParameter,
+  TypeMappingCapability,
 } from '@openzeppelin/ui-types';
 
 import { Button } from '../ui/button';
@@ -61,10 +61,10 @@ export interface ArrayObjectFieldProps<TFieldValues extends FieldValues = FieldV
   defaultCollapsed?: boolean;
 
   /**
-   * The adapter for chain-specific type mapping.
+   * The type-mapping capability for chain-specific field generation.
    * Essential for correctly determining field types for object properties.
    */
-  adapter?: ContractAdapter;
+  typeMapping?: TypeMappingCapability;
 
   /**
    * Optional contract schema to enrich nested field generation.
@@ -100,7 +100,7 @@ export function ArrayObjectField<TFieldValues extends FieldValues = FieldValues>
   collapsible = true,
   defaultCollapsed = false,
   readOnly,
-  adapter,
+  typeMapping,
   contractSchema,
 }: ArrayObjectFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
@@ -285,26 +285,26 @@ export function ArrayObjectField<TFieldValues extends FieldValues = FieldValues>
                         <div className="space-y-4 mt-4">
                           {((): React.ReactNode[] => {
                             return components.map((component) => {
-                              // Generate field using adapter to get full configuration including elementType for arrays
-                              if (!adapter) {
+                              // Generate field using the type-mapping capability to preserve nested metadata.
+                              if (!typeMapping) {
                                 throw new Error(
-                                  `ArrayObjectField: No adapter provided for field generation. Cannot generate field for "${component.name}"`
+                                  `ArrayObjectField: No typeMapping capability provided for field generation. Cannot generate field for "${component.name}"`
                                 );
                               }
 
-                              const generatedField = adapter.generateDefaultField(
+                              const generatedField = typeMapping.generateDefaultField(
                                 component,
                                 contractSchema
                               );
 
                               // Override with array object-specific configuration
                               const propertyField: FormFieldType = {
-                                ...generatedField, // Include elementType and other adapter-specific properties
+                                ...generatedField, // Include elementType and other capability-specific properties
                                 id: `${id}-${index}-${component.name}`,
                                 name: `${name}.${index}.${component.name}`,
                                 label: component.displayName || component.name,
                                 validation: {
-                                  ...generatedField.validation, // Preserve validation from adapter (includes min/max bounds)
+                                  ...generatedField.validation, // Preserve validation from type mapping (includes min/max bounds)
                                   required: validation?.required, // Override required from parent
                                 },
                                 placeholder: `Enter ${component.displayName || component.name}`,
@@ -317,7 +317,7 @@ export function ArrayObjectField<TFieldValues extends FieldValues = FieldValues>
                                 ...(component.components && {
                                   components: component.components,
                                 }),
-                                // TODO: Consider passing `adapter` down to nested `propertyField` if it's an object/array-object.
+                                // TODO: Consider passing nested capability requirements down explicitly if needed.
                               };
 
                               return (
