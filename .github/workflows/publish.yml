@@ -1,6 +1,10 @@
 # Release workflow for OpenZeppelin UI
 # =====================================
-# This workflow handles publishing to the public npm registry using Changesets.
+# This workflow handles publishing to the public npm registry using Changesets
+# with npm OIDC trusted publishing (no NPM_TOKEN required).
+# Trusted publishing prerequisite: each package on npmjs.org must have this
+# repository + workflow added under Settings → Trusted Publishers. Without
+# that configuration the publish step fails with an auth error.
 
 name: Release
 
@@ -9,9 +13,8 @@ on:
     branches:
       - main
 
-# Prevent concurrent release operations
 concurrency:
-  group: release-publishing-${{ github.ref }}
+  group: release-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: false
 
 permissions:
@@ -55,6 +58,8 @@ jobs:
         uses: ./.github/actions/prepare
         with:
           token: ${{ steps.gh-app-token.outputs.token }}
+          node-version: "22"
+          package-manager-cache: "false"
 
       - name: Verify dependencies
         run: pnpm audit
@@ -94,7 +99,7 @@ jobs:
           cd "${{ steps.temp-dir.outputs.path }}"
           tar -xzvf "${{ needs.provenance.outputs.package-name }}" -C $GITHUB_WORKSPACE --strip-components=1
           cd "$GITHUB_WORKSPACE"
-          pnpm install
+          pnpm run install-deps
 
       - name: Build packages
         run: pnpm build
@@ -109,6 +114,13 @@ jobs:
           # Find and make any other executable files non-executable (except in .husky/)
           find . -type f -executable ! -path "./.husky/*" ! -path "./node_modules/*" ! -path "./.git/*" -exec chmod -x {} \; 2>/dev/null || true
 
+      - name: Configure npm trusted publishing
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version: "22"
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@6a0a831ff30acef54f2c6aa1cbbc1096b066edaf # v1.7.0
@@ -121,7 +133,6 @@ jobs:
           title: "chore(release): version packages"
         env:
           GITHUB_TOKEN: ${{ steps.gh-app-token.outputs.token }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
           TARBALL: ${{ needs.provenance.outputs.package-name }}
           NPM_CONFIG_ACCESS: public

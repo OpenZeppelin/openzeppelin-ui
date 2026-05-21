@@ -1,16 +1,25 @@
 ---
 name: Pre-requisites
 description: |
-  Setup Pre-requisites for CI
+  Setup Pre-requisites
 
 inputs:
   token:
+    description: GitHub token for checkout and authentication
     required: true
+  node-version:
+    description: Node.js version for setup-node
+    required: false
+    default: "22.x"
+  package-manager-cache:
+    description: Enable setup-node dependency caching (disable for release builds)
+    required: false
+    default: "true"
 
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         token: ${{ inputs.token }}
         persist-credentials: true
@@ -19,13 +28,21 @@ runs:
       with:
         run_install: false
 
-    - name: Use node@22
-      uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+    - name: Use Node.js ${{ inputs.node-version }}
+      if: ${{ inputs.package-manager-cache == 'true' }}
+      uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
       with:
-        node-version: 22.18.0
-        cache: 'pnpm'
+        node-version: ${{ inputs.node-version }}
+        cache: pnpm
+
+    - name: Use Node.js ${{ inputs.node-version }} (no dependency cache)
+      if: ${{ inputs.package-manager-cache != 'true' }}
+      uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+      with:
+        node-version: ${{ inputs.node-version }}
+        package-manager-cache: ${{ inputs.package-manager-cache }}
 
     - name: Install dependencies
       run: |
-        pnpm install
+        pnpm install-deps
       shell: bash
