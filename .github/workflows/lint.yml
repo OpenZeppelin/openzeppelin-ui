@@ -1,11 +1,9 @@
-# CI workflow for OpenZeppelin UI
-# ================================
+# Lint workflow for OpenZeppelin UI
+# =================================
 
-name: CI
+name: Lint
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
@@ -13,15 +11,11 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  lint:
+    name: Lint Check
     runs-on: ubuntu-latest
     permissions:
       contents: read
-
-    strategy:
-      matrix:
-        node-version: [24.x]
-
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
@@ -52,38 +46,17 @@ jobs:
             echo "token=${{ github.token }}" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Checkout
+      - name: Checkout Repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Prepare pre-requisites
         uses: ./.github/actions/prepare
         with:
           token: ${{ steps.auth.outputs.token }}
-          node-version: ${{ matrix.node-version }}
+          node-version: "24.x"
 
-      - name: Build all packages
-        run: pnpm build
-        env:
-          NODE_OPTIONS: "--max-old-space-size=8192"
+      - name: Lint check
+        run: pnpm lint
 
-      - name: Type check all packages
-        run: pnpm typecheck
-
-      - name: Test
-        run: pnpm test
-
-      - name: Test ES module imports
-        run: |
-          cat > test-es-modules.mjs << 'EOF'
-          import { logger } from './packages/utils/dist/index.mjs';
-          import { isEvmNetworkConfig } from './packages/types/dist/index.mjs';
-          if (typeof logger === 'object' && typeof isEvmNetworkConfig === 'function') {
-            console.log('✅ ES modules working correctly');
-            process.exit(0);
-          } else {
-            console.error('❌ ES module imports failed');
-            process.exit(1);
-          }
-          EOF
-          node test-es-modules.mjs
-          rm test-es-modules.mjs
+      - name: Format check
+        run: pnpm format:check
