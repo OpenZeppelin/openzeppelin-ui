@@ -53,7 +53,7 @@ jobs:
         uses: ./.github/actions/prepare
         with:
           token: ${{ steps.auth.outputs.token }}
-          node-version: "22.x"
+          node-version: "24.x"
 
       - name: Lint check
         run: pnpm lint

@@ -10,7 +10,7 @@ inputs:
   node-version:
     description: Node.js version for setup-node
     required: false
-    default: "22.x"
+    default: "24.x"
   package-manager-cache:
     description: Enable setup-node dependency caching (disable for release builds)
     required: false

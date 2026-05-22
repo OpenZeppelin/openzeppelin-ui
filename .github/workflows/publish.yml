@@ -30,7 +30,7 @@ jobs:
     uses: slsa-framework/slsa-github-generator/.github/workflows/builder_nodejs_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a # v2.1.0
     with:
       run-scripts: "install-pnpm, install-deps, build, test"
-      node-version: "22.14.0"
+      node-version: "24.x"
       rekor-log-public: true
 
   release:
@@ -58,7 +58,7 @@ jobs:
         uses: ./.github/actions/prepare
         with:
           token: ${{ steps.gh-app-token.outputs.token }}
-          node-version: "22"
+          node-version: "24"
           package-manager-cache: "false"
 
       - name: Verify dependencies
@@ -117,7 +117,7 @@ jobs:
       - name: Configure npm trusted publishing
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
-          node-version: "22"
+          node-version: "24"
           registry-url: https://registry.npmjs.org
           package-manager-cache: false
 
