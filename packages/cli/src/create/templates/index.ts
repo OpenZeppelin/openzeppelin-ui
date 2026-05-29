@@ -1,14 +1,7 @@
+import { buildWalletSupportFiles } from '../../wallet/scaffold';
 import { packageJson } from '../package-json';
 import { resolveCreateAppSpec } from '../recipes';
-import {
-  appConfig,
-  indexCss,
-  ozConfig,
-  ozProviders,
-  ozRuntime,
-  rainbowKitConfig,
-  runtimeStatus,
-} from '../support-files';
+import { indexCss, runtimeStatus } from '../support-files';
 import type { CreateFile, ResolvedCreateOptions } from '../types';
 import { viteConfig } from '../vite-template';
 import { appTsx } from './app';
@@ -71,12 +64,7 @@ export function buildCreateFiles(options: ResolvedCreateOptions): CreateFile[] {
   ];
 
   if (spec.hasWallet) {
-    files.push(
-      { path: 'public/app.config.json', content: appConfig(options) },
-      { path: 'src/oz/config.ts', content: ozConfig() },
-      { path: 'src/oz/runtime.ts', content: ozRuntime(options) },
-      { path: 'src/oz/OzProviders.tsx', content: ozProviders() }
-    );
+    files.push(...buildWalletSupportFiles(options));
   }
 
   if (spec.requiresLogoAsset) {
@@ -85,10 +73,6 @@ export function buildCreateFiles(options: ResolvedCreateOptions): CreateFile[] {
 
   if (spec.hasStatusPanel) {
     files.push({ path: 'src/components/RuntimeStatus.tsx', content: runtimeStatus() });
-  }
-
-  if (options.wallet === 'rainbowkit') {
-    files.push({ path: 'src/oz/wallet/rainbowkit.config.ts', content: rainbowKitConfig(options) });
   }
 
   return files;

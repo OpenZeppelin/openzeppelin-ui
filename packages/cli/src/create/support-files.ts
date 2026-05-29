@@ -1,9 +1,18 @@
-import type { ResolvedCreateOptions } from './types';
+import type { CreateWallet } from './types';
+
+/**
+ * Minimum input both `oz-ui create` (full scaffold) and `oz-ui add wallet`
+ * (additive wiring on an existing project) need to render wallet-related files.
+ */
+export interface WalletSupportInput {
+  wallet: CreateWallet;
+  projectName: string;
+}
 
 /**
  * Renders the generated runtime config JSON.
  */
-export function appConfig(options: ResolvedCreateOptions): string {
+export function appConfig(options: WalletSupportInput): string {
   return `${JSON.stringify(
     {
       $comment: 'Base runtime config. Override with VITE_APP_CFG_* values in .env.local.',
@@ -87,7 +96,7 @@ export async function initializeAppConfig(): Promise<void> {
 /**
  * Renders the generated EVM runtime adapter wiring.
  */
-export function ozRuntime(options: ResolvedCreateOptions): string {
+export function ozRuntime(options: WalletSupportInput): string {
   return `import { ecosystemDefinition } from '@openzeppelin/adapter-evm';
 import { evmNetworks } from '@openzeppelin/adapter-evm/networks';
 import type { EcosystemRuntime, NetworkConfig } from '@openzeppelin/ui-types';
@@ -160,7 +169,7 @@ export function OzProviders({ children }: { children: ReactNode }) {
 /**
  * Renders the generated RainbowKit native config module.
  */
-export function rainbowKitConfig(options: ResolvedCreateOptions): string {
+export function rainbowKitConfig(options: WalletSupportInput): string {
   return `const rainbowKitConfig = {
   wagmiParams: {
     appName: '${options.projectName}',

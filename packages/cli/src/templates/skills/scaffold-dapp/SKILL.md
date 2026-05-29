@@ -1,13 +1,39 @@
-# scaffold-dapp
+---
+name: scaffold-dapp
+description: >-
+  Bootstrap a new React + Vite + TypeScript dApp wired to the OpenZeppelin UI Kit using `oz-ui create`
+  (discovery, `--yes --json`, post-scaffold steps). Use when the user wants a greenfield OZ UI project,
+  a new app directory, or to run the create flow headlessly. Not for migrating an existing app—use
+  `migrate-to-oz-uikit`.
+when_to_use: >-
+  Empty or new project directory; user asks to scaffold, create, or start a new OpenZeppelin UI /
+  oz-ui dApp; agent should run `oz-ui create` with JSON output. Decline or hand off if `package.json`
+  already represents a non-greenfield app without explicit empty target and `--force`.
+compatibility: >-
+  Node.js 20+ recommended; npm, pnpm, or yarn; network for dependency install; optional WalletConnect
+  project ID for full wallet flows.
+---
 
-Bootstrap a new React + Vite + TypeScript dApp wired to the OpenZeppelin UI Kit. This skill orchestrates the `oz-ui create` CLI: it discovers the user's situation, asks decision-oriented questions, invokes the CLI deterministically with `--yes --json`, and walks the user through post-scaffold edits.
+# Scaffold dApp
 
-## Prerequisites
+Orchestrate the `oz-ui create` CLI: discover cwd, ask decision-oriented questions, invoke the CLI with `--yes --json`, then guide first post-scaffold edits.
+
+## When to Use
+
+- The user wants a **new** React + Vite + TypeScript app with `@openzeppelin/ui-*` wiring.
+- The workspace is **empty**, lacks `package.json`, or the user accepts creating a **new subdirectory** for the project.
+- The user needs a **repeatable agent flow** for `oz-ui create` (not the interactive TTY wizard alone).
+
+**Do not use** when the user already has a React app to adopt OZ UI Kit on—point them to **`migrate-to-oz-uikit`** (or `oz-ui migrate init`).
+
+## Instructions
+
+### Prerequisites
 
 - `@openzeppelin/ui-cli` must be invocable. Either install it globally (`npm i -g @openzeppelin/ui-cli`, then run `oz-ui ...`) or use `npx @openzeppelin/ui-cli ...` for one-off invocations. Inside an already-scaffolded project, `npx oz-ui ...` works because the CLI is pinned as a devDep.
 - The user should be in a workspace directory where they intend to create a new project (typically a parent like `~/projects`). The new project will be created as a subdirectory.
 
-## Workflow
+### Workflow
 
 1. **Discover** the user's cwd state (Step 1).
 2. **Ask** decision-oriented questions to resolve preset, wallet, and optional features (Step 2).
@@ -15,7 +41,7 @@ Bootstrap a new React + Vite + TypeScript dApp wired to the OpenZeppelin UI Kit.
 4. **Guide** through the first post-scaffold edits (Step 4).
 5. **Suggest** follow-up skills (Step 5).
 
-### Step 1: Discovery
+#### Step 1: Discovery
 
 Check the user's cwd before asking anything:
 
@@ -37,7 +63,7 @@ Tooling context that affects flag selection:
 - `package.json` in a parent (monorepo) → ask whether to scaffold inside or outside the workspace
 - `.npmrc` → respect any registry pinning the user has configured
 
-### Step 2: Targeted Questions
+#### Step 2: Targeted Questions
 
 Ask **decision-oriented** questions, not flag-by-flag. The decision tree is exhaustive:
 
@@ -68,7 +94,7 @@ If the user describes their app vaguely, map intent to flags inline:
 - "just trying it out", "minimum viable wiring" → `--preset minimal`
 - Non-EVM ecosystem (Stellar, Polkadot, Solana, Midnight) → flag the v1 EVM-only limitation and ask whether to proceed with EVM scaffolding now and swap adapters later.
 
-### Step 3: Confirmation and Invocation
+#### Step 3: Confirmation and Invocation
 
 Summarize the resolved flag set in plain language (e.g. "preset: dapp · wallet: rainbowkit · in directory `my-dapp/`") and get explicit user confirmation. Then run the CLI in headless mode:
 
@@ -94,35 +120,35 @@ Surface to the user in plain language (not a raw JSON dump):
 - **Install status** — whether `installRan` succeeded; if not, surface the `installCommand` for manual run.
 - **Next steps** — verbatim from `nextSteps`.
 
-### Step 4: Post-Scaffold Guidance
+#### Step 4: Post-Scaffold Guidance
 
 Walk the user through the first real edits, in priority order. Skip steps that don't apply (e.g. step 1 when `--wallet none` was selected).
 
 1. **Replace the WalletConnect placeholder** in `public/app.config.json`:
-  - Look for `"projectId": "YOUR_WALLETCONNECT_PROJECT_ID_HERE"`.
-  - Replace with a real project ID from [https://cloud.walletconnect.com/](https://cloud.walletconnect.com/), or set `VITE_APP_CFG_GLOBAL_SERVICE_CONFIGS_WALLETCONNECT_PROJECT_ID` in `.env.local`.
+   - Look for `"projectId": "YOUR_WALLETCONNECT_PROJECT_ID_HERE"`.
+   - Replace with a real project ID from [https://cloud.walletconnect.com/](https://cloud.walletconnect.com/), or set `VITE_APP_CFG_GLOBAL_SERVICE_CONFIGS_WALLETCONNECT_PROJECT_ID` in `.env.local`.
 2. **Pick the runtime profile** in `src/oz/runtime.ts`:
-  - Default is `composer` (read + write + sign).
-  - Use `viewer` for read-only apps (skips wallet UI), `transactor` for sends-only apps (skips read-display paths).
+   - Default is `composer` (read + write + sign).
+   - Use `viewer` for read-only apps (skips wallet UI), `transactor` for sends-only apps (skips read-display paths).
 3. **Run the dev server**:
-  ```bash
+   ```bash
    cd <project-name>
    <package-manager> run dev
-  ```
+   ```
    The localhost URL printed by Vite is the success signal.
 4. **Add a contract interaction**:
-  - For `RenderFormSchema` / `TransactionForm`-driven flows, suggest the `form-schema-builder` skill.
-  - For hand-rolled `useReadContract` / `useWriteContract`, point at `@openzeppelin/ui-react` examples.
+   - For `RenderFormSchema` / `TransactionForm`-driven flows, suggest the `form-schema-builder` skill.
+   - For hand-rolled `useReadContract` / `useWriteContract`, point at `@openzeppelin/ui-react` examples.
 
-### Step 5: Suggest Follow-ups
+#### Step 5: Suggest Follow-ups
 
 Once the dev server boots and WalletConnect is wired, the scaffold flow is complete. Optionally suggest:
 
-- `**migrate-to-oz-uikit`** — if the user has *another* React app to migrate onto the OZ UI Kit.
-- `**oz-ui add adapter <ecosystem>*`* — for adding a chain adapter later.
-- `**oz-ui doctor**` — for validating the project's wiring after manual edits.
+- **`migrate-to-oz-uikit`** — if the user has *another* React app to migrate onto the OZ UI Kit.
+- **`oz-ui add adapter <ecosystem>`** — for adding a chain adapter later.
+- **`oz-ui doctor`** — for validating the project's wiring after manual edits.
 
-## Important Rules
+### Important Rules
 
 - **Always run `oz-ui create` with `--yes --json`** when invoking from this skill. Never simulate the interactive prompts.
 - **Validate `schemaVersion` and `cli.version`** on every JSON envelope. Refuse newer major schema versions.
@@ -130,4 +156,3 @@ Once the dev server boots and WalletConnect is wired, the scaffold flow is compl
 - **Never scaffold into a non-empty directory without `--force` and explicit user confirmation.** The CLI rejects this by default; respect that default.
 - **The decision tree is exhaustive.** If you're asking outside Q1/Q2/Q3 or producing an undocumented flag combination, stop and re-read this file.
 - **Do not modify the generated project's wiring during the skill's run.** The CLI owns `src/oz/`, `src/main.tsx`, `src/App.tsx`, and the Tailwind setup. Re-run the CLI with different flags rather than hand-editing.
-

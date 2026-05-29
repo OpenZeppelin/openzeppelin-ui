@@ -16,8 +16,8 @@
   },
   "dependencies": {
     "@creit.tech/stellar-wallets-kit": "^1.8.0",
-    "@openzeppelin/adapter-evm": "^2.0.1",
-    "@openzeppelin/adapter-stellar": "^2.0.0",
+    "@openzeppelin/adapter-evm": "^2.0.2",
+    "@openzeppelin/adapter-stellar": "^2.0.2",
     "@openzeppelin/ui-components": "workspace:^",
     "@openzeppelin/ui-react": "workspace:^",
     "@openzeppelin/ui-renderer": "workspace:^",

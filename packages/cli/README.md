@@ -24,10 +24,11 @@ Consumer CLI for scaffolding, migrating, and managing OpenZeppelin UI applicatio
 The `oz-ui` binary is organized by **command group** (e.g. `oz-ui <group> …`). This README documents the groups that are available today; **additional groups will be added here** as they ship.
 
 
-| Group     | Description                                                                         |
-| --------- | ----------------------------------------------------------------------------------- |
-| `create`  | Scaffold a Vite + React + TypeScript app with selectable OpenZeppelin UI wiring.    |
-| `migrate` | Move an existing React app onto the OpenZeppelin UI Kit (manifest-driven workflow). |
+| Group     | Description                                                                             |
+| --------- | --------------------------------------------------------------------------------------- |
+| `add`     | Add OpenZeppelin UI capabilities, such as wallet wiring, to an existing project.         |
+| `create`  | Scaffold a Vite + React + TypeScript app with selectable OpenZeppelin UI wiring.        |
+| `migrate` | Move an existing React app onto the OpenZeppelin UI Kit (manifest-driven workflow).     |
 
 
 ### `create`
@@ -119,6 +120,53 @@ oz-ui create init
 
 - [Create generation matrix](./docs/CREATE_MATRIX.md) - User-facing matrix of presets, options, features, generated files, and combinations.
 - [Create recipes architecture](./docs/CREATE_RECIPES.md) - How `oz-ui create` resolves presets, layouts, content, and feature combinations.
+
+### `add`
+
+`oz-ui add` applies OpenZeppelin UI capabilities to an existing project. The first additive command is `wallet`, which writes the same `src/oz` runtime/provider files used by `oz-ui create` and patches the React entry file to wrap the render tree with `OzProviders`.
+
+All `oz-ui add` subcommands support `--json` and return machine-readable payloads with an `action` field plus command-specific data. Invoke each row as `oz-ui add <subcommand>` (or `npx` / `pnpm exec` as needed).
+
+
+| Subcommand | Description                                                                                                                                                  |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `wallet`   | Add EVM wallet/runtime wiring to an existing Vite + React app. Supports the `custom` kit by default and optional `rainbowkit` config via `--kit rainbowkit`. |
+
+
+#### `add wallet`
+
+Adds OpenZeppelin wallet runtime support to an existing project:
+
+- installs missing wallet dependencies unless `--skip-install` is set
+- writes `src/oz/config.ts`, `src/oz/runtime.ts`, and `src/oz/OzProviders.tsx`
+- writes `src/oz/wallet/rainbowkit.config.ts` when `--kit rainbowkit` is selected
+- creates or merges `public/app.config.json` without clobbering existing feature flags, RPC endpoints, or WalletConnect project IDs
+- patches `src/main.tsx` / `src/index.tsx` (or JSX equivalents) to initialize app config and wrap the render tree with `<OzProviders>`
+
+
+| Option                   | Description                                                                                         |
+| ------------------------ | --------------------------------------------------------------------------------------------------- |
+| `--project <path>`       | Project root directory. Defaults to the current directory.                                          |
+| `--ecosystem <ecosystem>`| Target ecosystem. V1 supports `evm`.                                                                |
+| `--kit <kit>`            | Wallet kit: `custom` or `rainbowkit`. Defaults to `custom`.                                         |
+| `--package-manager <pm>` | Package manager to use for dependency installation: `npm`, `pnpm`, or `yarn`. Auto-detected by default. |
+| `--skip-install`         | Write files and print the install command without running the package manager.                      |
+| `--force`                | Overwrite generated wallet files that already exist. Existing `app.config.json` is still merged.    |
+| `--yes`                  | Use defaults and skip interactive prompts.                                                          |
+| `--json`                 | Emit a machine-readable payload with `action: "add-wallet"`.                                        |
+
+
+Examples:
+
+```bash
+oz-ui add wallet
+oz-ui add wallet --kit rainbowkit
+oz-ui add wallet --project ./apps/web --kit custom --skip-install --json --yes
+```
+
+#### Add documentation
+
+- [Add wallet](./docs/ADD_WALLET.md) - Generated files, options, JSON payload shape, and idempotency behavior.
 
 ### `migrate`
 
