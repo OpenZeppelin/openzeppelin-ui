@@ -124,11 +124,9 @@ describe('rewriteFile — named import swaps', () => {
     expect(ozLines[0]).toContain('Card');
   });
 
-  it('current behavior: injects an OZ import even when the source component is absent (wart)', () => {
-    // The executor only runs the rewriter on files analysis has flagged as
-    // containing the component, so this path is not hit in practice. The
-    // current regex implementation unconditionally adds the OZ import; the
-    // AST rewrite should treat an absent source as a no-op instead.
+  it('is a no-op when no legacy import references the source component', () => {
+    // The AST rewriter only swaps imports it actually finds, so an absent
+    // source component is never given a spurious OZ import.
     const input = ["import { Something } from 'some-lib';", 'export const x = 1;', ''].join('\n');
 
     const out = rewriteFile(
@@ -136,7 +134,7 @@ describe('rewriteFile — named import swaps', () => {
       input
     );
 
-    expect(out).toContain(`import { Button } from '${OZ}'`);
+    expect(out).toBe(input);
   });
 
   it('returns content unchanged when the task lacks source/target', () => {
@@ -241,6 +239,92 @@ describe('rewriteFile — namespace imports (radix)', () => {
     const matches = result.match(/onClick=/g) ?? [];
     expect(matches).toHaveLength(1);
     expect(result).toContain('onClick={foo}');
+  });
+});
+
+describe('rewriteFile — AST robustness (cases the regex implementation mishandled)', () => {
+  it('preserves an aliased sibling specifier when removing the migrated import', () => {
+    const input = [
+      "import { Button, Tooltip as Tip } from '@/components/ui/button';",
+      '',
+      'export const App = () => <Button>Go</Button>;',
+      '',
+    ].join('\n');
+
+    const out = rewriteFile(
+      replacementTask({ sourceComponent: 'Button', targetComponent: 'Button' }),
+      input
+    );
+
+    const legacy = importLineFor(out, '@/components/ui/button');
+    expect(legacy).toContain('Tooltip as Tip');
+    expect(legacy).not.toMatch(/\bButton\b/);
+    expect(importLineFor(out, OZ)).toContain('Button');
+  });
+
+  it('handles a multiline named import block', () => {
+    const input = [
+      'import {',
+      '  Button,',
+      '  Spinner,',
+      "} from '@/components/ui/button';",
+      '',
+      'export const App = () => <Button>Go</Button>;',
+      '',
+    ].join('\n');
+
+    const out = rewriteFile(
+      replacementTask({ sourceComponent: 'Button', targetComponent: 'Button' }),
+      input
+    );
+
+    expect(importLineFor(out, OZ)).toContain('Button');
+    expect(out).toContain('Spinner');
+    expect(out).not.toContain("Button,\n} from '@/components/ui/button'");
+  });
+
+  it('remaps a prop that follows an attribute whose value contains ">"', () => {
+    const input = [
+      "import { Button } from '@/components/ui/button';",
+      '',
+      'export const App = () => (',
+      '  <Button onClick={() => go(a > b)} size="lg">Go</Button>',
+      ');',
+      '',
+    ].join('\n');
+
+    const out = rewriteFile(
+      replacementTask({ sourceComponent: 'Button', targetComponent: 'Button' }),
+      input,
+      { propMappings: { size: 'scale' } }
+    );
+
+    expect(out).toContain('scale="lg"');
+    expect(out).not.toContain('size="lg"');
+    expect(out).toContain('onClick={() => go(a > b)}');
+  });
+
+  it('renames only the exact tag and leaves same-prefix siblings untouched', () => {
+    const input = [
+      "import { Tabs, Tab } from '@mui/material';",
+      '',
+      'export const App = () => (',
+      '  <Tabs>',
+      '    <Tab label="One" />',
+      '  </Tabs>',
+      ');',
+      '',
+    ].join('\n');
+
+    const out = rewriteFile(
+      replacementTask({ sourceComponent: 'Tab', targetComponent: 'TabsTrigger' }),
+      input
+    );
+
+    expect(out).toContain('<TabsTrigger label="One" />');
+    expect(out).toContain('<Tabs>');
+    expect(out).toContain('</Tabs>');
+    expect(out).not.toContain('<Tab ');
   });
 });
 
