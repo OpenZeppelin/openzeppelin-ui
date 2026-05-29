@@ -1,7 +1,7 @@
 {
   "name": "@openzeppelin/ui-cli",
   "private": false,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Consumer CLI for scaffolding, migrating, and managing OpenZeppelin UI applications.",
   "type": "module",
   "bin": {

@@ -1,6 +1,6 @@
 {
   "name": "@openzeppelin/ui-example-basic-react-app",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "type": "module",
   "description": "Example React application demonstrating @openzeppelin/ui-components usage",
@@ -50,6 +50,6 @@
     "@vitejs/plugin-react": "^4.7.0",
     "tailwindcss": "^4.1.11",
     "typescript": "^5.8.3",
-    "vite": "^7.1.5"
+    "vite": "^7.3.2"
   }
 }
