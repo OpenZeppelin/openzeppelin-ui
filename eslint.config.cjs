@@ -1,7 +1,7 @@
 // Import plugins
 const reactPlugin = require('eslint-plugin-react');
 const reactHooksPlugin = require('eslint-plugin-react-hooks');
-const reactRefreshPlugin = require('eslint-plugin-react-refresh');
+const reactRefreshPlugin = require('eslint-plugin-react-refresh').reactRefresh.plugin;
 const typescriptPlugin = require('@typescript-eslint/eslint-plugin');
 const typescriptParser = require('@typescript-eslint/parser');
 const importPlugin = require('eslint-plugin-import');
