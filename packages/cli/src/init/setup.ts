@@ -20,6 +20,7 @@ import {
   writeAgentProfileSelection,
 } from '../agent-assets';
 import { CLI_BRANDING, CLI_FAMILIES, OZ_CORE_PACKAGES } from '../branding';
+import { transformEntryFile } from '../codemod/entry-transform';
 import type { AgentAssetProfile } from '../manifest/schema';
 import { copyTemplateDirectory, writeTemplate } from '../templates';
 import { buildInstallCommand, detectPackageManager } from '../utils/framework';
@@ -92,13 +93,6 @@ export function writeProviderTemplates(projectRoot: string): string[] {
   return written;
 }
 
-const ENTRY_FILE_CANDIDATES = [
-  'src/main.tsx',
-  'src/main.jsx',
-  'src/index.tsx',
-  'src/index.jsx',
-] as const;
-
 const PROVIDER_IMPORT_LINE =
   "import { RuntimeProvider, WalletStateProvider } from './oz/runtime-providers';";
 
@@ -109,97 +103,15 @@ const PROVIDER_IMPORT_LINE =
  * is installed.
  */
 export function patchEntryFileWithProviders(projectRoot: string): string | null {
-  for (const candidate of ENTRY_FILE_CANDIDATES) {
-    const filePath = path.join(projectRoot, candidate);
-    if (!fs.existsSync(filePath)) continue;
+  const result = transformEntryFile(projectRoot, {
+    wrap: {
+      importLine: PROVIDER_IMPORT_LINE,
+      components: ['RuntimeProvider', 'WalletStateProvider'],
+      skipIfPresent: ['RuntimeProvider', 'OzProviders'],
+    },
+  });
 
-    const content = fs.readFileSync(filePath, 'utf8');
-    if (content.includes('RuntimeProvider') || content.includes('OzProviders')) return null;
-
-    const patched = injectProviderWiring(content);
-    if (patched !== content) {
-      fs.writeFileSync(filePath, patched, 'utf8');
-      return candidate;
-    }
-  }
-
-  return null;
-}
-
-function injectProviderWiring(source: string): string {
-  if (source.includes('RuntimeProvider') || source.includes('OzProviders')) return source;
-
-  let result = source;
-
-  const lastImportIdx = findLastImportIndex(result);
-  if (lastImportIdx >= 0) {
-    const insertPos = result.indexOf('\n', lastImportIdx);
-    if (insertPos >= 0) {
-      result =
-        result.slice(0, insertPos + 1) + PROVIDER_IMPORT_LINE + '\n' + result.slice(insertPos + 1);
-    }
-  } else {
-    result = PROVIDER_IMPORT_LINE + '\n' + result;
-  }
-
-  result = wrapRenderTree(result);
-
-  return result;
-}
-
-function findLastImportIndex(source: string): number {
-  let lastIdx = -1;
-  const importRegex = /^import\s/gm;
-  let match;
-  while ((match = importRegex.exec(source)) !== null) {
-    lastIdx = match.index;
-  }
-  return lastIdx;
-}
-
-/**
- * Wraps the JSX tree inside ReactDOM.createRoot(...).render(<X>) with
- * RuntimeProvider + WalletStateProvider. Targets the common pattern:
- *   .render(<StrictMode>...) or .render(<App />) or .render(<Provider>...)
- */
-function wrapRenderTree(source: string): string {
-  const renderMatch = source.match(/\.render\(\s*\n?(\s*)/);
-  if (!renderMatch) return source;
-
-  const renderIdx = source.indexOf(renderMatch[0]);
-  const afterRender = renderIdx + renderMatch[0].length;
-  const indent = renderMatch[1] || '  ';
-
-  const closingMatch = findMatchingCloseParen(source, renderIdx);
-  if (closingMatch < 0) return source;
-
-  const innerJsx = source.slice(afterRender, closingMatch).trim();
-
-  const wrapped =
-    `.render(\n` +
-    `${indent}<RuntimeProvider>\n` +
-    `${indent}  <WalletStateProvider>\n` +
-    `${indent}    ${innerJsx}\n` +
-    `${indent}  </WalletStateProvider>\n` +
-    `${indent}</RuntimeProvider>\n` +
-    `${indent.slice(2) || ''}`;
-
-  return source.slice(0, renderIdx) + wrapped + source.slice(closingMatch);
-}
-
-function findMatchingCloseParen(source: string, startIdx: number): number {
-  const openIdx = source.indexOf('(', startIdx);
-  if (openIdx < 0) return -1;
-
-  let depth = 1;
-  for (let i = openIdx + 1; i < source.length; i++) {
-    if (source[i] === '(') depth++;
-    else if (source[i] === ')') {
-      depth--;
-      if (depth === 0) return i;
-    }
-  }
-  return -1;
+  return result.patched ? result.entryFile : null;
 }
 
 /**
@@ -342,102 +254,31 @@ export function writeAppConfigFiles(projectRoot: string): AppConfigResult {
 
 const APP_CONFIG_IMPORT_LINE = "import { appConfigService } from '@openzeppelin/ui-utils';";
 
+const APP_CONFIG_INIT_STATEMENT = [
+  'await appConfigService.initialize([',
+  "  { type: 'viteEnv', env: import.meta.env },",
+  "  { type: 'json', path: '/app.config.json' },",
+  ']);',
+].join('\n');
+
 /**
  * Patches the entry file to call `appConfigService.initialize()` before
- * the React render. Wraps the existing synchronous `createRoot().render()`
- * call in an async IIFE that loads config from Vite env + JSON.
+ * the React render. Wraps the synchronous `createRoot().render()` call in an
+ * async bootstrap that loads config from Vite env + JSON.
  *
  * Idempotent: skips if the file already references `appConfigService`.
  */
 export function patchEntryFileWithConfigService(projectRoot: string): string | null {
-  for (const candidate of ENTRY_FILE_CANDIDATES) {
-    const filePath = path.join(projectRoot, candidate);
-    if (!fs.existsSync(filePath)) continue;
+  const result = transformEntryFile(projectRoot, {
+    asyncInit: {
+      importLine: APP_CONFIG_IMPORT_LINE,
+      initStatement: APP_CONFIG_INIT_STATEMENT,
+      bootstrapName: 'startApp',
+      skipIfPresent: ['appConfigService'],
+    },
+  });
 
-    const content = fs.readFileSync(filePath, 'utf8');
-    if (content.includes('appConfigService')) return null;
-
-    const patched = injectConfigServiceWiring(content);
-    if (patched !== content) {
-      fs.writeFileSync(filePath, patched, 'utf8');
-      return candidate;
-    }
-  }
-
-  return null;
-}
-
-function injectConfigServiceWiring(source: string): string {
-  if (source.includes('appConfigService')) return source;
-
-  // Bail early if there's no createRoot().render() pattern to wrap
-  const createRootMatch = source.match(/(?:ReactDOM\.)?createRoot\s*\(/);
-  if (!createRootMatch) return source;
-
-  const createRootIdx = source.indexOf(createRootMatch[0]);
-  const renderDotIdx = source.indexOf('.render(', createRootIdx);
-  if (renderDotIdx < 0) return source;
-
-  const renderCloseParen = findMatchingCloseParen(source, renderDotIdx);
-  if (renderCloseParen < 0) return source;
-
-  // Add the import
-  let result = source;
-  const lastImportIdx = findLastImportIndex(result);
-  if (lastImportIdx >= 0) {
-    const insertPos = result.indexOf('\n', lastImportIdx);
-    if (insertPos >= 0) {
-      result =
-        result.slice(0, insertPos + 1) +
-        APP_CONFIG_IMPORT_LINE +
-        '\n' +
-        result.slice(insertPos + 1);
-    }
-  } else {
-    result = APP_CONFIG_IMPORT_LINE + '\n' + result;
-  }
-
-  // Re-locate createRoot after the import insertion shifted offsets
-  const updatedCreateRootMatch = result.match(/(?:ReactDOM\.)?createRoot\s*\(/);
-  if (!updatedCreateRootMatch) return result;
-
-  const updatedCreateRootIdx = result.indexOf(updatedCreateRootMatch[0]);
-
-  let stmtStart = updatedCreateRootIdx;
-  while (stmtStart > 0 && result[stmtStart - 1] !== '\n') stmtStart--;
-
-  const updatedRenderDotIdx = result.indexOf('.render(', updatedCreateRootIdx);
-  if (updatedRenderDotIdx < 0) return result;
-
-  const updatedRenderCloseParen = findMatchingCloseParen(result, updatedRenderDotIdx);
-  if (updatedRenderCloseParen < 0) return result;
-
-  let stmtEnd = updatedRenderCloseParen + 1;
-  while (stmtEnd < result.length && /[\s;]/.test(result[stmtEnd])) {
-    const ch = result[stmtEnd];
-    stmtEnd++;
-    if (ch === ';') break;
-  }
-
-  const renderStatement = result.slice(stmtStart, stmtEnd).trim();
-
-  const asyncWrapper =
-    'async function startApp() {\n' +
-    '  await appConfigService.initialize([\n' +
-    "    { type: 'viteEnv', env: import.meta.env },\n" +
-    "    { type: 'json', path: '/app.config.json' },\n" +
-    '  ]);\n' +
-    '\n' +
-    '  ' +
-    renderStatement +
-    '\n' +
-    '}\n' +
-    '\n' +
-    'void startApp();\n';
-
-  result = result.slice(0, stmtStart) + asyncWrapper + result.slice(stmtEnd);
-
-  return result;
+  return result.patched ? result.entryFile : null;
 }
 
 /**
