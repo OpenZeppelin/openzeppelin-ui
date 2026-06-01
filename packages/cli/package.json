@@ -65,7 +65,7 @@
     "@openzeppelin/ui-tailwind-utils": "workspace:*",
     "@types/node": "^22.19.15",
     "typescript": "^5.8.3",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.0"
   },
   "engines": {
     "node": ">=20.19.0"
