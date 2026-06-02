@@ -45,6 +45,9 @@ export interface EcosystemRuntime {
   readonly uiKit?: import('./capabilities/ui-kit').UiKitCapability;
   readonly relayer?: import('./capabilities/relayer').RelayerCapability;
   readonly accessControl?: import('./capabilities/access-control').AccessControlCapability;
+  readonly erc3643?: import('./capabilities/erc3643').ERC3643Capability;
+  readonly erc4626?: import('./capabilities/erc4626').ERC4626Capability;
+  readonly irs?: import('./capabilities/irs').IRSCapability;
 
   /**
    * Idempotent lifecycle teardown for the composed runtime and shared internal state.
@@ -80,4 +83,7 @@ export interface CapabilityFactoryMap {
   accessControl?: (
     config: NetworkConfig
   ) => import('./capabilities/access-control').AccessControlCapability;
+  erc3643?: (config: NetworkConfig) => import('./capabilities/erc3643').ERC3643Capability;
+  erc4626?: (config: NetworkConfig) => import('./capabilities/erc4626').ERC4626Capability;
+  irs?: (config: NetworkConfig) => import('./capabilities/irs').IRSCapability;
 }

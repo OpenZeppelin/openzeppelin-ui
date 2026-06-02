@@ -16,3 +16,6 @@ export type { WalletCapability } from './wallet';
 export type { UiKitCapability } from './ui-kit';
 export type { RelayerCapability } from './relayer';
 export type { AccessControlCapability } from './access-control';
+export type { ERC3643Capability } from './erc3643';
+export type { ERC4626Capability } from './erc4626';
+export type { IRSCapability } from './irs';

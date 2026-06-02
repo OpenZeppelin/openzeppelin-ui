@@ -16,3 +16,8 @@ export * from './ecosystem-metadata';
 export * from './ecosystem-export';
 export * from './access-control';
 export * from './access-control-errors';
+
+export * from './erc3643';
+export * from './erc4626';
+export * from './irs';
+export * from './ri-capability-errors';

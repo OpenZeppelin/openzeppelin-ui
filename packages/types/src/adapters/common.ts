@@ -9,6 +9,18 @@ import type { FormFieldType } from '../forms/form-field';
  */
 
 /**
+ * Base-unit decimal token/share quantity, expressed as a string.
+ *
+ * Chain-agnostic capability interfaces never expose native numeric types (e.g. `bigint`);
+ * every amount crosses the boundary as a non-negative, base-unit decimal `string`
+ * (no decimal point, no sign, no scientific notation). Adapters convert to/from the
+ * native representation internally and reject malformed input with `InvalidAmount`.
+ *
+ * @example '1000000000000000000' // 1 token at 18 decimals
+ */
+export type Amount = string;
+
+/**
  * Information about a dynamic type pattern supported by an adapter.
  * Dynamic patterns are types that require pattern matching rather than exact lookup,
  * such as arrays, generics, and composite types.
