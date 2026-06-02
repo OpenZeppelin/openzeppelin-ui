@@ -1,5 +1,11 @@
 # @openzeppelin/ui-types
 
+## 3.1.0
+
+### Minor Changes
+
+- [#149](https://github.com/OpenZeppelin/openzeppelin-ui/pull/149) [`e5199a9`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/e5199a969cbbf0853c7e58b3d3bcaa0c1d216b52) Thanks [@pasevin](https://github.com/pasevin)! - Add RI capability domain types, typed error classes, and Tier 3 capability interfaces (ERC3643, ERC4626, IRS) for the tokenized-deposits POC.
+
 ## 3.0.0
 
 ### Major Changes
