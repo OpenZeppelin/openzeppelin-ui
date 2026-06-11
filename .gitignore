@@ -10,6 +10,9 @@ dist/
 **/contracts/**/cache/
 **/contracts/**/lib/
 
+# Cargo (Soroban/Stellar) artifacts
+**/contracts/**/target/
+
 # Coverage
 coverage/
 

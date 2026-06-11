@@ -1,1 +1,0 @@
-/Users/ghost/dev/repos/OpenZeppelin/openzeppelin-ui/examples/basic-react-app/contracts/stellar-demo-staking/target/wasm32v1-none/release/demo_staking.wasm: /Users/ghost/dev/repos/OpenZeppelin/openzeppelin-ui/examples/basic-react-app/contracts/stellar-demo-staking/src/lib.rs
