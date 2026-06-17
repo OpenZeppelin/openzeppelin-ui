@@ -1,5 +1,15 @@
 # @openzeppelin/ui-components
 
+## 3.0.1
+
+### Patch Changes
+
+- [#161](https://github.com/OpenZeppelin/openzeppelin-ui/pull/161) [`adb3d75`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/adb3d7543158ae4d94fe74cb9bd1e9ea4adefeaa) Thanks [@pasevin](https://github.com/pasevin)! - Add network availability policy for hosted deployments: disable mainnet networks via `mainnet_networks_disabled`, per-network blocklist via `disabledNetworkIds`, shared resolution helpers, disabled `NetworkSelector` items, and a self-host notice banner.
+
+- Updated dependencies [[`adb3d75`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/adb3d7543158ae4d94fe74cb9bd1e9ea4adefeaa)]:
+  - @openzeppelin/ui-types@3.1.1
+  - @openzeppelin/ui-utils@3.0.1
+
 ## 3.0.0
 
 ### Major Changes
