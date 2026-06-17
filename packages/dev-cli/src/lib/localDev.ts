@@ -418,6 +418,13 @@ function packFamily(
 }
 
 function installProject(config: ResolvedProjectConfig, familyKeys: FamilyKey[]): void {
+  const clearedPaths = clearProjectNodeModules(config.projectRoot);
+  if (clearedPaths.length > 0) {
+    process.stderr.write(
+      `[local-dev] Cleared ${clearedPaths.length} node_modules director${clearedPaths.length === 1 ? 'y' : 'ies'} before reinstall.\n`
+    );
+  }
+
   const env = Object.fromEntries(
     getSupportedFamilies(config).map(([key, family]) => [
       family.envFlag,
@@ -426,6 +433,80 @@ function installProject(config: ResolvedProjectConfig, familyKeys: FamilyKey[]):
   );
 
   runCommand(config.packageManager, config.installArgs, config.projectRoot, { extraEnv: env });
+}
+
+/**
+ * Expands simple pnpm-workspace.yaml package globs (e.g. `packages/*`) to package roots.
+ */
+export function collectWorkspacePackageDirs(projectRoot: string): string[] {
+  const workspacePath = path.join(projectRoot, 'pnpm-workspace.yaml');
+  if (!fs.existsSync(workspacePath)) {
+    return [];
+  }
+
+  const packageDirs: string[] = [];
+  const content = fs.readFileSync(workspacePath, 'utf8');
+
+  for (const line of content.split('\n')) {
+    const match = line.match(/^\s*-\s*['"]?([^'"]+)['"]?\s*$/);
+    if (!match) {
+      continue;
+    }
+
+    appendWorkspacePatternDirs(projectRoot, match[1].trim(), packageDirs);
+  }
+
+  return packageDirs;
+}
+
+function appendWorkspacePatternDirs(
+  projectRoot: string,
+  pattern: string,
+  packageDirs: string[]
+): void {
+  if (pattern.endsWith('/*')) {
+    const baseDir = path.join(projectRoot, pattern.slice(0, -2));
+    if (!fs.existsSync(baseDir)) {
+      return;
+    }
+
+    for (const entry of fs.readdirSync(baseDir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) {
+        continue;
+      }
+
+      const packageRoot = path.join(baseDir, entry.name);
+      if (fs.existsSync(path.join(packageRoot, 'package.json'))) {
+        packageDirs.push(packageRoot);
+      }
+    }
+    return;
+  }
+
+  const packageRoot = path.join(projectRoot, pattern);
+  if (fs.existsSync(path.join(packageRoot, 'package.json'))) {
+    packageDirs.push(packageRoot);
+  }
+}
+
+/**
+ * Removes root and workspace package node_modules trees so pnpm re-applies .pnpmfile.cjs
+ * rewrites instead of short-circuiting on an existing registry lockfile.
+ */
+export function clearProjectNodeModules(projectRoot: string): string[] {
+  const removedPaths: string[] = [];
+  const nodeModulesCandidates = [
+    path.join(projectRoot, 'node_modules'),
+    ...collectWorkspacePackageDirs(projectRoot).map((packageDir) =>
+      path.join(packageDir, 'node_modules')
+    ),
+  ];
+
+  for (const nodeModulesPath of nodeModulesCandidates) {
+    removePath(nodeModulesPath, removedPaths);
+  }
+
+  return removedPaths;
 }
 
 function removePath(targetPath: string, removedPaths: string[]): void {

@@ -30,4 +30,5 @@ export * from './access/errors';
 export * from './walletComponentSizing';
 export * from './serviceErrorDetection';
 export * from './networkServiceFilter';
+export * from './networkAvailability';
 export * from './peerValidation';
