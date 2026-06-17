@@ -1,5 +1,14 @@
 # @openzeppelin/ui-example-basic-react-app
 
+## 0.0.3
+
+### Patch Changes
+
+- Updated dependencies [[`adb3d75`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/adb3d7543158ae4d94fe74cb9bd1e9ea4adefeaa)]:
+  - @openzeppelin/ui-types@3.1.1
+  - @openzeppelin/ui-components@3.0.1
+  - @openzeppelin/ui-utils@3.0.1
+
 ## 0.0.2
 
 ### Patch Changes
