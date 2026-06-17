@@ -77,6 +77,7 @@ export class AppConfigService {
     const loadedRpcEndpoints: NetworkSpecificRpcEndpoints = {};
     const loadedIndexerEndpoints: Record<string, string> = {};
     const loadedFeatureFlags: FeatureFlags = {};
+    let loadedDisabledNetworkIds: string[] = [];
 
     for (const key in env) {
       if (Object.prototype.hasOwnProperty.call(env, key) && env[key] !== undefined) {
@@ -149,6 +150,11 @@ export class AppConfigService {
           const flagNameSuffix = key.substring(`${VITE_ENV_PREFIX}FEATURE_FLAG_`.length);
           const flagName = flagNameSuffix.toLowerCase();
           loadedFeatureFlags[flagName] = value.toLowerCase() === 'true';
+        } else if (key === `${VITE_ENV_PREFIX}DISABLED_NETWORK_IDS`) {
+          loadedDisabledNetworkIds = value
+            .split(',')
+            .map((id) => id.trim())
+            .filter(Boolean);
         } else if (key === `${VITE_ENV_PREFIX}DEFAULT_LANGUAGE`) {
           this.config.defaultLanguage = value;
         }
@@ -187,6 +193,12 @@ export class AppConfigService {
       }
     }
     this.config.featureFlags = { ...this.config.featureFlags, ...loadedFeatureFlags };
+    if (loadedDisabledNetworkIds.length > 0) {
+      this.config.disabledNetworkIds = [
+        ...(this.config.disabledNetworkIds ?? []),
+        ...loadedDisabledNetworkIds,
+      ];
+    }
 
     logger.info(
       LOG_SYSTEM,
@@ -277,6 +289,13 @@ export class AppConfigService {
         };
       }
 
+      if (externalConfig.disabledNetworkIds) {
+        this.config.disabledNetworkIds = [
+          ...(this.config.disabledNetworkIds ?? []),
+          ...externalConfig.disabledNetworkIds,
+        ];
+      }
+
       if (typeof externalConfig.defaultLanguage === 'string') {
         this.config.defaultLanguage = externalConfig.defaultLanguage;
       }
@@ -343,6 +362,20 @@ export class AppConfigService {
       logger.warn(LOG_SYSTEM, 'isFeatureEnabled called before initialization.');
     }
     return this.config.featureFlags?.[flagName.toLowerCase()] ?? false;
+  }
+
+  /**
+   * Returns network IDs that are visible but not selectable in the current deployment.
+   */
+  public getDisabledNetworkIds(): string[] {
+    if (!this.isInitialized) {
+      logger.warn(LOG_SYSTEM, 'getDisabledNetworkIds called before initialization.');
+    }
+    const raw = this.config.disabledNetworkIds ?? [];
+    return raw
+      .filter((id): id is string => typeof id === 'string')
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0);
   }
 
   /**

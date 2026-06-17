@@ -6,6 +6,7 @@ export * from './components/ui';
 export * from './components/fields';
 export * from './components/RelayerDetailsCard';
 export * from './components/network-errors';
+export * from './components/network-availability';
 
 // Icons
 export { MidnightIcon } from './components/icons/MidnightIcon';

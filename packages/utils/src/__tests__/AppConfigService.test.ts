@@ -256,6 +256,24 @@ describe('AppConfigService', () => {
       expect(appConfigServiceInstance.isFeatureEnabled('analytics_enabled')).toBe(false);
     });
 
+    it('should sanitize malformed disabledNetworkIds from JSON config', async () => {
+      const jsonConfig = {
+        disabledNetworkIds: [' ethereum-sepolia ', '', 123, null, 'polygon-mainnet'],
+      };
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => jsonConfig,
+      } as unknown as Response);
+
+      await appConfigServiceInstance.initialize([{ type: 'json', path: '/app.config.json' }]);
+
+      expect(appConfigServiceInstance.getDisabledNetworkIds()).toEqual([
+        'ethereum-sepolia',
+        'polygon-mainnet',
+      ]);
+    });
+
     it('should handle fetch returning non-ok status (e.g., 500)', async () => {
       mockFetch.mockResolvedValue({
         ok: false,

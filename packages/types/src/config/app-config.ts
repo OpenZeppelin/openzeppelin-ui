@@ -149,6 +149,13 @@ export interface AppRuntimeConfig {
   /** Indexer endpoint overrides for different networks (for historical data queries). */
   indexerEndpoints?: NetworkSpecificIndexerEndpoints;
 
+  /**
+   * Network IDs that are visible in the UI but not selectable.
+   * Combined with the `mainnet_networks_disabled` feature flag (which disables all
+   * networks where `type === 'mainnet'`).
+   */
+  disabledNetworkIds?: string[];
+
   // Add other global or feature-specific settings here as needed.
   // Example:
   // uiSettings?: {

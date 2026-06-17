@@ -25,6 +25,10 @@ interface NetworkSelectorBaseProps<T> {
   groupByEcosystem?: boolean;
   getEcosystem?: (network: T) => string;
   filterNetwork?: (network: T, query: string) => boolean;
+  /** When true, the network cannot be selected */
+  isNetworkDisabled?: (network: T) => boolean;
+  /** Optional label for disabled networks (e.g. "Self-host required") */
+  getNetworkDisabledLabel?: (network: T) => string | undefined;
   className?: string;
   placeholder?: string;
 }
@@ -61,6 +65,8 @@ export function NetworkSelector<T>({
   groupByEcosystem = false,
   getEcosystem,
   filterNetwork,
+  isNetworkDisabled,
+  getNetworkDisabledLabel,
   className,
   placeholder = 'Select Network',
   ...modeProps
@@ -112,6 +118,10 @@ export function NetworkSelector<T>({
 
   const handleSelect = React.useCallback(
     (network: T) => {
+      if (isNetworkDisabled?.(network)) {
+        return;
+      }
+
       if (isMultiple && selectedNetworkIds && onSelectionChange) {
         const id = getNetworkId(network);
         const next = selectedNetworkIds.includes(id)
@@ -123,7 +133,14 @@ export function NetworkSelector<T>({
         setOpen(false);
       }
     },
-    [isMultiple, selectedNetworkIds, onSelectionChange, onSelectNetwork, getNetworkId]
+    [
+      isMultiple,
+      selectedNetworkIds,
+      onSelectionChange,
+      onSelectNetwork,
+      getNetworkId,
+      isNetworkDisabled,
+    ]
   );
 
   const handleClearAll = React.useCallback(() => {
@@ -236,41 +253,57 @@ export function NetworkSelector<T>({
                   </DropdownMenuLabel>
                 )}
                 <DropdownMenuGroup>
-                  {groupNetworks.map((network) => (
-                    <DropdownMenuItem
-                      key={getNetworkId(network)}
-                      onSelect={(e) => {
-                        if (isMultiple) e.preventDefault();
-                        handleSelect(network);
-                      }}
-                      className="gap-2"
-                    >
-                      {isMultiple ? (
-                        <div
-                          className={cn(
-                            'flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors',
-                            isSelected(network)
-                              ? 'border-selected bg-selected text-selected-foreground'
-                              : 'border-input bg-background'
+                  {groupNetworks.map((network) => {
+                    const disabled = isNetworkDisabled?.(network) ?? false;
+                    const disabledLabel = disabled ? getNetworkDisabledLabel?.(network) : undefined;
+
+                    return (
+                      <DropdownMenuItem
+                        key={getNetworkId(network)}
+                        disabled={disabled}
+                        onSelect={(e) => {
+                          if (disabled) {
+                            e.preventDefault();
+                            return;
+                          }
+                          if (isMultiple) e.preventDefault();
+                          handleSelect(network);
+                        }}
+                        className={cn('gap-2', disabled && 'cursor-not-allowed opacity-60')}
+                      >
+                        {isMultiple ? (
+                          <div
+                            className={cn(
+                              'flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors',
+                              isSelected(network)
+                                ? 'border-selected bg-selected text-selected-foreground'
+                                : 'border-input bg-background',
+                              disabled && 'opacity-50'
+                            )}
+                          >
+                            {isSelected(network) && <Check className="h-3 w-3" />}
+                          </div>
+                        ) : null}
+                        {getNetworkIcon?.(network)}
+                        <div className="flex flex-1 items-center gap-2 min-w-0">
+                          <span className="truncate">{getNetworkLabel(network)}</span>
+                          {getNetworkType && (
+                            <span className="shrink-0 rounded-sm bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase text-muted-foreground">
+                              {getNetworkType(network)}
+                            </span>
                           )}
-                        >
-                          {isSelected(network) && <Check className="h-3 w-3" />}
+                          {disabledLabel ? (
+                            <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                              {disabledLabel}
+                            </span>
+                          ) : null}
                         </div>
-                      ) : null}
-                      {getNetworkIcon?.(network)}
-                      <div className="flex flex-1 items-center gap-2 min-w-0">
-                        <span className="truncate">{getNetworkLabel(network)}</span>
-                        {getNetworkType && (
-                          <span className="shrink-0 rounded-sm bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase text-muted-foreground">
-                            {getNetworkType(network)}
-                          </span>
+                        {!isMultiple && isSelected(network) && (
+                          <Check className="h-4 w-4 text-selected opacity-100" />
                         )}
-                      </div>
-                      {!isMultiple && isSelected(network) && (
-                        <Check className="h-4 w-4 text-selected opacity-100" />
-                      )}
-                    </DropdownMenuItem>
-                  ))}
+                      </DropdownMenuItem>
+                    );
+                  })}
                 </DropdownMenuGroup>
                 {index < Object.keys(groupedNetworks).length - 1 && <DropdownMenuSeparator />}
               </React.Fragment>
