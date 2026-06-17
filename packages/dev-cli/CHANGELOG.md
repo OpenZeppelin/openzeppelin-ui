@@ -1,5 +1,11 @@
 # @openzeppelin/ui-dev-cli
 
+## 0.6.1
+
+### Patch Changes
+
+- [#161](https://github.com/OpenZeppelin/openzeppelin-ui/pull/161) [`adb3d75`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/adb3d7543158ae4d94fe74cb9bd1e9ea4adefeaa) Thanks [@pasevin](https://github.com/pasevin)! - Clear root and workspace `node_modules` before `use local` / `use remote` reinstalls so pnpm always re-applies `.pnpmfile.cjs` tarball rewrites instead of short-circuiting on an existing registry lockfile.
+
 ## 0.6.0
 
 ### Minor Changes
