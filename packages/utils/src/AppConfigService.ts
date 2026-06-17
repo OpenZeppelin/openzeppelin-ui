@@ -371,7 +371,11 @@ export class AppConfigService {
     if (!this.isInitialized) {
       logger.warn(LOG_SYSTEM, 'getDisabledNetworkIds called before initialization.');
     }
-    return [...(this.config.disabledNetworkIds ?? [])];
+    const raw = this.config.disabledNetworkIds ?? [];
+    return raw
+      .filter((id): id is string => typeof id === 'string')
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0);
   }
 
   /**

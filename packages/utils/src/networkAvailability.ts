@@ -99,13 +99,25 @@ export interface HostedNetworkAvailabilityNoticeCopy {
   descriptionLinkLabel: string;
 }
 
+function isMainnetNetworksDisabled(): boolean {
+  return appConfigService.isFeatureEnabled(MAINNET_NETWORKS_DISABLED_FLAG);
+}
+
 /** Shared title/description copy for NetworkAvailabilityNotice and rejection toasts. */
 export function getHostedNetworkAvailabilityNoticeCopy(
   appName: string
 ): HostedNetworkAvailabilityNoticeCopy {
+  if (isMainnetNetworksDisabled()) {
+    return {
+      title: `Mainnet networks are disabled on this hosted ${appName}`,
+      descriptionBeforeLink: `Testnet and devnet networks remain available here. To use mainnet, deploy ${appName} yourself from `,
+      descriptionLinkLabel: 'the source repository',
+    };
+  }
+
   return {
-    title: `Mainnet networks are disabled on this hosted ${appName}`,
-    descriptionBeforeLink: `Testnet and devnet networks remain available here. To use mainnet, deploy ${appName} yourself from `,
+    title: `Some networks are disabled on this hosted ${appName}`,
+    descriptionBeforeLink: `Certain networks are not available in this deployment. To use them, deploy ${appName} yourself from `,
     descriptionLinkLabel: 'the source repository',
   };
 }

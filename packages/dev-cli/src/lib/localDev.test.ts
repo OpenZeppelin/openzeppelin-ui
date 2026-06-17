@@ -108,6 +108,25 @@ describe('collectWorkspacePackageDirs', () => {
       ].sort()
     );
   });
+
+  it('ignores workspace patterns that escape the project root', () => {
+    const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'oz-ui-dev-workspace-escape-'));
+    tempRoots.push(projectRoot);
+
+    fs.mkdirSync(path.join(projectRoot, 'packages', 'safe'), { recursive: true });
+    fs.writeFileSync(
+      path.join(projectRoot, 'packages', 'safe', 'package.json'),
+      JSON.stringify({ name: 'safe' })
+    );
+    fs.writeFileSync(
+      path.join(projectRoot, 'pnpm-workspace.yaml'),
+      `packages:\n  - '../outside/*'\n  - 'packages/safe'\n  - '/tmp/absolute/*'\n`
+    );
+
+    expect(collectWorkspacePackageDirs(projectRoot)).toEqual([
+      path.join(projectRoot, 'packages', 'safe'),
+    ]);
+  });
 });
 
 describe('clearProjectNodeModules', () => {

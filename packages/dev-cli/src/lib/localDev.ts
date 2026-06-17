@@ -459,14 +459,37 @@ export function collectWorkspacePackageDirs(projectRoot: string): string[] {
   return packageDirs;
 }
 
+function isPathWithinProjectRoot(projectRoot: string, targetPath: string): boolean {
+  const resolvedProjectRoot = path.resolve(projectRoot);
+  const resolved = path.resolve(targetPath);
+  const relative = path.relative(resolvedProjectRoot, resolved);
+
+  return !relative.startsWith('..') && !path.isAbsolute(relative);
+}
+
+function resolvePathWithinProjectRoot(projectRoot: string, relativePath: string): string | null {
+  if (path.isAbsolute(relativePath)) {
+    return null;
+  }
+
+  const resolvedProjectRoot = path.resolve(projectRoot);
+  const resolved = path.resolve(resolvedProjectRoot, relativePath);
+
+  if (!isPathWithinProjectRoot(resolvedProjectRoot, resolved)) {
+    return null;
+  }
+
+  return resolved;
+}
+
 function appendWorkspacePatternDirs(
   projectRoot: string,
   pattern: string,
   packageDirs: string[]
 ): void {
   if (pattern.endsWith('/*')) {
-    const baseDir = path.join(projectRoot, pattern.slice(0, -2));
-    if (!fs.existsSync(baseDir)) {
+    const baseDir = resolvePathWithinProjectRoot(projectRoot, pattern.slice(0, -2));
+    if (!baseDir || !fs.existsSync(baseDir)) {
       return;
     }
 
@@ -476,15 +499,18 @@ function appendWorkspacePatternDirs(
       }
 
       const packageRoot = path.join(baseDir, entry.name);
-      if (fs.existsSync(path.join(packageRoot, 'package.json'))) {
+      if (
+        isPathWithinProjectRoot(projectRoot, packageRoot) &&
+        fs.existsSync(path.join(packageRoot, 'package.json'))
+      ) {
         packageDirs.push(packageRoot);
       }
     }
     return;
   }
 
-  const packageRoot = path.join(projectRoot, pattern);
-  if (fs.existsSync(path.join(packageRoot, 'package.json'))) {
+  const packageRoot = resolvePathWithinProjectRoot(projectRoot, pattern);
+  if (packageRoot && fs.existsSync(path.join(packageRoot, 'package.json'))) {
     packageDirs.push(packageRoot);
   }
 }

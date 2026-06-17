@@ -156,7 +156,9 @@ describe('networkAvailability', () => {
   });
 
   describe('getHostedNetworkAvailabilityNoticeCopy', () => {
-    it('returns shared banner copy for the hosting app', () => {
+    it('returns mainnet-specific copy when the mainnet flag is enabled', () => {
+      mockIsFeatureEnabled.mockImplementation((flag) => flag === 'mainnet_networks_disabled');
+
       expect(getHostedNetworkAvailabilityNoticeCopy('UI Builder')).toEqual({
         title: 'Mainnet networks are disabled on this hosted UI Builder',
         descriptionBeforeLink:
@@ -164,10 +166,23 @@ describe('networkAvailability', () => {
         descriptionLinkLabel: 'the source repository',
       });
     });
+
+    it('returns generic copy when only explicit disabled network IDs are configured', () => {
+      mockGetDisabledNetworkIds.mockReturnValue(['ethereum-sepolia']);
+
+      expect(getHostedNetworkAvailabilityNoticeCopy('UI Builder')).toEqual({
+        title: 'Some networks are disabled on this hosted UI Builder',
+        descriptionBeforeLink:
+          'Certain networks are not available in this deployment. To use them, deploy UI Builder yourself from ',
+        descriptionLinkLabel: 'the source repository',
+      });
+    });
   });
 
   describe('getDisabledNetworkRejectionToast', () => {
     it('returns plain-text toast copy matching the banner message', () => {
+      mockIsFeatureEnabled.mockImplementation((flag) => flag === 'mainnet_networks_disabled');
+
       expect(getDisabledNetworkRejectionToast('UI Builder')).toEqual({
         title: 'Mainnet networks are disabled on this hosted UI Builder',
         description:
