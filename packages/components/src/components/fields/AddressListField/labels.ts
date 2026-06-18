@@ -6,6 +6,10 @@ import type { AddressCandidateClassification } from '@openzeppelin/ui-utils';
  * format hints are passed as component props instead.
  */
 export interface AddressListFieldLabels {
+  addSingleAddress: string;
+  invalidSingleAddress: string;
+  enableBulkEntry: string;
+  enableSingleEntry: string;
   addAddresses: string;
   addAddressCount: (count: number) => string;
   invalidPrefix: string;
@@ -26,6 +30,10 @@ export interface AddressListFieldLabels {
 
 /** Default English labels for {@link AddressListField}. */
 export const DEFAULT_ADDRESS_LIST_FIELD_LABELS: AddressListFieldLabels = {
+  addSingleAddress: 'Add',
+  invalidSingleAddress: 'Enter a valid address',
+  enableBulkEntry: 'Bulk paste',
+  enableSingleEntry: 'Single entry',
   addAddresses: 'Add addresses',
   addAddressCount: (count) => `Add ${count} address${count === 1 ? '' : 'es'}`,
   invalidPrefix: 'Invalid:',
