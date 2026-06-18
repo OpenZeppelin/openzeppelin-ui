@@ -48,6 +48,7 @@ import {
   AccordionDemo,
   AccountAliasDemo,
   AddressDisplayDemo,
+  AddressListFieldDemo,
   AlertDemo,
   ArchitectureDemo,
   BannerDemo,
@@ -132,6 +133,7 @@ type DemoKey =
   // Component Gallery - Forms
   | 'form'
   | 'form-fields'
+  | 'address-list-field'
   | 'calendar'
   | 'date-range-picker';
 
@@ -242,6 +244,7 @@ const galleryCategories: GalleryCategory[] = [
     items: [
       { key: 'form', label: 'Form', icon: <FormInput className="size-4" /> },
       { key: 'form-fields', label: 'FormFields', icon: <FormInput className="size-4" /> },
+      { key: 'address-list-field', label: 'AddressListField', icon: <List className="size-4" /> },
       { key: 'calendar', label: 'Calendar', icon: <Calendar className="size-4" /> },
       {
         key: 'date-range-picker',
@@ -303,6 +306,7 @@ const demoComponents: Record<
   // Component Gallery - Forms
   form: FormDemo,
   'form-fields': FormFieldsDemo,
+  'address-list-field': AddressListFieldDemo,
   calendar: CalendarDemo,
   'date-range-picker': DateRangePickerDemo,
 };
