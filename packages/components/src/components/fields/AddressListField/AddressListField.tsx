@@ -128,7 +128,9 @@ export function AddressListField({
     [classification, labels]
   );
 
-  const inlineHelperText = feedback ?? previewSummary ?? undefined;
+  const inlineHelperText = rawInput.trim()
+    ? (previewSummary ?? undefined)
+    : (feedback ?? undefined);
 
   const handleAdd = useCallback(() => {
     if (!classification || classification.accepted.length === 0 || atLimit) return;

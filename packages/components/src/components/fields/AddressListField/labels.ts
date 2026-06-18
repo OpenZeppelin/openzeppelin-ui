@@ -109,5 +109,7 @@ export function formatAddressBulkSummary(
     parts.push(labels.bulkDuplicatesInPaste(classification.duplicatesInInput.length));
   }
 
+  if (parts.length === 0) return null;
+
   return parts.join('. ') + '.';
 }

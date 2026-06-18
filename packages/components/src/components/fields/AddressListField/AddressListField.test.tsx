@@ -120,6 +120,33 @@ describe('AddressListField', () => {
     expect(onChange).toHaveBeenCalledWith([]);
   });
 
+  it('shows live preview instead of post-add feedback while typing a new paste', async () => {
+    const onChange = vi.fn();
+    render(
+      <AddressListField value={[]} onChange={onChange} addressing={mockAddressing} {...copyProps} />
+    );
+    const input = screen.getByRole('textbox');
+    await act(async () => {
+      fireEvent.change(input, { target: { value: validAddr } });
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /add 1 address/i }));
+    });
+
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith([validAddr]);
+    });
+
+    await act(async () => {
+      fireEvent.change(input, { target: { value: validB } });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/1 ready to add/i)).toBeTruthy();
+      expect(screen.queryByText(/added 1 address/i)).toBeNull();
+    });
+  });
+
   it('accepts addresses without chain validation when addressing is omitted', async () => {
     const onChange = vi.fn();
     render(<AddressListField value={[]} onChange={onChange} {...copyProps} />);

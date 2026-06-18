@@ -19,4 +19,18 @@ describe('formatAddressBulkSummary', () => {
     );
     expect(summary).toBe('Added 1 address. 1 invalid format. 1 already listed.');
   });
+
+  it('returns null when there is nothing to report', () => {
+    const summary = formatAddressBulkSummary(
+      {
+        accepted: [validA],
+        invalid: [],
+        alreadyListed: [],
+        duplicatesInInput: [],
+      },
+      0,
+      DEFAULT_ADDRESS_LIST_FIELD_LABELS
+    );
+    expect(summary).toBeNull();
+  });
 });

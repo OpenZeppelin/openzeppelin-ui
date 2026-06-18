@@ -63,6 +63,7 @@ export function TextAreaField<TFieldValues extends FieldValues = FieldValues>({
   rows = 4,
   maxLength,
   validateTextArea,
+  readOnly,
 }: TextAreaFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
@@ -104,6 +105,7 @@ export function TextAreaField<TFieldValues extends FieldValues = FieldValues>({
             return true;
           },
         }}
+        disabled={readOnly}
         render={({ field, fieldState: { error, isTouched } }) => {
           const hasError = !!error;
           const shouldShowError = hasError && isTouched;
@@ -127,6 +129,7 @@ export function TextAreaField<TFieldValues extends FieldValues = FieldValues>({
                 maxLength={maxLength}
                 className={validationClasses}
                 value={field.value ?? ''}
+                disabled={readOnly}
                 {...accessibilityProps}
                 aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
                 onKeyDown={handleEscapeKey((value) => {
