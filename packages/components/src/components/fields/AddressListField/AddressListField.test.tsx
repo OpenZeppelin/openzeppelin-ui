@@ -16,18 +16,49 @@ const mockAddressing: AddressingCapability = {
 };
 
 const copyProps = {
-  placeholder: 'Account address (one per line, or comma-separated)',
+  placeholder: 'Enter an account address',
+  bulkPlaceholder: 'Paste addresses (one per line, or comma-separated)',
   formatHint:
     'Enter one address per line, or separate multiple addresses with commas. Each entry is validated before it is added.',
 };
 
 describe('AddressListField', () => {
-  it('shows format guidance from props', () => {
+  it('defaults to single-address entry with AddressField', () => {
     render(<AddressListField value={[]} onChange={vi.fn()} {...copyProps} />);
-    expect(screen.getByText(copyProps.formatHint)).toBeTruthy();
+    expect(screen.getByRole('textbox')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /^add$/i })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /bulk paste/i })).toBeTruthy();
+    expect(screen.queryByText(copyProps.formatHint)).toBeNull();
   });
 
-  it('shows format guidance alongside optional domain helper text', () => {
+  it('adds a single address from the default entry mode', async () => {
+    const onChange = vi.fn();
+    render(
+      <AddressListField value={[]} onChange={onChange} addressing={mockAddressing} {...copyProps} />
+    );
+    const input = screen.getByRole('textbox');
+    await act(async () => {
+      fireEvent.change(input, { target: { value: validAddr } });
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /^add$/i }));
+    });
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith([validAddr]);
+    });
+  });
+
+  it('switches to bulk mode and hides single entry controls', async () => {
+    render(<AddressListField value={[]} onChange={vi.fn()} {...copyProps} />);
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /bulk paste/i }));
+    });
+    expect(screen.getByText(copyProps.formatHint)).toBeTruthy();
+    expect(screen.getByRole('button', { name: /add addresses/i })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /single entry/i })).toBeTruthy();
+  });
+
+  it('shows domain helper text in single mode and format guidance in bulk mode', async () => {
     render(
       <AddressListField
         value={[]}
@@ -37,6 +68,10 @@ describe('AddressListField', () => {
       />
     );
     expect(screen.getByText(/seed allow-list addresses/i)).toBeTruthy();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /bulk paste/i }));
+    });
+    expect(screen.queryByText(/seed allow-list addresses/i)).toBeNull();
     expect(screen.getByText(copyProps.formatHint)).toBeTruthy();
   });
 
@@ -48,11 +83,14 @@ describe('AddressListField', () => {
     expect(addressEl).toBeTruthy();
   });
 
-  it('calls onChange with parsed addresses when Add is clicked', async () => {
+  it('calls onChange with parsed addresses in bulk mode when Add is clicked', async () => {
     const onChange = vi.fn();
     render(
       <AddressListField value={[]} onChange={onChange} addressing={mockAddressing} {...copyProps} />
     );
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /bulk paste/i }));
+    });
     const input = screen.getByRole('textbox');
     await act(async () => {
       fireEvent.change(input, { target: { value: `${validAddr}, ${validB}` } });
@@ -68,11 +106,14 @@ describe('AddressListField', () => {
     });
   });
 
-  it('adds only valid addresses when the paste includes invalid entries', async () => {
+  it('adds only valid addresses when the bulk paste includes invalid entries', async () => {
     const onChange = vi.fn();
     render(
       <AddressListField value={[]} onChange={onChange} addressing={mockAddressing} {...copyProps} />
     );
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /bulk paste/i }));
+    });
     const input = screen.getByRole('textbox');
     await act(async () => {
       fireEvent.change(input, { target: { value: `${validAddr}, not-valid` } });
@@ -88,7 +129,7 @@ describe('AddressListField', () => {
     });
   });
 
-  it('shows a live preview while typing', async () => {
+  it('shows a live preview while typing in bulk mode', async () => {
     render(
       <AddressListField
         value={[validAddr]}
@@ -97,6 +138,9 @@ describe('AddressListField', () => {
         {...copyProps}
       />
     );
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /bulk paste/i }));
+    });
     const input = screen.getByRole('textbox');
     await act(async () => {
       fireEvent.change(input, {
@@ -110,21 +154,14 @@ describe('AddressListField', () => {
     });
   });
 
-  it('calls onChange without addresses when the last row is removed', async () => {
-    const onChange = vi.fn();
-    render(<AddressListField value={[validAddr]} onChange={onChange} {...copyProps} />);
-    const removeButtons = screen.getAllByRole('button', { name: /remove address/i });
-    await act(async () => {
-      removeButtons[0]?.click();
-    });
-    expect(onChange).toHaveBeenCalledWith([]);
-  });
-
-  it('shows live preview instead of post-add feedback while typing a new paste', async () => {
+  it('shows live preview instead of post-add feedback while typing a new bulk paste', async () => {
     const onChange = vi.fn();
     render(
       <AddressListField value={[]} onChange={onChange} addressing={mockAddressing} {...copyProps} />
     );
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /bulk paste/i }));
+    });
     const input = screen.getByRole('textbox');
     await act(async () => {
       fireEvent.change(input, { target: { value: validAddr } });
@@ -147,9 +184,22 @@ describe('AddressListField', () => {
     });
   });
 
-  it('accepts addresses without chain validation when addressing is omitted', async () => {
+  it('calls onChange without addresses when the last row is removed', async () => {
+    const onChange = vi.fn();
+    render(<AddressListField value={[validAddr]} onChange={onChange} {...copyProps} />);
+    const removeButtons = screen.getAllByRole('button', { name: /remove address/i });
+    await act(async () => {
+      removeButtons[0]?.click();
+    });
+    expect(onChange).toHaveBeenCalledWith([]);
+  });
+
+  it('accepts addresses without chain validation when addressing is omitted in bulk mode', async () => {
     const onChange = vi.fn();
     render(<AddressListField value={[]} onChange={onChange} {...copyProps} />);
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /bulk paste/i }));
+    });
     const input = screen.getByRole('textbox');
     await act(async () => {
       fireEvent.change(input, { target: { value: 'anything-goes' } });

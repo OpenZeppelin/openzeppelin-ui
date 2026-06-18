@@ -7,11 +7,13 @@ import { DemoSection } from './DemoSection';
 import { EcosystemIndicator } from './EcosystemIndicator';
 
 /**
- * Demonstrates bulk address paste, validation, and list management via {@link AddressListField}.
+ * Demonstrates single/bulk address entry, validation, list management, and the
+ * `defaultEntryMode` / `allowModeToggle` props via {@link AddressListField}.
  */
 export function AddressListFieldDemo(): React.ReactElement {
   const { capabilities, sampleAddresses, metadata, isLoading } = useEcosystem();
   const [addresses, setAddresses] = useState<string[]>([]);
+  const [lockedAddresses, setLockedAddresses] = useState<string[]>([]);
 
   if (isLoading || !capabilities || !metadata) {
     return (
@@ -32,7 +34,7 @@ export function AddressListFieldDemo(): React.ReactElement {
   return (
     <DemoSection
       title="AddressListField"
-      description="Bulk-paste multiple blockchain addresses with delimiter parsing, live validation preview, and removable list rows. Pass chain-specific placeholder and format guidance from your app copy layer."
+      description="Add addresses one at a time (with address-book suggestions) or toggle bulk paste for delimiter-aware multi-add. Only one entry mode is active at a time."
       codeExample={`import { useState } from 'react';
 import { AddressListField } from '@openzeppelin/ui-components';
 import { useEcosystem } from './context';
@@ -43,7 +45,8 @@ const [addresses, setAddresses] = useState<string[]>([]);
 <AddressListField
   value={addresses}
   onChange={setAddresses}
-  placeholder="Paste addresses (one per line or comma-separated)"
+  placeholder="Enter an account address"
+  bulkPlaceholder="Paste addresses (one per line or comma-separated)"
   formatHint="Each entry is validated before it is added."
   addressing={capabilities}
   getExplorerUrl={(addr) => capabilities.getExplorerUrl(addr) ?? undefined}
@@ -60,9 +63,10 @@ const [addresses, setAddresses] = useState<string[]>([]);
           value={addresses}
           onChange={setAddresses}
           label="Allowed addresses"
-          placeholder="Paste addresses (one per line, or comma-separated)"
+          placeholder="Enter an account address"
+          bulkPlaceholder="Paste addresses (one per line, or comma-separated)"
           formatHint="Enter one address per line, or separate multiple addresses with commas. Invalid entries are skipped when you add."
-          helperText="Try pasting the sample wallet and contract addresses below."
+          helperText="Start with single-address entry, or use “Bulk paste” for bulk import."
           addressing={capabilities}
           getExplorerUrl={getExplorerUrl}
           maxItems={10}
@@ -72,6 +76,28 @@ const [addresses, setAddresses] = useState<string[]>([]);
           <p className="font-medium text-foreground">Sample addresses to paste</p>
           <p className="font-mono text-xs break-all">{sampleAddresses.wallet}</p>
           <p className="font-mono text-xs break-all">{sampleAddresses.contract}</p>
+        </div>
+
+        <div className="space-y-2 border-t border-border/60 pt-6">
+          <p className="text-sm font-medium text-foreground">
+            Locked to bulk paste (no mode toggle)
+          </p>
+          <p className="text-muted-foreground text-sm">
+            Use <code className="font-mono text-xs">defaultEntryMode</code> to pick the view on
+            mount and <code className="font-mono text-xs">allowModeToggle={'{false}'}</code> to hide
+            the toggle entirely.
+          </p>
+          <AddressListField
+            value={lockedAddresses}
+            onChange={setLockedAddresses}
+            placeholder="Paste addresses (one per line, or comma-separated)"
+            formatHint="Bulk-only field — the single-entry toggle is hidden."
+            addressing={capabilities}
+            getExplorerUrl={getExplorerUrl}
+            defaultEntryMode="bulk"
+            allowModeToggle={false}
+            maxItems={10}
+          />
         </div>
       </div>
     </DemoSection>
