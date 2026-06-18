@@ -1,5 +1,11 @@
 # @openzeppelin/ui-utils
 
+## 3.1.0
+
+### Minor Changes
+
+- [#165](https://github.com/OpenZeppelin/openzeppelin-ui/pull/165) [`c3f393b`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/c3f393b8c50553fa0733060e19288211330014ae) Thanks [@pasevin](https://github.com/pasevin)! - Add `AddressListField` for bulk address paste workflows with delimiter parsing, live validation preview, and removable list rows. Export address-list parsing helpers from `@openzeppelin/ui-utils` and showcase the field in the basic-react-app examples gallery.
+
 ## 3.0.1
 
 ### Patch Changes
