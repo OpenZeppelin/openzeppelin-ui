@@ -80,8 +80,8 @@ import { Info } from 'lucide-react';
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Size Presets</h3>
         <p className="text-muted-foreground text-sm">
-          Use <code className="text-xs">size="compact"</code> for denser wizard panels and secondary
-          notices. Default sizing works well for page-level alerts.
+          Use <code className="text-xs">{'size="compact"'}</code> for denser wizard panels and
+          secondary notices. Default sizing works well for page-level alerts.
         </p>
         <div className="space-y-4">
           <Banner variant="info" title="Default size" dismissible={false}>
@@ -108,7 +108,7 @@ import { Info } from 'lucide-react';
         <p className="text-muted-foreground text-sm">
           Neutral banners use semantic surface tokens (<code className="text-xs">bg-muted/30</code>,{' '}
           <code className="text-xs">border-border</code>) instead of semantic colors. Pair with{' '}
-          <code className="text-xs">size="compact"</code> for wizard-style notices.
+          <code className="text-xs">{'size="compact"'}</code> for wizard-style notices.
         </p>
         <div className="space-y-4">
           <Banner variant="neutral" title="After download" dismissible={false}>
