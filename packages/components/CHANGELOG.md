@@ -1,5 +1,11 @@
 # @openzeppelin/ui-components
 
+## 3.3.0
+
+### Minor Changes
+
+- [#169](https://github.com/OpenZeppelin/openzeppelin-ui/pull/169) [`a94fc1b`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/a94fc1b29ac594fe780f74f959d487e4da8f283c) Thanks [@pasevin](https://github.com/pasevin)! - Add `Banner` `variant="neutral"` and `size="compact"` presets, and export `BannerProps`, `BannerVariant`, and `BannerSize`.
+
 ## 3.2.0
 
 ### Minor Changes
