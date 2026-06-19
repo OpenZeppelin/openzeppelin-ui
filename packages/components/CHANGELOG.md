@@ -1,5 +1,15 @@
 # @openzeppelin/ui-components
 
+## 3.2.0
+
+### Minor Changes
+
+- [#167](https://github.com/OpenZeppelin/openzeppelin-ui/pull/167) [`951eb1b`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/951eb1bc44fcdc5225bcb7541e0ede4736bc7814) Thanks [@pasevin](https://github.com/pasevin)! - `AddressListField`: default to single-address entry with address-book support via `AddressField`, and add an inline toggle for bulk paste mode. Only one entry mode is active at a time.
+
+  Adds two props:
+  - `defaultEntryMode` (`'single' | 'bulk'`, default `'single'`) — chooses the view shown on mount.
+  - `allowModeToggle` (`boolean`, default `true`) — set to `false` to hide the toggle and lock the field to `defaultEntryMode`.
+
 ## 3.1.0
 
 ### Minor Changes
