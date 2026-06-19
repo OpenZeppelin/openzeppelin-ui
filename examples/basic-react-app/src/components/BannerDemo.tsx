@@ -24,13 +24,18 @@ export function BannerDemo(): React.ReactElement {
   return (
     <DemoSection
       title="Banner"
-      description="A dismissible banner component for notifications and alerts. Supports multiple variants (info, success, warning, error) with customizable icons and optional titles."
+      description="A dismissible banner component for notifications and alerts. Supports variants (info, success, warning, error, neutral) and size presets (default, compact) with customizable icons and optional titles."
       codeExample={`import { Banner } from '@openzeppelin/ui-components';
 import { Info } from 'lucide-react';
 
 // Basic info banner
 <Banner variant="info">
   This is an informational message.
+</Banner>
+
+// Muted neutral panel for inline checklists and notices
+<Banner variant="neutral" size="compact" title="Before you deploy" dismissible={false}>
+  Review the checklist below before continuing.
 </Banner>
 
 // With title and icon
@@ -63,6 +68,65 @@ import { Info } from 'lucide-react';
           </Banner>
           <Banner variant="error" dismissible={false}>
             This is an error banner. Use it to communicate critical problems.
+          </Banner>
+          <Banner variant="neutral" dismissible={false}>
+            This is a neutral banner. Use it for muted inline panels that should not compete with
+            primary content.
+          </Banner>
+        </div>
+      </div>
+
+      {/* Size presets */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Size Presets</h3>
+        <p className="text-muted-foreground text-sm">
+          Use <code className="text-xs">{'size="compact"'}</code> for denser wizard panels and
+          secondary notices. Default sizing works well for page-level alerts.
+        </p>
+        <div className="space-y-4">
+          <Banner variant="info" title="Default size" dismissible={false}>
+            Default padding and text-sm typography for prominent announcements.
+          </Banner>
+          <Banner variant="info" size="compact" title="Compact size" dismissible={false}>
+            Compact padding and text-xs typography for inline forms and checklists.
+          </Banner>
+          <Banner
+            variant="neutral"
+            size="compact"
+            title="Before you deploy"
+            icon={<Info className="size-4" aria-hidden />}
+            dismissible={false}
+          >
+            Confirm the admin address and acknowledge the deploy signer before continuing.
+          </Banner>
+        </div>
+      </div>
+
+      {/* Neutral variant */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Neutral Variant</h3>
+        <p className="text-muted-foreground text-sm">
+          Neutral banners use semantic surface tokens (<code className="text-xs">bg-muted/30</code>,{' '}
+          <code className="text-xs">border-border</code>) instead of semantic colors. Pair with{' '}
+          <code className="text-xs">{'size="compact"'}</code> for wizard-style notices.
+        </p>
+        <div className="space-y-4">
+          <Banner variant="neutral" title="After download" dismissible={false}>
+            Generated artifacts are ready. Review the README for deploy steps.
+          </Banner>
+          <Banner
+            variant="neutral"
+            size="compact"
+            title="Deploy readiness"
+            icon={<Info className="size-4" aria-hidden />}
+            dismissible={false}
+          >
+            <div className="space-y-2">
+              <p>Configured admin: 0x742d35Cc6634C0532925a3b844Bc454e4438f44e</p>
+              <p className="text-muted-foreground">
+                Check the box below to confirm your deploy signer controls this address.
+              </p>
+            </div>
           </Banner>
         </div>
       </div>
