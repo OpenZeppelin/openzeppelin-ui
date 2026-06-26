@@ -1,7 +1,7 @@
 {
   "name": "@openzeppelin/ui-dev-cli",
   "private": false,
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Shared local development CLI for OpenZeppelin UI consumer applications.",
   "type": "module",
   "bin": {
