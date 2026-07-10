@@ -11,6 +11,12 @@ export { DynamicFormField } from './DynamicFormField';
 // Transaction components
 export { TransactionExecuteButton } from './transaction/TransactionExecuteButton';
 
+// Reverse-name value feed for the base AddressDisplay (SF-4 async→sync bridge)
+export {
+  AddressNameResolutionProvider,
+  type AddressNameResolutionProviderProps,
+} from './AddressNameResolutionProvider';
+
 // Address Book
 export { AddressBookWidget } from './AddressBookWidget';
 export {

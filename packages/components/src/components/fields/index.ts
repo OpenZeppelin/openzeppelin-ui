@@ -8,6 +8,7 @@
 export * from './AddressField';
 export * from './AddressListField';
 export * from './address-suggestion';
+export * from './name-resolution';
 export * from './AmountField';
 export * from './ArrayField';
 export * from './ArrayObjectField';

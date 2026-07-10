@@ -225,6 +225,91 @@ test('prefers packed local tarballs when a manifest is present', () => {
   assert.equal(updated.devDependencies['@openzeppelin/adapters-vite'], `file:${tarballPath}`);
 });
 
+test('keeps the overlay sticky on a flag-less install when a packed manifest is present', () => {
+  const tarballDir = createTemporaryDirectory('openzeppelin-ui-sticky-');
+  const tarballPath = path.join(tarballDir, 'openzeppelin-adapter-evm-1.0.0.tgz');
+  fs.writeFileSync(tarballPath, 'stub tarball');
+
+  const { hooks } = loadHook();
+
+  const updated = withPackedManifest(
+    'adapters',
+    {
+      '@openzeppelin/adapter-evm': tarballPath,
+      '@openzeppelin/adapters-vite': tarballPath,
+    },
+    () =>
+      withEnv({ LOCAL_ADAPTERS: undefined, LOCAL_ADAPTERS_PATH: undefined }, () =>
+        hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
+      )
+  );
+
+  assert.equal(updated.dependencies['@openzeppelin/adapter-evm'], `file:${tarballPath}`);
+  assert.equal(updated.devDependencies['@openzeppelin/adapters-vite'], `file:${tarballPath}`);
+});
+
+test('honors an explicit LOCAL_ADAPTERS=false even when a packed manifest is present', () => {
+  const tarballDir = createTemporaryDirectory('openzeppelin-ui-optout-');
+  const tarballPath = path.join(tarballDir, 'openzeppelin-adapter-evm-1.0.0.tgz');
+  fs.writeFileSync(tarballPath, 'stub tarball');
+
+  const { hooks } = loadHook();
+
+  const updated = withPackedManifest(
+    'adapters',
+    {
+      '@openzeppelin/adapter-evm': tarballPath,
+      '@openzeppelin/adapters-vite': tarballPath,
+    },
+    () =>
+      withEnv({ LOCAL_ADAPTERS: 'false' }, () =>
+        hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
+      )
+  );
+
+  // Overlay not applied (no file: rewrite); ranges only get the standard adapter-prerelease widening.
+  assert.equal(updated.dependencies['@openzeppelin/adapter-evm'], '>=1.0.0-0 <2.0.0');
+  assert.equal(updated.devDependencies['@openzeppelin/adapters-vite'], '>=1.1.0-0 <2.0.0');
+});
+
+test('does not apply the overlay on a normal install with no manifest and no flags', () => {
+  withoutPackedManifest('adapters', () => {
+    const { hooks } = loadHook();
+
+    const updated = withEnv(
+      { LOCAL_ADAPTERS: undefined, LOCAL_ADAPTERS_PATH: undefined },
+      () => hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
+    );
+
+    // No file: overlay rewrite; deps stay on registry ranges (only adapter-prerelease widening).
+    assert.equal(updated.dependencies['@openzeppelin/adapter-evm'], '>=1.0.0-0 <2.0.0');
+    assert.equal(updated.devDependencies['@openzeppelin/adapters-vite'], '>=1.1.0-0 <2.0.0');
+  });
+});
+
+test('a sticky install never links a repo path (or throws) when the packed tarball is missing', () => {
+  const missingTarball = path.join(os.tmpdir(), 'openzeppelin-adapter-evm-missing.tgz');
+  const { hooks } = loadHook();
+
+  const updated = withPackedManifest(
+    'adapters',
+    {
+      '@openzeppelin/adapter-evm': missingTarball,
+      '@openzeppelin/adapters-vite': missingTarball,
+    },
+    () =>
+      // A missing repo path would make the env-driven path throw "checkout not found";
+      // the flag-less sticky path must stay packed-only and leave the deps on their ranges.
+      withEnv({ LOCAL_ADAPTERS: undefined, LOCAL_ADAPTERS_PATH: '../does-not-exist' }, () =>
+        hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
+      )
+  );
+
+  // No repo-path link and no throw: deps stay on registry ranges (only adapter-prerelease widening).
+  assert.equal(updated.dependencies['@openzeppelin/adapter-evm'], '>=1.0.0-0 <2.0.0');
+  assert.equal(updated.devDependencies['@openzeppelin/adapters-vite'], '>=1.1.0-0 <2.0.0');
+});
+
 test('throws a clear error when a configured package directory is missing package.json', () => {
   withoutPackedManifest('adapters', () => {
     const adaptersRepo = createTemporaryDirectory('adapters-without-package-json-');

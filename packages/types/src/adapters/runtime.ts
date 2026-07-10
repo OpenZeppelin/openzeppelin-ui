@@ -35,6 +35,7 @@ export interface EcosystemRuntime {
   readonly networkCatalog: import('./capabilities/network-catalog').NetworkCatalogCapability;
   readonly uiLabels: import('./capabilities/ui-labels').UiLabelsCapability;
 
+  readonly nameResolution?: import('./capabilities/name-resolution').NameResolutionCapability;
   readonly contractLoading?: import('./capabilities/contract-loading').ContractLoadingCapability;
   readonly schema?: import('./capabilities/schema').SchemaCapability;
   readonly typeMapping?: import('./capabilities/type-mapping').TypeMappingCapability;
@@ -68,6 +69,9 @@ export interface CapabilityFactoryMap {
   explorer?: (config?: NetworkConfig) => import('./capabilities/explorer').ExplorerCapability;
   networkCatalog?: () => import('./capabilities/network-catalog').NetworkCatalogCapability;
   uiLabels?: () => import('./capabilities/ui-labels').UiLabelsCapability;
+  nameResolution?: (
+    config: NetworkConfig
+  ) => import('./capabilities/name-resolution').NameResolutionCapability;
   contractLoading?: (
     config: NetworkConfig
   ) => import('./capabilities/contract-loading').ContractLoadingCapability;

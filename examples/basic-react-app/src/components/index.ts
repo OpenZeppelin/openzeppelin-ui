@@ -36,6 +36,7 @@ export { ExternalLinkDemo } from './ExternalLinkDemo';
 export { LoadingButtonDemo } from './LoadingButtonDemo';
 
 // Form Demos
+export { AddressFieldDemo } from './AddressFieldDemo';
 export { FormDemo } from './FormDemo';
 export { FormFieldsDemo } from './FormFieldsDemo';
 export { CalendarDemo } from './CalendarDemo';
@@ -43,6 +44,9 @@ export { DateRangePickerDemo } from './DateRangePickerDemo';
 
 // Storage Plugin Demos
 export { AccountAliasDemo } from './AccountAliasDemo';
+
+// Name Resolution (ENS) Demos
+export { ENSResolutionDemo } from './ENSResolutionDemo';
 
 // Integration Demos
 export { ArchitectureDemo } from './ArchitectureDemo';

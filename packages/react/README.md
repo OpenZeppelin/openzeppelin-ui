@@ -51,6 +51,13 @@ It is a foundational package that can be used to ensure consistent wallet and ru
 - **`useRuntimeContext()`**: Low-level access to `getRuntimeForNetwork` / loading helpers from `RuntimeProvider`.
 - **`useWalletState()`**: `activeNetworkId`, `activeNetworkConfig`, **`activeRuntime`**, **`isRuntimeLoading`**, `walletFacadeHooks`, `setActiveNetworkId`, `reconfigureActiveUiKit`.
 
+### Name resolution (ENS forward + reverse)
+
+See the [ENS address input integration guide](../../docs/ens-address-input/README.md) for the full wiring story. Key exports:
+
+- **`NameResolutionProvider`** / **`useResolveName`** / **`useResolveAddress`** — SF-2 async engine (debounce, cache, retries, closed error union)
+- **`useRuntimeNameResolver`** — maps the active runtime's `nameResolution` capability into the dumb `NameResolver` shape consumed by `@openzeppelin/ui-components`' `NameResolverProvider`
+
 ### Derived hooks
 
 These abstract wallet interactions across ecosystems:

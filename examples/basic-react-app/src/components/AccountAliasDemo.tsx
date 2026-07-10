@@ -6,6 +6,8 @@ import {
   AddressField,
   AddressLabelProvider,
   AddressSuggestionProvider,
+  Checkbox,
+  Label,
 } from '@openzeppelin/ui-components';
 import { AddressBookWidget, AliasEditPopover, useAliasEditState } from '@openzeppelin/ui-renderer';
 import {
@@ -47,6 +49,7 @@ export function AccountAliasDemo(): React.ReactElement {
   const { capabilities, network, availableNetworks, runtime } = useEcosystem();
 
   const [filterNetworkIds, setFilterNetworkIds] = useState<string[]>([]);
+  const [enableEns, setEnableEns] = useState(false);
 
   const widgetProps = useAddressBookWidgetProps(demoDb, {
     networkId: network?.id,
@@ -175,8 +178,33 @@ function App() {
             import/export, and CRUD operations. Add some aliases below, then scroll down to see them
             automatically resolved.
           </p>
+
+          <div className="bg-muted/40 flex items-start gap-3 rounded-lg border p-3">
+            <Checkbox
+              id="enable-ens"
+              checked={enableEns}
+              onCheckedChange={(v) => setEnableEns(v === true)}
+            />
+            <div className="space-y-1">
+              <Label htmlFor="enable-ens" className="font-medium">
+                Enable ENS name resolution (
+                <code className="bg-muted rounded px-1">enableNameResolution</code>)
+              </Label>
+              <p className="text-muted-foreground text-xs">
+                A single opt-in prop. When on, the Add-alias dialog becomes ENS-aware (type a name →
+                it resolves to hex and auto-suggests the alias) and rows render the base{' '}
+                <code className="bg-muted rounded px-1">AddressDisplay</code> fed by the
+                reverse-name bridge. Requires an ambient{' '}
+                <code className="bg-muted rounded px-1">WalletStateProvider</code> (present here).
+                Names resolve against the active network — select Ethereum Mainnet in the
+                header/Name Resolution demo for real names.
+              </p>
+            </div>
+          </div>
+
           <AddressBookWidget
             {...widgetProps}
+            enableNameResolution={enableEns}
             addressing={capabilities ?? undefined}
             addressPlaceholder={addressPlaceholder}
             resolveNetwork={resolveNetwork}

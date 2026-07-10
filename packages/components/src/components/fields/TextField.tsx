@@ -21,6 +21,16 @@ export interface TextFieldProps<TFieldValues extends FieldValues = FieldValues>
    * Placeholder text displayed when the field is empty
    */
   placeholder?: string;
+
+  /**
+   * Fired with the new value on USER-originated edits only — keystrokes and the
+   * Escape-clear — never on programmatic writes (`setValue`/`reset`). This is
+   * the discriminator consumers need to tell "the user claimed this field" from
+   * "code seeded this field" (e.g. the address book's ENS alias suggestion,
+   * SF-5 INV-103/INV-105); RHF's `dirtyFields` cannot express it because any
+   * form-wide dirty recompute retroactively marks a seeded value dirty.
+   */
+  onUserEdit?: (value: string) => void;
 }
 
 /**
@@ -51,6 +61,7 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
   width = 'full',
   validation,
   readOnly,
+  onUserEdit,
 }: TextFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
@@ -100,6 +111,7 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
           const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
             const value = e.target.value;
             field.onChange(value);
+            onUserEdit?.(value);
             // Note: Validation happens naturally when user leaves the field
             // No need to trigger it programmatically on every change
           };
@@ -107,7 +119,11 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
           // Handle keyboard events
           const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
             if (e.key === 'Escape') {
-              handleEscapeKey(field.onChange, field.value)(e);
+              // Escape-clear is a user edit too — notify with the cleared value.
+              handleEscapeKey((value) => {
+                field.onChange(value);
+                onUserEdit?.(value);
+              }, field.value)(e);
               // Note: Validation happens naturally when user leaves the field
               // No need to trigger it programmatically
             }

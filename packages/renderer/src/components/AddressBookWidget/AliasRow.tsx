@@ -10,6 +10,8 @@ import {
 } from '@openzeppelin/ui-components';
 import type { AddressBookAlias, NetworkConfig } from '@openzeppelin/ui-types';
 
+import { AddressNameResolutionProvider } from '../AddressNameResolutionProvider';
+
 interface AliasRowProps {
   alias: AddressBookAlias;
   onSave: (input: { address: string; alias: string; networkId?: string }) => Promise<string>;
@@ -108,13 +110,16 @@ export function AliasRow({
           )}
           <div className="min-w-0 flex-1">
             <AddressLabelProvider resolveLabel={() => undefined}>
-              <AddressDisplay
-                address={alias.address}
-                truncate={false}
-                showCopyButton
-                explorerUrl={explorerUrl}
-                className="text-xs text-muted-foreground"
-              />
+              <AddressNameResolutionProvider address={alias.address}>
+                <AddressDisplay
+                  address={alias.address}
+                  networkId={alias.networkId}
+                  truncate={false}
+                  showCopyButton
+                  explorerUrl={explorerUrl}
+                  className="text-xs text-muted-foreground"
+                />
+              </AddressNameResolutionProvider>
             </AddressLabelProvider>
           </div>
         </div>

@@ -4,6 +4,8 @@ import React from 'react';
 import { AddressDisplay } from '@openzeppelin/ui-components';
 import type { EoaExecutionConfig } from '@openzeppelin/ui-types';
 
+import { AddressNameResolutionProvider } from '../../AddressNameResolutionProvider';
+
 interface EoaConfigDetailsProps {
   config: EoaExecutionConfig;
 }
@@ -32,7 +34,9 @@ export const EoaConfigDetails: React.FC<EoaConfigDetailsProps> = ({ config }) =>
               : 'No specific address restrictions defined.'}
         </p>
         {config.specificAddress && !config.allowAny && (
-          <AddressDisplay className="mt-2" address={config.specificAddress} />
+          <AddressNameResolutionProvider address={config.specificAddress}>
+            <AddressDisplay className="mt-2" address={config.specificAddress} />
+          </AddressNameResolutionProvider>
         )}
       </div>
     </div>

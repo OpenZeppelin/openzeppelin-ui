@@ -40,6 +40,7 @@ export function AddressBookWidget({
   onFilterNetworkIdsChange,
   title = 'Address Book',
   className,
+  enableNameResolution,
 }: AddressBookWidgetProps) {
   const [search, setSearch] = useState('');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -124,6 +125,7 @@ export function AddressBookWidget({
         resolveAddressPlaceholder={resolveAddressPlaceholder}
         resolveNetwork={resolveNetwork}
         networks={networks}
+        enableNameResolution={enableNameResolution}
       />
 
       <CardContent className="space-y-4">

@@ -39,6 +39,10 @@ export const fieldComponents: Record<
   text: TextField,
   number: NumberField,
   bigint: BigIntField,
+  // SF-3 Rev-2: the base AddressField is ENS-capable in place via the injected
+  // NameResolverContext (mounted ambiently by TransactionForm); it resolves
+  // names inline and gates submit on unresolved names (SC-004). The Rev-1
+  // renderer fork is retired (D4); this reverts to the base component (INV-76).
   'blockchain-address': AddressField,
   checkbox: BooleanField,
   radio: RadioField,

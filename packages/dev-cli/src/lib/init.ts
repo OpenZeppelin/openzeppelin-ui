@@ -63,7 +63,15 @@ function serializePnpmfileFamilies(): string {
   return JSON.stringify(subset, null, 2);
 }
 
-function createPnpmfileContent(): string {
+/**
+ * Returns the canonical `.pnpmfile.cjs` hook source.
+ *
+ * This is the SINGLE SOURCE of the hook: it is written verbatim into consumer repos by
+ * `oz-ui-dev init`, and the repository-root `.pnpmfile.cjs` is generated from it too (guarded
+ * by the drift test in `pnpmfileTemplate.drift.test.ts`). Never hand-edit a generated file —
+ * change this template and regenerate with `pnpm generate:pnpmfile`.
+ */
+export function createPnpmfileContent(): string {
   const familiesJson = serializePnpmfileFamilies();
   return `/**
  * pnpm hook for config-driven local development.
@@ -105,8 +113,31 @@ function resolveCacheDir(workspaceRoot, cacheDir) {
   return resolvedCacheDir;
 }
 
-function isAnyLocalFamilyEnabled() {
-  return Object.values(STANDARD_FAMILIES).some((family) => process.env[family.envFlag] === 'true');
+function packedManifestExists(cacheDir, familyKey) {
+  return fs.existsSync(path.join(cacheDir, \`\${familyKey}.json\`));
+}
+
+/**
+ * Decides whether a family's dependencies should be rewritten for this install.
+ *
+ * - LOCAL_* flag explicitly "true"  → active with the full repo-path fallback
+ *   (the CLI-driven \`use local\` install).
+ * - LOCAL_* flag explicitly "false" → inactive (the CLI-driven \`use remote\` install,
+ *   which also removes the manifest first): an explicit opt-out is always honored.
+ * - flag unset (a routine \`pnpm <script>\` that triggers an incidental install) → active
+ *   only while a packed manifest is still present, and only in "packed-only" mode. This
+ *   keeps the materialized overlay sticky instead of letting pnpm re-resolve the packages
+ *   from the registry and tear the overlay down.
+ */
+function resolveFamilyActivation(family, familyKey, cacheDir) {
+  const flag = process.env[family.envFlag];
+  if (flag === 'true') {
+    return { active: true, packedOnly: false };
+  }
+  if (flag === 'false') {
+    return { active: false, packedOnly: false };
+  }
+  return { active: packedManifestExists(cacheDir, familyKey), packedOnly: true };
 }
 
 function readProjectConfig(workspaceRoot) {
@@ -265,7 +296,7 @@ function readPackedManifest(cacheDir, familyKey) {
   }
 }
 
-function rewriteDependencies(pkg, context, cacheDir, familyKey, family) {
+function rewriteDependencies(pkg, context, cacheDir, familyKey, family, packedOnly) {
   const packedPackages = readPackedManifest(cacheDir, familyKey);
   const workspaceRoot = __dirname;
 
@@ -277,6 +308,12 @@ function rewriteDependencies(pkg, context, cacheDir, familyKey, family) {
       if (packedTarballPath && fs.existsSync(packedTarballPath)) {
         pkg[depType][npmName] = \`file:\${packedTarballPath}\`;
         context.log(\`[local-dev] \${npmName} → \${packedTarballPath} (packed)\`);
+        continue;
+      }
+
+      // A flag-less (sticky) install only preserves already-materialized tarballs; it must
+      // never link a live repo path or throw, so a routine \`pnpm <script>\` stays idempotent.
+      if (packedOnly) {
         continue;
       }
 
@@ -321,16 +358,24 @@ function allowAdapterPrereleases(pkg) {
 }
 
 function readPackage(pkg, context) {
-  if (isAnyLocalFamilyEnabled()) {
-    const workspaceRoot = __dirname;
+  const workspaceRoot = __dirname;
+  if (fs.existsSync(path.join(workspaceRoot, CONFIG_FILE))) {
     const projectConfig = readProjectConfig(workspaceRoot);
 
     for (const [familyKey, family] of Object.entries(projectConfig.families)) {
-      if (process.env[family.envFlag] !== 'true') {
+      const activation = resolveFamilyActivation(family, familyKey, projectConfig.cacheDir);
+      if (!activation.active) {
         continue;
       }
 
-      rewriteDependencies(pkg, context, projectConfig.cacheDir, familyKey, family);
+      rewriteDependencies(
+        pkg,
+        context,
+        projectConfig.cacheDir,
+        familyKey,
+        family,
+        activation.packedOnly
+      );
     }
   }
 

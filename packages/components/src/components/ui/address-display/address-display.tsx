@@ -1,10 +1,12 @@
 import { Check, Copy, ExternalLink, Pencil } from 'lucide-react';
 import * as React from 'react';
 
+import type { ResolvedName } from '@openzeppelin/ui-types';
 import { cn, truncateMiddle } from '@openzeppelin/ui-utils';
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../tooltip';
-import { AddressLabelContext } from './context';
+import { AddressAvatar, type AddressAvatarVariant } from './address-avatar';
+import { AddressLabelContext, AddressNameContext } from './context';
 
 /**
  * True when the primary input can hover (e.g. desktop with mouse).
@@ -38,7 +40,7 @@ function usePrefersHover(): boolean {
  */
 export type AddressDisplayVariant = 'chip' | 'inline';
 
-interface AddressDisplayProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface AddressDisplayProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * The blockchain address to display
    */
@@ -118,9 +120,12 @@ interface AddressDisplayProps extends React.HTMLAttributes<HTMLDivElement> {
   networkId?: string;
 
   /**
-   * When `true`, skip label resolution from `AddressLabelContext`.
-   * Useful for rendering an address without alias decoration (e.g. in
-   * a contract selector where the contract name is already shown).
+   * When `true`, render the instance fully raw: skip label resolution from
+   * `AddressLabelContext` AND suppress any injected resolved name
+   * (`resolvedName` prop / `AddressNameContext`). Useful for rendering an
+   * address without any decoration (e.g. in a contract selector where the
+   * contract name is already shown) — existing `disableLabel` call-sites
+   * must not sprout a name once a resolver is wired app-wide.
    * @default false
    */
   disableLabel?: boolean;
@@ -141,6 +146,41 @@ interface AddressDisplayProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: AddressDisplayVariant;
 
   /**
+   * Optional presentational leading element (e.g. an avatar or icon), rendered
+   * before the label/address block and vertically centered against it. Purely
+   * visual — a `React.ReactNode`, not a capability, so this component stays
+   * chain-agnostic. When omitted (the default at every existing call-site), the
+   * rendered DOM and layout are byte-for-byte identical to the pre-avatar
+   * component: no wrapper element, no reserved slot, in both render branches.
+   */
+  avatar?: React.ReactNode;
+
+  /**
+   * Visual treatment for the leading avatar (both the record-constructed ENS
+   * avatar and an explicit `avatar` node):
+   *
+   * - `'fill'` – a square avatar that stretches to the chip's full height and
+   *   sits flush against its top, bottom, and left edges (default; the chip
+   *   clips its outer corners). No effect when no avatar is shown.
+   * - `'circle'` – small round avatar sitting inline with the text (the
+   *   original look, kept as an opt-in).
+   *
+   * @default "fill"
+   */
+  avatarVariant?: AddressAvatarVariant;
+
+  /**
+   * An already-resolved reverse name record for this address (value type).
+   * Highest precedence for the name channel — shadows the
+   * `AddressNameContext` resolver, exactly as `label` shadows
+   * `AddressLabelContext` (INV-120). The record's name renders only when
+   * `forwardVerified === true` (INV-52, LOCKED): a mismatched record is
+   * suppressed to hex — never name-alone, never name+warning. `undefined`
+   * falls back to the context (if any), then to hex.
+   */
+  resolvedName?: ResolvedName;
+
+  /**
    * Additional CSS classes
    */
   className?: string;
@@ -148,15 +188,27 @@ interface AddressDisplayProps extends React.HTMLAttributes<HTMLDivElement> {
 
 /**
  * Displays a blockchain address with optional truncation, copy button,
- * explorer link, tooltip, and human-readable label.
+ * explorer link, tooltip, human-readable label, and (when an already-resolved
+ * record is injected) a forward-verified name + avatar.
  *
- * Labels are resolved in priority order:
+ * Labels are resolved in priority order (INV-56):
  * 1. Explicit `label` prop
  * 2. `AddressLabelContext` resolver (via `AddressLabelProvider`)
- * 3. No label (renders address only, identical to previous behavior)
+ * 3. Forward-verified resolved name (`resolvedName` prop, else
+ *    `AddressNameContext` via `AddressNameProvider`) — a record with
+ *    `forwardVerified: false` is suppressed to hex (INV-52, LOCKED)
+ * 4. No label (renders address only, identical to previous behavior)
  *
- * Pass `disableLabel` to suppress context-based resolution (e.g. when the
- * surrounding UI already shows a name, such as a contract selector).
+ * The component is synchronous and capability-free (INV-121): it never
+ * resolves anything itself — it reads injected values. Hex renders on first
+ * commit; the name+avatar swap in when the react layer feeds an updated
+ * record (progressive enhancement, INV-61). With no `resolvedName` and no
+ * `AddressNameProvider`, output is byte-identical to the pre-enhancement
+ * component (INV-54, LOCKED).
+ *
+ * Pass `disableLabel` to render fully raw — it suppresses both the context
+ * alias and any injected resolved name (e.g. when the surrounding UI already
+ * shows a name, such as a contract selector).
  *
  * @example
  * ```tsx
@@ -183,6 +235,14 @@ interface AddressDisplayProps extends React.HTMLAttributes<HTMLDivElement> {
  * // Inline variant (no chip background) — useful inside wallet bars
  * <AddressDisplay address="0x742d35Cc..." variant="inline" showTooltip showCopyButton />
  *
+ * // Reverse-resolved name + avatar via an injected value (react layer owns the async)
+ * <AddressDisplay address="0x742d35Cc..." resolvedName={record} showCopyButton />
+ *
+ * // Or subtree-wide via context (rows stay plain <AddressDisplay/>)
+ * <AddressNameProvider resolveAddressName={readFromResolutionCache}>
+ *   <AddressDisplay address="0x742d35Cc..." />
+ * </AddressNameProvider>
+ *
  * // Truncate only when an alias/label is present (full address when unlabeled)
  * <AddressDisplay address="G..." truncateWhenLabeled />
  * ```
@@ -203,6 +263,9 @@ export function AddressDisplay({
   disableLabel = false,
   showTooltip = false,
   variant = 'chip',
+  avatar,
+  avatarVariant = 'fill',
+  resolvedName,
   className,
   onPointerEnter,
   onPointerLeave,
@@ -216,14 +279,44 @@ export function AddressDisplay({
   const copyTimeoutRef = React.useRef<number | null>(null);
   const prefersHover = usePrefersHover();
 
+  // INV-60: both context reads are unconditional (stable hook order); the
+  // record is derived by plain synchronous expressions — no resolution hook,
+  // no async, ever (INV-121).
   const resolver = React.useContext(AddressLabelContext);
+  const nameResolver = React.useContext(AddressNameContext);
 
   const resolvedLabel = disableLabel
     ? undefined
     : (labelProp ?? resolver?.resolveLabel(address, networkId));
 
+  // INV-120: record source — the `resolvedName` prop shadows the context
+  // resolver (mirrors the label channel's prop-shadows-context convention).
+  // `disableLabel` renders the instance fully raw, so it gates this channel
+  // too (dev-pinned 2026-07-06; deviation from the invariants-doc's
+  // only-alias recommendation — existing disableLabel call-sites must not
+  // sprout a name once a resolver is wired app-wide).
+  const record = disableLabel
+    ? undefined
+    : (resolvedName ?? nameResolver?.resolveAddressName(address, networkId));
+
+  // INV-52 (LOCKED, suppress-to-hex): the ONLY expression that can yield a
+  // displayable resolved name. A record with `forwardVerified: false`
+  // (forward-mismatch) and an undefined record (idle/loading/no-record/error,
+  // collapsed upstream) both fall through to `undefined` → hex. No name-alone,
+  // no name+warning.
+  const ensName = record?.forwardVerified === true ? record.name : undefined;
+
+  // INV-56: precedence — explicit `label` > alias > verified name > hex.
+  // Collapses to the pre-enhancement `resolvedLabel` when nothing is injected
+  // (INV-54: zero-injection byte-identical).
+  const effectiveLabel = resolvedLabel ?? ensName;
+
   const effectiveTruncate =
-    truncateProp !== undefined ? truncateProp : truncateWhenLabeled ? Boolean(resolvedLabel) : true;
+    truncateProp !== undefined
+      ? truncateProp
+      : truncateWhenLabeled
+        ? Boolean(effectiveLabel)
+        : true;
 
   const contextEditHandler = React.useCallback(() => {
     resolver?.onEditLabel?.(address, networkId);
@@ -345,6 +438,50 @@ export function AddressDisplay({
     </>
   );
 
+  // INV-58: a constructed avatar exists ONLY when the verified name WON the
+  // precedence (no explicit label, no alias) and the record carries a URL —
+  // never next to an alias, explicit label, or bare hex. An explicit `avatar`
+  // prop is highest precedence and always wins (preserves the D2 slot).
+  const ensAvatarUrl =
+    ensName !== undefined && resolvedLabel === undefined ? record?.avatarUrl : undefined;
+  const effectiveAvatar =
+    avatar ??
+    (ensAvatarUrl ? <AddressAvatar src={ensAvatarUrl} variant={avatarVariant} /> : undefined);
+
+  // A `'fill'` avatar stretches to the chip's full height flush to its edges;
+  // it only changes layout when an avatar is actually shown.
+  const isFillAvatar = avatarVariant === 'fill' && Boolean(effectiveAvatar);
+
+  // On a chip, the `'fill'` avatar must break out of the container's padding to
+  // sit flush against the top/bottom/left edges, and the container clips the
+  // avatar's square outer corners to the chip radius.
+  const fillAvatarChipClassName = isFillAvatar && isChip ? 'overflow-hidden' : undefined;
+
+  // Leading avatar slot. Only materialized when an avatar exists, so an
+  // undefined avatar leaves the rendered tree byte-for-byte identical (INV-54:
+  // no wrapper element, no reserved space). `shrink-0` keeps it from
+  // compressing. `'circle'`: the container's `items-center` vertically centers
+  // a small round avatar. `'fill'`: a square, `self-stretch` box sized to the
+  // text block's height (so the image, positioned absolutely inside, never
+  // drives layout); negative margins cancel the chip padding on three edges and
+  // `overflow-hidden` clips the image to the square.
+  const avatarSlot = effectiveAvatar ? (
+    <span
+      className={cn(
+        'flex shrink-0',
+        isFillAvatar
+          ? // `self-stretch` fills the text block's height (edge-to-edge vertically);
+            // `w-9` gives a definite width so the absolutely positioned image is
+            // visible (a stretch-resolved height can't feed `aspect-square`).
+            // Negative margins cancel the chip padding to sit flush to the edges.
+            cn('relative w-9 self-stretch overflow-hidden mr-2', isChip && '-my-1 -ml-2')
+          : 'mr-1.5 items-center'
+      )}
+    >
+      {effectiveAvatar}
+    </span>
+  ) : null;
+
   const shouldShowTooltip = showTooltip && effectiveTruncate;
 
   const wrapWithTooltip = (content: React.ReactElement): React.ReactElement => {
@@ -359,12 +496,34 @@ export function AddressDisplay({
     );
   };
 
-  if (resolvedLabel) {
+  if (effectiveLabel) {
+    // The label-over-mono-hex column. Its internal structure is invariant across
+    // the avatar / no-avatar paths (INV-54): with an avatar it is wrapped in a
+    // leading-slot row; without one it is the container's direct children, so
+    // the tree matches the pre-avatar component exactly. The verified name
+    // flows through the SAME labeled branch an alias uses, so the mono hex
+    // secondary line, copy button, explorer link, and edit pencil all keep
+    // their existing a11y surface (INV-68).
+    const labelColumn = (
+      <>
+        <span className="truncate font-sans font-medium text-slate-900 leading-snug">
+          {effectiveLabel}
+        </span>
+        <div className="flex min-w-0 items-center font-mono text-[10px] text-slate-400 leading-snug">
+          <span className={addressTextClassName}>{displayAddress}</span>
+          {actionButtons}
+        </div>
+      </>
+    );
+
     return wrapWithTooltip(
       <div
         className={cn(
-          'group inline-flex max-w-full min-w-0 flex-col',
+          'group inline-flex max-w-full min-w-0',
+          // Row when an avatar leads the block; the original flex-col otherwise.
+          effectiveAvatar ? 'items-center' : 'flex-col',
           isChip && 'rounded-md bg-slate-100 px-2 py-1',
+          fillAvatarChipClassName,
           'text-xs text-slate-700',
           expandInteractionClassName,
           className
@@ -374,13 +533,14 @@ export function AddressDisplay({
         onClick={handleUntruncateClick}
         {...props}
       >
-        <span className="truncate font-sans font-medium text-slate-900 leading-snug">
-          {resolvedLabel}
-        </span>
-        <div className="flex min-w-0 items-center font-mono text-[10px] text-slate-400 leading-snug">
-          <span className={addressTextClassName}>{displayAddress}</span>
-          {actionButtons}
-        </div>
+        {effectiveAvatar ? (
+          <>
+            {avatarSlot}
+            <div className="inline-flex min-w-0 flex-col">{labelColumn}</div>
+          </>
+        ) : (
+          labelColumn
+        )}
       </div>
     );
   }
@@ -390,6 +550,7 @@ export function AddressDisplay({
       className={cn(
         'group inline-flex max-w-full min-w-0 items-center',
         isChip && 'rounded-md bg-slate-100 px-2 py-1',
+        fillAvatarChipClassName,
         'text-xs font-mono text-slate-700',
         expandInteractionClassName,
         className
@@ -399,6 +560,7 @@ export function AddressDisplay({
       onClick={handleUntruncateClick}
       {...props}
     >
+      {avatarSlot}
       <span className={addressTextClassName}>{displayAddress}</span>
       {actionButtons}
     </div>

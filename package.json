@@ -15,6 +15,7 @@
     "install-deps": "pnpm install --frozen-lockfile --ignore-scripts --prefer-offline",
     "dev": "pnpm build && pnpm --filter=@openzeppelin/ui-example-basic-react-app dev",
     "build:dev-cli": "pnpm --filter @openzeppelin/ui-dev-cli build",
+    "generate:pnpmfile": "UPDATE_PNPMFILE=1 pnpm --filter @openzeppelin/ui-dev-cli exec vitest run --config vitest.config.ts src/lib/pnpmfileTemplate.drift.test.ts",
     "build:cli": "pnpm --filter @openzeppelin/ui-cli build",
     "dev:adapters:local": "pnpm build:dev-cli && LOCAL_ADAPTERS_PATH=${LOCAL_ADAPTERS_PATH:-../openzeppelin-adapters} && LOCAL_ADAPTERS_PATH=\"$LOCAL_ADAPTERS_PATH\" oz-ui-dev use local --project \"$PWD\" --family adapters",
     "dev:local": "pnpm build:dev-cli && LOCAL_ADAPTERS_PATH=${LOCAL_ADAPTERS_PATH:-../openzeppelin-adapters} && LOCAL_ADAPTERS_PATH=\"$LOCAL_ADAPTERS_PATH\" oz-ui-dev use local --project \"$PWD\" --family adapters",

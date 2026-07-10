@@ -56,7 +56,7 @@ import {
 } from '../../stores';
 import { CodeBlock } from '../CodeBlock';
 import { DemoSection } from '../DemoSection';
-import { EcosystemSwitcher } from '../EcosystemSwitcher';
+import { NetworkSwitcher } from '../NetworkSwitcher';
 import {
   USE_WALLET_COMPONENTS_EXAMPLE,
   USE_WALLET_COMPONENTS_SIGNATURE,
@@ -193,7 +193,7 @@ export function WalletDemo(): React.ReactElement {
             {/* Components Row */}
             <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
               <div className="min-w-[100px] sm:min-w-[120px]">
-                <EcosystemSwitcher />
+                <NetworkSwitcher />
               </div>
               <ArrowDown className="mx-auto size-4 text-muted-foreground/40 sm:hidden" />
               <ArrowRight className="hidden size-4 text-muted-foreground/40 sm:block" />

@@ -97,4 +97,20 @@ export interface AddressBookWidgetProps {
 
   /** Additional CSS classes */
   className?: string;
+
+  /**
+   * Opt into ENS (name) resolution in the Add-Alias dialog. Default `false`.
+   *
+   * When `true`, the dialog's address input becomes ENS-aware (the base
+   * `AddressField` with a name-resolution seam injected): a typed name resolves
+   * inline to its hex, submit is gated until resolved, and the resolved name
+   * auto-suggests the alias.
+   *
+   * Wire an ambient `WalletStateProvider` so the seam can resolve; without one the
+   * input degrades to a visible unsupported-network gate (submit stays blocked)
+   * rather than resolving. Left `false`, the widget behaves exactly as today (base
+   * `AddressField`, no resolution, no provider needed) — a strictly
+   * backward-compatible default.
+   */
+  readonly enableNameResolution?: boolean;
 }

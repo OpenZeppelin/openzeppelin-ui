@@ -13,7 +13,7 @@ import type { NetworkConfig } from '@openzeppelin/ui-types';
 
 import { useEcosystem } from '../context';
 import { DemoSection } from './DemoSection';
-import { EcosystemSwitcher } from './EcosystemSwitcher';
+import { NetworkSwitcher } from './NetworkSwitcher';
 
 /**
  * Demonstrates Network-related components: NetworkIcon, NetworkSelector, NetworkStatusBadge,
@@ -123,15 +123,15 @@ import type { NetworkConfig } from '@openzeppelin/ui-types';
   relayer={relayer}
 />`}
     >
-      {/* Ecosystem Switcher */}
+      {/* Network Switcher */}
       <div className="space-y-4">
-        <h3 className="text-lg font-medium">Current Ecosystem</h3>
+        <h3 className="text-lg font-medium">Active Network</h3>
         <p className="text-muted-foreground text-sm">
-          Switch ecosystems to see how network components adapt. Networks, icons, and selectors all
-          change based on the active runtime.
+          Switch networks (across ecosystems) to see how network components adapt. Networks, icons,
+          and selectors all change based on the active runtime.
         </p>
         <div className="flex items-center gap-4">
-          <EcosystemSwitcher />
+          <NetworkSwitcher />
           <span className="text-muted-foreground text-sm">
             {networks.length} networks available
           </span>

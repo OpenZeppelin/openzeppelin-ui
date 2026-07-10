@@ -66,6 +66,10 @@ Specialized components designed for use within `react-hook-form`:
 
 Helper functions for validation, accessibility, and layout within field components.
 
+### ENS Name Resolution
+
+See the [ENS address input integration guide](../../docs/ens-address-input/README.md) for wiring `NameResolverProvider`, inline name resolution in `AddressField`, reverse-ENS display via `AddressNameProvider`, and the shared suggestion dropdown primitives.
+
 ### Address Label & Suggestion Contexts
 
 Context providers for automatic address label resolution and autocomplete suggestions:

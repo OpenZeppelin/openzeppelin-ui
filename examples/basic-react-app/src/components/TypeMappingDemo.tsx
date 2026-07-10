@@ -20,7 +20,7 @@ import { useEcosystem } from '../context';
 import type { DemoCapabilities } from '../core/runtimeCapabilities';
 import { enhanceSchemaWithMockData, type SchemaEnhancement } from '../utils';
 import { DemoSection } from './DemoSection';
-import { EcosystemSwitcher } from './EcosystemSwitcher';
+import { NetworkSwitcher } from './NetworkSwitcher';
 
 // ============================================================================
 // Helper Functions
@@ -274,7 +274,7 @@ function TypeMappingContent({ capabilities }: TypeMappingContentProps): React.Re
             Dynamic Patterns ({dynamicPatterns.length})
           </button>
         </div>
-        <EcosystemSwitcher />
+        <NetworkSwitcher />
       </div>
 
       {/* Primitives Tab */}
