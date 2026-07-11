@@ -38,7 +38,6 @@ function usePrefersHover(): boolean {
  */
 function sanitizeVerifiedNameForDisplay(name: string): string {
   return name.replace(
-    // eslint-disable-next-line no-control-regex -- intentional strip of C0/C1 + bidi/zw
     /[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF]/g,
     ''
   );
