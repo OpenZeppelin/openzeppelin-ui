@@ -11,7 +11,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ResolutionResult, ResolvedAddress, ResolvedName } from '@openzeppelin/ui-types';
 
-import { useWalletState } from '../../WalletStateContext';
 import { useNameResolutionContext } from '../NameResolutionContext';
 import { createResolutionQueryClient, DEFAULT_CONFIG } from '../resolutionConfig';
 import { useResolveAddress } from '../useResolveAddress';
@@ -20,14 +19,11 @@ import {
   ALICE,
   BOB,
   makeCapability,
-  makeWrapper,
+  makeWalletWrapper,
   REVERSE_UNVERIFIED,
   tick,
   walletWithCapability,
 } from './helpers';
-
-vi.mock('../../WalletStateContext', () => ({ useWalletState: vi.fn() }));
-const mockWalletState = vi.mocked(useWalletState);
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -42,11 +38,13 @@ describe('INV-26: one normalization (trim + lowercase) keys both gate and cache'
     const resolveName = vi.fn(
       async (): Promise<ResolutionResult<ResolvedAddress>> => ({ ok: true, value: ALICE })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveName })));
     const client = createResolutionQueryClient();
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveName })), {
+      client,
+    });
 
     const first = renderHook(() => useResolveName('alice.eth'), {
-      wrapper: makeWrapper({ client }).Wrapper,
+      wrapper: Wrapper,
     });
     await tick(0);
     expect(first.result.current.status).toBe('resolved');
@@ -54,7 +52,7 @@ describe('INV-26: one normalization (trim + lowercase) keys both gate and cache'
 
     // Different surrounding whitespace + case → same normalized key → cache hit, no new call.
     const second = renderHook(() => useResolveName('  Alice.ETH '), {
-      wrapper: makeWrapper({ client }).Wrapper,
+      wrapper: Wrapper,
     });
     await tick(0);
     expect(second.result.current).toMatchObject({ status: 'resolved', data: ALICE });
@@ -72,9 +70,9 @@ describe('INV-27: empty-ish input → idle with no attempt', () => {
     const resolveName = vi.fn(
       async (): Promise<ResolutionResult<ResolvedAddress>> => ({ ok: true, value: ALICE })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveName })));
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveName })));
 
-    const { result } = renderHook(() => useResolveName(input), { wrapper: makeWrapper().Wrapper });
+    const { result } = renderHook(() => useResolveName(input), { wrapper: Wrapper });
     await tick(0);
 
     expect(result.current).toEqual({ status: 'idle' });
@@ -85,10 +83,10 @@ describe('INV-27: empty-ish input → idle with no attempt', () => {
     const resolveName = vi.fn(
       async (): Promise<ResolutionResult<ResolvedAddress>> => ({ ok: true, value: ALICE })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveName })));
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveName })));
 
     const { result, rerender } = renderHook(({ name }) => useResolveName(name), {
-      wrapper: makeWrapper().Wrapper,
+      wrapper: Wrapper,
       initialProps: { name: 'alice.eth' as string | null },
     });
     await tick(0);
@@ -104,12 +102,12 @@ describe('INV-28: enabled:false forces idle regardless of input validity', () =>
     const resolveName = vi.fn(
       async (): Promise<ResolutionResult<ResolvedAddress>> => ({ ok: true, value: ALICE })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveName })));
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveName })));
 
     const { result, rerender } = renderHook(
       ({ enabled }) => useResolveName('alice.eth', { enabled }),
       {
-        wrapper: makeWrapper().Wrapper,
+        wrapper: Wrapper,
         initialProps: { enabled: false },
       }
     );
@@ -132,10 +130,10 @@ describe('INV-29: option defaults resolved at the hook boundary', () => {
         value: name === 'bob.eth' ? BOB : ALICE,
       })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveName })));
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveName })));
 
     const { result, rerender } = renderHook(({ name }) => useResolveName(name), {
-      wrapper: makeWrapper().Wrapper,
+      wrapper: Wrapper,
       initialProps: { name: 'alice.eth' },
     });
     await tick(0);
@@ -151,10 +149,10 @@ describe('INV-29: option defaults resolved at the hook boundary', () => {
     const resolveAddress = vi.fn(
       async (): Promise<ResolutionResult<ResolvedName>> => ({ ok: true, value: REVERSE_UNVERIFIED })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveAddress })));
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveAddress })));
 
     const { result } = renderHook(() => useResolveAddress('0xabc'), {
-      wrapper: makeWrapper().Wrapper,
+      wrapper: Wrapper,
     });
     await tick(0); // no 300ms advance needed
     expect(result.current).toMatchObject({ status: 'resolved', data: REVERSE_UNVERIFIED });
@@ -163,8 +161,9 @@ describe('INV-29: option defaults resolved at the hook boundary', () => {
 
 describe('INV-30: Provider config merged per-field over DEFAULT_CONFIG', () => {
   it('overriding one field leaves every other at its default', () => {
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability()));
-    const { Wrapper } = makeWrapper({ config: { staleTimeMs: 120_000 } });
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability()), {
+      config: { staleTimeMs: 120_000 },
+    });
 
     const { result } = renderHook(() => useNameResolutionContext(), { wrapper: Wrapper });
 

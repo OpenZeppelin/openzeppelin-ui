@@ -13,10 +13,11 @@ export interface UseResolveNameOptions {
 }
 
 /**
- * Forward-resolve a name to an address. Reads the active runtime from
- * `useWalletState()` and calls `runtime.nameResolution?.resolveName`. Debounces
- * `name`, caches per (network, name) via the owned QueryClient, and is protected
- * against out-of-order responses (distinct inputs → distinct query keys).
+ * Forward-resolve a name to an address. Soft-reads the active runtime from
+ * `WalletStateContext` (never throws when no provider is mounted — degrades to
+ * idle / UNSUPPORTED_NETWORK) and calls `runtime.nameResolution?.resolveName`.
+ * Debounces `name`, caches per (network, name) via the owned QueryClient, and is
+ * protected against out-of-order responses (distinct inputs → distinct query keys).
  *
  * Returns a discriminated union keyed on `status`; it never throws for expected
  * failures (they surface in the `error` arm) and never pairs a name with a

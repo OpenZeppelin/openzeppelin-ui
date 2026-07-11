@@ -10,21 +10,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ResolutionResult, ResolvedAddress, ResolvedName } from '@openzeppelin/ui-types';
 
-import { useWalletState } from '../../WalletStateContext';
 import { useResolveAddress } from '../useResolveAddress';
 import { useResolveName } from '../useResolveName';
 import {
   ALICE,
   BOB,
   makeCapability,
-  makeWrapper,
+  makeWalletWrapper,
   REVERSE_UNVERIFIED,
   tick,
   walletWithCapability,
 } from './helpers';
-
-vi.mock('../../WalletStateContext', () => ({ useWalletState: vi.fn() }));
-const mockWalletState = vi.mocked(useWalletState);
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -39,8 +35,7 @@ describe('INV-23: result is a discriminated union with arm-correct fields', () =
     const resolveName = vi.fn(
       async (): Promise<ResolutionResult<ResolvedAddress>> => ({ ok: true, value: ALICE })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveName })));
-    const { Wrapper } = makeWrapper();
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveName })));
 
     const { result } = renderHook(() => useResolveName('alice.eth'), { wrapper: Wrapper });
     await tick(0); // debounce seeded on mount → resolves on first settle
@@ -61,8 +56,7 @@ describe('INV-24: echoed input and data are a matched pair — never a stale mis
         value: name === 'bob.eth' ? BOB : ALICE,
       })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveName })));
-    const { Wrapper } = makeWrapper();
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveName })));
 
     const { result, rerender } = renderHook(({ name }) => useResolveName(name), {
       wrapper: Wrapper,
@@ -91,8 +85,7 @@ describe('INV-25: adapter result passes through verbatim and unmutated', () => {
     const resolveAddress = vi.fn(
       async (): Promise<ResolutionResult<ResolvedName>> => ({ ok: true, value: REVERSE_UNVERIFIED })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveAddress })));
-    const { Wrapper } = makeWrapper();
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveAddress })));
 
     const { result } = renderHook(() => useResolveAddress(REVERSE_UNVERIFIED.address), {
       wrapper: Wrapper,

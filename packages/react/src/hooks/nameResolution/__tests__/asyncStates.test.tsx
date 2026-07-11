@@ -20,22 +20,18 @@ import type {
 } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
 
-import { useWalletState } from '../../WalletStateContext';
 import { useResolveAddress } from '../useResolveAddress';
 import { useResolveName } from '../useResolveName';
 import {
   ALICE,
   BOB,
   makeCapability,
-  makeWrapper,
+  makeWalletWrapper,
   REVERSE_UNVERIFIED,
   tick,
   walletNoRuntime,
   walletWithCapability,
 } from './helpers';
-
-vi.mock('../../WalletStateContext', () => ({ useWalletState: vi.fn() }));
-const mockWalletState = vi.mocked(useWalletState);
 
 interface Deferred<T> {
   readonly promise: Promise<T>;
@@ -61,10 +57,12 @@ describe('INV-42: all four async states are represented and mutually exclusive',
   it('drives idle → loading → resolved, each a distinct status', async () => {
     const gate = deferred<ResolutionResult<ResolvedName>>();
     const resolveAddress = vi.fn(() => gate.promise);
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveAddress })));
+    const { Wrapper, setWallet } = makeWalletWrapper(
+      walletWithCapability(makeCapability({ resolveAddress }))
+    );
 
     const { result, rerender } = renderHook(({ addr }) => useResolveAddress(addr), {
-      wrapper: makeWrapper().Wrapper,
+      wrapper: Wrapper,
       initialProps: { addr: '' },
     });
     expect(result.current.status).toBe('idle'); // empty
@@ -91,10 +89,13 @@ describe('INV-43: the hook never throws; typed errors surface in the error arm',
     const resolveName = vi.fn(
       async (): Promise<ResolutionResult<ResolvedAddress>> => ({ ok: false, error })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveName })));
+    const { Wrapper, setWallet } = makeWalletWrapper(
+      walletWithCapability(makeCapability({ resolveName })),
+      { config: { transientRetryCount: 0 } }
+    );
 
     const { result } = renderHook(() => useResolveName('nope.eth'), {
-      wrapper: makeWrapper({ config: { transientRetryCount: 0 } }).Wrapper,
+      wrapper: Wrapper,
     });
     await tick(0);
 
@@ -109,10 +110,13 @@ describe('INV-43: the hook never throws; typed errors surface in the error arm',
     const resolveName = vi.fn(async (): Promise<ResolutionResult<ResolvedAddress>> => {
       throw new Error('viem revert');
     });
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveName })));
+    const { Wrapper, setWallet } = makeWalletWrapper(
+      walletWithCapability(makeCapability({ resolveName })),
+      { config: { transientRetryCount: 0 } }
+    );
 
     const { result } = renderHook(() => useResolveName('alice.eth'), {
-      wrapper: makeWrapper({ config: { transientRetryCount: 0 } }).Wrapper,
+      wrapper: Wrapper,
     });
     await tick(0);
 
@@ -135,10 +139,12 @@ describe('INV-44: out-of-order responses never overwrite a newer input', () => {
     const resolveAddress = vi.fn((address: string) =>
       address === '0xbob' ? bobGate.promise : aliceGate.promise
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveAddress })));
+    const { Wrapper, setWallet } = makeWalletWrapper(
+      walletWithCapability(makeCapability({ resolveAddress }))
+    );
 
     const { result, rerender } = renderHook(({ addr }) => useResolveAddress(addr), {
-      wrapper: makeWrapper().Wrapper,
+      wrapper: Wrapper,
       initialProps: { addr: '0xalice' },
     });
     await tick(0); // alice in flight
@@ -174,12 +180,12 @@ describe('INV-44: out-of-order responses never overwrite a newer input', () => {
 describe('INV-45: capability / method absence synthesizes UNSUPPORTED_NETWORK, no adapter call', () => {
   it('capability present but the directional method absent → UNSUPPORTED_NETWORK', async () => {
     // makeCapability without resolveName → forward method is undefined.
-    mockWalletState.mockReturnValue(
+    const { Wrapper, setWallet } = makeWalletWrapper(
       walletWithCapability(makeCapability(), { activeNetworkId: 'eip155:1' })
     );
 
     const { result } = renderHook(() => useResolveName('alice.eth'), {
-      wrapper: makeWrapper().Wrapper,
+      wrapper: Wrapper,
     });
     await tick(0);
 
@@ -194,12 +200,12 @@ describe('INV-45: capability / method absence synthesizes UNSUPPORTED_NETWORK, n
       async (): Promise<ResolutionResult<ResolvedAddress>> => ({ ok: true, value: ALICE })
     );
     // A spy that should never be called — there is no runtime to call it on.
-    mockWalletState.mockReturnValue(
+    const { Wrapper, setWallet } = makeWalletWrapper(
       walletNoRuntime({ activeNetworkId: 'eip155:1', isRuntimeLoading: false })
     );
 
     const { result } = renderHook(() => useResolveName('alice.eth'), {
-      wrapper: makeWrapper().Wrapper,
+      wrapper: Wrapper,
     });
     await tick(0);
 
@@ -218,19 +224,16 @@ describe('INV-46: runtime-loading with a resolvable input yields loading, not an
     );
     const capability = makeCapability({ resolveName });
 
-    mockWalletState.mockReturnValue(
+    const { Wrapper, setWallet } = makeWalletWrapper(
       walletNoRuntime({ activeNetworkId: 'eip155:1', isRuntimeLoading: true })
     );
-    const { result, rerender } = renderHook(() => useResolveName('alice.eth'), {
-      wrapper: makeWrapper().Wrapper,
+    const { result } = renderHook(() => useResolveName('alice.eth'), {
+      wrapper: Wrapper,
     });
     await tick(0);
     expect(result.current.status).toBe('loading'); // no UNSUPPORTED_NETWORK flash
 
-    mockWalletState.mockReturnValue(
-      walletWithCapability(capability, { activeNetworkId: 'eip155:1' })
-    );
-    rerender();
+    setWallet(walletWithCapability(capability, { activeNetworkId: 'eip155:1' }));
     await tick(0);
     expect(result.current).toMatchObject({ status: 'resolved', data: ALICE });
   });
@@ -244,10 +247,10 @@ describe('INV-47: negative errors never retry; transient errors retry up to the 
         error: { code: 'NAME_NOT_FOUND', name: 'nope.eth' },
       })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveName })));
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveName })));
 
     const { result } = renderHook(() => useResolveName('nope.eth'), {
-      wrapper: makeWrapper().Wrapper,
+      wrapper: Wrapper,
     });
     await tick(5000); // give any (erroneous) retry ample time to fire
 
@@ -262,10 +265,12 @@ describe('INV-47: negative errors never retry; transient errors retry up to the 
         error: { code: 'RESOLUTION_TIMEOUT', elapsedMs: 3000 },
       })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveName })));
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveName })), {
+      config: { transientRetryCount: 2 },
+    });
 
     const { result } = renderHook(() => useResolveName('slow.eth'), {
-      wrapper: makeWrapper({ config: { transientRetryCount: 2 } }).Wrapper,
+      wrapper: Wrapper,
     });
     await tick(30_000); // cover react-query's retry backoff under fake timers
 
@@ -276,12 +281,12 @@ describe('INV-47: negative errors never retry; transient errors retry up to the 
 
 describe('INV-49: empty networkId is a valid UNSUPPORTED_NETWORK payload (no minted code)', () => {
   it('no network selected → UNSUPPORTED_NETWORK with networkId ""', async () => {
-    mockWalletState.mockReturnValue(
+    const { Wrapper } = makeWalletWrapper(
       walletNoRuntime({ activeNetworkId: null, isRuntimeLoading: false })
     );
 
     const { result } = renderHook(() => useResolveName('alice.eth'), {
-      wrapper: makeWrapper().Wrapper,
+      wrapper: Wrapper,
     });
     await tick(0);
 
@@ -297,10 +302,12 @@ describe('INV-50: resolved data is pinned past staleTime absent a trigger', () =
     const resolveName = vi.fn(
       async (): Promise<ResolutionResult<ResolvedAddress>> => ({ ok: true, value: BOB })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveName })));
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveName })), {
+      config: { staleTimeMs: 1000 },
+    });
 
     const { result } = renderHook(() => useResolveName('bob.eth'), {
-      wrapper: makeWrapper({ config: { staleTimeMs: 1000 } }).Wrapper,
+      wrapper: Wrapper,
     });
     await tick(0);
     expect(result.current.status).toBe('resolved');

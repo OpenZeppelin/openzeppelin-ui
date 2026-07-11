@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 
 import type { NameResolutionCapability, ResolutionResult } from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
 
-import { useWalletState } from '../WalletStateContext';
+import { WalletStateContext } from '../WalletStateContext';
 import { useNameResolutionContext } from './NameResolutionContext';
 import { buildResolutionKey, isTransientError, type ResolutionNamespace } from './resolutionConfig';
 import { mapSettledQuery, ResolutionQueryError, type EngineResult } from './resolutionState';
@@ -48,7 +48,13 @@ export interface ResolutionEngineParams<T> {
 export function useResolutionEngine<T>(params: ResolutionEngineParams<T>): EngineResult<T> {
   const { input, namespace, debounceMs, enabled, shouldAttempt, getMethod } = params;
 
-  const { activeRuntime, activeNetworkId, isRuntimeLoading } = useWalletState();
+  // Soft read — never throw. Mirrors `useRuntimeNameResolver`: read the context
+  // directly (not `useWalletState()`, which throws) so wallet-less consumers
+  // degrade to idle / UNSUPPORTED_NETWORK instead of crashing the tree.
+  const walletState = useContext(WalletStateContext);
+  const activeRuntime = walletState?.activeRuntime ?? null;
+  const activeNetworkId = walletState?.activeNetworkId ?? null;
+  const isRuntimeLoading = walletState?.isRuntimeLoading ?? false;
   const { queryClient, config } = useNameResolutionContext();
 
   // INV-26: normalize exactly once (trim, then lowercase). The trimmed original-case

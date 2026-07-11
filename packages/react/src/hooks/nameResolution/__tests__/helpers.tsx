@@ -3,19 +3,22 @@
  *
  * Provides: a fully-typed mock `NameResolutionCapability` factory (no casts on
  * the capability itself — only the SF-1 `{} as NetworkConfig` stub precedent),
- * `useWalletState` return-value builders for the runtime-present / no-runtime /
- * runtime-loading cases, a `renderHook`/`render` wrapper that injects a FRESH
- * isolated `QueryClient` per test (so the process-global singleton — INV-48 — is
- * never touched except by its own dedicated test), and a fake-timer `tick`
- * helper that advances timers AND flushes the react-query fetch microtasks in a
- * single `act`.
+ * full `WalletStateContextValue` builders for the runtime-present / no-runtime /
+ * runtime-loading cases, a `renderHook`/`render` wrapper that mounts a REAL
+ * `WalletStateContext.Provider` plus a FRESH isolated `QueryClient` per test
+ * (so the process-global singleton — INV-48 — is never touched except by its
+ * own dedicated test), and a fake-timer `tick` helper that advances timers AND
+ * flushes the react-query fetch microtasks in a single `act`.
+ *
+ * Suites must NOT stub `useWalletState` — the engine soft-reads context directly.
  */
 import { type QueryClient } from '@tanstack/react-query';
 import { act } from '@testing-library/react';
 import { vi } from 'vitest';
-import { type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import type {
+  EcosystemRuntime,
   NameResolutionCapability,
   NetworkConfig,
   ResolutionResult,
@@ -23,6 +26,7 @@ import type {
   ResolvedName,
 } from '@openzeppelin/ui-types';
 
+import { WalletStateContext, type WalletStateContextValue } from '../../WalletStateContext';
 import { NameResolutionProvider } from '../NameResolutionProvider';
 import { createResolutionQueryClient, type ResolutionConfig } from '../resolutionConfig';
 
@@ -72,33 +76,34 @@ export function makeCapability(stub: CapabilityStub = {}): NameResolutionCapabil
   };
 }
 
-/** The subset of `WalletStateContextValue` the engine reads. */
-export interface WalletStateShape {
-  readonly activeRuntime: { readonly nameResolution?: NameResolutionCapability } | null;
-  readonly activeNetworkId: string | null;
-  readonly isRuntimeLoading: boolean;
-}
-
 /** Runtime present, exposing `capability`, on `activeNetworkId` (default a mainnet-like id). */
 export function walletWithCapability(
   capability: NameResolutionCapability,
   opts: { activeNetworkId?: string | null; isRuntimeLoading?: boolean } = {}
-): WalletStateShape {
+): WalletStateContextValue {
   return {
-    activeRuntime: { nameResolution: capability },
     activeNetworkId: opts.activeNetworkId ?? 'eip155:1',
+    setActiveNetworkId: () => undefined,
+    activeNetworkConfig: { name: 'Ethereum' } as NetworkConfig,
+    activeRuntime: { nameResolution: capability } as EcosystemRuntime,
     isRuntimeLoading: opts.isRuntimeLoading ?? false,
+    walletFacadeHooks: null,
+    reconfigureActiveUiKit: () => undefined,
   };
 }
 
 /** No active runtime (settled or still loading). */
 export function walletNoRuntime(
   opts: { activeNetworkId?: string | null; isRuntimeLoading?: boolean } = {}
-): WalletStateShape {
+): WalletStateContextValue {
   return {
-    activeRuntime: null,
     activeNetworkId: opts.activeNetworkId ?? null,
+    setActiveNetworkId: () => undefined,
+    activeNetworkConfig: null,
+    activeRuntime: null,
     isRuntimeLoading: opts.isRuntimeLoading ?? false,
+    walletFacadeHooks: null,
+    reconfigureActiveUiKit: () => undefined,
   };
 }
 
@@ -106,7 +111,8 @@ export function walletNoRuntime(
  * A `renderHook`/`render` wrapper that mounts a real {@link NameResolutionProvider}
  * over a FRESH isolated client (the resolution defaults — no ambient refetch —
  * are applied), so no test leaks cache into another and the global singleton is
- * left untouched.
+ * left untouched. Does NOT mount wallet state — prefer {@link makeWalletWrapper}
+ * for hook suites that exercise the engine.
  */
 export function makeWrapper(
   opts: { client?: QueryClient; config?: Partial<ResolutionConfig> } = {}
@@ -123,6 +129,60 @@ export function makeWrapper(
     );
   }
   return { client, Wrapper };
+}
+
+/**
+ * Mount a real {@link WalletStateContext.Provider} plus an isolated
+ * {@link NameResolutionProvider}. `setWallet` swaps the ambient wallet value
+ * (for INV-40 / INV-46 mid-test transitions) and forces a re-render.
+ */
+export function makeWalletWrapper(
+  initialWallet: WalletStateContextValue,
+  opts: { client?: QueryClient; config?: Partial<ResolutionConfig> } = {}
+): {
+  client: QueryClient;
+  Wrapper: (props: { children: ReactNode }) => ReactNode;
+  setWallet: (next: WalletStateContextValue) => void;
+} {
+  const client = opts.client ?? createResolutionQueryClient();
+  const walletRef = { current: initialWallet };
+  let bump: (() => void) | undefined;
+
+  function Wrapper({ children }: { children: ReactNode }): ReactNode {
+    const [, setTick] = useState(0);
+    bump = (): void => {
+      setTick((n) => n + 1);
+    };
+    return (
+      <WalletStateContext.Provider value={walletRef.current}>
+        <NameResolutionProvider queryClient={client} config={opts.config}>
+          {children}
+        </NameResolutionProvider>
+      </WalletStateContext.Provider>
+    );
+  }
+
+  function setWallet(next: WalletStateContextValue): void {
+    walletRef.current = next;
+    act(() => {
+      bump?.();
+    });
+  }
+
+  return { client, Wrapper, setWallet };
+}
+
+/**
+ * Wallet context only — for INV-48 zero-wiring suites that must NOT mount a
+ * `NameResolutionProvider` / ambient QueryClientProvider.
+ */
+export function makeWalletOnlyWrapper(wallet: WalletStateContextValue): {
+  Wrapper: (props: { children: ReactNode }) => ReactNode;
+} {
+  function Wrapper({ children }: { children: ReactNode }): ReactNode {
+    return <WalletStateContext.Provider value={wallet}>{children}</WalletStateContext.Provider>;
+  }
+  return { Wrapper };
 }
 
 /**

@@ -13,12 +13,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ResolutionResult, ResolvedName } from '@openzeppelin/ui-types';
 
-import { useWalletState } from '../../WalletStateContext';
 import { useResolveAddress } from '../useResolveAddress';
-import { makeCapability, REVERSE_UNVERIFIED, tick, walletWithCapability } from './helpers';
-
-vi.mock('../../WalletStateContext', () => ({ useWalletState: vi.fn() }));
-const mockWalletState = vi.mocked(useWalletState);
+import {
+  makeCapability,
+  makeWalletOnlyWrapper,
+  REVERSE_UNVERIFIED,
+  tick,
+  walletWithCapability,
+} from './helpers';
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -33,10 +35,12 @@ describe('INV-48: no Provider and no QueryClientProvider required', () => {
     const resolveAddress = vi.fn(
       async (): Promise<ResolutionResult<ResolvedName>> => ({ ok: true, value: REVERSE_UNVERIFIED })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveAddress })));
+    const { Wrapper } = makeWalletOnlyWrapper(
+      walletWithCapability(makeCapability({ resolveAddress }))
+    );
 
-    // No `wrapper` — the explicit-client fallback must not throw "No QueryClient set".
-    const { result } = renderHook(() => useResolveAddress('0xnowiring'));
+    // No NameResolutionProvider — the explicit-client fallback must not throw "No QueryClient set".
+    const { result } = renderHook(() => useResolveAddress('0xnowiring'), { wrapper: Wrapper });
     await tick(0);
 
     expect(result.current).toMatchObject({ status: 'resolved', data: REVERSE_UNVERIFIED });
@@ -46,10 +50,12 @@ describe('INV-48: no Provider and no QueryClientProvider required', () => {
     const resolveAddress = vi.fn(
       async (): Promise<ResolutionResult<ResolvedName>> => ({ ok: true, value: REVERSE_UNVERIFIED })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveAddress })));
+    const { Wrapper } = makeWalletOnlyWrapper(
+      walletWithCapability(makeCapability({ resolveAddress }))
+    );
 
-    const a = renderHook(() => useResolveAddress('0xshared-singleton'));
-    const b = renderHook(() => useResolveAddress('0xshared-singleton'));
+    const a = renderHook(() => useResolveAddress('0xshared-singleton'), { wrapper: Wrapper });
+    const b = renderHook(() => useResolveAddress('0xshared-singleton'), { wrapper: Wrapper });
     await tick(0);
 
     expect(resolveAddress).toHaveBeenCalledTimes(1); // shared global client dedups

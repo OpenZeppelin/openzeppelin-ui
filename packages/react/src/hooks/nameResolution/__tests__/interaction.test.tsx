@@ -12,7 +12,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ResolutionResult, ResolvedAddress, ResolvedName } from '@openzeppelin/ui-types';
 
-import { useWalletState } from '../../WalletStateContext';
 import { createResolutionQueryClient } from '../resolutionConfig';
 import type { UseResolveAddressResult, UseResolveNameResult } from '../resolutionState';
 import { useResolveAddress } from '../useResolveAddress';
@@ -20,14 +19,11 @@ import { useResolveName } from '../useResolveName';
 import {
   ALICE,
   makeCapability,
-  makeWrapper,
+  makeWalletWrapper,
   REVERSE_UNVERIFIED,
   tick,
   walletWithCapability,
 } from './helpers';
-
-vi.mock('../../WalletStateContext', () => ({ useWalletState: vi.fn() }));
-const mockWalletState = vi.mocked(useWalletState);
 
 const LEGAL_STATUSES = ['idle', 'debouncing', 'loading', 'resolved', 'error'];
 
@@ -65,7 +61,7 @@ describe('INV-31: transitions follow the machine; no arm carries a foreign field
     const resolveName = vi.fn(
       async (): Promise<ResolutionResult<ResolvedAddress>> => ({ ok: true, value: ALICE })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveName })));
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveName })));
 
     const seen: string[] = [];
     const { result, rerender } = renderHook(
@@ -75,7 +71,7 @@ describe('INV-31: transitions follow the machine; no arm carries a foreign field
         assertArmShape(r); // every committed arm is shape-legal
         return r;
       },
-      { wrapper: makeWrapper().Wrapper, initialProps: { name: '' } }
+      { wrapper: Wrapper, initialProps: { name: '' } }
     );
 
     expect(result.current.status).toBe('idle');
@@ -98,10 +94,10 @@ describe('INV-32: forward gates to idle (never error); reverse attempts on any n
     const resolveName = vi.fn(
       async (): Promise<ResolutionResult<ResolvedAddress>> => ({ ok: true, value: ALICE })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveName })));
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveName })));
 
     const { result, rerender } = renderHook(({ name }) => useResolveName(name), {
-      wrapper: makeWrapper().Wrapper,
+      wrapper: Wrapper,
       initialProps: { name: 'vit' }, // fails the default `.eth` isValidName
     });
     await tick(0);
@@ -121,10 +117,10 @@ describe('INV-32: forward gates to idle (never error); reverse attempts on any n
         error: { code: 'ADDRESS_NOT_FOUND', address },
       })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveAddress })));
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveAddress })));
 
     const { result } = renderHook(() => useResolveAddress('0x'), {
-      wrapper: makeWrapper().Wrapper,
+      wrapper: Wrapper,
     });
     await tick(0);
 
@@ -141,14 +137,19 @@ describe('INV-33: identical concurrent inputs share one in-flight request', () =
     const resolveAddress = vi.fn(
       async (): Promise<ResolutionResult<ResolvedName>> => ({ ok: true, value: REVERSE_UNVERIFIED })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveAddress })));
     const client = createResolutionQueryClient();
+    const { Wrapper } = makeWalletWrapper(
+      walletWithCapability(makeCapability({ resolveAddress })),
+      {
+        client,
+      }
+    );
 
     const a = renderHook(() => useResolveAddress('0xabc'), {
-      wrapper: makeWrapper({ client }).Wrapper,
+      wrapper: Wrapper,
     });
     const b = renderHook(() => useResolveAddress('0xabc'), {
-      wrapper: makeWrapper({ client }).Wrapper,
+      wrapper: Wrapper,
     });
     await tick(0);
 
@@ -168,10 +169,12 @@ describe('INV-34: retry exists only on the error arm and triggers one refetch pe
         : { ok: true, value: ALICE };
     });
     // transientRetryCount 0 → the first timeout surfaces as error immediately (no auto-retry noise).
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveName })));
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveName })), {
+      config: { transientRetryCount: 0 },
+    });
 
     const { result } = renderHook(() => useResolveName('alice.eth'), {
-      wrapper: makeWrapper({ config: { transientRetryCount: 0 } }).Wrapper,
+      wrapper: Wrapper,
     });
     await tick(0);
     expect(result.current.status).toBe('error');

@@ -13,10 +13,11 @@ export interface UseResolveAddressOptions {
 }
 
 /**
- * Reverse-resolve an address to a name. Reads the active runtime from
- * `useWalletState()` and calls `runtime.nameResolution?.resolveAddress`. Caches
- * per (network, address) via the owned QueryClient. Not debounced by default —
- * addresses are pasted, not typed char-by-char.
+ * Reverse-resolve an address to a name. Soft-reads the active runtime from
+ * `WalletStateContext` (never throws when no provider is mounted — degrades to
+ * idle / UNSUPPORTED_NETWORK) and calls `runtime.nameResolution?.resolveAddress`.
+ * Caches per (network, address) via the owned QueryClient. Not debounced by
+ * default — addresses are pasted, not typed char-by-char.
  *
  * Applies no client-side address-shape check (INV-32): resolution is attempted on
  * any non-empty input and malformed addresses are rejected via the adapter's typed

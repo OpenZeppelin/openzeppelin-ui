@@ -14,21 +14,17 @@ import { memo, type ReactNode } from 'react';
 
 import type { ResolutionResult, ResolvedAddress, ResolvedName } from '@openzeppelin/ui-types';
 
-import { useWalletState } from '../../WalletStateContext';
 import { createResolutionQueryClient } from '../resolutionConfig';
 import { useResolveAddress } from '../useResolveAddress';
 import { useResolveName } from '../useResolveName';
 import {
   ALICE,
   makeCapability,
-  makeWrapper,
+  makeWalletWrapper,
   REVERSE_UNVERIFIED,
   tick,
   walletWithCapability,
 } from './helpers';
-
-vi.mock('../../WalletStateContext', () => ({ useWalletState: vi.fn() }));
-const mockWalletState = vi.mocked(useWalletState);
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -42,10 +38,10 @@ describe('INV-35: debounce timer cleared on input change and on unmount', () => 
   it('rapid typing keeps exactly one live timer; unmount clears the last', () => {
     // Invalid (non-`.eth`) names keep the query disabled, so getTimerCount
     // reflects ONLY the debounce timer, not react-query internals.
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability()));
+    const { Wrapper, setWallet } = makeWalletWrapper(walletWithCapability(makeCapability()));
 
     const { rerender, unmount } = renderHook(({ name }) => useResolveName(name), {
-      wrapper: makeWrapper().Wrapper,
+      wrapper: Wrapper,
       initialProps: { name: '' },
     });
     // A mounted query observer leaves a constant background timer under fake
@@ -69,10 +65,10 @@ describe('INV-35: debounce timer cleared on input change and on unmount', () => 
 
   it('a debounce armed then unmounted mid-window never fires setState (no console error)', async () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability()));
+    const { Wrapper, setWallet } = makeWalletWrapper(walletWithCapability(makeCapability()));
 
     const { rerender, unmount } = renderHook(({ name }) => useResolveName(name), {
-      wrapper: makeWrapper().Wrapper,
+      wrapper: Wrapper,
       initialProps: { name: 'a' },
     });
     rerender({ name: 'ab' }); // arms a 300ms timer
@@ -92,10 +88,12 @@ describe('INV-36: no state update after unmount; in-flight result is dropped', (
       settle = res;
     });
     const resolveAddress = vi.fn(() => pending);
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveAddress })));
+    const { Wrapper, setWallet } = makeWalletWrapper(
+      walletWithCapability(makeCapability({ resolveAddress }))
+    );
 
     const { result, unmount } = renderHook(() => useResolveAddress('0xabc'), {
-      wrapper: makeWrapper().Wrapper,
+      wrapper: Wrapper,
     });
     await tick(0);
     expect(result.current.status).toBe('loading'); // in flight
@@ -117,12 +115,14 @@ describe('INV-37: a warm cache resolves on first commit with no loading/debounci
     const resolveName = vi.fn(
       async (): Promise<ResolutionResult<ResolvedAddress>> => ({ ok: true, value: ALICE })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveName })));
     const client = createResolutionQueryClient();
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveName })), {
+      client,
+    });
 
     // Warm the cache.
     const warm = renderHook(() => useResolveName('alice.eth'), {
-      wrapper: makeWrapper({ client }).Wrapper,
+      wrapper: Wrapper,
     });
     await tick(0);
     expect(warm.result.current.status).toBe('resolved');
@@ -137,7 +137,7 @@ describe('INV-37: a warm cache resolves on first commit with no loading/debounci
         seen.push(r.status);
         return r;
       },
-      { wrapper: makeWrapper({ client }).Wrapper }
+      { wrapper: Wrapper }
     );
 
     expect(seen[0]).toBe('resolved'); // resolved on the FIRST committed render
@@ -156,7 +156,9 @@ describe('INV-38: an input change rerenders only the affected consumer', () => {
         value: { ...REVERSE_UNVERIFIED, address },
       })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveAddress })));
+    const { Wrapper, setWallet } = makeWalletWrapper(
+      walletWithCapability(makeCapability({ resolveAddress }))
+    );
 
     const renders = { a: 0, b: 0 };
     const ChildA = memo(function ChildA({ addr }: { addr: string }) {
@@ -178,7 +180,7 @@ describe('INV-38: an input change rerenders only the affected consumer', () => {
       );
     }
 
-    const { rerender } = render(<Tree aAddr="0xAAAA" />, { wrapper: makeWrapper().Wrapper });
+    const { rerender } = render(<Tree aAddr="0xAAAA" />, { wrapper: Wrapper });
     await tick(0);
     const bAfterInit = renders.b;
 
@@ -195,11 +197,17 @@ describe('INV-39: the resolution cache is bounded by gcTime', () => {
     const resolveAddress = vi.fn(
       async (): Promise<ResolutionResult<ResolvedName>> => ({ ok: true, value: REVERSE_UNVERIFIED })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveAddress })));
     const client = createResolutionQueryClient();
+    const { Wrapper } = makeWalletWrapper(
+      walletWithCapability(makeCapability({ resolveAddress })),
+      {
+        client,
+        config: { gcTimeMs: 1000 },
+      }
+    );
 
     const { unmount } = renderHook(() => useResolveAddress('0xabc'), {
-      wrapper: makeWrapper({ client, config: { gcTimeMs: 1000 } }).Wrapper,
+      wrapper: Wrapper,
     });
     await tick(0);
     expect(client.getQueryCache().getAll()).toHaveLength(1);
@@ -217,20 +225,17 @@ describe('INV-40: cache keys are network-scoped (same input, two networks → tw
     );
     const capability = makeCapability({ resolveName });
 
-    mockWalletState.mockReturnValue(
+    const { Wrapper, setWallet } = makeWalletWrapper(
       walletWithCapability(capability, { activeNetworkId: 'eip155:1' })
     );
-    const { rerender } = renderHook(() => useResolveName('alice.eth'), {
-      wrapper: makeWrapper().Wrapper,
+    const { result } = renderHook(() => useResolveName('alice.eth'), {
+      wrapper: Wrapper,
     });
     await tick(0);
     expect(resolveName).toHaveBeenCalledTimes(1);
 
     // Switch network → distinct key → cache miss → a second resolution.
-    mockWalletState.mockReturnValue(
-      walletWithCapability(capability, { activeNetworkId: 'eip155:11155111' })
-    );
-    rerender();
+    setWallet(walletWithCapability(capability, { activeNetworkId: 'eip155:11155111' }));
     await tick(0);
     expect(resolveName).toHaveBeenCalledTimes(2);
   });
@@ -241,10 +246,10 @@ describe('INV-41: resolution never fires from a window-focus event', () => {
     const resolveAddress = vi.fn(
       async (): Promise<ResolutionResult<ResolvedName>> => ({ ok: true, value: REVERSE_UNVERIFIED })
     );
-    mockWalletState.mockReturnValue(walletWithCapability(makeCapability({ resolveAddress })));
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveAddress })));
 
     const { result } = renderHook(() => useResolveAddress('0xabc'), {
-      wrapper: makeWrapper().Wrapper,
+      wrapper: Wrapper,
     });
     await tick(0);
     expect(result.current.status).toBe('resolved');
