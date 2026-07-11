@@ -214,12 +214,14 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   const resolverPresentRef = useRef(false);
   const classificationRef = useRef<AddressInputClassification>('empty');
   const statusRef = useRef<InjectedNameResolutionResult['status']>('idle');
+  const resolvedNameRef = useRef<string | undefined>(undefined);
   const chainScopeBlockedRef = useRef(false);
   const validationRef = useRef(validation);
   const addressingRef = useRef(addressing);
   resolverPresentRef.current = resolver !== null;
   classificationRef.current = classification;
   statusRef.current = resolution.status;
+  resolvedNameRef.current = resolution.status === 'resolved' ? resolution.name : undefined;
   chainScopeBlockedRef.current = chainScopeBlocked;
   validationRef.current = validation;
   addressingRef.current = addressing;
@@ -357,6 +359,18 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
       // sees this keystroke's state immediately (INV-84).
       classificationRef.current = c;
       if (c === 'name-candidate') {
+        // Same-normalized re-entry (e.g. 'alice.eth' → 'ALICE.ETH' / trailing
+        // space): the resolution machine stays `resolved`, so clearing RHF to
+        // '' would strand the form (UI still announces success, write-effect
+        // deps unchanged → hex never rewritten). Keep the hex.
+        const normalized = normalizeResolvedName(value);
+        if (
+          statusRef.current === 'resolved' &&
+          resolvedNameRef.current === normalized &&
+          !chainScopeBlockedRef.current
+        ) {
+          return;
+        }
         statusRef.current = 'debouncing';
         lastSetValueRef.current = '';
         fieldOnChange('');

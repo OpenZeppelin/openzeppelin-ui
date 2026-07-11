@@ -1,4 +1,4 @@
-import { createContext } from 'react';
+import { createContext, type Context } from 'react';
 
 import type { NameResolver } from '@openzeppelin/ui-types';
 
@@ -22,6 +22,26 @@ export interface NameResolverContextValue extends NameResolver {
 }
 
 /**
+ * Process-global key for the context object. Uses `Symbol.for` so all duplicated
+ * module instances share ONE React context — the same cross-bundle-singleton
+ * pattern as `@openzeppelin/ui-react`'s `NameResolutionContext` /
+ * `WalletStateContext` (bundler pre-bundling / npm-installed consumers).
+ */
+const CONTEXT_KEY = Symbol.for('@openzeppelin/ui-components/NameResolverContext');
+
+interface GlobalWithNameResolverContext {
+  [CONTEXT_KEY]?: Context<NameResolverContextValue | null>;
+}
+
+function getOrCreateSharedContext(): Context<NameResolverContextValue | null> {
+  const globalScope = globalThis as GlobalWithNameResolverContext;
+  if (!globalScope[CONTEXT_KEY]) {
+    globalScope[CONTEXT_KEY] = createContext<NameResolverContextValue | null>(null);
+  }
+  return globalScope[CONTEXT_KEY];
+}
+
+/**
  * @internal Shared context instance consumed by both AddressField and
  * NameResolverProvider (INV-118). Kept in its own file so component files
  * export only components (required by React Fast Refresh).
@@ -30,4 +50,4 @@ export interface NameResolverContextValue extends NameResolver {
  * then dead code and the field is byte-identical to its pre-ENS behavior
  * (INV-82).
  */
-export const NameResolverContext = createContext<NameResolverContextValue | null>(null);
+export const NameResolverContext = getOrCreateSharedContext();

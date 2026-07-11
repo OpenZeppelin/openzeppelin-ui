@@ -190,6 +190,39 @@ describe('INV-81: editing a resolved field invalidates the stale hex synchronous
     expect(screen.getByTestId('rhf-valid').textContent).toBe('false');
     expect(r.calls).toEqual(['alice.eth']); // no new resolution yet
   });
+
+  it('same-normalized re-entry (case/space variant) keeps RHF at the resolved hex — never "" while status=resolved', async () => {
+    const r = controlledResolver();
+    const h = renderAddressField({ resolver: { resolveName: r.resolveName }, required: true });
+
+    typeValue('alice.eth');
+    await elapseDebounce();
+    await settle(r.deferreds[0], okResult('alice.eth', HEX_ALICE));
+    expect(h.rhfValue()).toBe(HEX_ALICE);
+    expect(h.rhfIsValid()).toBe(true);
+
+    // Select-all paste of a case/space variant: normalize() is unchanged so the
+    // machine stays `resolved`. Clearing to '' would strand the form (UI still
+    // announces success; write-effect deps unchanged → hex never rewritten).
+    typeValue('ALICE.ETH');
+    await flush();
+    expect(h.input().value).toBe('ALICE.ETH');
+    expect(h.rhfValue()).toBe(HEX_ALICE);
+    expect(h.rhfIsValid()).toBe(true);
+    // No re-dispatch — normalized input is unchanged.
+    expect(r.calls).toEqual(['alice.eth']);
+
+    typeValue('  alice.eth ');
+    await flush();
+    expect(h.input().value).toBe('  alice.eth ');
+    expect(h.rhfValue()).toBe(HEX_ALICE);
+    expect(h.rhfIsValid()).toBe(true);
+    expect(r.calls).toEqual(['alice.eth']);
+
+    // A truly different name still clears synchronously (INV-81).
+    typeValue('bob.eth');
+    expect(h.rhfValue()).toBe('');
+  });
 });
 
 describe('INV-85: no stale-hex cache across renders/closures', () => {

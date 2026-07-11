@@ -278,6 +278,48 @@ describe('INV-119 (re-affirmed): a genuine memoized resolver/network swap re-res
   });
 });
 
+describe('INV-123 (settling churn): oscillating settled.source between two resolvers must not refill the budget', () => {
+  it('total dispatches stay ≤ MAX_DISPATCHES_PER_INTENT when two settling sources flap for the same input', async () => {
+    const warnSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    try {
+      const netA = controlledResolver();
+      const netB = controlledResolver();
+      const { result, rerender } = mountMachine({
+        input: 'alice.eth',
+        enabled: true,
+        resolveName: netA.resolveName,
+      });
+      await act(async () => {});
+
+      // Oscillate well past the cap: each swap settles, so `settled.source` flips
+      // on every turn. A budget reset keyed on settled.source ≠ resolveName would
+      // refill the counter here and allow unbounded RPC (the REVIEW-UI m1 gap).
+      const flaps = MAX_DISPATCHES_PER_INTENT * 3;
+      for (let i = 0; i < flaps; i++) {
+        const active = i % 2 === 0 ? netA : netB;
+        const pending = active.deferreds[active.deferreds.length - 1];
+        expect(pending).toBeDefined();
+        await act(async () => {
+          pending.resolve(okResult('alice.eth', i % 2 === 0 ? HEX_ALICE : HEX_BOB));
+        });
+        // Swap to the other memoized identity (settled.source now mismatches).
+        const next = i % 2 === 0 ? netB : netA;
+        rerender({ input: 'alice.eth', enabled: true, resolveName: next.resolveName });
+        await act(async () => {});
+      }
+
+      const totalDispatches = netA.calls.length + netB.calls.length;
+      expect(totalDispatches).toBe(MAX_DISPATCHES_PER_INTENT);
+      expect(totalDispatches).toBeLessThan(flaps);
+      // Once the shared intent budget is spent, further flaps stay gated (loading).
+      expect(result.current.status).toBe('loading');
+      expect(churnWarningCount(warnSpy)).toBe(1);
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+});
+
 describe('INV-125 (machine): recovery is via a NEW intent — not via in-place memoization of an already-spent intent', () => {
   it('memoizing a spent intent does not re-fire it; a fresh intent (retype) resolves normally against the stable resolver', async () => {
     const churnCalls: string[] = [];

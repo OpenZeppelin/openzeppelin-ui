@@ -19,14 +19,21 @@
  * integrator resolver re-fires it on every render. To keep that from becoming an
  * unbounded RPC loop (rate-ban + cost + funds-path DoS), the machine caps
  * dispatches per resolution intent — the pair (normalized debounced input × retry
- * attempt) — at {@link MAX_DISPATCHES_PER_INTENT}, regardless of render count. The
- * budget resets on intent change (a new typed name, or `retry()`), so a genuine
- * resolver/network swap still re-resolves the current input within budget
- * (INV-119 / acceptance #5). A churning identity that exhausts the budget emits a
- * one-shot, development-only warning (INV-124) and degrades to the safe gated
- * state (bounded RPC, RHF value `''`, submit gated, never a wrong hex, never a
- * throw — INV-125). This backstop is entirely internal: no signature, param, or
- * return-type change; `AddressField` consumes the machine unchanged.
+ * attempt) — at {@link MAX_DISPATCHES_PER_INTENT}, regardless of render count and
+ * regardless of how many times `resolveName` identity changes under that intent.
+ * The budget resets only on intent change (a new typed name, or `retry()`) or when
+ * the field leaves the active name-resolution path (clear / disable). It does
+ * *not* reset on `settled.source` mismatch: that would let two settling sources
+ * flap and refill the counter (settling churn), silently defeating INV-123. A
+ * genuine network swap still re-dispatches within the shared intent budget
+ * (INV-119 / acceptance #5) because a single identity change costs one unit.
+ * Clear→retype of the same name gets a fresh budget via the leave-path reset, so
+ * it cannot accumulate toward the cap across cycles and then strand a later swap.
+ * A churning identity that exhausts the budget emits a one-shot, development-only
+ * warning (INV-124) and degrades to the safe gated state (bounded RPC, RHF value
+ * `''`, submit gated, never a wrong hex, never a throw — INV-125). This backstop
+ * is entirely internal: no signature, param, or return-type change; `AddressField`
+ * consumes the machine unchanged.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -46,13 +53,15 @@ export const NAME_RESOLUTION_DEBOUNCE_MS = 300;
 /**
  * Cap on resolver dispatches per resolution intent — the pair (normalized
  * debounced input × retry attempt) — regardless of how many times the field
- * re-renders (INV-123). Chosen to sit comfortably above the dispatches a single
- * displayed input legitimately incurs (1 initial call + any human-initiated
- * genuine network swaps of that same name, each ≤1 unit — INV-119) and far below
- * per-render identity churn (hundreds/sec): a user does not switch networks eight
- * times while one unedited name sits in the field, whereas churn blows past eight
- * within milliseconds. The budget resets whenever the intent changes, so this
- * bounds a *churning* resolver, never a legitimate one.
+ * re-renders or how many times `resolveName` identity changes under that intent
+ * (INV-123). Chosen to sit comfortably above the dispatches a single displayed
+ * input legitimately incurs (1 initial call + any human-initiated genuine network
+ * swaps of that same name, each ≤1 unit — INV-119) and far below per-render
+ * identity churn (hundreds/sec): a user does not switch networks eight times
+ * while one unedited name sits in the field, whereas churn blows past eight
+ * within milliseconds. The budget resets when the intent changes or when the
+ * field leaves the name-resolution path (clear / disable) — never on
+ * `settled.source` mismatch, so settling-source oscillation cannot refill it.
  */
 export const MAX_DISPATCHES_PER_INTENT = 8;
 
@@ -115,8 +124,9 @@ interface SettledResolution {
  *   `ADAPTER_ERROR` — nothing throws into the render tree.
  * - INV-123: resolver dispatches are bounded per resolution intent (normalized
  *   debounced input × retry attempt) at {@link MAX_DISPATCHES_PER_INTENT},
- *   regardless of render count; the budget resets on intent change and `retry()`
- *   never consumes it.
+ *   regardless of render count or resolver-identity oscillation; the budget
+ *   resets on intent change or when leaving the name-resolution path — never on
+ *   `settled.source` mismatch; `retry()` never consumes an existing budget.
  * - INV-124: an identity-churning resolver that exhausts the budget triggers a
  *   one-shot, development-only `logger.warn` (silent in production).
  * - INV-125: under sustained churn the field stays in the safe gated state — the
@@ -167,10 +177,12 @@ export function useInjectedNameResolution({
   currentTargetRef.current = enabled && resolveName ? debounced : '';
 
   // INV-123 budget refs. `intentKeyRef`/`dispatchCountRef` cap dispatches per
-  // resolution intent and reset when the intent changes; `churnWarnedRef` makes
-  // the INV-124 warning one-shot per field instance (never reset). All hold only
-  // a string key + integer counter + boolean flag — never a resolved hex — so
-  // INV-85's no-stale-cache guarantee is preserved and they never gate the write.
+  // resolution intent and reset only when the intent changes or when leaving the
+  // name-resolution path — never on `settled.source` mismatch (that escape hatch
+  // lets two settling sources flap and refill the counter). `churnWarnedRef`
+  // makes the INV-124 warning one-shot per field instance (never reset). All hold
+  // only a string key + integer counter + boolean flag — never a resolved hex —
+  // so INV-85's no-stale-cache guarantee is preserved and they never gate the write.
   const intentKeyRef = useRef('');
   const dispatchCountRef = useRef(0);
   const churnWarnedRef = useRef(false);
@@ -193,7 +205,15 @@ export function useInjectedNameResolution({
     // enabled input. On the render where `enabled` flips true, `debounced` may
     // still hold a stale value (a prior hex / rejected shape / earlier name)
     // for one debounce window — dispatching it would be a spurious call.
-    if (!enabled || !resolveName || debounced === '' || debounced !== normalized) return;
+    // Reset the intent budget when leaving the name-resolution path so
+    // clear→retype of the same name does not accumulate toward the cap across
+    // cycles (which would otherwise strand a later genuine network swap).
+    if (!enabled || !resolveName || debounced === '') {
+      intentKeyRef.current = '';
+      dispatchCountRef.current = 0;
+      return;
+    }
+    if (debounced !== normalized) return;
 
     // INV-123: bound dispatches per resolution intent (normalized input × retry
     // attempt), regardless of render count. Under identity churn the effect
@@ -201,8 +221,10 @@ export function useInjectedNameResolution({
     // once the intent's budget is spent — closing the unbounded-loop / DoS window
     // (SC-008). The budget resets whenever the intent changes (a new typed name,
     // or `retry()` bumping `attempt`), so `retry()` never consumes an existing
-    // budget and a genuine swap (identity changes once for a given input) still
-    // re-resolves within budget (INV-119 / acceptance #5).
+    // budget. A genuine memoized swap (INV-119) shares this same intent budget —
+    // one identity change costs one unit and re-dispatches while count < MAX.
+    // Do NOT reset on `settled.source !== resolveName`: two settling sources that
+    // oscillate would refill the counter on every flap (settling churn).
     const intentKey = `${debounced}\u0000${attempt}`;
     if (intentKeyRef.current !== intentKey) {
       intentKeyRef.current = intentKey;

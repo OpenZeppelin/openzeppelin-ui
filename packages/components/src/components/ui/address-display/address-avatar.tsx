@@ -46,6 +46,23 @@ export interface AddressAvatarProps {
 }
 
 /**
+ * Allowlist for name-owner-controlled avatar URLs at the render site.
+ * Only `https:` and `data:image/*` pass; `http:` (mixed content), `javascript:`,
+ * and other schemes are dropped. Does not rely on adapter sanitization.
+ */
+function isAllowedAvatarSrc(src: string): boolean {
+  try {
+    const url = new URL(src);
+    if (url.protocol === 'https:') return true;
+    // `data:image/png;base64,...` — reject non-image data URLs (e.g. data:text/html).
+    if (url.protocol === 'data:') return /^data:image\/[a-z0-9.+-]+/i.test(src);
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * @internal Avatar image for a resolved name, hiding itself on load error
  * (never a broken-image icon) — the name renders as a complete, avatar-less
  * row. Purely presentational; its only state is the per-instance load-error
@@ -69,6 +86,10 @@ export function AddressAvatar({
   // as `failedSrc === src`, so a new src is never suppressed by an old failure.
   const [failedSrc, setFailedSrc] = React.useState<string | null>(null);
 
+  // Drop disallowed schemes before render (http / javascript / arbitrary hosts
+  // via non-https). Fail closed — no <img>, same as a load error (INV-55).
+  if (!isAllowedAvatarSrc(src)) return null;
+
   // INV-55: hidden on load error — the name displays with no avatar, no glyph,
   // no reserved box.
   if (failedSrc === src) return null;
@@ -88,6 +109,8 @@ export function AddressAvatar({
       // INV-67: decorative — never omitted, and non-redundant with the visible name.
       alt={alt}
       className={cn('object-cover', sizeClassName ?? variantClassName)}
+      // Name-owner-controlled URL: never leak the document referrer to the avatar host.
+      referrerPolicy="no-referrer"
       // INV-55: 404 / network failure / non-image payload → hide (no broken icon).
       onError={() => setFailedSrc(src)}
     />

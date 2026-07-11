@@ -31,6 +31,20 @@ function usePrefersHover(): boolean {
 }
 
 /**
+ * Strip C0/C1 controls, bidi embeds/isolates, and zero-width characters from a
+ * verified name at the display seam. ENSIP-15 normalization remains the
+ * adapter's job; this only removes invisible directionality/control glyphs so
+ * a raw render cannot spoof adjacent UI (homoglyph confusables are out of scope).
+ */
+function sanitizeVerifiedNameForDisplay(name: string): string {
+  return name.replace(
+    // eslint-disable-next-line no-control-regex -- intentional strip of C0/C1 + bidi/zw
+    /[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF]/g,
+    ''
+  );
+}
+
+/**
  * Visual style for the component container.
  *
  * - `"chip"` – rounded pill with a slate background (default).
@@ -303,8 +317,10 @@ export function AddressDisplay({
   // displayable resolved name. A record with `forwardVerified: false`
   // (forward-mismatch) and an undefined record (idle/loading/no-record/error,
   // collapsed upstream) both fall through to `undefined` → hex. No name-alone,
-  // no name+warning.
-  const ensName = record?.forwardVerified === true ? record.name : undefined;
+  // no name+warning. Control/bidi/zw stripped at this seam; confusables stay
+  // with adapter ENSIP-15 normalization.
+  const ensName =
+    record?.forwardVerified === true ? sanitizeVerifiedNameForDisplay(record.name) : undefined;
 
   // INV-56: precedence — explicit `label` > alias > verified name > hex.
   // Collapses to the pre-enhancement `resolvedLabel` when nothing is injected
