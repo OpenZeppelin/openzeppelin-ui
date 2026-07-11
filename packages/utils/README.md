@@ -47,6 +47,12 @@ This package centralizes common logic that is not tied to any specific blockchai
 
 - **Address Normalization** (`normalizeAddress`, `addressesEqual`): Utilities for normalizing and comparing addresses in a chain-agnostic way.
 
+- **Address Input Classification** (`classifyAddressInput`, `looksLikeName`): Pure helpers that classify a typed address-field string as `empty` | `hex` | `name-candidate` | `malformed` using caller-supplied validators — shared by ENS-aware fields and integrators.
+
+- **Name-Resolution Messages** (`nameResolutionMessageForCode`): Maps the closed name-resolution error-code union to stable, user-facing copy (optional network-name interpolation).
+
+- **Chain-Scope Gating** (`isChainScopeMismatch`, `nameResolutionChainScopeMismatchMessage`): Pure helpers for coinType wrong-network submit/hex-write gating — compare resolution provenance against an injected active network id and produce a distinct mismatch message.
+
 - **Type Guards and Helpers**: Various other small, reusable functions like `getDefaultValueForType`.
 
 ## Package Structure
