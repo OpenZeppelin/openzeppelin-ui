@@ -227,7 +227,19 @@ function AliasProviderBridge({
  */
 function NameResolverBridge({ children }: { children: React.ReactNode }): React.ReactElement {
   const resolver = useRuntimeNameResolver();
-  return <NameResolverProvider {...resolver}>{children}</NameResolverProvider>;
+  // Mirror TransactionForm: wire active network into the provider so
+  // `isChainScopeMismatch` can gate coinType wrong-chain submits. Omitting
+  // these leaves the gate permanently off for every AddressField in the app.
+  const { activeNetworkId, activeNetworkConfig } = useWalletState();
+  return (
+    <NameResolverProvider
+      {...resolver}
+      activeNetworkId={activeNetworkId ?? null}
+      activeNetworkName={activeNetworkConfig?.name}
+    >
+      {children}
+    </NameResolverProvider>
+  );
 }
 
 // ============================================================================
