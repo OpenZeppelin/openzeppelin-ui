@@ -335,6 +335,9 @@ function rewriteDependencies(pkg, context, cacheDir, familyKey, family, packedOn
  * versions (e.g. 2.0.0-rc.1) that a plain ^2.0.0 would exclude.
  * Follows standard caret semantics for the upper bound.
  * Skips deps already rewritten to file: paths by local-dev mode.
+ *
+ * Gated: default installs must NOT widen ranges. Opt in via
+ * \`ALLOW_ADAPTER_PRERELEASES=true\` or the existing \`LOCAL_ADAPTERS=true\` signal.
  */
 function allowAdapterPrereleases(pkg) {
   for (const depType of ['dependencies', 'devDependencies']) {
@@ -355,6 +358,12 @@ function allowAdapterPrereleases(pkg) {
       pkg[depType][name] = \`>=\${maj}.\${min}.\${pat}-0 <\${upper}\`;
     }
   }
+}
+
+function shouldAllowAdapterPrereleases() {
+  return (
+    process.env.ALLOW_ADAPTER_PRERELEASES === 'true' || process.env.LOCAL_ADAPTERS === 'true'
+  );
 }
 
 function readPackage(pkg, context) {
@@ -379,7 +388,9 @@ function readPackage(pkg, context) {
     }
   }
 
-  allowAdapterPrereleases(pkg);
+  if (shouldAllowAdapterPrereleases()) {
+    allowAdapterPrereleases(pkg);
+  }
 
   return pkg;
 }

@@ -267,9 +267,10 @@ test('honors an explicit LOCAL_ADAPTERS=false even when a packed manifest is pre
       )
   );
 
-  // Overlay not applied (no file: rewrite); ranges only get the standard adapter-prerelease widening.
-  assert.equal(updated.dependencies['@openzeppelin/adapter-evm'], '>=1.0.0-0 <2.0.0');
-  assert.equal(updated.devDependencies['@openzeppelin/adapters-vite'], '>=1.1.0-0 <2.0.0');
+  // Overlay not applied (explicit opt-out). Opt-in widening is also off
+  // (LOCAL_ADAPTERS=false / no ALLOW_ADAPTER_PRERELEASES) → caret ranges untouched.
+  assert.equal(updated.dependencies['@openzeppelin/adapter-evm'], '^1.0.0');
+  assert.equal(updated.devDependencies['@openzeppelin/adapters-vite'], '^1.1.0');
 });
 
 test('does not apply the overlay on a normal install with no manifest and no flags', () => {
@@ -281,9 +282,9 @@ test('does not apply the overlay on a normal install with no manifest and no fla
       () => hooks.readPackage(createPackage(), { dir: process.cwd(), log: () => {} })
     );
 
-    // No file: overlay rewrite; deps stay on registry ranges (only adapter-prerelease widening).
-    assert.equal(updated.dependencies['@openzeppelin/adapter-evm'], '>=1.0.0-0 <2.0.0');
-    assert.equal(updated.devDependencies['@openzeppelin/adapters-vite'], '>=1.1.0-0 <2.0.0');
+    // No file: overlay and no opt-in widening flag → original caret ranges unchanged.
+    assert.equal(updated.dependencies['@openzeppelin/adapter-evm'], '^1.0.0');
+    assert.equal(updated.devDependencies['@openzeppelin/adapters-vite'], '^1.1.0');
   });
 });
 
@@ -305,9 +306,9 @@ test('a sticky install never links a repo path (or throws) when the packed tarba
       )
   );
 
-  // No repo-path link and no throw: deps stay on registry ranges (only adapter-prerelease widening).
-  assert.equal(updated.dependencies['@openzeppelin/adapter-evm'], '>=1.0.0-0 <2.0.0');
-  assert.equal(updated.devDependencies['@openzeppelin/adapters-vite'], '>=1.1.0-0 <2.0.0');
+  // No repo-path link, no throw, and no opt-in widening → original caret ranges unchanged.
+  assert.equal(updated.dependencies['@openzeppelin/adapter-evm'], '^1.0.0');
+  assert.equal(updated.devDependencies['@openzeppelin/adapters-vite'], '^1.1.0');
 });
 
 test('throws a clear error when a configured package directory is missing package.json', () => {

@@ -11,35 +11,39 @@ const path = require('path');
 
 const CONFIG_FILE = '.openzeppelin-dev.json';
 const STANDARD_FAMILIES = {
-  ui: {
-    repoName: 'openzeppelin-ui',
-    envFlag: 'LOCAL_UI',
-    envNames: ['LOCAL_UI_PATH'],
-    defaultPath: '../openzeppelin-ui',
-    packageMap: {
-      '@openzeppelin/ui-types': 'packages/types',
-      '@openzeppelin/ui-utils': 'packages/utils',
-      '@openzeppelin/ui-styles': 'packages/styles',
-      '@openzeppelin/ui-components': 'packages/components',
-      '@openzeppelin/ui-renderer': 'packages/renderer',
-      '@openzeppelin/ui-react': 'packages/react',
-      '@openzeppelin/ui-storage': 'packages/storage',
-    },
+  "ui": {
+    "repoName": "openzeppelin-ui",
+    "envFlag": "LOCAL_UI",
+    "envNames": [
+      "LOCAL_UI_PATH"
+    ],
+    "defaultPath": "../openzeppelin-ui",
+    "packageMap": {
+      "@openzeppelin/ui-types": "packages/types",
+      "@openzeppelin/ui-utils": "packages/utils",
+      "@openzeppelin/ui-styles": "packages/styles",
+      "@openzeppelin/ui-components": "packages/components",
+      "@openzeppelin/ui-renderer": "packages/renderer",
+      "@openzeppelin/ui-react": "packages/react",
+      "@openzeppelin/ui-storage": "packages/storage"
+    }
   },
-  adapters: {
-    repoName: 'openzeppelin-adapters',
-    envFlag: 'LOCAL_ADAPTERS',
-    envNames: ['LOCAL_ADAPTERS_PATH'],
-    defaultPath: '../openzeppelin-adapters',
-    packageMap: {
-      '@openzeppelin/adapters-vite': 'packages/adapters-vite',
-      '@openzeppelin/adapter-evm': 'packages/adapter-evm',
-      '@openzeppelin/adapter-midnight': 'packages/adapter-midnight',
-      '@openzeppelin/adapter-polkadot': 'packages/adapter-polkadot',
-      '@openzeppelin/adapter-solana': 'packages/adapter-solana',
-      '@openzeppelin/adapter-stellar': 'packages/adapter-stellar',
-    },
-  },
+  "adapters": {
+    "repoName": "openzeppelin-adapters",
+    "envFlag": "LOCAL_ADAPTERS",
+    "envNames": [
+      "LOCAL_ADAPTERS_PATH"
+    ],
+    "defaultPath": "../openzeppelin-adapters",
+    "packageMap": {
+      "@openzeppelin/adapters-vite": "packages/adapters-vite",
+      "@openzeppelin/adapter-evm": "packages/adapter-evm",
+      "@openzeppelin/adapter-midnight": "packages/adapter-midnight",
+      "@openzeppelin/adapter-polkadot": "packages/adapter-polkadot",
+      "@openzeppelin/adapter-solana": "packages/adapter-solana",
+      "@openzeppelin/adapter-stellar": "packages/adapter-stellar"
+    }
+  }
 };
 
 function isObject(value) {
@@ -116,7 +120,9 @@ function readProjectConfig(workspaceRoot) {
     const baseFamily = STANDARD_FAMILIES[familyKey];
     const filteredEnvNames =
       Array.isArray(familyOverrides.envNames) && familyOverrides.envNames.length > 0
-        ? familyOverrides.envNames.filter((value) => typeof value === 'string' && value.length > 0)
+        ? familyOverrides.envNames.filter(
+            (value) => typeof value === 'string' && value.length > 0
+          )
         : null;
     families[familyKey] = {
       ...baseFamily,
@@ -276,9 +282,8 @@ function rewriteDependencies(pkg, context, cacheDir, familyKey, family, packedOn
       }
 
       pkg[depType][npmName] = `file:${absolutePath}`;
-      const source = Object.prototype.hasOwnProperty.call(family.packageMap, npmName)
-        ? ''
-        : ' (workspace fallback)';
+      const source =
+        Object.prototype.hasOwnProperty.call(family.packageMap, npmName) ? '' : ' (workspace fallback)';
       context.log(`[local-dev] ${npmName} → ${absolutePath}${source}`);
     }
   }
@@ -303,17 +308,21 @@ function allowAdapterPrereleases(pkg) {
       if (!range.startsWith('^')) continue;
       const m = range.slice(1).match(/^(\d+)\.(\d+)\.(\d+)$/);
       if (!m) continue;
-      const maj = Number(m[1]),
-        min = Number(m[2]),
-        pat = Number(m[3]);
-      const upper = maj > 0 ? `${maj + 1}.0.0` : min > 0 ? `0.${min + 1}.0` : `0.0.${pat + 1}`;
+      const maj = Number(m[1]), min = Number(m[2]), pat = Number(m[3]);
+      const upper = maj > 0
+        ? `${maj + 1}.0.0`
+        : min > 0
+          ? `0.${min + 1}.0`
+          : `0.0.${pat + 1}`;
       pkg[depType][name] = `>=${maj}.${min}.${pat}-0 <${upper}`;
     }
   }
 }
 
 function shouldAllowAdapterPrereleases() {
-  return process.env.ALLOW_ADAPTER_PRERELEASES === 'true' || process.env.LOCAL_ADAPTERS === 'true';
+  return (
+    process.env.ALLOW_ADAPTER_PRERELEASES === 'true' || process.env.LOCAL_ADAPTERS === 'true'
+  );
 }
 
 function readPackage(pkg, context) {
