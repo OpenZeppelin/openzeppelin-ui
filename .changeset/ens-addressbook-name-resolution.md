@@ -1,6 +1,6 @@
 ---
-"@openzeppelin/ui-types": minor
-"@openzeppelin/ui-renderer": minor
+'@openzeppelin/ui-types': minor
+'@openzeppelin/ui-renderer': minor
 ---
 
-Add opt-in ENS name resolution to the AddressBookWidget. A new optional `enableNameResolution` flag (default `false`, fully backward-compatible) swaps the Add-alias dialog's address input to the ENS-resolving field, auto-suggests a user-overridable alias from the resolved name, and renders rows via the reverse-ENS display. When the flag is off, the widget is byte-identical to before and needs no `WalletStateProvider`. Existing manual-alias flows, search, and export/import (no auto re-resolution on import) are unchanged.
+Add opt-in ENS name resolution to the AddressBookWidget. A new optional `enableNameResolution` flag (default `false`) gates both the Add-alias dialog's ENS-aware address field (auto-suggest alias from the resolved name) and per-row reverse-ENS display. When the flag is off, neither the dialog seam nor any row reverse-resolution provider mounts — no resolution calls and no `WalletStateProvider` required (backward-compatible default). When the flag is on without a wallet provider, resolution degrades gracefully (unsupported-network / hex fallback) rather than throwing. Existing manual-alias flows, search, and export/import (no auto re-resolution on import) are unchanged.

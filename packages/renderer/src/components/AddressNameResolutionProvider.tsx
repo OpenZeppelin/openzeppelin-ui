@@ -1,7 +1,11 @@
 import * as React from 'react';
 
 import { AddressNameProvider } from '@openzeppelin/ui-components';
-import { useResolveAddress, type UseResolveAddressOptions } from '@openzeppelin/ui-react';
+import {
+  useResolveAddress,
+  WalletStateContext,
+  type UseResolveAddressOptions,
+} from '@openzeppelin/ui-react';
 
 /**
  * Props for {@link AddressNameResolutionProvider}.
@@ -13,6 +17,14 @@ export interface AddressNameResolutionProviderProps {
    * plain hex, byte-identical to no provider (INV-54).
    */
   readonly address: string | null | undefined;
+
+  /**
+   * Network that scopes this reverse lookup. When set, the resolved name is
+   * served only when the display request's `networkId` matches AND the active
+   * wallet network (the network the resolution actually ran on) matches —
+   * so a row scoped to network A never surfaces a name resolved on network B.
+   */
+  readonly networkId?: string;
 
   /**
    * Forwarded verbatim to `useResolveAddress` — `enabled` (e.g. gate on row
@@ -44,13 +56,14 @@ export interface AddressNameResolutionProviderProps {
  *
  * @example
  * ```tsx
- * <AddressNameResolutionProvider address={entry.address}>
- *   <AddressDisplay address={entry.address} showCopyButton />
+ * <AddressNameResolutionProvider address={entry.address} networkId={entry.networkId}>
+ *   <AddressDisplay address={entry.address} networkId={entry.networkId} showCopyButton />
  * </AddressNameResolutionProvider>
  * ```
  */
 export function AddressNameResolutionProvider({
   address,
+  networkId,
   options,
   children,
 }: AddressNameResolutionProviderProps): React.ReactElement {
@@ -58,16 +71,34 @@ export function AddressNameResolutionProvider({
 
   const record = rev.status === 'resolved' ? rev.data : undefined;
 
-  // Serve the record only for the address this provider resolves. Compared
-  // case-insensitively: the display asks with its original checksum-preserving
-  // prop (INV-53 — the record's lowercased echo is never used for rendering),
-  // which may differ from this provider's `address` only by case.
+  // Soft read — resolution runs against the active wallet network; used below
+  // to refuse serving a record onto a differently-scoped alias row.
+  const walletState = React.useContext(WalletStateContext);
+  const resolutionNetworkId = walletState?.activeNetworkId ?? undefined;
+
+  // Serve the record only for the address + network this provider resolves.
+  // Address compared case-insensitively: the display asks with its original
+  // checksum-preserving prop (INV-53 — the record's lowercased echo is never
+  // used for rendering), which may differ from this provider's `address` only
+  // by case. Network scoped so a row on network A never shows a name reverse-
+  // resolved on active network B.
   const resolveAddressName = React.useCallback(
-    (requested: string) =>
-      record !== undefined && address != null && requested.toLowerCase() === address.toLowerCase()
-        ? record
-        : undefined,
-    [record, address]
+    (requested: string, requestedNetworkId?: string) => {
+      if (record === undefined || address == null) return undefined;
+      if (requested.toLowerCase() !== address.toLowerCase()) return undefined;
+
+      if (networkId !== undefined) {
+        if (requestedNetworkId !== undefined && requestedNetworkId !== networkId) {
+          return undefined;
+        }
+        if (resolutionNetworkId !== undefined && resolutionNetworkId !== networkId) {
+          return undefined;
+        }
+      }
+
+      return record;
+    },
+    [record, address, networkId, resolutionNetworkId]
   );
 
   return (

@@ -102,7 +102,8 @@ function mapResolver(
 let walletSeq = 0;
 
 function makeWallet(
-  resolveName?: NameResolutionCapability['resolveName']
+  resolveName?: NameResolutionCapability['resolveName'],
+  opts?: { activeNetworkId?: string; activeNetworkName?: string }
 ): WalletStateContextValue {
   const nameResolution: NameResolutionCapability = {
     networkConfig: {} as NetworkConfig,
@@ -111,9 +112,11 @@ function makeWallet(
     ...(resolveName ? { resolveName } : {}),
   };
   return {
-    activeNetworkId: `eip155:1:sf5-test-${++walletSeq}`,
+    activeNetworkId: opts?.activeNetworkId ?? `eip155:1:sf5-test-${++walletSeq}`,
     setActiveNetworkId: () => undefined,
-    activeNetworkConfig: { name: 'Ethereum' } as NetworkConfig,
+    activeNetworkConfig: {
+      name: opts?.activeNetworkName ?? 'Ethereum',
+    } as NetworkConfig,
     activeRuntime: { nameResolution } as EcosystemRuntime,
     isRuntimeLoading: false,
     walletFacadeHooks: null,
@@ -130,6 +133,11 @@ interface RenderOpts {
   withProvider?: boolean;
   resolveName?: NameResolutionCapability['resolveName'];
   networks?: NetworkConfig[];
+  currentNetworkId?: string;
+  resolveNetwork?: (networkId: string) => NetworkConfig | undefined;
+  /** Override wallet active network (default: unique per-test id for cache isolation). */
+  walletActiveNetworkId?: string;
+  walletActiveNetworkName?: string;
   onSave?: ReturnType<typeof vi.fn>;
 }
 
@@ -138,6 +146,10 @@ function renderDialog({
   withProvider = !!enableNameResolution,
   resolveName,
   networks,
+  currentNetworkId,
+  resolveNetwork,
+  walletActiveNetworkId,
+  walletActiveNetworkName,
   onSave = vi.fn().mockResolvedValue('id-1'),
 }: RenderOpts = {}): { onSave: ReturnType<typeof vi.fn> } {
   const dialog = (
@@ -147,12 +159,19 @@ function renderDialog({
       onSave={onSave}
       addressing={addressing}
       networks={networks}
+      currentNetworkId={currentNetworkId}
+      resolveNetwork={resolveNetwork}
       enableNameResolution={enableNameResolution}
     />
   );
   render(
     withProvider ? (
-      <WalletStateContext.Provider value={makeWallet(resolveName)}>
+      <WalletStateContext.Provider
+        value={makeWallet(resolveName, {
+          activeNetworkId: walletActiveNetworkId,
+          activeNetworkName: walletActiveNetworkName,
+        })}
+      >
         {dialog}
       </WalletStateContext.Provider>
     ) : (
@@ -292,7 +311,27 @@ const NETWORKS: NetworkConfig[] = [
     type: 'mainnet',
     ecosystem: 'evm',
   } as NetworkConfig,
+  {
+    id: 'eip155:8453',
+    name: 'Base',
+    type: 'mainnet',
+    ecosystem: 'evm',
+  } as NetworkConfig,
 ];
+
+/** Mainnet-scoped name — triggers SF-6 gate when dialog active network ≠ mainnet. */
+const ALICE_MAINNET_SCOPED: ResolvedAddress = {
+  name: 'alice-mainnet-scope.eth',
+  address: `0x${'a'.repeat(40)}`,
+  provenance: { label: 'ENS', external: false, scopedToNetworkId: 'eip155:1' },
+};
+
+/** Base-scoped name — matches when the dialog selects Base. */
+const ALICE_BASE_SCOPED: ResolvedAddress = {
+  name: 'alice-base-scope.eth',
+  address: `0x${'b'.repeat(40)}`,
+  provenance: { label: 'ENS', external: false, scopedToNetworkId: 'eip155:8453' },
+};
 
 // ===========================================================================
 // INV-102 / INV-103 / INV-104 / INV-105 — dirty-gated alias suggestion
@@ -420,6 +459,62 @@ describe('INV-106: Add is gated until resolved; the payload carries the resolved
       address: ALICE.address,
       alias: 'alice.eth',
       networkId: undefined,
+    });
+  });
+});
+
+// ===========================================================================
+// SF-6 / M2 — chain-scope gate uses dialog-selected network, not wallet active
+// ===========================================================================
+
+describe('SF-6: chain-scope gate compares against the dialog-selected network', () => {
+  it('blocks a mainnet-scoped resolve when the dialog is saving under Base (wallet stays on mainnet)', async () => {
+    // Wallet ACTIVE = mainnet family; dialog SELECTED = Base. Pre-fix, the gate
+    // used wallet mainnet → pass → mainnet hex saved as a Base book entry.
+    // Unique wallet id keeps the process-global resolution cache isolated.
+    renderDialog({
+      enableNameResolution: true,
+      resolveName: mapResolver([ALICE_MAINNET_SCOPED]),
+      networks: NETWORKS,
+      currentNetworkId: 'eip155:8453',
+      resolveNetwork: (id) => NETWORKS.find((n) => n.id === id),
+      walletActiveNetworkId: `eip155:1:sf5-m2-block-${++walletSeq}`,
+      walletActiveNetworkName: 'Ethereum',
+    });
+
+    await typeAddress('alice-mainnet-scope.eth');
+    await settleResolution();
+
+    // Gate must use Base (save target), not wallet mainnet — mismatch blocks write/submit.
+    expect(resolutionRegion()?.textContent).toContain(
+      'This name resolves to an address for a different network.'
+    );
+    expect(addButton().disabled).toBe(true);
+  });
+
+  it('allows a Base-scoped resolve when the dialog is saving under Base and submits networkId=Base', async () => {
+    const { onSave } = renderDialog({
+      enableNameResolution: true,
+      resolveName: mapResolver([ALICE_BASE_SCOPED]),
+      networks: NETWORKS,
+      currentNetworkId: 'eip155:8453',
+      resolveNetwork: (id) => NETWORKS.find((n) => n.id === id),
+      walletActiveNetworkId: `eip155:1:sf5-m2-allow-${++walletSeq}`,
+      walletActiveNetworkName: 'Ethereum',
+    });
+
+    await typeAddress('alice-base-scope.eth');
+    await settleResolution();
+
+    expect(resolutionRegion()?.textContent).toContain(ALICE_BASE_SCOPED.address);
+    expect(addButton().disabled).toBe(false);
+    fireEvent.click(addButton());
+    await flush();
+
+    expect(onSave).toHaveBeenCalledWith({
+      address: ALICE_BASE_SCOPED.address,
+      alias: 'alice-base-scope.eth',
+      networkId: 'eip155:8453',
     });
   });
 });

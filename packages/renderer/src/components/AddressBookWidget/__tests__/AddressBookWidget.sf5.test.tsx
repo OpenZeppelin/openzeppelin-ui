@@ -4,49 +4,35 @@
  * SF-5 · `AddressBookWidget` — the widget-level composition (INV-97 / INV-98 / INV-108 /
  * INV-113).
  *
- * SF-5 added ONE prop to the widget (`enableNameResolution`) and threads it verbatim to
- * `AddAliasDialog`; rows, search, and storage required zero new code. These tests assert
- * the composition: the prop is threaded, every row renders through the SF-4 display
- * component (name+avatar or hex, but never losing its stored alias), search matches the
- * ENS-derived alias, and the default (flag-off) path mounts with no provider and issues
- * zero add-flow resolution.
+ * SF-5 added ONE prop to the widget (`enableNameResolution`) and threads it to both
+ * `AddAliasDialog` and every `AliasRow`. These tests assert the composition: the prop
+ * is threaded, flag-on rows render through the SF-4 reverse-ENS bridge (name+avatar or
+ * hex, never losing the stored alias), search matches the ENS-derived alias, and the
+ * default (flag-off) path mounts with no provider and issues zero reverse resolution.
  *
- * ONE module-boundary seam is mocked:
- *   • `useResolveAddress` — the ROW reverse-ENS hook inside SF-4's async→sync bridge
- *     (`AddressNameResolutionProvider` feeding the base `AddressDisplay` value seam;
- *     mocked at the boundary — its engine reaches `useWalletState`, whose throw is
- *     SF-4's concern, out of scope here).
- * The ADD flow is NOT hook-mocked: post-refactor it runs through
- * `useRuntimeNameResolver` (imperative `fetchQuery`, no `useResolveName` on the path),
- * and its real-seam end-to-end coverage lives in `AddAliasDialog.sf5.test.tsx`. This
- * suite asserts the widget-level composition only (region present/absent, threading).
+ * NOTHING is module-mocked for the reverse path (the former `useResolveAddress` mock
+ * masked a wallet-less throw). Flag-on row assertions drive a REAL
+ * `WalletStateContext.Provider` whose capability `resolveAddress` is a per-test
+ * lookup-map `vi.fn`. Flag-off and wallet-less flag-on paths intentionally mount
+ * WITHOUT a provider — that is the point of INV-113 / B1.
  */
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 
-import {
-  useResolveAddress,
-  WalletStateContext,
-  type UseResolveAddressResult,
-  type WalletStateContextValue,
-} from '@openzeppelin/ui-react';
+import * as uiReact from '@openzeppelin/ui-react';
+import { WalletStateContext, type WalletStateContextValue } from '@openzeppelin/ui-react';
 import type {
   AddressBookAlias,
   AddressBookWidgetProps,
   EcosystemRuntime,
   NameResolutionCapability,
   NetworkConfig,
+  ResolutionResult,
   ResolvedName,
 } from '@openzeppelin/ui-types';
 
 import { AddressBookWidget } from '../AddressBookWidget';
-
-vi.mock('@openzeppelin/ui-react', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@openzeppelin/ui-react')>();
-  return { ...actual, useResolveAddress: vi.fn() };
-});
-const mockUseResolveAddress = vi.mocked(useResolveAddress);
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -54,14 +40,22 @@ const mockUseResolveAddress = vi.mocked(useResolveAddress);
 
 const isValidName = (n: string): boolean => n.trim().toLowerCase().endsWith('.eth');
 
-function makeWallet(): WalletStateContextValue {
+let networkSeq = 0;
+
+function makeWallet(
+  resolveAddress?: NameResolutionCapability['resolveAddress'],
+  activeNetworkId?: string
+): WalletStateContextValue {
   const nameResolution: NameResolutionCapability = {
     networkConfig: {} as NetworkConfig,
     dispose: () => undefined,
     isValidName,
+    ...(resolveAddress ? { resolveAddress } : {}),
   };
   return {
-    activeNetworkId: 'eip155:1',
+    // Unique network id per fixture — resolution QueryClient is a process-global
+    // singleton keyed by (namespace, networkId, address).
+    activeNetworkId: activeNetworkId ?? `eip155:1:abw-sf5-${++networkSeq}`,
     setActiveNetworkId: () => undefined,
     activeNetworkConfig: { name: 'Ethereum' } as NetworkConfig,
     activeRuntime: { nameResolution } as EcosystemRuntime,
@@ -71,18 +65,27 @@ function makeWallet(): WalletStateContextValue {
   };
 }
 
-const idleAddr = (): UseResolveAddressResult => ({ status: 'idle' });
+/** Lookup-map reverse resolver — addresses in the map resolve; others → NOT_FOUND. */
+function mapReverseResolver(
+  entries: readonly ResolvedName[]
+): ReturnType<typeof vi.fn> & NonNullable<NameResolutionCapability['resolveAddress']> {
+  const byAddr = new Map(entries.map((e) => [e.address.toLowerCase(), e]));
+  return vi.fn(async (address: string): Promise<ResolutionResult<ResolvedName>> => {
+    const hit = byAddr.get(address.toLowerCase());
+    return hit
+      ? { ok: true, value: hit }
+      : { ok: false, error: { code: 'ADDRESS_NOT_FOUND', address } };
+  });
+}
 
-/** A forward-verified reverse-ENS arm — the ONLY arm SF-4 surfaces as name+avatar. */
-function verifiedArm(name: string, address: string, avatarUrl?: string): UseResolveAddressResult {
-  const data: ResolvedName = {
+function verifiedRecord(name: string, address: string, avatarUrl?: string): ResolvedName {
+  return {
     address: address.toLowerCase(),
     name,
     forwardVerified: true,
     provenance: { label: 'ENS', external: false },
     ...(avatarUrl ? { avatarUrl } : {}),
   };
-  return { status: 'resolved', address: address.toLowerCase(), data };
 }
 
 function alias(overrides: Partial<AddressBookAlias>): AddressBookAlias {
@@ -110,15 +113,15 @@ function baseProps(aliases: AddressBookAlias[]): AddressBookWidgetProps {
 
 function renderWidget(
   props: AddressBookWidgetProps,
-  { withProvider = false }: { withProvider?: boolean } = {}
+  {
+    wallet,
+  }: {
+    wallet?: WalletStateContextValue;
+  } = {}
 ): void {
   const el = <AddressBookWidget {...props} />;
   render(
-    withProvider ? (
-      <WalletStateContext.Provider value={makeWallet()}>{el}</WalletStateContext.Provider>
-    ) : (
-      el
-    )
+    wallet ? <WalletStateContext.Provider value={wallet}>{el}</WalletStateContext.Provider> : el
   );
 }
 
@@ -128,12 +131,24 @@ const openAddDialog = (): void =>
   fireEvent.click(screen.getByRole('button', { name: /Add Alias/ }));
 
 beforeEach(() => {
-  mockUseResolveAddress.mockReturnValue(idleAddr());
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
 });
 afterEach(() => {
+  vi.useRealTimers();
   vi.clearAllMocks();
   vi.restoreAllMocks();
 });
+
+async function settleReverse(): Promise<void> {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(0);
+  });
+  for (let i = 0; i < 3; i += 1) {
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+  }
+}
 
 // ===========================================================================
 // INV-98 — the flag is threaded verbatim to the dialog
@@ -141,7 +156,7 @@ afterEach(() => {
 
 describe('INV-98: enableNameResolution is additive, default-false, and threaded verbatim', () => {
   it('flag on → the opened dialog uses the ENS-aware field (resolution region present)', () => {
-    renderWidget({ ...baseProps([]), enableNameResolution: true }, { withProvider: true });
+    renderWidget({ ...baseProps([]), enableNameResolution: true }, { wallet: makeWallet() });
     openAddDialog();
     expect(resolutionRegion()).not.toBeNull();
   });
@@ -154,28 +169,34 @@ describe('INV-98: enableNameResolution is additive, default-false, and threaded 
 });
 
 // ===========================================================================
-// INV-97 — every row renders via the SF-4 display component, gating-independent
+// INV-97 — every row renders via the SF-4 display component when flag is on
 // ===========================================================================
 
-describe('INV-97: every alias row renders via the SF-4 component regardless of how it was added', () => {
+describe('INV-97: every alias row renders via the SF-4 component when enableNameResolution is on', () => {
   const A1 = `0x${'a1'.repeat(20)}`; // ENS-added
   const A2 = `0x${'b2'.repeat(20)}`; // hex with reverse record
   const A3 = `0x${'c3'.repeat(20)}`; // hex without reverse record
+  const NETWORK = 'eip155:1';
 
-  it('name+avatar for verified rows, truncated hex for the no-record row, alias heading always kept', () => {
-    mockUseResolveAddress.mockImplementation((address) => {
-      if (address === A1) return verifiedArm('alice.eth', A1, 'https://avatars.test/a.png');
-      if (address === A2) return verifiedArm('vitalik.eth', A2, 'https://avatars.test/v.png');
-      return idleAddr(); // A3 → no reverse record → hex fallback
-    });
+  it('name+avatar for verified rows, truncated hex for the no-record row, alias heading always kept', async () => {
+    const resolveAddress = mapReverseResolver([
+      verifiedRecord('alice.eth', A1, 'https://avatars.test/a.png'),
+      verifiedRecord('vitalik.eth', A2, 'https://avatars.test/v.png'),
+    ]);
 
     renderWidget(
-      baseProps([
-        alias({ id: '1', address: A1, alias: 'Alice ENS' }),
-        alias({ id: '2', address: A2, alias: 'Saved Contact' }),
-        alias({ id: '3', address: A3, alias: 'Cold Storage' }),
-      ])
+      {
+        ...baseProps([
+          alias({ id: '1', address: A1, alias: 'Alice ENS', networkId: NETWORK }),
+          alias({ id: '2', address: A2, alias: 'Saved Contact', networkId: NETWORK }),
+          alias({ id: '3', address: A3, alias: 'Cold Storage', networkId: NETWORK }),
+        ]),
+        enableNameResolution: true,
+      },
+      { wallet: makeWallet(resolveAddress, NETWORK) }
     );
+
+    await settleReverse();
 
     // No row silently loses its stored alias heading.
     expect(screen.getByText('Alice ENS')).toBeTruthy();
@@ -188,6 +209,7 @@ describe('INV-97: every alias row renders via the SF-4 component regardless of h
 
     // Exactly two avatars — one per verified row; the hex-fallback row has none.
     expect(document.querySelectorAll('img')).toHaveLength(2);
+    expect(resolveAddress).toHaveBeenCalled();
   });
 });
 
@@ -219,22 +241,46 @@ describe('INV-108: search matches an ENS-derived alias stored as the alias strin
 });
 
 // ===========================================================================
-// INV-113 — opt-in-false: zero add-flow resolution, no provider needed
+// INV-113 / B1 — flag-off: zero reverse resolution, no provider needed
 // ===========================================================================
 
-describe('INV-113: the default (flag-off) widget mounts with no provider and does no add-flow resolution', () => {
-  it('mounts without a WalletStateProvider; the opened dialog carries no resolution surface', () => {
+describe('INV-113 / B1: flag-off widget mounts wallet-less with aliases and issues no reverse resolution', () => {
+  it('wallet-less + ≥1 saved alias + flag OFF renders without crashing and never calls useResolveAddress', () => {
+    const spy = vi.spyOn(uiReact, 'useResolveAddress');
+
     expect(() =>
       renderWidget(
         baseProps([alias({ id: '1', address: `0x${'a'.repeat(40)}`, alias: 'Treasury' })])
       )
     ).not.toThrow();
 
+    expect(screen.getByText('Treasury')).toBeTruthy();
+    expect(spy).not.toHaveBeenCalled();
+
     // Opening the dialog on the legacy path mounts the plain base field — no resolver
-    // seam is injected, so no announcer region exists and no resolution machinery runs
-    // (capability-boundary zero-call proof lives in AddAliasDialog.sf5.test.tsx INV-113).
+    // seam is injected, so no announcer region exists.
     openAddDialog();
     expect(resolutionRegion()).toBeNull();
+  });
+
+  it('flag ON but no WalletStateProvider degrades gracefully (no throw)', () => {
+    expect(() =>
+      renderWidget({
+        ...baseProps([
+          alias({
+            id: '1',
+            address: `0x${'a'.repeat(40)}`,
+            alias: 'Treasury',
+            networkId: 'eip155:1',
+          }),
+        ]),
+        enableNameResolution: true,
+      })
+    ).not.toThrow();
+
+    expect(screen.getByText('Treasury')).toBeTruthy();
+    // No verified reverse name — soft-degrade leaves hex / alias only.
+    expect(screen.queryByText(/\.eth$/)).toBeNull();
   });
 });
 

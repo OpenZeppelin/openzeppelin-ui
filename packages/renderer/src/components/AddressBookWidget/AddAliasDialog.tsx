@@ -46,22 +46,39 @@ interface AddAliasFormData {
   alias: string;
 }
 
+interface ResolvingAliasAddressFieldProps extends AddressFieldProps<AddAliasFormData> {
+  /**
+   * Network the dialog will save the alias under. The SF-6 chain-scope gate
+   * must compare provenance against THIS id (not the wallet's active network),
+   * otherwise a mainnet resolve can be saved as a Base-scoped book entry.
+   */
+  dialogNetworkId?: string | null;
+  dialogNetworkName?: string;
+}
+
 /**
  * ENS-capable variant of the alias address field (SF-5 over SF-3 Rev-2): the
  * base `AddressField` wired to the active runtime through the injected
  * `NameResolverContext`. A separate component so the runtime wiring hook
  * mounts only when `enableNameResolution` is on — the legacy branch stays
  * hook-free and byte-identical (INV-95 / INV-107).
+ *
+ * Chain-scope gate uses the dialog-selected network (fallback: wallet active)
+ * so the gate network matches `onSave`'s `networkId`.
  */
-function ResolvingAliasAddressField(props: AddressFieldProps<AddAliasFormData>) {
+function ResolvingAliasAddressField({
+  dialogNetworkId,
+  dialogNetworkName,
+  ...props
+}: ResolvingAliasAddressFieldProps) {
   const resolver = useRuntimeNameResolver();
   const walletState = useContext(WalletStateContext);
 
   return (
     <NameResolverProvider
       {...resolver}
-      activeNetworkId={walletState?.activeNetworkId ?? null}
-      activeNetworkName={walletState?.activeNetworkConfig?.name}
+      activeNetworkId={dialogNetworkId ?? walletState?.activeNetworkId ?? null}
+      activeNetworkName={dialogNetworkName ?? walletState?.activeNetworkConfig?.name}
     >
       <AddressField<AddAliasFormData> {...props} />
     </NameResolverProvider>
@@ -276,6 +293,8 @@ export function AddAliasDialog({
               validation={{ required: true }}
               addressing={activeAddressing}
               onResolvedNameChange={handleResolvedName}
+              dialogNetworkId={selectedNetwork?.id}
+              dialogNetworkName={selectedNetwork?.name}
             />
           ) : (
             <AddressField

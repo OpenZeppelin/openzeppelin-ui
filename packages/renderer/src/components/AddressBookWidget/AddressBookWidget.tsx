@@ -177,6 +177,7 @@ export function AddressBookWidget({
                   onRemove={onRemove}
                   resolveNetwork={resolveNetwork}
                   resolveExplorerUrl={resolveExplorerUrl}
+                  enableNameResolution={enableNameResolution}
                 />
               ))}
 
