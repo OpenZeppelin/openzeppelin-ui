@@ -38,7 +38,7 @@ describe('INV-35: debounce timer cleared on input change and on unmount', () => 
   it('rapid typing keeps exactly one live timer; unmount clears the last', () => {
     // Invalid (non-`.eth`) names keep the query disabled, so getTimerCount
     // reflects ONLY the debounce timer, not react-query internals.
-    const { Wrapper, setWallet } = makeWalletWrapper(walletWithCapability(makeCapability()));
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability()));
 
     const { rerender, unmount } = renderHook(({ name }) => useResolveName(name), {
       wrapper: Wrapper,
@@ -65,7 +65,7 @@ describe('INV-35: debounce timer cleared on input change and on unmount', () => 
 
   it('a debounce armed then unmounted mid-window never fires setState (no console error)', async () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    const { Wrapper, setWallet } = makeWalletWrapper(walletWithCapability(makeCapability()));
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability()));
 
     const { rerender, unmount } = renderHook(({ name }) => useResolveName(name), {
       wrapper: Wrapper,
@@ -88,9 +88,7 @@ describe('INV-36: no state update after unmount; in-flight result is dropped', (
       settle = res;
     });
     const resolveAddress = vi.fn(() => pending);
-    const { Wrapper, setWallet } = makeWalletWrapper(
-      walletWithCapability(makeCapability({ resolveAddress }))
-    );
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveAddress })));
 
     const { result, unmount } = renderHook(() => useResolveAddress('0xabc'), {
       wrapper: Wrapper,
@@ -156,9 +154,7 @@ describe('INV-38: an input change rerenders only the affected consumer', () => {
         value: { ...REVERSE_UNVERIFIED, address },
       })
     );
-    const { Wrapper, setWallet } = makeWalletWrapper(
-      walletWithCapability(makeCapability({ resolveAddress }))
-    );
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveAddress })));
 
     const renders = { a: 0, b: 0 };
     const ChildA = memo(function ChildA({ addr }: { addr: string }) {
@@ -228,7 +224,7 @@ describe('INV-40: cache keys are network-scoped (same input, two networks → tw
     const { Wrapper, setWallet } = makeWalletWrapper(
       walletWithCapability(capability, { activeNetworkId: 'eip155:1' })
     );
-    const { result } = renderHook(() => useResolveName('alice.eth'), {
+    renderHook(() => useResolveName('alice.eth'), {
       wrapper: Wrapper,
     });
     await tick(0);

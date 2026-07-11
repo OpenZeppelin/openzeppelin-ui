@@ -57,9 +57,7 @@ describe('INV-42: all four async states are represented and mutually exclusive',
   it('drives idle → loading → resolved, each a distinct status', async () => {
     const gate = deferred<ResolutionResult<ResolvedName>>();
     const resolveAddress = vi.fn(() => gate.promise);
-    const { Wrapper, setWallet } = makeWalletWrapper(
-      walletWithCapability(makeCapability({ resolveAddress }))
-    );
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveAddress })));
 
     const { result, rerender } = renderHook(({ addr }) => useResolveAddress(addr), {
       wrapper: Wrapper,
@@ -89,10 +87,9 @@ describe('INV-43: the hook never throws; typed errors surface in the error arm',
     const resolveName = vi.fn(
       async (): Promise<ResolutionResult<ResolvedAddress>> => ({ ok: false, error })
     );
-    const { Wrapper, setWallet } = makeWalletWrapper(
-      walletWithCapability(makeCapability({ resolveName })),
-      { config: { transientRetryCount: 0 } }
-    );
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveName })), {
+      config: { transientRetryCount: 0 },
+    });
 
     const { result } = renderHook(() => useResolveName('nope.eth'), {
       wrapper: Wrapper,
@@ -110,10 +107,9 @@ describe('INV-43: the hook never throws; typed errors surface in the error arm',
     const resolveName = vi.fn(async (): Promise<ResolutionResult<ResolvedAddress>> => {
       throw new Error('viem revert');
     });
-    const { Wrapper, setWallet } = makeWalletWrapper(
-      walletWithCapability(makeCapability({ resolveName })),
-      { config: { transientRetryCount: 0 } }
-    );
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveName })), {
+      config: { transientRetryCount: 0 },
+    });
 
     const { result } = renderHook(() => useResolveName('alice.eth'), {
       wrapper: Wrapper,
@@ -139,9 +135,7 @@ describe('INV-44: out-of-order responses never overwrite a newer input', () => {
     const resolveAddress = vi.fn((address: string) =>
       address === '0xbob' ? bobGate.promise : aliceGate.promise
     );
-    const { Wrapper, setWallet } = makeWalletWrapper(
-      walletWithCapability(makeCapability({ resolveAddress }))
-    );
+    const { Wrapper } = makeWalletWrapper(walletWithCapability(makeCapability({ resolveAddress })));
 
     const { result, rerender } = renderHook(({ addr }) => useResolveAddress(addr), {
       wrapper: Wrapper,
@@ -180,7 +174,7 @@ describe('INV-44: out-of-order responses never overwrite a newer input', () => {
 describe('INV-45: capability / method absence synthesizes UNSUPPORTED_NETWORK, no adapter call', () => {
   it('capability present but the directional method absent → UNSUPPORTED_NETWORK', async () => {
     // makeCapability without resolveName → forward method is undefined.
-    const { Wrapper, setWallet } = makeWalletWrapper(
+    const { Wrapper } = makeWalletWrapper(
       walletWithCapability(makeCapability(), { activeNetworkId: 'eip155:1' })
     );
 
@@ -200,7 +194,7 @@ describe('INV-45: capability / method absence synthesizes UNSUPPORTED_NETWORK, n
       async (): Promise<ResolutionResult<ResolvedAddress>> => ({ ok: true, value: ALICE })
     );
     // A spy that should never be called — there is no runtime to call it on.
-    const { Wrapper, setWallet } = makeWalletWrapper(
+    const { Wrapper } = makeWalletWrapper(
       walletNoRuntime({ activeNetworkId: 'eip155:1', isRuntimeLoading: false })
     );
 
