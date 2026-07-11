@@ -94,6 +94,19 @@ describe('INV-73: classifyAddressInput is total, deterministic, pure, first-matc
     // No addressing predicate → step 2 cannot match → falls through to the name path.
     expect(classifyAddressInput(VALID_HEX, { isValidName })).toBe('malformed');
   });
+
+  it('trims once before predicates — whitespace-padded hex is hex when the predicate accepts only the trimmed form', () => {
+    const strictAddress = (v: string): boolean => v === VALID_HEX;
+    expect(
+      classifyAddressInput(`  ${VALID_HEX}  `, { isValidAddress: strictAddress, isValidName })
+    ).toBe('hex');
+  });
+
+  it('trims once before predicates — whitespace-padded name is name-candidate', () => {
+    expect(classifyAddressInput(' alice.eth ', { isValidAddress, isValidName })).toBe(
+      'name-candidate'
+    );
+  });
 });
 
 describe('INV-74: looksLikeName (no-capability fallback) is conservative — pinned acceptance vectors', () => {

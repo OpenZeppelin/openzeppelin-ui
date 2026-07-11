@@ -76,13 +76,13 @@ export function looksLikeName(value: string): boolean {
  * Classify a raw address-field input synchronously.
  *
  * Order of checks (first match wins — INV-73):
- *  1. trimmed-empty                    → `'empty'`
- *  2. `isValidAddress?.(value)===true` → `'hex'` (checked before names, so a value
- *                                        that is both hex-valid and name-shaped is `'hex'`)
+ *  1. trimmed-empty                       → `'empty'`
+ *  2. `isValidAddress?.(trimmed)===true`  → `'hex'` (checked before names, so a value
+ *                                           that is both hex-valid and name-shaped is `'hex'`)
  *  3. `isValidName` present:
- *       `isValidName(value)`           → `'name-candidate'` else `'malformed'`
+ *       `isValidName(trimmed)`            → `'name-candidate'` else `'malformed'`
  *  4. `isValidName` absent:
- *       `looksLikeName(value)`         → `'name-candidate'` else `'malformed'`
+ *       `looksLikeName(trimmed)`          → `'name-candidate'` else `'malformed'`
  *
  * Pure and deterministic: same inputs → same output, no I/O.
  *
@@ -94,13 +94,15 @@ export function classifyAddressInput(
   value: string,
   predicates?: AddressInputPredicates
 ): AddressInputClassification {
-  if (value.trim() === '') return 'empty';
+  const trimmed = value.trim();
 
-  if (predicates?.isValidAddress?.(value) === true) return 'hex';
+  if (trimmed === '') return 'empty';
+
+  if (predicates?.isValidAddress?.(trimmed) === true) return 'hex';
 
   if (predicates?.isValidName) {
-    return predicates.isValidName(value) ? 'name-candidate' : 'malformed';
+    return predicates.isValidName(trimmed) ? 'name-candidate' : 'malformed';
   }
 
-  return looksLikeName(value) ? 'name-candidate' : 'malformed';
+  return looksLikeName(trimmed) ? 'name-candidate' : 'malformed';
 }
