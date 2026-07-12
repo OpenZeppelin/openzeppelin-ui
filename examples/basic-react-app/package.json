@@ -16,8 +16,8 @@
   },
   "dependencies": {
     "@creit.tech/stellar-wallets-kit": "^1.8.0",
-    "@openzeppelin/adapter-evm": "^2.0.2",
-    "@openzeppelin/adapter-stellar": "^2.0.2",
+    "@openzeppelin/adapter-evm": "^2.2.0",
+    "@openzeppelin/adapter-stellar": "^2.2.0",
     "@openzeppelin/ui-components": "workspace:^",
     "@openzeppelin/ui-react": "workspace:^",
     "@openzeppelin/ui-renderer": "workspace:^",
@@ -37,12 +37,12 @@
     "react-hook-form": "^7.79.0",
     "react-syntax-highlighter": "^15.6.1",
     "sonner": "^2.0.7",
-    "viem": "^2.31.3",
+    "viem": "^2.35.0",
     "wagmi": "^2.17.0",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
-    "@openzeppelin/adapters-vite": "^2.0.0",
+    "@openzeppelin/adapters-vite": "^4.0.0",
     "@tailwindcss/vite": "^4.1.11",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.1.7",
