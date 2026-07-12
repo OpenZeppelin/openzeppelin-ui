@@ -36,6 +36,30 @@ export {
 export { useDerivedDisconnect, type DerivedDisconnectStatus } from './hooks/useDerivedDisconnect';
 export { useWalletReconnectionHandler } from './hooks/useWalletReconnectionHandler';
 
+// Name Resolution (ENS forward + reverse) — SF-2
+export { useResolveName, type UseResolveNameOptions } from './hooks/nameResolution/useResolveName';
+export {
+  useResolveAddress,
+  type UseResolveAddressOptions,
+} from './hooks/nameResolution/useResolveAddress';
+export type {
+  NameResolutionStatus,
+  UseResolveNameResult,
+  UseResolveAddressResult,
+} from './hooks/nameResolution/resolutionState';
+export {
+  NameResolutionProvider,
+  type NameResolutionProviderProps,
+} from './hooks/nameResolution/NameResolutionProvider';
+export {
+  NameResolutionContext,
+  type NameResolutionContextValue,
+  useNameResolutionContext,
+} from './hooks/nameResolution/NameResolutionContext';
+export { DEFAULT_CONFIG, type ResolutionConfig } from './hooks/nameResolution/resolutionConfig';
+// SF-3: smart capability→context wiring for the ui-components NameResolver seam.
+export { useRuntimeNameResolver } from './hooks/nameResolution/useRuntimeNameResolver';
+
 // UI Components
 export { WalletConnectionHeader } from './components/WalletConnectionHeader';
 export { WalletConnectionUI, type WalletConnectionUIProps } from './components/WalletConnectionUI';

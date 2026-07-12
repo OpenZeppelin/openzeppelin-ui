@@ -97,4 +97,27 @@ export interface AddressBookWidgetProps {
 
   /** Additional CSS classes */
   className?: string;
+
+  /**
+   * Opt into ENS (name) resolution for the Add-Alias dialog **and** alias rows.
+   * Default `false`.
+   *
+   * When `true`:
+   * - The dialog's address input becomes ENS-aware (the base `AddressField`
+   *   with a name-resolution seam injected): a typed name resolves inline to
+   *   its hex, submit is gated until resolved, and the resolved name
+   *   auto-suggests the alias.
+   * - Each alias row mounts a reverse-ENS bridge so verified names/avatars
+   *   can surface beside the stored alias.
+   *
+   * Wire an ambient `WalletStateProvider` so resolution can succeed; without
+   * one, forward (dialog) and reverse (rows) degrade gracefully — no throw —
+   * to an unsupported-network / hex-fallback path rather than resolving.
+   *
+   * Left `false` (the default), the widget mounts neither the dialog seam nor
+   * any per-row reverse-resolution provider: no resolution calls, no
+   * `WalletStateProvider` required — strictly backward-compatible with
+   * pre-ENS consumers.
+   */
+  readonly enableNameResolution?: boolean;
 }

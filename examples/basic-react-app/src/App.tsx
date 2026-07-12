@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   ArrowLeftRight,
+  AtSign,
   BookOpen,
   BookUser,
   Calendar,
@@ -42,12 +43,13 @@ import {
   SidebarSection,
 } from '@openzeppelin/ui-components';
 
-import { EcosystemSwitcher } from './components/EcosystemSwitcher';
+import { NetworkSwitcher } from './components/NetworkSwitcher';
 
 import {
   AccordionDemo,
   AccountAliasDemo,
   AddressDisplayDemo,
+  AddressFieldDemo,
   AddressListFieldDemo,
   AlertDemo,
   ArchitectureDemo,
@@ -61,6 +63,7 @@ import {
   DialogDemo,
   DropdownMenuDemo,
   EmptyStateDemo,
+  ENSResolutionDemo,
   ExternalLinkDemo,
   FormDemo,
   FormFieldsDemo,
@@ -101,6 +104,7 @@ type DemoKey =
   | 'renderer'
   | 'network'
   | 'contract-interactions'
+  | 'name-resolution'
   // Storage Plugins
   | 'account-alias'
   // Component Gallery - Inputs
@@ -133,6 +137,7 @@ type DemoKey =
   // Component Gallery - Forms
   | 'form'
   | 'form-fields'
+  | 'address-field'
   | 'address-list-field'
   | 'calendar'
   | 'date-range-picker';
@@ -174,6 +179,7 @@ const integrationItems: NavItem[] = [
     label: 'Contract Interactions',
     icon: <FileText className="size-4" />,
   },
+  { key: 'name-resolution', label: 'Name Resolution', icon: <AtSign className="size-4" /> },
 ];
 
 /**
@@ -244,6 +250,11 @@ const galleryCategories: GalleryCategory[] = [
     items: [
       { key: 'form', label: 'Form', icon: <FormInput className="size-4" /> },
       { key: 'form-fields', label: 'FormFields', icon: <FormInput className="size-4" /> },
+      {
+        key: 'address-field',
+        label: 'AddressField',
+        icon: <TextCursorInput className="size-4" />,
+      },
       { key: 'address-list-field', label: 'AddressListField', icon: <List className="size-4" /> },
       { key: 'calendar', label: 'Calendar', icon: <Calendar className="size-4" /> },
       {
@@ -274,6 +285,7 @@ const demoComponents: Record<
   renderer: RendererDemo,
   network: NetworkDemo,
   'contract-interactions': ContractInteractionsDemo,
+  'name-resolution': ENSResolutionDemo,
   // Storage Plugins
   'account-alias': AccountAliasDemo,
   // Component Gallery - Inputs
@@ -306,6 +318,7 @@ const demoComponents: Record<
   // Component Gallery - Forms
   form: FormDemo,
   'form-fields': FormFieldsDemo,
+  'address-field': AddressFieldDemo,
   'address-list-field': AddressListFieldDemo,
   calendar: CalendarDemo,
   'date-range-picker': DateRangePickerDemo,
@@ -555,7 +568,7 @@ function App(): React.ReactElement {
           onOpenSidebar={() => setMobileOpen(true)}
           rightContent={
             <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
-              <EcosystemSwitcher />
+              <NetworkSwitcher />
               <a
                 href={DOCS_UIKIT}
                 target="_blank"

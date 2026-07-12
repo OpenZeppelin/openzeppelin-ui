@@ -13,8 +13,17 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { AddressLabelProvider, AddressSuggestionProvider } from '@openzeppelin/ui-components';
-import { RuntimeProvider, useWalletState, WalletStateProvider } from '@openzeppelin/ui-react';
+import {
+  AddressLabelProvider,
+  AddressSuggestionProvider,
+  NameResolverProvider,
+} from '@openzeppelin/ui-components';
+import {
+  RuntimeProvider,
+  useRuntimeNameResolver,
+  useWalletState,
+  WalletStateProvider,
+} from '@openzeppelin/ui-react';
 import { useAliasLabelResolver, useAliasSuggestionResolver } from '@openzeppelin/ui-storage';
 import type { NativeConfigLoader } from '@openzeppelin/ui-types';
 
@@ -172,7 +181,9 @@ function EcosystemProviderInner({ children }: EcosystemProviderInnerProps): Reac
 
   return (
     <EcosystemContext.Provider value={ecosystemContextValue}>
-      <AliasProviderBridge networkId={network?.id}>{children}</AliasProviderBridge>
+      <NameResolverBridge>
+        <AliasProviderBridge networkId={network?.id}>{children}</AliasProviderBridge>
+      </NameResolverBridge>
     </EcosystemContext.Provider>
   );
 }
@@ -200,6 +211,34 @@ function AliasProviderBridge({
     <AddressLabelProvider {...labelResolver}>
       <AddressSuggestionProvider {...suggestionResolver}>{children}</AddressSuggestionProvider>
     </AddressLabelProvider>
+  );
+}
+
+// ============================================================================
+// Name Resolver Bridge (ambient forward ENS resolution for AddressField)
+// ============================================================================
+
+/**
+ * Projects the active runtime's name-resolution capability into the
+ * `NameResolverProvider` seam, so every base `AddressField` in the app resolves
+ * typed names (e.g. `vitalik.eth`) inline with zero call-site wiring. On
+ * runtimes without the capability the resolver is empty and fields behave
+ * exactly as before.
+ */
+function NameResolverBridge({ children }: { children: React.ReactNode }): React.ReactElement {
+  const resolver = useRuntimeNameResolver();
+  // Mirror TransactionForm: wire active network into the provider so
+  // `isChainScopeMismatch` can gate coinType wrong-chain submits. Omitting
+  // these leaves the gate permanently off for every AddressField in the app.
+  const { activeNetworkId, activeNetworkConfig } = useWalletState();
+  return (
+    <NameResolverProvider
+      {...resolver}
+      activeNetworkId={activeNetworkId ?? null}
+      activeNetworkName={activeNetworkConfig?.name}
+    >
+      {children}
+    </NameResolverProvider>
   );
 }
 

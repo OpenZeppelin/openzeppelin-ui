@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import {
@@ -12,10 +12,13 @@ import {
   DialogHeader,
   DialogTitle,
   Label,
+  NameResolverProvider,
   NetworkIcon,
   NetworkSelector,
   TextField,
+  type AddressFieldProps,
 } from '@openzeppelin/ui-components';
+import { useRuntimeNameResolver, WalletStateContext } from '@openzeppelin/ui-react';
 import type { AddressingCapability, NetworkConfig } from '@openzeppelin/ui-types';
 
 interface AddAliasDialogProps {
@@ -29,11 +32,57 @@ interface AddAliasDialogProps {
   resolveAddressPlaceholder?: (network: NetworkConfig) => string | undefined;
   resolveNetwork?: (networkId: string) => NetworkConfig | undefined;
   networks?: NetworkConfig[];
+  /**
+   * When true, wire the address field to the active runtime's name resolution
+   * (ENS) via the injected NameResolverContext. Degrades gracefully without a
+   * WalletStateProvider / capability: names surface UNSUPPORTED_NETWORK, hex
+   * entry is unchanged.
+   */
+  enableNameResolution?: boolean;
 }
 
 interface AddAliasFormData {
   address: string;
   alias: string;
+}
+
+interface ResolvingAliasAddressFieldProps extends AddressFieldProps<AddAliasFormData> {
+  /**
+   * Network the dialog will save the alias under. The SF-6 chain-scope gate
+   * must compare provenance against THIS id (not the wallet's active network),
+   * otherwise a mainnet resolve can be saved as a Base-scoped book entry.
+   */
+  dialogNetworkId?: string | null;
+  dialogNetworkName?: string;
+}
+
+/**
+ * ENS-capable variant of the alias address field (SF-5 over SF-3 Rev-2): the
+ * base `AddressField` wired to the active runtime through the injected
+ * `NameResolverContext`. A separate component so the runtime wiring hook
+ * mounts only when `enableNameResolution` is on — the legacy branch stays
+ * hook-free and byte-identical (INV-95 / INV-107).
+ *
+ * Chain-scope gate uses the dialog-selected network (fallback: wallet active)
+ * so the gate network matches `onSave`'s `networkId`.
+ */
+function ResolvingAliasAddressField({
+  dialogNetworkId,
+  dialogNetworkName,
+  ...props
+}: ResolvingAliasAddressFieldProps) {
+  const resolver = useRuntimeNameResolver();
+  const walletState = useContext(WalletStateContext);
+
+  return (
+    <NameResolverProvider
+      {...resolver}
+      activeNetworkId={dialogNetworkId ?? walletState?.activeNetworkId ?? null}
+      activeNetworkName={dialogNetworkName ?? walletState?.activeNetworkConfig?.name}
+    >
+      <AddressField<AddAliasFormData> {...props} />
+    </NameResolverProvider>
+  );
 }
 
 /** Dialog for creating a new address alias entry. */
@@ -48,6 +97,7 @@ export function AddAliasDialog({
   resolveAddressPlaceholder,
   resolveNetwork,
   networks,
+  enableNameResolution,
 }: AddAliasDialogProps) {
   const [saving, setSaving] = useState(false);
 
@@ -66,10 +116,47 @@ export function AddAliasDialog({
     defaultPlaceholder
   );
 
-  const { control, handleSubmit, reset, trigger, formState } = useForm<AddAliasFormData>({
-    defaultValues: { address: '', alias: '' },
-    mode: 'onChange',
-  });
+  const { control, handleSubmit, reset, trigger, formState, setValue, getValues } =
+    useForm<AddAliasFormData>({
+      defaultValues: { address: '', alias: '' },
+      mode: 'onChange',
+    });
+
+  // INV-103 / INV-112: "the user claimed the alias" is tracked from the alias
+  // field's OWN user edits (`TextField.onUserEdit`), set synchronously inside the
+  // keystroke handler — strictly before any resolution effect can flush, so a
+  // settling suggestion can never clobber a just-typed alias. RHF's `dirtyFields`
+  // cannot carry this: an address keystroke's form-wide dirty recompute
+  // retroactively marks the seeded (value ≠ default) alias dirty even though it
+  // was written with `shouldDirty: false`, which suppressed every later re-seed
+  // (INV-102/INV-105). Sticky for the dialog session; cleared with each `reset()`.
+  // Inert on the legacy path (nothing reads it when `enableNameResolution` is
+  // off — INV-107).
+  const aliasClaimedRef = useRef(false);
+  const handleAliasUserEdit = useCallback(() => {
+    aliasClaimedRef.current = true;
+  }, []);
+
+  // Alias auto-suggestion from the resolved ENS name (wired ONLY to the ENS-aware field).
+  const handleResolvedName = useCallback(
+    (name: string | undefined) => {
+      // INV-103: once the user has typed in the alias, the field is theirs for the rest
+      // of the dialog session — neither a new suggestion nor a withdrawal touches it.
+      if (aliasClaimedRef.current) return;
+      const next = name ?? '';
+      // INV-96 parity: with nothing to seed and nothing to withdraw, leave the
+      // field alone. In particular the mount-time `undefined` emission must not
+      // validate the pristine alias — the ENS branch mounts as clean as legacy
+      // ("This field is required" never appears before any interaction).
+      if (next === getValues('alias')) return;
+      // INV-102 (seed while unclaimed) + INV-104 (withdraw to '' on `undefined` while
+      // unclaimed — CQ3: blank while re-resolving, never show a stale name that no longer
+      // matches the address being resolved) + INV-105 (successive resolutions keep
+      // updating the unclaimed seed). INV-116: writes a value only, never focus.
+      setValue('alias', next, { shouldDirty: false, shouldValidate: true });
+    },
+    [getValues, setValue]
+  );
 
   // When the dialog opens, seed network + addressing/placeholder from the props.
   // If an `initialNetwork` is preselected and matching resolvers are provided,
@@ -141,6 +228,7 @@ export function AddAliasDialog({
           networkId,
         });
         reset();
+        aliasClaimedRef.current = false;
         onOpenChange(false);
       } finally {
         setSaving(false);
@@ -153,6 +241,7 @@ export function AddAliasDialog({
     (nextOpen: boolean) => {
       if (!nextOpen) {
         reset();
+        aliasClaimedRef.current = false;
         setSelectedNetwork(initialNetwork ?? null);
         setActiveAddressing(defaultAddressing);
         setActivePlaceholder(defaultPlaceholder);
@@ -191,15 +280,33 @@ export function AddAliasDialog({
             </div>
           )}
 
-          <AddressField
-            id="new-alias-address"
-            name="address"
-            label="Address"
-            placeholder={activePlaceholder}
-            control={control}
-            validation={{ required: true }}
-            addressing={activeAddressing}
-          />
+          {/* INV-95: a single static branch over element choice only — never a
+              conditional hook, never both fields mounted. All props are identical across
+              branches except the ENS-only `onResolvedNameChange` notification. */}
+          {enableNameResolution ? (
+            <ResolvingAliasAddressField
+              id="new-alias-address"
+              name="address"
+              label="Address"
+              placeholder={activePlaceholder}
+              control={control}
+              validation={{ required: true }}
+              addressing={activeAddressing}
+              onResolvedNameChange={handleResolvedName}
+              dialogNetworkId={selectedNetwork?.id}
+              dialogNetworkName={selectedNetwork?.name}
+            />
+          ) : (
+            <AddressField
+              id="new-alias-address"
+              name="address"
+              label="Address"
+              placeholder={activePlaceholder}
+              control={control}
+              validation={{ required: true }}
+              addressing={activeAddressing}
+            />
+          )}
           <TextField
             id="new-alias-name"
             name="alias"
@@ -207,6 +314,7 @@ export function AddAliasDialog({
             placeholder="e.g. Treasury"
             control={control}
             validation={{ required: true }}
+            onUserEdit={handleAliasUserEdit}
           />
         </form>
 

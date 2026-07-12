@@ -13,25 +13,17 @@ import { useState } from 'react';
 import { AddressDisplay, Input } from '@openzeppelin/ui-components';
 
 import { useEcosystem } from '../context';
-import {
-  getEcosystemStaticMetadata,
-  getSupportedEcosystems,
-  type DemoEcosystem,
-} from '../core/ecosystemManager';
+import { getNetworkById } from '../core/ecosystemManager';
 import { DOCS_ECOSYSTEM_ADAPTERS, DOCS_UIKIT } from '../docsUrls';
+import { NETWORK_OPTIONS } from './networkOptions';
 import { Web3NetworkIcon } from './Web3NetworkIcon';
 
 export interface HomeDemoProps {
   onNavigate?: (demoKey: string) => void;
 }
 
-// Ecosystem icon helper
-function EcosystemIcon({ ecosystem, size = 24 }: { ecosystem: DemoEcosystem; size?: number }) {
-  return <Web3NetworkIcon network={getEcosystemStaticMetadata(ecosystem).iconName} size={size} />;
-}
-
 export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
-  const { ecosystem, setEcosystem, capabilities, sampleAddresses, metadata, isLoading } =
+  const { network, setNetwork, capabilities, sampleAddresses, metadata, isLoading } =
     useEcosystem();
   const [testAddress, setTestAddress] = useState('');
 
@@ -87,16 +79,19 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
           </span>
         </div>
 
-        {/* Ecosystem Switcher */}
+        {/* Network Switcher */}
         <div className="flex flex-wrap gap-3">
-          {getSupportedEcosystems().map((eco) => {
-            const info = getEcosystemStaticMetadata(eco);
-            const isActive = ecosystem === eco;
+          {NETWORK_OPTIONS.map((option) => {
+            const isActive = network?.id === option.id;
             return (
               <button
-                key={eco}
+                key={option.id}
                 onClick={() => {
-                  void setEcosystem(eco);
+                  void getNetworkById(option.id).then((config) => {
+                    if (config) {
+                      void setNetwork(config);
+                    }
+                  });
                   setTestAddress('');
                 }}
                 className={`flex items-center gap-2 rounded-lg border px-4 py-2 transition-all ${
@@ -105,8 +100,8 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
                     : 'hover:bg-muted/50'
                 }`}
               >
-                <EcosystemIcon ecosystem={eco} size={20} />
-                <span className="font-medium">{info.name}</span>
+                <Web3NetworkIcon network={option.icon} size={20} />
+                <span className="font-medium">{option.label}</span>
               </button>
             );
           })}

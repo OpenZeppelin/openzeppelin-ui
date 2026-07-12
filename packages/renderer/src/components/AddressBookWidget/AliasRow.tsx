@@ -10,12 +10,19 @@ import {
 } from '@openzeppelin/ui-components';
 import type { AddressBookAlias, NetworkConfig } from '@openzeppelin/ui-types';
 
+import { AddressNameResolutionProvider } from '../AddressNameResolutionProvider';
+
 interface AliasRowProps {
   alias: AddressBookAlias;
   onSave: (input: { address: string; alias: string; networkId?: string }) => Promise<string>;
   onRemove: (id: string) => Promise<void>;
   resolveNetwork?: (networkId: string) => NetworkConfig | undefined;
   resolveExplorerUrl?: (address: string, networkId?: string) => string | undefined;
+  /**
+   * When `false` / omitted, render the address with no reverse-ENS provider
+   * (no resolution calls; safe without `WalletStateProvider`).
+   */
+  enableNameResolution?: boolean;
 }
 
 /** Single row in the Address Book widget displaying an alias record. */
@@ -25,6 +32,7 @@ export function AliasRow({
   onRemove,
   resolveNetwork,
   resolveExplorerUrl,
+  enableNameResolution = false,
 }: AliasRowProps) {
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState(alias.alias);
@@ -108,13 +116,27 @@ export function AliasRow({
           )}
           <div className="min-w-0 flex-1">
             <AddressLabelProvider resolveLabel={() => undefined}>
-              <AddressDisplay
-                address={alias.address}
-                truncate={false}
-                showCopyButton
-                explorerUrl={explorerUrl}
-                className="text-xs text-muted-foreground"
-              />
+              {enableNameResolution ? (
+                <AddressNameResolutionProvider address={alias.address} networkId={alias.networkId}>
+                  <AddressDisplay
+                    address={alias.address}
+                    networkId={alias.networkId}
+                    truncate={false}
+                    showCopyButton
+                    explorerUrl={explorerUrl}
+                    className="text-xs text-muted-foreground"
+                  />
+                </AddressNameResolutionProvider>
+              ) : (
+                <AddressDisplay
+                  address={alias.address}
+                  networkId={alias.networkId}
+                  truncate={false}
+                  showCopyButton
+                  explorerUrl={explorerUrl}
+                  className="text-xs text-muted-foreground"
+                />
+              )}
             </AddressLabelProvider>
           </div>
         </div>

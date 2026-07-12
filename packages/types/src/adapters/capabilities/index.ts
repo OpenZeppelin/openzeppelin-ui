@@ -4,6 +4,7 @@
  */
 
 export type { AddressingCapability } from './addressing';
+export type { NameResolutionCapability } from './name-resolution';
 export type { ExplorerCapability } from './explorer';
 export type { NetworkCatalogCapability } from './network-catalog';
 export type { UiLabelsCapability } from './ui-labels';

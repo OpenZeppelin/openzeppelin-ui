@@ -67,6 +67,9 @@ describe('initProject', () => {
     expect(pnpmfile).toContain('(workspace fallback)');
     expect(pnpmfile).toContain('function allowAdapterPrereleases(pkg)');
     expect(pnpmfile).toContain('range.slice(1).match(');
+    expect(pnpmfile).toContain('function shouldAllowAdapterPrereleases()');
+    expect(pnpmfile).toContain('ALLOW_ADAPTER_PRERELEASES');
+    expect(pnpmfile).toContain('if (shouldAllowAdapterPrereleases())');
     expect(pnpmfile).toContain('allowAdapterPrereleases(pkg)');
     expect(packageJson.devDependencies['@openzeppelin/ui-dev-cli']).toBe(
       expectedCliDependencyRange

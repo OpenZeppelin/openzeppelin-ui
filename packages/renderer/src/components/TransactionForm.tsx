@@ -1,7 +1,9 @@
 import { AlertCircle } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
+import { NameResolverProvider } from '@openzeppelin/ui-components';
+import { useRuntimeNameResolver, WalletStateContext } from '@openzeppelin/ui-react';
 import type {
   FormValues,
   TransactionFormProps,
@@ -66,6 +68,14 @@ export function TransactionForm({
 
   // Derive networkConfig from the adapter instance
   const networkConfig = adapter.networkConfig;
+
+  // SF-3: ambient name-resolution wiring (SC-001 zero-wiring). Projects the
+  // active runtime's capability into the injected NameResolver seam so every
+  // blockchain-address field below resolves names inline. Degrades to an empty
+  // resolver (no methods → names surface UNSUPPORTED_NETWORK, hex unchanged)
+  // when no WalletStateProvider / runtime / capability is present (INV-119).
+  const nameResolver = useRuntimeNameResolver();
+  const walletState = useContext(WalletStateContext);
 
   // Initialize form with React Hook Form
   const methods = useForm<FormValues>({
@@ -325,87 +335,95 @@ export function TransactionForm({
   };
 
   return (
-    <FormProvider {...methods}>
-      <div className="mb-4 flex items-center justify-between">
-        {schema.title && <h2 className="text-xl font-bold">{schema.title}</h2>}
-      </div>
+    <NameResolverProvider
+      {...nameResolver}
+      activeNetworkId={walletState?.activeNetworkId ?? null}
+      activeNetworkName={walletState?.activeNetworkConfig?.name}
+    >
+      <FormProvider {...methods}>
+        <div className="mb-4 flex items-center justify-between">
+          {schema.title && <h2 className="text-xl font-bold">{schema.title}</h2>}
+        </div>
 
-      {/* Always render description container, just change content */}
-      <div className="description-container mb-6">
-        <p className="text-muted-foreground rounded-md border border-gray-100 bg-gray-50 p-3 text-sm">
-          {schema.description || 'No description provided.'}
-        </p>
-      </div>
+        {/* Always render description container, just change content */}
+        <div className="description-container mb-6">
+          <p className="text-muted-foreground rounded-md border border-gray-100 bg-gray-50 p-3 text-sm">
+            {schema.description || 'No description provided.'}
+          </p>
+        </div>
 
-      <div className="flex flex-col space-y-4">
-        {/* Display General Form Error (if any) */}
-        {formError && (
-          <div className="form-error rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
-            {formError}
-          </div>
-        )}
-
-        {/* Transaction Status Display - Moved OUTSIDE the form to avoid pointer-events-none */}
-        {txStatus !== 'idle' && (
-          <div className="mb-8 pointer-events-auto">
-            <TransactionStatusDisplay
-              status={txStatus}
-              txHash={txHash}
-              error={txError}
-              explorerUrl={txHash ? getExplorerTxUrl(txHash) : null}
-              customTitle={txStatusDetails?.title}
-              customMessage={txStatusDetails?.message}
-              result={txResult}
-              functionDetails={currentFunction}
-              query={adapter}
-              explorer={adapter}
-            />
-          </div>
-        )}
-
-        <form
-          className={`transaction-form flex flex-col ${getLayoutClasses()} ${PENDING_STATES.includes(txStatus) ? 'opacity-70 pointer-events-none' : ''}`}
-          noValidate
-          onSubmit={methods.handleSubmit(executeTransaction)}
-        >
-          {/* Display Execution Config Error (if any) */}
-          {executionConfigError && (
+        <div className="flex flex-col space-y-4">
+          {/* Display General Form Error (if any) */}
+          {formError && (
             <div className="form-error rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
-              <AlertCircle className="mr-2 h-4 w-4" />
-              {executionConfigError}
+              {formError}
             </div>
           )}
 
-          <div className="mb-6">{renderFormContent()}</div>
-
-          {/* Execution Config Display - Placed above the form actions */}
-          {executionConfig && (
-            <div className="w-full">
-              <ExecutionConfigDisplay
-                executionConfig={executionConfig}
-                execution={adapter}
-                relayer={adapter}
-                error={executionConfigError}
-                onRuntimeApiKeyChange={setRuntimeApiKey}
-              />
-            </div>
-          )}
-
-          {/* Form actions - Button only */}
-          <div className="mt-4 border-t border-gray-100 pt-4">
-            <div className="flex justify-end items-center gap-2">
-              <TransactionExecuteButton
-                isWalletConnected={isWalletConnected}
-                isSubmitting={txStatus === 'pendingSignature' || txStatus === 'pendingConfirmation'}
-                isFormValid={isValid && executionConfigError === null}
-                variant={getButtonVariant()}
+          {/* Transaction Status Display - Moved OUTSIDE the form to avoid pointer-events-none */}
+          {txStatus !== 'idle' && (
+            <div className="mb-8 pointer-events-auto">
+              <TransactionStatusDisplay
+                status={txStatus}
+                txHash={txHash}
+                error={txError}
+                explorerUrl={txHash ? getExplorerTxUrl(txHash) : null}
+                customTitle={txStatusDetails?.title}
+                customMessage={txStatusDetails?.message}
+                result={txResult}
                 functionDetails={currentFunction}
-                canExecuteLocally={canExecuteLocally}
+                query={adapter}
+                explorer={adapter}
               />
             </div>
-          </div>
-        </form>
-      </div>
-    </FormProvider>
+          )}
+
+          <form
+            className={`transaction-form flex flex-col ${getLayoutClasses()} ${PENDING_STATES.includes(txStatus) ? 'opacity-70 pointer-events-none' : ''}`}
+            noValidate
+            onSubmit={methods.handleSubmit(executeTransaction)}
+          >
+            {/* Display Execution Config Error (if any) */}
+            {executionConfigError && (
+              <div className="form-error rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
+                <AlertCircle className="mr-2 h-4 w-4" />
+                {executionConfigError}
+              </div>
+            )}
+
+            <div className="mb-6">{renderFormContent()}</div>
+
+            {/* Execution Config Display - Placed above the form actions */}
+            {executionConfig && (
+              <div className="w-full">
+                <ExecutionConfigDisplay
+                  executionConfig={executionConfig}
+                  execution={adapter}
+                  relayer={adapter}
+                  error={executionConfigError}
+                  onRuntimeApiKeyChange={setRuntimeApiKey}
+                />
+              </div>
+            )}
+
+            {/* Form actions - Button only */}
+            <div className="mt-4 border-t border-gray-100 pt-4">
+              <div className="flex justify-end items-center gap-2">
+                <TransactionExecuteButton
+                  isWalletConnected={isWalletConnected}
+                  isSubmitting={
+                    txStatus === 'pendingSignature' || txStatus === 'pendingConfirmation'
+                  }
+                  isFormValid={isValid && executionConfigError === null}
+                  variant={getButtonVariant()}
+                  functionDetails={currentFunction}
+                  canExecuteLocally={canExecuteLocally}
+                />
+              </div>
+            </div>
+          </form>
+        </div>
+      </FormProvider>
+    </NameResolverProvider>
   );
 }

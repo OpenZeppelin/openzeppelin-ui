@@ -19,7 +19,7 @@ overrides:
   '@metamask/sdk@<0.33.1': ^0.33.1
   '@metamask/sdk-communication-layer@<0.33.1': ^0.33.1
 
-pnpmfileChecksum: sha256-8uR6xVKpCzMYeDuDVVcuh04OrCaYK+6Lyuxd10XtF8E=
+pnpmfileChecksum: sha256-9T4CEZgC0mdsCKhx6MSNP36lcm5Oz0FCSJ9PWJwkZf0=
 
 importers:
 
@@ -3099,10 +3099,12 @@ packages:
   '@stellar/stellar-base@13.1.0':
     resolution: {integrity: sha512-90EArG+eCCEzDGj3OJNoCtwpWDwxjv+rs/RNPhvg4bulpjN/CSRj+Ys/SalRcfM4/WRC5/qAfjzmJBAuquWhkA==}
     engines: {node: '>=18.0.0'}
+    deprecated: This package is now rolled into @stellar/stellar-sdk. Please use @stellar/stellar-sdk to continue receiving updates and support.
 
   '@stellar/stellar-base@14.0.4':
     resolution: {integrity: sha512-UbNW6zbdOBXJwLAV2mMak0bIC9nw3IZVlQXkv2w2dk1jgCbJjy3oRVC943zeGE5JAm0Z9PHxrIjmkpGhayY7kw==}
     engines: {node: '>=20.0.0'}
+    deprecated: This package is now rolled into @stellar/stellar-sdk. Please use @stellar/stellar-sdk to continue receiving updates and support.
 
   '@stellar/stellar-sdk@13.3.0':
     resolution: {integrity: sha512-8+GHcZLp+mdin8gSjcgfb/Lb6sSMYRX6Nf/0LcSJxvjLQR0XHpjGzOiRbYb2jSXo51EnA6kAV5j+4Pzh5OUKUg==}
@@ -5223,7 +5225,7 @@ packages:
   git-raw-commits@4.0.0:
     resolution: {integrity: sha512-ICsMM1Wk8xSGMowkOmPrzo2Fgmfo4bMHLNX6ytHjajRJUqvHOw/TFapQ+QG75c3X/tTDDhOSRPGC52dDbNM8FQ==}
     engines: {node: '>=16'}
-    deprecated: This package is no longer maintained. For the JavaScript API, please use @conventional-changelog/git-client instead.
+    deprecated: Deprecated and no longer maintained. Use @conventional-changelog/git-client instead.
     hasBin: true
 
   glob-parent@5.1.2:
@@ -12129,7 +12131,7 @@ snapshots:
       obug: 2.1.1
       std-env: 4.1.0
       tinyrainbow: 3.1.0
-      vitest: 4.1.8(@types/node@25.5.0)(@vitest/coverage-v8@4.1.8)(jsdom@26.1.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))(vite@7.3.5(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0))
+      vitest: 4.1.8(@types/node@22.19.15)(@vitest/coverage-v8@4.1.8)(jsdom@26.1.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))(vite@7.3.5(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0))
 
   '@vitest/expect@4.1.8':
     dependencies:

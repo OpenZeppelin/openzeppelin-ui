@@ -29,7 +29,8 @@ import {
 } from '../../core/ecosystemManager';
 import { toTransactionFormCapabilities } from '../../core/runtimeCapabilities';
 import { DemoSection } from '../DemoSection';
-import { EcosystemSwitcher } from '../EcosystemSwitcher';
+import { NetworkRequirementHint } from '../NetworkRequirementHint';
+import { NetworkSwitcher } from '../NetworkSwitcher';
 import { ContractLoadingCard } from './ContractLoadingCard';
 import { ExecuteTransactionCard } from './ExecuteTransactionCard';
 import { LearnTab } from './LearnTab';
@@ -38,7 +39,7 @@ import { useContractLoader } from './useContractLoader';
 import { createFormSchemaFromFunction, getWritableFunctions } from './utils';
 
 export function ContractInteractionsDemo(): React.ReactElement {
-  const { capabilities, ecosystem, isLoading, network, runtime } = useEcosystem();
+  const { capabilities, ecosystem, isLoading, metadata, network, runtime } = useEcosystem();
   const { isConnected } = useDerivedAccountStatus();
 
   const [activeTab, setActiveTab] = useState<DemoTab>('try-it');
@@ -133,11 +134,22 @@ export function ContractInteractionsDemo(): React.ReactElement {
       title="Contract Interactions"
       description="Demonstrate reading contract state and executing transactions using the active runtime and UI components."
     >
-      {/* Ecosystem Switcher */}
+      {/* Network Switcher */}
       <div className="mb-6 flex items-center gap-3 rounded-lg bg-muted/50 p-3">
-        <span className="text-sm text-muted-foreground">Select ecosystem:</span>
-        <EcosystemSwitcher />
+        <span className="text-sm text-muted-foreground">Select network:</span>
+        <NetworkSwitcher />
       </div>
+
+      {/* Wrong-network warning: the demo contract only exists on the ecosystem's
+          default network (EVM → Sepolia), so it 404s elsewhere. */}
+      <NetworkRequirementHint requiredNetworkId={metadata?.defaultNetworkId} className="mb-6">
+        The demo contract is deployed on{' '}
+        <span className="font-medium">
+          {metadata?.defaultNetwork.name ?? 'the default network'}
+        </span>
+        . Switch the network selector to it — other networks return a “contract not found” (404)
+        error.
+      </NetworkRequirementHint>
 
       {/* Contract Loading Status Card */}
       <ContractLoadingCard

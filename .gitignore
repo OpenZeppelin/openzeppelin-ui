@@ -46,3 +46,6 @@ packages/cli/autoresearch/
 .pnpm-store
 .vercel
 /.packed-packages
+
+# Development artifacts (maintained out-of-tree)
+/artifacts/

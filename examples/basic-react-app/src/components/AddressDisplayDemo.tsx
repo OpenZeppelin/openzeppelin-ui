@@ -3,6 +3,57 @@ import { AddressDisplay } from '@openzeppelin/ui-components';
 import { useEcosystem } from '../context';
 import { DemoSection } from './DemoSection';
 import { EcosystemIndicator } from './EcosystemIndicator';
+import { NameResolutionNetworkHint } from './NameResolutionNetworkHint';
+import { ResolvedAddressDisplay } from './ResolvedAddressDisplay';
+
+/** Well-known mainnet addresses with a primary ENS record (name + avatar on mainnet). */
+const ENS_SAMPLE_ADDRESSES = [
+  '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', // vitalik.eth
+  '0xb8c2C29ee19D8307cb7255e1Cd9CbDE883A267d5', // nick.eth
+];
+
+/**
+ * Name-resolution sub-section. The records are resolved against the app-wide
+ * active network (choose it from the header selector) through the renderer's
+ * `AddressNameResolutionProvider` bridge and injected into the display's
+ * `resolvedName` value seam — the component itself never resolves anything.
+ */
+function NameResolutionSection(): React.ReactElement {
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium">Name resolution (opt-in)</h3>
+      <p className="text-muted-foreground text-sm">
+        The component stays synchronous and chain-agnostic — it never resolves anything itself. An
+        already-resolved, forward-verified record is injected (via the{' '}
+        <code className="bg-muted rounded px-1">resolvedName</code> prop or the renderer&apos;s{' '}
+        <code className="bg-muted rounded px-1">AddressNameResolutionProvider</code> bridge), and
+        the same component renders it as a name + avatar; otherwise it falls back to the plain
+        address. An explicit <code className="bg-muted rounded px-1">label</code> still takes
+        precedence. Records below are resolved against the app&apos;s active network.
+      </p>
+
+      <NameResolutionNetworkHint />
+
+      <div className="flex flex-col gap-3">
+        {ENS_SAMPLE_ADDRESSES.map((addr) => (
+          <div key={addr} className="bg-muted/30 flex items-center gap-3 rounded-lg p-3">
+            <ResolvedAddressDisplay address={addr} showCopyButton showTooltip />
+          </div>
+        ))}
+        <div className="bg-muted/30 flex items-center gap-3 rounded-lg p-3">
+          <ResolvedAddressDisplay
+            address={ENS_SAMPLE_ADDRESSES[0]}
+            label="Treasury"
+            showCopyButton
+          />
+          <span className="text-muted-foreground text-xs">
+            explicit label wins over the resolved name
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /**
  * Demonstrates AddressDisplay component variations for blockchain address rendering
@@ -64,7 +115,16 @@ const { capabilities, sampleAddresses } = useEcosystem();
   address={sampleAddresses.contract}
   showCopyButton
   explorerUrl={capabilities.getExplorerUrl(address)}
-/>`}
+/>
+
+// Name resolution (opt-in): wrap in the renderer's async→sync bridge and the
+// same component shows a verified name + avatar when the network resolves one
+// (e.g. ENS on Ethereum Mainnet), else the plain address.
+import { AddressNameResolutionProvider } from '@openzeppelin/ui-renderer';
+
+<AddressNameResolutionProvider address={address}>
+  <AddressDisplay address={address} showCopyButton showTooltip />
+</AddressNameResolutionProvider>`}
     >
       <EcosystemIndicator
         description="Sample addresses and explorer URLs are ecosystem-specific."
@@ -259,6 +319,8 @@ const { capabilities, sampleAddresses } = useEcosystem();
           </div>
         </div>
       </div>
+
+      <NameResolutionSection />
 
       {/* In Context */}
       <div className="space-y-4">
