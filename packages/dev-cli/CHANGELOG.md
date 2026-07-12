@@ -1,5 +1,11 @@
 # @openzeppelin/ui-dev-cli
 
+## 0.7.0
+
+### Minor Changes
+
+- [#180](https://github.com/OpenZeppelin/openzeppelin-ui/pull/180) [`290dc8f`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/290dc8f751247e3634e0ab9a6e580c2ef60a5d12) Thanks [@pasevin](https://github.com/pasevin)! - Keep the `dev:local` ui-types overlay sticky across routine pnpm scripts. The generated `.pnpmfile.cjs` now activates in a packed-only mode when the local-dev env flag is unset (as long as a packed manifest is present), so an incidental `pnpm install` triggered by a bare `pnpm <script>` re-applies the packed tarball overlay instead of reverting linked packages to the registry version. Explicit opt-out (`use remote`) and full `use local` behavior are unchanged; machines that never ran `dev:local` are unaffected.
+
 ## 0.6.2
 
 ### Patch Changes
