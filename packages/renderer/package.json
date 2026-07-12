@@ -1,6 +1,6 @@
 {
   "name": "@openzeppelin/ui-renderer",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "private": false,
   "description": "A specialized library for rendering customizable transaction forms for blockchain applications.",
   "type": "module",
