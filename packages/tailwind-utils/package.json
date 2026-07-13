@@ -1,7 +1,7 @@
 {
   "name": "@openzeppelin/ui-tailwind-utils",
   "private": false,
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "Shared Tailwind CSS normalization logic for OpenZeppelin UI CLIs.",
   "type": "module",
   "main": "dist/index.cjs",
