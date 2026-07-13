@@ -1,4 +1,56 @@
+# Flatten node_modules so Vite (example app dev server) can resolve/pre-bundle
+# transitive CJS wallet-stack deps (eventemitter3, debug, cross-fetch, …).
+# pnpm v11 reads hoisting config here, not from .npmrc.
+shamefullyHoist: true
+
 packages:
   - 'packages/*'
   - 'examples/*'
   - '!**/node_modules/**'
+
+# Exempt trusted first-party (and the pinned viem) from any active
+# minimumReleaseAge supply-chain gate so freshly-published adapters install.
+# Mirrors role-manager / ui-builder.
+minimumReleaseAgeExclude:
+  - '@openzeppelin/*'
+  - 'viem'
+
+# pnpm v11 fails the install on unacknowledged dependency build scripts (v10 only
+# warned). Preserve main's behavior: build only esbuild. The native deps ship
+# prebuilt binaries and ran green on pnpm 10 without building, so they stay off.
+onlyBuiltDependencies:
+  - esbuild
+allowBuilds:
+  esbuild: true
+  '@openzeppelin/adapter-stellar': false
+  blake-hash: false
+  bufferutil: false
+  keccak: false
+  protobufjs: false
+  secp256k1: false
+  tiny-secp256k1: false
+  unrs-resolver: false
+  usb: false
+  utf-8-validate: false
+
+# Migrated from the package.json "pnpm" field, which pnpm v11 no longer reads.
+overrides:
+  'protobufjs@<7.6.3': ^7.6.3
+  'ws@>=8.0.0 <8.21.0': ^8.21.0
+  'ws@>=7.0.0 <7.5.11': ^7.5.11
+  'hono@<4.12.25': ^4.12.25
+  'form-data@>=4.0.0 <4.0.6': ^4.0.6
+  'ua-parser-js@>=2.0.1 <2.0.10': ^2.0.10
+  'js-yaml@>=4.0.0 <4.2.0': ^4.2.0
+  'uuid@<11.1.1': ^11.1.1
+  'esbuild@>=0.27.3 <0.28.1': ^0.28.1
+  '@babel/core@<7.29.6': ^7.29.6
+  'prismjs@<1.30.0': ^1.30.0
+  '@metamask/sdk@<0.33.1': ^0.33.1
+  '@metamask/sdk-communication-layer@<0.33.1': ^0.33.1
+supportedArchitectures:
+  os:
+    - current
+  cpu:
+    - arm64
+    - x64
