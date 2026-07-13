@@ -7,7 +7,8 @@
   publish = "examples/basic-react-app/dist"
 
 [build.environment]
-  NODE_VERSION = "20"
+  # pnpm 11 (packageManager) requires Node 22+; must match engines.node (>=22.13).
+  NODE_VERSION = "22"
   # Vite bundling this app peaks above Node's default ~2GB heap on Netlify (OOM during "rendering chunks").
   NODE_OPTIONS = "--max-old-space-size=4096"
 

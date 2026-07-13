@@ -64,33 +64,9 @@
     "vitest": "^4.1.0"
   },
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=22.13.0"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ],
-    "overrides": {
-      "protobufjs@<7.6.3": "^7.6.3",
-      "ws@>=8.0.0 <8.21.0": "^8.21.0",
-      "ws@>=7.0.0 <7.5.11": "^7.5.11",
-      "hono@<4.12.25": "^4.12.25",
-      "form-data@>=4.0.0 <4.0.6": "^4.0.6",
-      "ua-parser-js@>=2.0.1 <2.0.10": "^2.0.10",
-      "js-yaml@>=4.0.0 <4.2.0": "^4.2.0",
-      "uuid@<11.1.1": "^11.1.1",
-      "esbuild@>=0.27.3 <0.28.1": "^0.28.1",
-      "@babel/core@<7.29.6": "^7.29.6",
-      "prismjs@<1.30.0": "^1.30.0",
-      "@metamask/sdk@<0.33.1": "^0.33.1",
-      "@metamask/sdk-communication-layer@<0.33.1": "^0.33.1"
-    },
-    "supportedArchitectures": {
-      "os": ["current"],
-      "cpu": ["arm64", "x64"]
-    }
-  },
-  "packageManager": "pnpm@10.22.0",
+  "packageManager": "pnpm@11.12.0",
   "author": "OpenZeppelin",
   "license": "AGPL-3.0",
   "repository": {
