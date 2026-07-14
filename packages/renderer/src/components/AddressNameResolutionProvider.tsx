@@ -1,11 +1,8 @@
 import * as React from 'react';
 
 import { AddressNameProvider } from '@openzeppelin/ui-components';
-import {
-  useResolveAddress,
-  WalletStateContext,
-  type UseResolveAddressOptions,
-} from '@openzeppelin/ui-react';
+import { useResolveAddress, type UseResolveAddressOptions } from '@openzeppelin/ui-react';
+import { isChainScopeMismatch } from '@openzeppelin/ui-utils';
 
 /**
  * Props for {@link AddressNameResolutionProvider}.
@@ -19,10 +16,11 @@ export interface AddressNameResolutionProviderProps {
   readonly address: string | null | undefined;
 
   /**
-   * Network that scopes this reverse lookup. When set, the resolved name is
-   * served only when the display request's `networkId` matches AND the active
-   * wallet network (the network the resolution actually ran on) matches —
-   * so a row scoped to network A never surfaces a name resolved on network B.
+   * Row network that scopes reverse display. When set, the resolved name is
+   * served when the display request's `networkId` matches and provenance scope
+   * allows it: globally scoped records (no non-empty `scopedToNetworkId`) pass
+   * on any row network; network-local records pass only when
+   * `scopedToNetworkId` strictly equals this id.
    */
   readonly networkId?: string;
 
@@ -50,6 +48,11 @@ export interface AddressNameResolutionProviderProps {
  * `forwardVerified: false` (SF-2 INV-25 passthrough): suppress-to-hex is the
  * display's job (INV-52), not this bridge's.
  *
+ * When `networkId` is set, provenance scope gating (INV-151..153) suppresses
+ * the record via `isChainScopeMismatch(record.provenance, networkId)` — wallet
+ * active network is never consulted (INV-154). Unscoped rows skip scope gating
+ * (INV-155).
+ *
  * One provider resolves ONE address (the per-instance feed the design names
  * the zero-ambiguity primary channel). Subtree-wide multi-address feeding —
  * cold-resolution strategy, batching — is SF-5's concern.
@@ -71,34 +74,31 @@ export function AddressNameResolutionProvider({
 
   const record = rev.status === 'resolved' ? rev.data : undefined;
 
-  // Soft read — resolution runs against the active wallet network; used below
-  // to refuse serving a record onto a differently-scoped alias row.
-  const walletState = React.useContext(WalletStateContext);
-  const resolutionNetworkId = walletState?.activeNetworkId ?? undefined;
-
   // Serve the record only for the address + network this provider resolves.
   // Address compared case-insensitively: the display asks with its original
   // checksum-preserving prop (INV-53 — the record's lowercased echo is never
   // used for rendering), which may differ from this provider's `address` only
-  // by case. Network scoped so a row on network A never shows a name reverse-
-  // resolved on active network B.
+  // by case. Provenance scope gating (INV-151..153) keys on base
+  // `scopedToNetworkId` vs row `networkId` — not wallet active network.
   const resolveAddressName = React.useCallback(
     (requested: string, requestedNetworkId?: string) => {
       if (record === undefined || address == null) return undefined;
       if (requested.toLowerCase() !== address.toLowerCase()) return undefined;
 
       if (networkId !== undefined) {
+        // INV-157: display and provider row networks must agree.
         if (requestedNetworkId !== undefined && requestedNetworkId !== networkId) {
           return undefined;
         }
-        if (resolutionNetworkId !== undefined && resolutionNetworkId !== networkId) {
+        // INV-152: suppress network-local provenance mismatches (INV-133).
+        if (isChainScopeMismatch(record.provenance, networkId)) {
           return undefined;
         }
       }
 
       return record;
     },
-    [record, address, networkId, resolutionNetworkId]
+    [record, address, networkId]
   );
 
   return (
