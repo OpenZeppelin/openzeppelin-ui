@@ -1,5 +1,11 @@
 # @openzeppelin/ui-renderer
 
+## 3.2.0
+
+### Minor Changes
+
+- [#185](https://github.com/OpenZeppelin/openzeppelin-ui/pull/185) [`564235a`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/564235ae4408b046ed581b8d5bd0a59af9661dc0) Thanks [@pasevin](https://github.com/pasevin)! - Reverse-resolution display gate in `AddressNameResolutionProvider` now keys on the chain-agnostic base `ResolutionProvenance.scopedToNetworkId` (absent = global/mainnet identity, shows on any network-bound row; present and not equal to the row network = network-local, withheld), replacing the prior wallet-active-network vs row-network suppression. Display-only; no public API change. Complements openzeppelin-adapters 002, which emits `scopedToNetworkId`.
+
 ## 3.1.0
 
 ### Minor Changes
