@@ -30,8 +30,9 @@
  *
  * Adapters extend this interface with ecosystem-specific fields (e.g., an EVM
  * adapter may add ENS version / mechanism data) and export type guards for
- * downstream narrowing. This package does not enumerate systems, and the base
- * shape has exactly these three fields — no more.
+ * downstream narrowing. This package does not enumerate systems; the base
+ * shape carries six chain-agnostic fields (three always-present core fields
+ * plus three optional cross-network fallback fields).
  */
 export interface ResolutionProvenance {
   /**
@@ -61,6 +62,35 @@ export interface ResolutionProvenance {
    * resolution.
    */
   readonly scopedToNetworkId?: string;
+
+  /**
+   * `true` iff this success followed a **definitive miss** on the bound adapter network
+   * and a subsequent consult of another network (003 mainnet-L1 miss-fallback with SF-1
+   * opt-in ON). `undefined` or `false` on bound-local hits, mainnet-bound hits, and
+   * canonical non-UR forward L1 paths (`001` SF-5 branch 1b — not miss-fallback).
+   *
+   * Chain-agnostic discriminant for SC-004 / UIKit "found on another network" affordance.
+   * Downstream MUST NOT infer fallback from `label`, `external`, or absent `scopedToNetworkId`.
+   */
+  readonly resolvedViaNetworkFallback?: boolean;
+
+  /**
+   * Repo `networkConfig.id` of the network **where the record was found** (e.g.
+   * `ethereum-mainnet`). Present **only** when `resolvedViaNetworkFallback === true`.
+   * MUST be a non-empty string when present.
+   */
+  readonly resolvedOnNetworkId?: string;
+
+  /**
+   * Repo `networkConfig.id` of the **bound adapter network** that was queried first and
+   * returned a definitive empty / NAME_NOT_FOUND-class miss before L1 consult (e.g.
+   * `ethereum-sepolia`). Present **only** when `resolvedViaNetworkFallback === true`.
+   * MUST be a non-empty string when present.
+   *
+   * Enables fixture-only golden tests and UI copy (*"not found on Sepolia"*) without
+   * external bound-context injection.
+   */
+  readonly queriedOnNetworkId?: string;
 }
 
 /**

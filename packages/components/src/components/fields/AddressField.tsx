@@ -4,8 +4,12 @@ import { FieldValues, useController, useFormState, useWatch } from 'react-hook-f
 import type { AddressingCapability, AddressSuggestion } from '@openzeppelin/ui-types';
 import {
   classifyAddressInput,
+  crossNetworkFallbackMessageNames,
+  getFallbackNetworks,
   isChainScopeMismatch,
+  isCrossNetworkFallback,
   nameResolutionChainScopeMismatchMessage,
+  nameResolutionCrossNetworkFallbackMessage,
   nameResolutionMessageForCode,
   type AddressInputClassification,
   type NameResolutionErrorCode,
@@ -63,6 +67,13 @@ export interface AddressFieldProps<TFieldValues extends FieldValues = FieldValue
    * emits `undefined`, so the field stays behavior-identical (INV-82).
    */
   onResolvedNameChange?: (name: string | undefined) => void;
+
+  /**
+   * When `false`, suppresses the forward cross-network fallback disclaimer under
+   * the frozen "Resolved to …" template. Default `true`. Use when a sibling
+   * `AddressDisplay` already surfaces the same message (e.g. demo resolved card).
+   */
+  showCrossNetworkFallbackDisclaimer?: boolean;
 }
 
 /**
@@ -146,6 +157,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   suggestions: suggestionsProp,
   onSuggestionSelect,
   onResolvedNameChange,
+  showCrossNetworkFallbackDisclaimer = true,
 }: AddressFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
@@ -159,6 +171,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   const isValidName = resolver?.isValidName;
   const activeNetworkId = resolver?.activeNetworkId;
   const activeNetworkName = resolver?.activeNetworkName;
+  const resolveNetworkLabel = resolver?.resolveNetworkLabel;
 
   const lastSetValueRef = useRef<string>('');
   const [inputValue, setInputValue] = useState('');
@@ -469,10 +482,27 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
             </span>
           );
         }
+        const fallbackNetworks = isCrossNetworkFallback(resolution.data.provenance)
+          ? getFallbackNetworks(resolution.data.provenance)
+          : undefined;
+        const fallbackMessage =
+          showCrossNetworkFallbackDisclaimer &&
+          fallbackNetworks &&
+          nameResolutionCrossNetworkFallbackMessage(
+            fallbackNetworks,
+            crossNetworkFallbackMessageNames(fallbackNetworks, resolveNetworkLabel)
+          );
         // INV-126 / INV-127 / INV-128: frozen mechanism-neutral success template.
         return (
           <span className="text-sm">
-            Resolved to <code className="font-mono">{resolution.data.address}</code>
+            <span>
+              Resolved to <code className="font-mono">{resolution.data.address}</code>
+            </span>
+            {fallbackMessage ? (
+              <span className="mt-1 block text-muted-foreground text-xs" role="note">
+                {fallbackMessage}
+              </span>
+            ) : null}
           </span>
         );
       case 'error': {

@@ -48,10 +48,11 @@ export interface AddressNameProviderProps extends AddressNameResolver {
 export function AddressNameProvider({
   children,
   resolveAddressName,
+  resolveNetworkLabel,
 }: AddressNameProviderProps): React.ReactElement {
   const value = React.useMemo<AddressNameResolver>(
-    () => ({ resolveAddressName }),
-    [resolveAddressName]
+    () => ({ resolveAddressName, resolveNetworkLabel }),
+    [resolveAddressName, resolveNetworkLabel]
   );
 
   return <AddressNameContext.Provider value={value}>{children}</AddressNameContext.Provider>;

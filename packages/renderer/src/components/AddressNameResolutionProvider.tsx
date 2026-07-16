@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import { AddressNameProvider } from '@openzeppelin/ui-components';
 import { useResolveAddress, type UseResolveAddressOptions } from '@openzeppelin/ui-react';
+import type { NetworkLabelResolver } from '@openzeppelin/ui-types';
 import { isChainScopeMismatch } from '@openzeppelin/ui-utils';
 
 /**
@@ -30,6 +31,11 @@ export interface AddressNameResolutionProviderProps {
    * react layer, never in the base component (INV-63).
    */
   readonly options?: UseResolveAddressOptions;
+
+  /**
+   * Optional network slug → display name; forwarded to `AddressNameProvider`.
+   */
+  readonly resolveNetworkLabel?: NetworkLabelResolver;
 
   readonly children: React.ReactNode;
 }
@@ -68,6 +74,7 @@ export function AddressNameResolutionProvider({
   address,
   networkId,
   options,
+  resolveNetworkLabel,
   children,
 }: AddressNameResolutionProviderProps): React.ReactElement {
   const rev = useResolveAddress(address ?? null, options);
@@ -102,6 +109,11 @@ export function AddressNameResolutionProvider({
   );
 
   return (
-    <AddressNameProvider resolveAddressName={resolveAddressName}>{children}</AddressNameProvider>
+    <AddressNameProvider
+      resolveAddressName={resolveAddressName}
+      resolveNetworkLabel={resolveNetworkLabel}
+    >
+      {children}
+    </AddressNameProvider>
   );
 }

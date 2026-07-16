@@ -14,6 +14,7 @@ export * from './ui-enhancements';
 export * from './export';
 export * from './ecosystem-metadata';
 export * from './ecosystem-export';
+export * from './runtime-options';
 export * from './access-control';
 export * from './access-control-errors';
 

@@ -52,10 +52,35 @@ export function RuntimeProvider({ children, resolveRuntime }: RuntimeProviderPro
     runtimeRegistryRef.current = runtimeRegistry;
   }, [runtimeRegistry]);
 
-  // Reset the failure set when the resolver function changes so the host app
-  // can recover (e.g. after upgrading a broken adapter).
+  // Reset failure tracking and evict all cached runtimes when the resolver
+  // function changes (e.g. opt-in toggle). INV-218: full registry disposal —
+  // not only failedNetworksRef — so ctor-frozen capabilities cannot go stale.
   useEffect(() => {
+    const registry = runtimeRegistryRef.current;
+    const runtimes = Object.values(registry);
+    const hadCachedRuntimes = runtimes.length > 0;
+
     failedNetworksRef.current = new Set();
+    setLoadingNetworks(new Set());
+
+    if (hadCachedRuntimes) {
+      setRuntimeRegistry({});
+
+      // INV-223: deferred disposal — same macrotask discipline as releaseRuntime.
+      setTimeout(() => {
+        runtimes.forEach((runtime) => {
+          try {
+            runtime.dispose();
+          } catch (error) {
+            logger.error(
+              'RuntimeProvider',
+              'Error disposing runtime during registry flush:',
+              error
+            );
+          }
+        });
+      }, 0);
+    }
   }, [resolveRuntime]);
 
   useEffect(() => {

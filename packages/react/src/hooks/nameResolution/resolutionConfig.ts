@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 
-import type { NameResolutionError } from '@openzeppelin/ui-types';
+import type { EcosystemRuntime, NameResolutionError } from '@openzeppelin/ui-types';
 
 /**
  * Cache namespace for a resolution query key. Keeps a forward (name → address)
@@ -41,22 +41,51 @@ export const DEFAULT_CONFIG: ResolutionConfig = {
 /** Stable prefix for every resolution cache key — namespaces this package's keys. */
 export const RESOLUTION_KEY_PREFIX = 'oz-name-resolution' as const;
 
+/** `0` when no runtime is mounted; positive ids are assigned per {@link EcosystemRuntime} instance. */
+export type RuntimeInstanceId = number;
+
+const runtimeInstanceIds = new WeakMap<object, RuntimeInstanceId>();
+let nextRuntimeInstanceId = 1;
+
+/**
+ * Assign a stable, serializable id to each {@link EcosystemRuntime} object identity.
+ * A disposed-and-recreated runtime (e.g. SF-4 opt-in toggle after INV-218 flush) gets
+ * a new id so resolution cache keys miss and results refresh (INV-230).
+ */
+export function getRuntimeInstanceId(
+  runtime: EcosystemRuntime | null | undefined
+): RuntimeInstanceId {
+  if (!runtime) {
+    return 0;
+  }
+  let id = runtimeInstanceIds.get(runtime);
+  if (id === undefined) {
+    id = nextRuntimeInstanceId;
+    nextRuntimeInstanceId += 1;
+    runtimeInstanceIds.set(runtime, id);
+  }
+  return id;
+}
+
 /**
  * Build a network-scoped, namespace-separated cache key (INV-40). A name resolves
  * differently per network and provenance can be chain-scoped, so `networkId` is
- * part of the key; `namespace` keeps forward and reverse lookups disjoint.
+ * part of the key; `namespace` keeps forward and reverse lookups disjoint;
+ * `runtimeInstanceId` scopes entries to the active capability instance (INV-230).
  *
- * @param namespace       - `'name'` (forward) or `'addr'` (reverse).
- * @param networkId       - Active network id (`''` when no network is selected).
- * @param normalizedInput - Trimmed + lowercased input (INV-26).
+ * @param namespace           - `'name'` (forward) or `'addr'` (reverse).
+ * @param networkId           - Active network id (`''` when no network is selected).
+ * @param normalizedInput     - Trimmed + lowercased input (INV-26).
+ * @param runtimeInstanceId   - Active runtime instance discriminator (`0` when absent).
  * @returns A readonly tuple suitable for a TanStack Query `queryKey`.
  */
 export function buildResolutionKey(
   namespace: ResolutionNamespace,
   networkId: string,
-  normalizedInput: string
+  normalizedInput: string,
+  runtimeInstanceId: RuntimeInstanceId = 0
 ): readonly unknown[] {
-  return [RESOLUTION_KEY_PREFIX, namespace, networkId, normalizedInput];
+  return [RESOLUTION_KEY_PREFIX, namespace, networkId, normalizedInput, runtimeInstanceId];
 }
 
 /**

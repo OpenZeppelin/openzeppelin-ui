@@ -34,7 +34,7 @@ import type {
 } from '@openzeppelin/ui-types';
 
 import { WalletStateContext, type WalletStateContextValue } from '../../WalletStateContext';
-import { buildResolutionKey } from '../resolutionConfig';
+import { buildResolutionKey, getRuntimeInstanceId } from '../resolutionConfig';
 import { useResolveName } from '../useResolveName';
 import { useRuntimeNameResolver } from '../useRuntimeNameResolver';
 import { ALICE, makeCapability, makeWrapper, tick } from './helpers';
@@ -48,6 +48,18 @@ afterEach(() => {
 });
 
 const NETWORK_ID = 'eip155:1';
+
+function forwardKeyForWallet(
+  wallet: WalletStateContextValue,
+  normalized: string
+): ReturnType<typeof buildResolutionKey> {
+  return buildResolutionKey(
+    'name',
+    wallet.activeNetworkId ?? '',
+    normalized,
+    getRuntimeInstanceId(wallet.activeRuntime)
+  );
+}
 
 /**
  * Full `WalletStateContextValue` around a capability (SF-5 test precedent:
@@ -118,7 +130,7 @@ describe('INV-119 (1): shared cache — one entry, no duplicate fetch across fie
     expect(adapter).toHaveBeenCalledTimes(1); // shared entry, no duplicate fetch
 
     // and the entry lives under SF-2's exact key convention
-    expect(client.getQueryData(buildResolutionKey('name', NETWORK_ID, 'alice.eth'))).toEqual(ALICE);
+    expect(client.getQueryData(forwardKeyForWallet(wallet, 'alice.eth'))).toEqual(ALICE);
     expect(client.getQueryCache().getAll()).toHaveLength(1); // shared, never parallel
   });
 
@@ -158,7 +170,7 @@ describe('INV-119 (1): shared cache — one entry, no duplicate fetch across fie
 
     await resolveName('alice.eth');
     expect(adapter).toHaveBeenCalledTimes(1); // same key ⇒ no second fetch
-    expect(client.getQueryData(buildResolutionKey('name', NETWORK_ID, 'alice.eth'))).toBeDefined();
+    expect(client.getQueryData(forwardKeyForWallet(wallet, 'alice.eth'))).toBeDefined();
   });
 });
 
@@ -263,12 +275,12 @@ describe('INV-119 (3): the imperative fetchQuery path (not a useQuery observer)'
 
     expect(fetchQuerySpy).toHaveBeenCalledTimes(1);
     expect(fetchQuerySpy).toHaveBeenCalledWith(
-      expect.objectContaining({ queryKey: buildResolutionKey('name', NETWORK_ID, 'alice.eth') })
+      expect.objectContaining({ queryKey: forwardKeyForWallet(wallet, 'alice.eth') })
     );
     // imperative path only: the cache entry exists with zero mounted observers
     const entry = client
       .getQueryCache()
-      .find({ queryKey: buildResolutionKey('name', NETWORK_ID, 'alice.eth') });
+      .find({ queryKey: forwardKeyForWallet(wallet, 'alice.eth') });
     expect(entry?.getObserversCount()).toBe(0);
   });
 

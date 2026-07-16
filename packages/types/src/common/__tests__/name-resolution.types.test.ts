@@ -15,7 +15,8 @@
  * is the type layer evaluated by tsc. `vitest --typecheck` additionally evaluates
  * the `expectTypeOf` assertions inside the runner.
  *
- * Verifies: INV-1, INV-2, INV-6, INV-7, INV-9, INV-18 (INV-10 covered incidentally).
+ * Verifies: INV-1, INV-2, INV-6, INV-7, INV-9, INV-18 (INV-10 covered incidentally);
+ * SF-1 extension: INV-161..INV-163, INV-164, INV-166, INV-169, INV-170 (INV-161/163/170 via INV-4).
  */
 import { describe, expect, expectTypeOf, it } from 'vitest';
 
@@ -57,6 +58,12 @@ describe('INV-2: every value-type field is readonly', () => {
     prov.external = true;
     // @ts-expect-error - scopedToNetworkId is readonly
     prov.scopedToNetworkId = '1';
+    // @ts-expect-error - resolvedViaNetworkFallback is readonly (INV-162)
+    prov.resolvedViaNetworkFallback = true;
+    // @ts-expect-error - resolvedOnNetworkId is readonly (INV-162)
+    prov.resolvedOnNetworkId = 'ethereum-mainnet';
+    // @ts-expect-error - queriedOnNetworkId is readonly (INV-162)
+    prov.queriedOnNetworkId = 'ethereum-sepolia';
     expect(true).toBe(true);
   });
 
@@ -215,14 +222,24 @@ describe('INV-18: address and name fields are plain string, not ecosystem-brande
 // type-shape half of both invariants; the source-token denylist (lint) half is a
 // separate CI concern (see 05-tests.md § Out of Scope).
 
-describe('INV-4: ResolutionProvenance base shape is exactly three chain-agnostic fields', () => {
-  it('exposes exactly label, external, and optional scopedToNetworkId — no more', () => {
+describe('INV-4: ResolutionProvenance base shape is exactly six chain-agnostic fields', () => {
+  it('exposes exactly the six locked base keys — no more', () => {
     expectTypeOf<keyof ResolutionProvenance>().toEqualTypeOf<
-      'label' | 'external' | 'scopedToNetworkId'
+      | 'label'
+      | 'external'
+      | 'scopedToNetworkId'
+      | 'resolvedViaNetworkFallback'
+      | 'resolvedOnNetworkId'
+      | 'queriedOnNetworkId'
     >();
     expectTypeOf<ResolutionProvenance['label']>().toEqualTypeOf<string>();
     expectTypeOf<ResolutionProvenance['external']>().toEqualTypeOf<boolean>();
     expectTypeOf<ResolutionProvenance['scopedToNetworkId']>().toEqualTypeOf<string | undefined>();
+    expectTypeOf<ResolutionProvenance['resolvedViaNetworkFallback']>().toEqualTypeOf<
+      boolean | undefined
+    >();
+    expectTypeOf<ResolutionProvenance['resolvedOnNetworkId']>().toEqualTypeOf<string | undefined>();
+    expectTypeOf<ResolutionProvenance['queriedOnNetworkId']>().toEqualTypeOf<string | undefined>();
     expect(true).toBe(true);
   });
 });
@@ -234,5 +251,83 @@ describe('INV-15: value types accommodate no transport-level state (exact key se
     >();
     expectTypeOf<keyof ResolvedAddress>().toEqualTypeOf<'name' | 'address' | 'provenance'>();
     expect(true).toBe(true);
+  });
+});
+
+describe('INV-164: SF-1 is additive — ui-types@3.2.0 usage patterns compile unchanged', () => {
+  it('accepts legacy provenance objects that omit the three fallback fields', () => {
+    const legacyCoreOnly: ResolutionProvenance = {
+      label: 'ENS',
+      external: false,
+    };
+    const legacyWithScope: ResolutionProvenance = {
+      label: 'ENS',
+      external: true,
+      scopedToNetworkId: 'ethereum-sepolia',
+    };
+    const legacyResolvedName: ResolvedName = {
+      address: '0xabc',
+      name: 'alice.eth',
+      forwardVerified: true,
+      provenance: legacyCoreOnly,
+    };
+    const legacyResolvedAddress: ResolvedAddress = {
+      name: 'alice.eth',
+      address: '0xabc',
+      provenance: legacyWithScope,
+    };
+    expectTypeOf(legacyCoreOnly).toEqualTypeOf<ResolutionProvenance>();
+    expectTypeOf(legacyResolvedName.provenance).toEqualTypeOf<ResolutionProvenance>();
+    expectTypeOf(legacyResolvedAddress.provenance).toEqualTypeOf<ResolutionProvenance>();
+    expect(legacyCoreOnly.label).toBe('ENS');
+  });
+});
+
+describe('INV-166: triplet integrity is documented — not type-enforced in ui-types', () => {
+  it('accepts the canonical complete fallback triplet (valid emission shape)', () => {
+    const canonical: ResolutionProvenance = {
+      label: 'ENS',
+      external: false,
+      resolvedViaNetworkFallback: true,
+      queriedOnNetworkId: 'ethereum-sepolia',
+      resolvedOnNetworkId: 'ethereum-mainnet',
+    };
+    expectTypeOf(canonical).toEqualTypeOf<ResolutionProvenance>();
+    expect(canonical.resolvedViaNetworkFallback).toBe(true);
+  });
+
+  it('also accepts dishonest shapes — TypeScript does not reject incomplete triplets (INV-171)', () => {
+    // Adapter emission bugs; SF-2 classifiers must return false — not ui-types throws.
+    const flagWithoutIds: ResolutionProvenance = {
+      label: 'ENS',
+      external: false,
+      resolvedViaNetworkFallback: true,
+    };
+    const orphanIdsWithoutFlag: ResolutionProvenance = {
+      label: 'ENS',
+      external: false,
+      queriedOnNetworkId: 'ethereum-sepolia',
+      resolvedOnNetworkId: 'ethereum-mainnet',
+    };
+    expectTypeOf(flagWithoutIds).toEqualTypeOf<ResolutionProvenance>();
+    expectTypeOf(orphanIdsWithoutFlag).toEqualTypeOf<ResolutionProvenance>();
+    expect(flagWithoutIds.resolvedViaNetworkFallback).toBe(true);
+  });
+});
+
+describe('INV-169: canonical L1-fallback success keeps scopedToNetworkId absent (002 D-R7)', () => {
+  it('assigns the golden reverse Sepolia miss-fallback provenance fixture', () => {
+    const goldenFallbackProvenance: ResolutionProvenance = {
+      label: 'ENS',
+      external: false,
+      resolvedViaNetworkFallback: true,
+      queriedOnNetworkId: 'ethereum-sepolia',
+      resolvedOnNetworkId: 'ethereum-mainnet',
+    };
+    expectTypeOf(goldenFallbackProvenance).toEqualTypeOf<ResolutionProvenance>();
+    expectTypeOf(goldenFallbackProvenance.scopedToNetworkId).toEqualTypeOf<string | undefined>();
+    expect(goldenFallbackProvenance.scopedToNetworkId).toBeUndefined();
+    expect(goldenFallbackProvenance.queriedOnNetworkId).toBe('ethereum-sepolia');
+    expect(goldenFallbackProvenance.resolvedOnNetworkId).toBe('ethereum-mainnet');
   });
 });

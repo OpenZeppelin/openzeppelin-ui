@@ -13,25 +13,44 @@ import type { NameResolutionErrorCode } from '@openzeppelin/ui-utils';
 import { nameResolutionMessageForCode } from '@openzeppelin/ui-utils';
 
 import { useEcosystem } from '../context';
+import { useMainnetL1FallbackOptIn } from '../context/mainnetL1FallbackOptInContext';
+import { CodeBlock } from './CodeBlock';
 import { DemoSection } from './DemoSection';
 import { EcosystemIndicator } from './EcosystemIndicator';
 import { EnsV1V2ShowcaseSection } from './ENSShowcaseDemo';
 import { NameResolutionNetworkHint } from './NameResolutionNetworkHint';
+import { networkLabel } from './networkOptions';
 import { ResolvedAddressDisplay } from './ResolvedAddressDisplay';
 
 /**
- * Well-known mainnet addresses that all have a primary (reverse) ENS record, so
- * each reverse-resolves to a name + avatar on mainnet and degrades to a truncated
- * hex on networks where it isn't registered.
+ * Well-known mainnet addresses with reverse ENS records. On `ethereum-sepolia`,
+ * only brantly.eth has a native testnet record; the others resolve via mainnet
+ * fallback when runtime opt-in is enabled.
  */
-const SAMPLE_HEX_ADDRESSES = [
-  '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', // vitalik.eth
-  '0xb8c2C29ee19D8307cb7255e1Cd9CbDE883A267d5', // nick.eth
-  '0x983110309620D911731Ac0932219af06091b6744', // brantly.eth
-  '0x225f137127d9067788314bc7fcc1f36746a3c3B5', // luc.eth
+const SAMPLE_REVERSE_ADDRESSES = [
+  {
+    address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+    ensName: 'vitalik.eth',
+    sepoliaResolution: 'mainnet-fallback' as const,
+  },
+  {
+    address: '0xb8c2C29ee19D8307cb7255e1Cd9CbDE883A267d5',
+    ensName: 'nick.eth',
+    sepoliaResolution: 'mainnet-fallback' as const,
+  },
+  {
+    address: '0x983110309620D911731Ac0932219af06091b6744',
+    ensName: 'brantly.eth',
+    sepoliaResolution: 'native' as const,
+  },
+  {
+    address: '0x225f137127d9067788314bc7fcc1f36746a3c3B5',
+    ensName: 'luc.eth',
+    sepoliaResolution: 'mainnet-fallback' as const,
+  },
 ];
 
-/** The seven typed error codes SF-1 defines, in the order the docs present them. */
+/** Typed error codes from the name-resolution contract, in docs order. */
 const ERROR_CODES: NameResolutionErrorCode[] = [
   'NAME_NOT_FOUND',
   'UNSUPPORTED_NAME',
@@ -52,6 +71,41 @@ import { WalletStateProvider } from '@openzeppelin/ui-react';
 <WalletStateProvider adapter={evmAdapter}>
   <TransactionForm schema={erc20TransferSchema} adapter={evmAdapter} contractSchema={contract} />
 </WalletStateProvider>;`;
+
+const OPT_IN_WIRING = `import { useCallback, useMemo, useState } from 'react';
+import { RuntimeProvider } from '@openzeppelin/ui-react';
+import type { CreateRuntimeOptions, NetworkConfig } from '@openzeppelin/ui-types';
+
+const [enableMainnetL1MissFallback, setEnableMainnetL1MissFallback] = useState(false);
+
+// Third createRuntime arg — omit entirely when fallback is off (default).
+const runtimeCreationOptions = useMemo((): CreateRuntimeOptions | undefined => {
+  if (!enableMainnetL1MissFallback) return undefined;
+  return { nameResolution: { enableMainnetL1MissFallback: true } };
+}, [enableMainnetL1MissFallback]);
+
+const resolveRuntime = useCallback(
+  (networkConfig: NetworkConfig) =>
+    ecosystemDefinition.createRuntime('composer', networkConfig, runtimeCreationOptions),
+  [runtimeCreationOptions]
+);
+
+// RuntimeProvider flushes cached runtimes when resolveRuntime changes,
+// so forward + reverse resolution re-run immediately after toggling.
+<RuntimeProvider resolveRuntime={resolveRuntime}>
+  <WalletStateProvider /* … */>{children}</WalletStateProvider>
+</RuntimeProvider>;`;
+
+const DISCLAIMER_PROPS = `import { AddressField, AddressDisplay } from '@openzeppelin/ui-components';
+
+// Forward: muted note under the success template (default on).
+<AddressField
+  /* … */
+  showCrossNetworkFallbackDisclaimer={false} // omit duplicate when a card shows reverse disclaimer
+/>
+
+// Reverse: amber triangle-alert + tooltip after the verified name (default on).
+<AddressDisplay address={hex} resolvedName={record} showCrossNetworkFallbackDisclaimer />`;
 
 interface DemoProps {
   onNavigate?: (key: string) => void;
@@ -83,13 +137,17 @@ export function ENSResolutionDemo({ onNavigate }: DemoProps): React.ReactElement
   return (
     <DemoSection
       title="Name Resolution"
-      description="ENS name resolution across the UIKit: type a name into any address field and it resolves inline; render an address as its reverse-ENS name + avatar; opt an address book into ENS. The showcase below covers classic ENS (v1), CCIP-Read off-chain records, and coinType cross-chain names — all through the same AddressField path. Resolution follows the app-wide active network — switch networks from the header selector (pick Ethereum Mainnet or Base for the live presets) and watch the behavior change."
+      description="ENS across the UIKit: type a name into any address field (forward), render an address as its reverse-ENS name (reverse), or opt an address book into ENS. Resolution follows the app-wide active network (`ethereum-mainnet`, `ethereum-sepolia`, …) — switch networks from the header selector. On Sepolia, only brantly.eth has a native testnet record; enable mainnet fallback below to resolve mainnet-only names while staying on Sepolia. Forward and reverse both honor the toggle and show a provenance disclaimer when fallback was used."
       codeExample={ZERO_WIRING}
     >
       <EcosystemIndicator
         description="Name resolution is provided by an EVM/ENS adapter for the app's active network (choose it from the header network selector)."
         className="mb-2"
       />
+
+      <MainnetL1FallbackOptInToggle />
+
+      <OptInWiringReference />
 
       <LiveResolverWidget />
 
@@ -101,6 +159,72 @@ export function ENSResolutionDemo({ onNavigate }: DemoProps): React.ReactElement
 
       <ComponentLinks onNavigate={onNavigate} />
     </DemoSection>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// Mainnet-L1 miss-fallback opt-in toggle (default off)
+// ----------------------------------------------------------------------------
+
+/**
+ * Reference integrator pattern for runtime opt-in. Toggling recreates runtimes
+ * via RuntimeProvider registry flush; when enabled, cross-network fallback
+ * provenance drives disclaimer copy on forward (AddressField) and reverse
+ * (AddressDisplay) surfaces.
+ */
+function MainnetL1FallbackOptInToggle(): React.ReactElement {
+  const { enabled, setEnabled } = useMainnetL1FallbackOptIn();
+  const checkboxId = 'ens-mainnet-l1-miss-fallback-opt-in';
+
+  return (
+    <div className="bg-muted/30 mb-4 space-y-2 rounded-lg border p-4">
+      <div className="flex items-start gap-3">
+        <input
+          id={checkboxId}
+          type="checkbox"
+          checked={enabled}
+          onChange={(event) => setEnabled(event.target.checked)}
+          className="mt-1 size-4 shrink-0"
+          aria-describedby={`${checkboxId}-helper`}
+        />
+        <div className="space-y-1">
+          <label htmlFor={checkboxId} className="text-sm font-medium leading-none">
+            Allow mainnet fallback when name not found on connected network
+          </label>
+          <p id={`${checkboxId}-helper`} className="text-muted-foreground text-xs">
+            Opt in to cross-network ENS lookup when a record is missing on the bound network (e.g.
+            resolving <code className="bg-muted rounded px-1">vitalik.eth</code> on{' '}
+            <span className="font-medium">{networkLabel('ethereum-sepolia')}</span>). When results
+            include fallback provenance, AddressField shows a muted note (unless suppressed) and
+            AddressDisplay shows an amber triangle-alert with tooltip. Toggling re-resolves forward
+            and reverse results immediately.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OptInWiringReference(): React.ReactElement {
+  return (
+    <div className="mb-6 space-y-4">
+      <div>
+        <h3 className="text-lg font-medium">Integrator wiring</h3>
+        <p className="text-muted-foreground text-sm">
+          This app mirrors production setup in{' '}
+          <code className="bg-muted rounded px-1">AppProviders.tsx</code>: runtime creation options
+          gate adapter fallback; UI disclaimer props gate presentation only.
+        </p>
+      </div>
+      <div className="space-y-2">
+        <p className="text-sm font-medium">Runtime opt-in (default off)</p>
+        <CodeBlock code={OPT_IN_WIRING} language="tsx" />
+      </div>
+      <div className="space-y-2">
+        <p className="text-sm font-medium">Disclaimer presentation (default on)</p>
+        <CodeBlock code={DISCLAIMER_PROPS} language="tsx" />
+      </div>
+    </div>
   );
 }
 
@@ -118,8 +242,13 @@ export function ENSResolutionDemo({ onNavigate }: DemoProps): React.ReactElement
  */
 function LiveResolverWidget(): React.ReactElement {
   const { capabilities, network } = useEcosystem();
+  const { enabled: mainnetFallbackEnabled } = useMainnetL1FallbackOptIn();
   const { control } = useForm<LiveForm>({ mode: 'onChange', defaultValues: { recipient: '' } });
   const networkName = network?.name ?? '…';
+  const networkId = network?.id ?? '…';
+  const isSepolia = networkId === 'ethereum-sepolia';
+  const mainnetLabel = networkLabel('ethereum-mainnet');
+  const sepoliaLabel = networkLabel('ethereum-sepolia');
 
   // The field writes the RESOLVED hex (never the typed name) to the form value,
   // so watching it gives us the address to render. Gate on the active network's
@@ -133,11 +262,12 @@ function LiveResolverWidget(): React.ReactElement {
         <CardTitle>Live ENS resolver</CardTitle>
         <CardDescription>
           Resolve a name against the app&apos;s active network — the outcome follows that
-          network&apos;s ENS registry. On <span className="font-medium">Ethereum Mainnet</span>,{' '}
+          network&apos;s ENS registry (<code className="bg-muted rounded px-1">{networkId}</code>).
+          On <span className="font-medium">{mainnetLabel}</span>,{' '}
           <code className="bg-muted rounded px-1">ens.eth</code> resolves; on{' '}
-          <span className="font-medium">Sepolia</span> it&apos;s not found (not in the testnet
-          registry); on a non-ENS network you get a graceful “not supported”. Switch networks from
-          the header selector.
+          <span className="font-medium">{sepoliaLabel}</span> it is not in the testnet registry; on
+          a non-ENS network you get a graceful “not supported”. Switch networks from the header
+          selector.
         </CardDescription>
       </CardHeader>
 
@@ -151,10 +281,13 @@ function LiveResolverWidget(): React.ReactElement {
             name="recipient"
             label="Resolve a name"
             placeholder={`Try ens.eth or a hex address on ${networkName}`}
-            helperText="Forward resolution — the outcome updates when you switch the active network in the header."
+            helperText="Forward resolution — updates when you switch the active network or toggle mainnet fallback."
             control={control}
             addressing={capabilities ?? undefined}
             validation={{ required: true }}
+            // Suppress the forward disclaimer here — the resolved-address card below
+            // shows the reverse disclaimer via AddressDisplay (default on).
+            showCrossNetworkFallbackDisclaimer={false}
           />
 
           {hasResolvedAddress && (
@@ -169,8 +302,8 @@ function LiveResolverWidget(): React.ReactElement {
                 showExplorerLink
               />
               <p className="text-muted-foreground text-xs">
-                The full, untruncated address the field resolved to — reverse-resolved back to its
-                name + avatar for display.
+                Reverse-resolved display for the hex above. Cross-network fallback provenance shows
+                as an amber triangle-alert inline after the name (default on).
               </p>
             </div>
           )}
@@ -180,14 +313,37 @@ function LiveResolverWidget(): React.ReactElement {
         <div className="space-y-2">
           <p className="text-sm font-medium">Reverse resolution</p>
           <p className="text-muted-foreground text-xs">
-            Each address shows its ENS name + avatar on mainnet, and a truncated hex on networks
-            where it isn&apos;t registered.
+            Each row shows how an address reverse-resolves on{' '}
+            <span className="font-medium">{networkName}</span> (
+            <code className="bg-muted rounded px-1">{networkId}</code>). On{' '}
+            <span className="font-medium">{sepoliaLabel}</span>, only{' '}
+            <span className="font-medium">brantly.eth</span> has a native testnet record; the others
+            resolve only when mainnet fallback is enabled (toggle above). Changing the toggle
+            re-resolves every row.
           </p>
           <div className="grid gap-2 sm:grid-cols-2">
-            {SAMPLE_HEX_ADDRESSES.map((addr) => (
-              <div key={addr} className="bg-muted/30 flex items-center gap-3 rounded-lg p-3">
+            {SAMPLE_REVERSE_ADDRESSES.map(({ address, ensName, sepoliaResolution }) => (
+              <div key={address} className="bg-muted/30 space-y-2 rounded-lg p-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <code className="bg-muted rounded px-1.5 py-0.5 text-xs">{ensName}</code>
+                  {isSepolia && (
+                    <span
+                      className={
+                        sepoliaResolution === 'native'
+                          ? 'rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-300'
+                          : 'rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-sky-700 dark:text-sky-300'
+                      }
+                    >
+                      {sepoliaResolution === 'native'
+                        ? 'Sepolia native'
+                        : mainnetFallbackEnabled
+                          ? 'Mainnet fallback'
+                          : 'Needs mainnet fallback'}
+                    </span>
+                  )}
+                </div>
                 <ResolvedAddressDisplay
-                  address={addr}
+                  address={address}
                   showCopyButton
                   showTooltip
                   showExplorerLink

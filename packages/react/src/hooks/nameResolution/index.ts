@@ -33,6 +33,7 @@ export {
   buildResolutionKey,
   createResolutionQueryClient,
   getDefaultResolutionQueryClient,
+  getRuntimeInstanceId,
   isTransientError,
 } from './resolutionConfig';
 export { ResolutionQueryError } from './resolutionState';

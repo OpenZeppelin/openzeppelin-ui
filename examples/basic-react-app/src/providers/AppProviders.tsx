@@ -25,12 +25,19 @@ import {
   WalletStateProvider,
 } from '@openzeppelin/ui-react';
 import { useAliasLabelResolver, useAliasSuggestionResolver } from '@openzeppelin/ui-storage';
-import type { NativeConfigLoader } from '@openzeppelin/ui-types';
+import type {
+  CreateRuntimeOptions,
+  NativeConfigLoader,
+  NetworkConfig,
+} from '@openzeppelin/ui-types';
 
 import { EcosystemContext, type EcosystemContextValue } from '../context/ecosystemContextDef';
+import {
+  MainnetL1FallbackOptInContext,
+  type MainnetL1FallbackOptInContextValue,
+} from '../context/mainnetL1FallbackOptInContext';
 import { demoDb } from '../core/demoDb';
-import { getNetworkById, type DemoEcosystem } from '../core/ecosystemManager';
-import { resolveRuntime } from '../core/networkUtils';
+import { getNetworkById, getRuntime, type DemoEcosystem } from '../core/ecosystemManager';
 import { toDemoCapabilities, type DemoRuntime } from '../core/runtimeCapabilities';
 import { useEcosystemStore } from '../stores';
 
@@ -270,6 +277,30 @@ export function AppProviders({
 }: AppProvidersProps): React.ReactElement {
   const [isInitialized, setIsInitialized] = useState(false);
   const [initialNetworkId, setInitialNetworkId] = useState<string | null>(null);
+  const [enableMainnetL1MissFallback, setEnableMainnetL1MissFallback] = useState(false);
+
+  // Integrator reference: pass the third `createRuntime` arg only when opted in.
+  // RuntimeProvider flushes cached runtimes when this identity changes, so forward
+  // and reverse resolution re-run immediately after toggling.
+  const runtimeCreationOptions = useMemo((): CreateRuntimeOptions | undefined => {
+    if (!enableMainnetL1MissFallback) {
+      return undefined;
+    }
+    return { nameResolution: { enableMainnetL1MissFallback: true } };
+  }, [enableMainnetL1MissFallback]);
+
+  const resolveRuntime = useCallback(
+    (networkConfig: NetworkConfig) => getRuntime(networkConfig, runtimeCreationOptions),
+    [runtimeCreationOptions]
+  );
+
+  const mainnetL1FallbackOptIn = useMemo<MainnetL1FallbackOptInContextValue>(
+    () => ({
+      enabled: enableMainnetL1MissFallback,
+      setEnabled: setEnableMainnetL1MissFallback,
+    }),
+    [enableMainnetL1MissFallback]
+  );
 
   // Initialize the ecosystem store on mount
   const initialize = useEcosystemStore((s) => s.initialize);
@@ -328,15 +359,17 @@ export function AppProviders({
   }
 
   return (
-    <RuntimeProvider resolveRuntime={resolveRuntime}>
-      <WalletStateProvider
-        initialNetworkId={initialNetworkId}
-        getNetworkConfigById={getNetworkConfigById}
-        loadConfigModule={loadAppConfigModule}
-      >
-        <EcosystemProviderInner>{children}</EcosystemProviderInner>
-      </WalletStateProvider>
-    </RuntimeProvider>
+    <MainnetL1FallbackOptInContext.Provider value={mainnetL1FallbackOptIn}>
+      <RuntimeProvider resolveRuntime={resolveRuntime}>
+        <WalletStateProvider
+          initialNetworkId={initialNetworkId}
+          getNetworkConfigById={getNetworkConfigById}
+          loadConfigModule={loadAppConfigModule}
+        >
+          <EcosystemProviderInner>{children}</EcosystemProviderInner>
+        </WalletStateProvider>
+      </RuntimeProvider>
+    </MainnetL1FallbackOptInContext.Provider>
   );
 }
 
