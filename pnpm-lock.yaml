@@ -107,11 +107,11 @@ importers:
         specifier: ^1.8.0
         version: 1.9.5(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@stellar/stellar-base@14.0.4)(@stellar/stellar-sdk@14.4.3)(@trezor/connect@9.6.2(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)))(@types/react@19.2.8)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(near-api-js@5.1.1)(react@19.2.7)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))
       '@openzeppelin/adapter-evm':
-        specifier: file:/Users/ghost/dev/repos/OpenZeppelin/openzeppelin-ui/.packed-packages/local-dev/adapters/openzeppelin-adapter-evm-2.2.0.tgz
-        version: file:.packed-packages/local-dev/adapters/openzeppelin-adapter-evm-2.2.0.tgz(0b1cc4d38e4983e63833fed732c4297c)
+        specifier: ^2.2.0
+        version: 2.2.0(0b1cc4d38e4983e63833fed732c4297c)
       '@openzeppelin/adapter-stellar':
-        specifier: file:/Users/ghost/dev/repos/OpenZeppelin/openzeppelin-ui/.packed-packages/local-dev/adapters/openzeppelin-adapter-stellar-2.2.0.tgz
-        version: file:.packed-packages/local-dev/adapters/openzeppelin-adapter-stellar-2.2.0.tgz(@openzeppelin/ui-components@packages+components)(@openzeppelin/ui-types@packages+types)(@openzeppelin/ui-utils@packages+utils)(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@stellar/stellar-base@14.0.4)(@trezor/connect@9.6.2(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)))(@types/react@19.2.8)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(near-api-js@5.1.1)(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.79.0(react@19.2.7))(react@19.2.7)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))
+        specifier: ^2.2.0
+        version: 2.2.0(@openzeppelin/ui-components@packages+components)(@openzeppelin/ui-types@packages+types)(@openzeppelin/ui-utils@packages+utils)(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@stellar/stellar-base@14.0.4)(@trezor/connect@9.6.2(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)))(@types/react@19.2.8)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(near-api-js@5.1.1)(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.79.0(react@19.2.7))(react@19.2.7)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))
       '@openzeppelin/ui-components':
         specifier: workspace:^
         version: link:../../packages/components
@@ -180,8 +180,8 @@ importers:
         version: 5.0.11(@types/react@19.2.8)(react@19.2.7)(use-sync-external-store@1.4.0(react@19.2.7))
     devDependencies:
       '@openzeppelin/adapters-vite':
-        specifier: file:/Users/ghost/dev/repos/OpenZeppelin/openzeppelin-ui/.packed-packages/local-dev/adapters/openzeppelin-adapters-vite-4.0.0.tgz
-        version: file:.packed-packages/local-dev/adapters/openzeppelin-adapters-vite-4.0.0.tgz(cd5c6bd06d7cd814e1691dfb689e11fa)
+        specifier: ^4.0.0
+        version: 4.0.0(@openzeppelin/adapter-evm@2.2.0(0b1cc4d38e4983e63833fed732c4297c))(@openzeppelin/adapter-stellar@2.2.0(@openzeppelin/ui-components@packages+components)(@openzeppelin/ui-types@packages+types)(@openzeppelin/ui-utils@packages+utils)(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@stellar/stellar-base@14.0.4)(@trezor/connect@9.6.2(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)))(@types/react@19.2.8)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(near-api-js@5.1.1)(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.79.0(react@19.2.7))(react@19.2.7)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)))(vite@7.3.5(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0))
       '@tailwindcss/vite':
         specifier: ^4.1.11
         version: 4.1.18(vite@7.3.5(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0))
@@ -1596,9 +1596,8 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@openzeppelin/adapter-evm@file:.packed-packages/local-dev/adapters/openzeppelin-adapter-evm-2.2.0.tgz':
-    resolution: {integrity: sha512-lRj5mjdVWwbd2gQBO2AudquPQX9swh+hZzWHVNR5+r7wei8g5W0WKqfziVF6jDg4lX3KcUGV8zChGT40GU/dQw==, tarball: file:.packed-packages/local-dev/adapters/openzeppelin-adapter-evm-2.2.0.tgz}
-    version: 2.2.0
+  '@openzeppelin/adapter-evm@2.2.0':
+    resolution: {integrity: sha512-2n1j0SLWA7Ushu6nrYHPwxLd7Pq0KUsAX02Y2PEiTUUuNDXfGBUtypUp/G22OQY3XxmlUK0h8mBkUjl/aREnZw==}
     peerDependencies:
       '@openzeppelin/ui-components': ^2.0.0
       '@openzeppelin/ui-react': ^2.0.1
@@ -1612,9 +1611,8 @@ packages:
       viem: ^2.35.0
       wagmi: ^2.15.0
 
-  '@openzeppelin/adapter-stellar@file:.packed-packages/local-dev/adapters/openzeppelin-adapter-stellar-2.2.0.tgz':
-    resolution: {integrity: sha512-DcPyrqIz2hPo/bZ5EXDoBAPJZD0mOHLgJ92HwfNUXkNBUGOivypdjhR1vy3xJOLOFxLjgv+lq7m1bJYZNMq2ZQ==, tarball: file:.packed-packages/local-dev/adapters/openzeppelin-adapter-stellar-2.2.0.tgz}
-    version: 2.2.0
+  '@openzeppelin/adapter-stellar@2.2.0':
+    resolution: {integrity: sha512-hoKp7Mp0rgVG1zlc8NTgS1U0i33IuHGVDTicJhwnZwo1M6Y4fHQ4D1Gpo4M9+7M/OterrDbIrRQ0rFMIeSQzaw==}
     peerDependencies:
       '@openzeppelin/ui-components': ^2.0.0
       '@openzeppelin/ui-types': ^3.2.0
@@ -1623,9 +1621,8 @@ packages:
       react-dom: ^19.0.0
       react-hook-form: ^7.62.0
 
-  '@openzeppelin/adapters-vite@file:.packed-packages/local-dev/adapters/openzeppelin-adapters-vite-4.0.0.tgz':
-    resolution: {integrity: sha512-kGyEb+Ae0rk50K11wOiBCTfrCrMitxxxooREvAwFrLjW6Xil8bUWh9s0tm/8CPLzHIaUcTcVZD9SYFp4Mp8M/A==, tarball: file:.packed-packages/local-dev/adapters/openzeppelin-adapters-vite-4.0.0.tgz}
-    version: 4.0.0
+  '@openzeppelin/adapters-vite@4.0.0':
+    resolution: {integrity: sha512-AQH0MXuttPtNGA9jUlltLaNtP7831MCRQTYkeN+3xLntir15nbqa3yuik9hbjDaHwcgaYRo1t/o+LjomIjEosw==}
     peerDependencies:
       '@openzeppelin/adapter-evm': ^2.2.0
       '@openzeppelin/adapter-midnight': ^2.2.0
@@ -9369,7 +9366,7 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@openzeppelin/adapter-evm@file:.packed-packages/local-dev/adapters/openzeppelin-adapter-evm-2.2.0.tgz(0b1cc4d38e4983e63833fed732c4297c)':
+  '@openzeppelin/adapter-evm@2.2.0(0b1cc4d38e4983e63833fed732c4297c)':
     dependencies:
       '@openzeppelin/relayer-sdk': 1.9.0
       '@openzeppelin/ui-components': link:packages/components
@@ -9420,7 +9417,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@openzeppelin/adapter-stellar@file:.packed-packages/local-dev/adapters/openzeppelin-adapter-stellar-2.2.0.tgz(@openzeppelin/ui-components@packages+components)(@openzeppelin/ui-types@packages+types)(@openzeppelin/ui-utils@packages+utils)(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@stellar/stellar-base@14.0.4)(@trezor/connect@9.6.2(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)))(@types/react@19.2.8)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(near-api-js@5.1.1)(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.79.0(react@19.2.7))(react@19.2.7)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))':
+  '@openzeppelin/adapter-stellar@2.2.0(@openzeppelin/ui-components@packages+components)(@openzeppelin/ui-types@packages+types)(@openzeppelin/ui-utils@packages+utils)(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@stellar/stellar-base@14.0.4)(@trezor/connect@9.6.2(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)))(@types/react@19.2.8)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(near-api-js@5.1.1)(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.79.0(react@19.2.7))(react@19.2.7)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))':
     dependencies:
       '@creit.tech/stellar-wallets-kit': 1.9.5(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@stellar/stellar-base@14.0.4)(@stellar/stellar-sdk@14.4.3)(@trezor/connect@9.6.2(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)))(@types/react@19.2.8)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(near-api-js@5.1.1)(react@19.2.7)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))
       '@openzeppelin/relayer-sdk': 1.9.0
@@ -9475,12 +9472,12 @@ snapshots:
       - utf-8-validate
       - ws
 
-  '@openzeppelin/adapters-vite@file:.packed-packages/local-dev/adapters/openzeppelin-adapters-vite-4.0.0.tgz(cd5c6bd06d7cd814e1691dfb689e11fa)':
+  '@openzeppelin/adapters-vite@4.0.0(@openzeppelin/adapter-evm@2.2.0(0b1cc4d38e4983e63833fed732c4297c))(@openzeppelin/adapter-stellar@2.2.0(@openzeppelin/ui-components@packages+components)(@openzeppelin/ui-types@packages+types)(@openzeppelin/ui-utils@packages+utils)(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@stellar/stellar-base@14.0.4)(@trezor/connect@9.6.2(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)))(@types/react@19.2.8)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(near-api-js@5.1.1)(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.79.0(react@19.2.7))(react@19.2.7)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)))(vite@7.3.5(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0))':
     dependencies:
       vite: 7.3.5(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)
     optionalDependencies:
-      '@openzeppelin/adapter-evm': file:.packed-packages/local-dev/adapters/openzeppelin-adapter-evm-2.2.0.tgz(0b1cc4d38e4983e63833fed732c4297c)
-      '@openzeppelin/adapter-stellar': file:.packed-packages/local-dev/adapters/openzeppelin-adapter-stellar-2.2.0.tgz(@openzeppelin/ui-components@packages+components)(@openzeppelin/ui-types@packages+types)(@openzeppelin/ui-utils@packages+utils)(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@stellar/stellar-base@14.0.4)(@trezor/connect@9.6.2(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)))(@types/react@19.2.8)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(near-api-js@5.1.1)(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.79.0(react@19.2.7))(react@19.2.7)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))
+      '@openzeppelin/adapter-evm': 2.2.0(0b1cc4d38e4983e63833fed732c4297c)
+      '@openzeppelin/adapter-stellar': 2.2.0(@openzeppelin/ui-components@packages+components)(@openzeppelin/ui-types@packages+types)(@openzeppelin/ui-utils@packages+utils)(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(@stellar/stellar-base@14.0.4)(@trezor/connect@9.6.2(@solana/sysvars@2.3.0(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3))(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10)))(@types/react@19.2.8)(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(near-api-js@5.1.1)(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.79.0(react@19.2.7))(react@19.2.7)(tslib@2.8.1)(typescript@5.9.3)(utf-8-validate@5.0.10)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))
 
   '@openzeppelin/relayer-sdk@1.9.0':
     dependencies:
