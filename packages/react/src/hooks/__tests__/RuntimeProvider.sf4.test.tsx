@@ -61,6 +61,99 @@ function renderWithProvider(
   return render(<RuntimeProvider resolveRuntime={resolveRuntime}>{children}</RuntimeProvider>);
 }
 
+describe('resolver generation guard: mount vs identity change', () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  it('retains the first runtime load on mount (generation not bumped on initial effect run)', async () => {
+    const networkConfig = createNetworkConfig();
+    const dispose = vi.fn();
+    const runtime = createMockRuntime(dispose);
+    const resolveRuntime = vi.fn(async () => runtime);
+
+    let loadedRuntime: EcosystemRuntime | null = null;
+
+    renderWithProvider(
+      resolveRuntime,
+      <RuntimeLoader
+        networkConfig={networkConfig}
+        onLoaded={(nextRuntime) => {
+          loadedRuntime = nextRuntime;
+        }}
+      />
+    );
+
+    await waitFor(() => expect(loadedRuntime).toBe(runtime));
+    expect(resolveRuntime).toHaveBeenCalledWith(networkConfig);
+
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+
+    expect(
+      dispose,
+      'initial mount load must populate the registry without disposing the runtime as stale'
+    ).not.toHaveBeenCalled();
+  });
+
+  it('discards and disposes in-flight resolve from old resolver after resolveRuntime changes', async () => {
+    const networkConfig = createNetworkConfig();
+    let resolvePending: ((runtime: EcosystemRuntime) => void) | undefined;
+    const staleDispose = vi.fn();
+    const runtimeStale = createMockRuntime(staleDispose);
+    const slowResolver = vi.fn(
+      () =>
+        new Promise<EcosystemRuntime>((resolve) => {
+          resolvePending = resolve;
+        })
+    );
+
+    let loadedRuntime: EcosystemRuntime | null = null;
+    const onLoaded = (runtime: EcosystemRuntime) => {
+      loadedRuntime = runtime;
+    };
+
+    const { rerender } = renderWithProvider(
+      slowResolver,
+      <RuntimeLoader networkConfig={networkConfig} onLoaded={onLoaded} />
+    );
+
+    await waitFor(() => expect(slowResolver).toHaveBeenCalled());
+    expect(loadedRuntime).toBeNull();
+
+    const freshDispose = vi.fn();
+    const runtimeFresh = createMockRuntime(freshDispose);
+    const fastResolver = vi.fn(async () => runtimeFresh);
+
+    rerender(
+      <RuntimeProvider resolveRuntime={fastResolver}>
+        <RuntimeLoader networkConfig={networkConfig} onLoaded={onLoaded} />
+      </RuntimeProvider>
+    );
+
+    await waitFor(() => expect(loadedRuntime).toBe(runtimeFresh));
+    expect(fastResolver).toHaveBeenCalledWith(networkConfig);
+
+    await act(async () => {
+      resolvePending?.(runtimeStale);
+      await vi.runAllTimersAsync();
+    });
+
+    expect(
+      staleDispose,
+      'stale in-flight runtime from the prior resolver must be disposed, not cached'
+    ).toHaveBeenCalled();
+    expect(loadedRuntime).toBe(runtimeFresh);
+    expect(freshDispose).not.toHaveBeenCalled();
+  });
+});
+
 describe('INV-218: RuntimeProvider disposes all cached runtimes when resolveRuntime changes', () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -106,8 +199,8 @@ describe('INV-218: RuntimeProvider disposes all cached runtimes when resolveRunt
 
     expect(
       dispose1,
-      'INV-218: prior cached runtime must be disposed when resolveRuntime identity changes'
-    ).toHaveBeenCalledTimes(1);
+      'INV-218: prior cached runtime must be disposed when resolveRuntime identity changes (flush + any stale orphan)'
+    ).toHaveBeenCalled();
     expect(dispose2).not.toHaveBeenCalled();
   });
 });

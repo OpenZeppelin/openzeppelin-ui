@@ -344,6 +344,7 @@ export function AddressDisplay({
 
   // INV-178 / INV-189: disclaimer only when the verified ENS name won label precedence.
   const showFallbackNote =
+    showCrossNetworkFallbackDisclaimer &&
     ensName !== undefined &&
     effectiveLabel === ensName &&
     record !== undefined &&

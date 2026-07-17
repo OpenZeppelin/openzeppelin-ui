@@ -48,6 +48,11 @@ export function RuntimeProvider({ children, resolveRuntime }: RuntimeProviderPro
   // Cleared when resolveRuntime changes (e.g. the host app fixes the issue).
   const failedNetworksRef = useRef<Set<string>>(new Set());
 
+  // Bumped when resolveRuntime identity changes so in-flight resolves from a
+  // prior resolver cannot repopulate the registry with stale runtimes.
+  const resolverGenerationRef = useRef(0);
+  const resolverInitializedRef = useRef(false);
+
   useEffect(() => {
     runtimeRegistryRef.current = runtimeRegistry;
   }, [runtimeRegistry]);
@@ -56,6 +61,12 @@ export function RuntimeProvider({ children, resolveRuntime }: RuntimeProviderPro
   // function changes (e.g. opt-in toggle). INV-218: full registry disposal —
   // not only failedNetworksRef — so ctor-frozen capabilities cannot go stale.
   useEffect(() => {
+    if (resolverInitializedRef.current) {
+      resolverGenerationRef.current += 1;
+    } else {
+      resolverInitializedRef.current = true;
+    }
+
     const registry = runtimeRegistryRef.current;
     const runtimes = Object.values(registry);
     const hadCachedRuntimes = runtimes.length > 0;
@@ -199,9 +210,33 @@ export function RuntimeProvider({ children, resolveRuntime }: RuntimeProviderPro
         `Starting runtime initialization for network ${networkId} (${networkConfig.name})`
       );
 
+      const generation = resolverGenerationRef.current;
+
       // Use the passed-in resolveRuntime function
       void resolveRuntime(networkConfig)
         .then((runtime) => {
+          if (generation !== resolverGenerationRef.current) {
+            // Stale resolver — do not add to registry; dispose the orphan.
+            setTimeout(() => {
+              try {
+                runtime.dispose();
+              } catch (error) {
+                logger.error(
+                  'RuntimeProvider',
+                  `Error disposing stale runtime for network ${networkId}:`,
+                  error
+                );
+              }
+            }, 0);
+
+            setLoadingNetworks((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(networkId);
+              return newSet;
+            });
+            return;
+          }
+
           logger.info('RuntimeProvider', `Runtime for network ${networkId} loaded successfully`, {
             type: runtime.constructor.name,
             objectId: Object.prototype.toString.call(runtime),
@@ -221,6 +256,15 @@ export function RuntimeProvider({ children, resolveRuntime }: RuntimeProviderPro
           });
         })
         .catch((error) => {
+          if (generation !== resolverGenerationRef.current) {
+            setLoadingNetworks((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(networkId);
+              return newSet;
+            });
+            return;
+          }
+
           logger.error('RuntimeProvider', `Error loading runtime for network ${networkId}:`, error);
 
           failedNetworksRef.current.add(networkId);

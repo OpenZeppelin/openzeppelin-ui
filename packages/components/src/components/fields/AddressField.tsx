@@ -482,11 +482,11 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
             </span>
           );
         }
-        const fallbackNetworks = isCrossNetworkFallback(resolution.data.provenance)
-          ? getFallbackNetworks(resolution.data.provenance)
-          : undefined;
+        const fallbackNetworks =
+          showCrossNetworkFallbackDisclaimer && isCrossNetworkFallback(resolution.data.provenance)
+            ? getFallbackNetworks(resolution.data.provenance)
+            : undefined;
         const fallbackMessage =
-          showCrossNetworkFallbackDisclaimer &&
           fallbackNetworks &&
           nameResolutionCrossNetworkFallbackMessage(
             fallbackNetworks,
