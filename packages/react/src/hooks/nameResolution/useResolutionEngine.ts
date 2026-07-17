@@ -6,7 +6,12 @@ import { logger } from '@openzeppelin/ui-utils';
 
 import { WalletStateContext } from '../WalletStateContext';
 import { useNameResolutionContext } from './NameResolutionContext';
-import { buildResolutionKey, isTransientError, type ResolutionNamespace } from './resolutionConfig';
+import {
+  buildResolutionKey,
+  getRuntimeInstanceId,
+  isTransientError,
+  type ResolutionNamespace,
+} from './resolutionConfig';
 import { mapSettledQuery, ResolutionQueryError, type EngineResult } from './resolutionState';
 
 const LOG_SCOPE = 'useResolutionEngine';
@@ -90,6 +95,7 @@ export function useResolutionEngine<T>(params: ResolutionEngineParams<T>): Engin
   // Canonical selected-network id (INV-40 key scoping, INV-49 UNSUPPORTED_NETWORK payload).
   // `''` when no network is selected — a valid closed-union payload (INV-49).
   const networkId = activeNetworkId ?? '';
+  const runtimeInstanceId = getRuntimeInstanceId(activeRuntime);
   const method = capability ? getMethod(capability) : undefined;
 
   const liveAttemptable = capability ? shouldAttempt(capability, normalizedLive) : false;
@@ -107,7 +113,7 @@ export function useResolutionEngine<T>(params: ResolutionEngineParams<T>): Engin
 
   const query = useQuery<T, Error>(
     {
-      queryKey: buildResolutionKey(namespace, networkId, normalizedKey),
+      queryKey: buildResolutionKey(namespace, networkId, normalizedKey, runtimeInstanceId),
       queryFn: async (): Promise<T> => {
         if (!method) {
           // Unreachable: queryEnabled requires a defined method. Guarded (no `!`).

@@ -25,10 +25,11 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-/** Success announcer outer HTML for byte-identity comparison (INV-128). */
+/** Frozen success announcer inner span HTML for byte-identity comparison (INV-128). */
 function successAnnouncerHtml(region: HTMLElement | null): string {
-  const span = region?.querySelector('span.text-sm');
-  return span?.outerHTML ?? '';
+  const outer = region?.querySelector('span.text-sm');
+  const inner = outer?.querySelector(':scope > span');
+  return inner?.outerHTML ?? '';
 }
 
 const PROVENANCE_FIXTURES: {
@@ -68,7 +69,7 @@ describe('INV-128: successful-resolution display is byte-identical across adapte
 
       const region = h.region();
       expect(successAnnouncerHtml(region)).toBe(
-        `<span class="text-sm">Resolved to <code class="font-mono">${HEX_ALICE}</code></span>`
+        `<span>Resolved to <code class="font-mono">${HEX_ALICE}</code></span>`
       );
       expect(region?.textContent).not.toContain('ENS via external gateway');
       expect(region?.querySelector('img')).toBeNull();

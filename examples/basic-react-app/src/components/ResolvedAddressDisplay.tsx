@@ -26,10 +26,14 @@ function safeExplorerUrl(
 
 /**
  * Base `AddressDisplay` fed through its reverse-resolution value seam by the
- * renderer's app-wide `AddressNameResolutionProvider` bridge (SF-4). The record
- * is resolved against the app's active network — driven by the global
- * `NetworkSwitcher` — so on Ethereum Mainnet a registered address renders as a
- * name + avatar, and everywhere else it degrades to the plain address.
+ * renderer's `AddressNameResolutionProvider` bridge. The record is resolved
+ * against the app's active network (`ethereum-mainnet`, `ethereum-sepolia`, …)
+ * — driven by the global network selector — so a registered address renders as
+ * a verified name + avatar when forward verification succeeds, else plain hex.
+ *
+ * When a result carries cross-network fallback provenance and
+ * `showCrossNetworkFallbackDisclaimer` is left at the default (`true`), an
+ * amber triangle-alert icon with tooltip appears inline after the name.
  *
  * When `showExplorerLink` is set, the explorer URL is derived from the active
  * network's explorer capability; an explicit `explorerUrl` still takes
@@ -39,6 +43,7 @@ export function ResolvedAddressDisplay({
   address,
   showExplorerLink = false,
   explorerUrl,
+  showCrossNetworkFallbackDisclaimer,
   ...displayProps
 }: {
   address: string;
@@ -52,7 +57,12 @@ export function ResolvedAddressDisplay({
 
   return (
     <AddressNameResolutionProvider address={address}>
-      <AddressDisplay address={address} explorerUrl={resolvedExplorerUrl} {...displayProps} />
+      <AddressDisplay
+        address={address}
+        explorerUrl={resolvedExplorerUrl}
+        showCrossNetworkFallbackDisclaimer={showCrossNetworkFallbackDisclaimer}
+        {...displayProps}
+      />
     </AddressNameResolutionProvider>
   );
 }

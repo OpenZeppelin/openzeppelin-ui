@@ -15,39 +15,76 @@ import {
   createResolutionQueryClient,
   DEFAULT_CONFIG,
   getDefaultResolutionQueryClient,
+  getRuntimeInstanceId,
   isTransientError,
   RESOLUTION_KEY_PREFIX,
 } from '../resolutionConfig';
 
 describe('buildResolutionKey — network-scoped, namespace-separated (INV-40, INV-26)', () => {
-  it('places prefix, namespace, networkId and normalized input in the key tuple', () => {
+  it('places prefix, namespace, networkId, normalized input, and runtime instance id in the key tuple', () => {
+    expect(buildResolutionKey('name', 'eip155:1', 'alice.eth', 3)).toEqual([
+      RESOLUTION_KEY_PREFIX,
+      'name',
+      'eip155:1',
+      'alice.eth',
+      3,
+    ]);
+  });
+
+  it('defaults runtimeInstanceId to 0 when no runtime is mounted', () => {
     expect(buildResolutionKey('name', 'eip155:1', 'alice.eth')).toEqual([
       RESOLUTION_KEY_PREFIX,
       'name',
       'eip155:1',
       'alice.eth',
+      0,
     ]);
   });
 
   it('the same name on two networks yields distinct keys (INV-40)', () => {
-    const a = buildResolutionKey('name', 'eip155:1', 'alice.eth');
-    const b = buildResolutionKey('name', 'eip155:11155111', 'alice.eth');
+    const a = buildResolutionKey('name', 'eip155:1', 'alice.eth', 1);
+    const b = buildResolutionKey('name', 'eip155:11155111', 'alice.eth', 1);
+    expect(a).not.toEqual(b);
+  });
+
+  it('the same input on two runtime instances yields distinct keys (INV-230)', () => {
+    const a = buildResolutionKey('name', 'eip155:1', 'alice.eth', 1);
+    const b = buildResolutionKey('name', 'eip155:1', 'alice.eth', 2);
     expect(a).not.toEqual(b);
   });
 
   it('forward and reverse never collide even for the same raw string (INV-40)', () => {
-    const forward = buildResolutionKey('name', 'eip155:1', '0xabc');
-    const reverse = buildResolutionKey('addr', 'eip155:1', '0xabc');
+    const forward = buildResolutionKey('name', 'eip155:1', '0xabc', 1);
+    const reverse = buildResolutionKey('addr', 'eip155:1', '0xabc', 1);
     expect(forward).not.toEqual(reverse);
   });
 
   it('an empty networkId is a valid (degraded) key segment (INV-49 support)', () => {
-    expect(buildResolutionKey('name', '', 'alice.eth')).toEqual([
+    expect(buildResolutionKey('name', '', 'alice.eth', 0)).toEqual([
       RESOLUTION_KEY_PREFIX,
       'name',
       '',
       'alice.eth',
+      0,
     ]);
+  });
+});
+
+describe('getRuntimeInstanceId — stable per runtime object identity (INV-230)', () => {
+  it('returns 0 for null or undefined runtime', () => {
+    expect(getRuntimeInstanceId(null)).toBe(0);
+    expect(getRuntimeInstanceId(undefined)).toBe(0);
+  });
+
+  it('assigns a stable positive id per runtime object', () => {
+    const runtimeA = { nameResolution: {} } as import('@openzeppelin/ui-types').EcosystemRuntime;
+    const runtimeB = { nameResolution: {} } as import('@openzeppelin/ui-types').EcosystemRuntime;
+    const idA1 = getRuntimeInstanceId(runtimeA);
+    const idA2 = getRuntimeInstanceId(runtimeA);
+    const idB = getRuntimeInstanceId(runtimeB);
+    expect(idA1).toBeGreaterThan(0);
+    expect(idA2).toBe(idA1);
+    expect(idB).not.toBe(idA1);
   });
 });
 

@@ -1,5 +1,5 @@
 import { AlertCircle } from 'lucide-react';
-import { useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { NameResolverProvider } from '@openzeppelin/ui-components';
@@ -76,6 +76,14 @@ export function TransactionForm({
   // when no WalletStateProvider / runtime / capability is present (INV-119).
   const nameResolver = useRuntimeNameResolver();
   const walletState = useContext(WalletStateContext);
+
+  const resolveNetworkLabel = useCallback(
+    (networkId: string) =>
+      walletState?.activeRuntime?.networkCatalog
+        ?.getNetworks()
+        .find((network) => network.id === networkId)?.name,
+    [walletState?.activeRuntime?.networkCatalog]
+  );
 
   // Initialize form with React Hook Form
   const methods = useForm<FormValues>({
@@ -339,6 +347,7 @@ export function TransactionForm({
       {...nameResolver}
       activeNetworkId={walletState?.activeNetworkId ?? null}
       activeNetworkName={walletState?.activeNetworkConfig?.name}
+      resolveNetworkLabel={resolveNetworkLabel}
     >
       <FormProvider {...methods}>
         <div className="mb-4 flex items-center justify-between">

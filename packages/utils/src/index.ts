@@ -15,6 +15,7 @@ export * from './fieldValidation';
 export * from './addressInputClassification';
 export * from './nameResolutionMessages';
 export * from './nameResolutionGating';
+export * from './nameResolutionFallback';
 export * from './typeguards';
 export * from './cn';
 export * from './formatting';

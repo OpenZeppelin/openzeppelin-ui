@@ -13,6 +13,7 @@ import type { AdapterConfig } from './config';
 import type { EcosystemMetadata } from './ecosystem-metadata';
 import type { AdapterExportBootstrap, AdapterExportContext } from './export';
 import type { CapabilityFactoryMap, EcosystemRuntime } from './runtime';
+import type { CreateRuntimeOptions } from './runtime-options';
 
 export interface EcosystemExport extends EcosystemMetadata {
   /** All networks supported by this adapter */
@@ -28,12 +29,12 @@ export interface EcosystemExport extends EcosystemMetadata {
    *
    * @param profile - One of the five supported profile identifiers.
    * @param config - Target network configuration.
-   * @param options.uiKit - Initial UI kit hint (replaces legacy `initialAppServiceKitName`, FR-017).
+   * @param options - Runtime creation options ({@link CreateRuntimeOptions}).
    */
   createRuntime: (
     profile: ProfileName,
     config: NetworkConfig,
-    options?: { uiKit?: string }
+    options?: CreateRuntimeOptions
   ) => EcosystemRuntime;
 
   /**

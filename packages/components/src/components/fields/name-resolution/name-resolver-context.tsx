@@ -75,11 +75,12 @@ export function NameResolverProvider({
   resolveName,
   activeNetworkId,
   activeNetworkName,
+  resolveNetworkLabel,
 }: NameResolverProviderProps): React.ReactElement {
   // INV-118: memoize-and-provide only — no hook state, no capability call.
   const value = React.useMemo<NameResolverContextValue>(
-    () => ({ isValidName, resolveName, activeNetworkId, activeNetworkName }),
-    [isValidName, resolveName, activeNetworkId, activeNetworkName]
+    () => ({ isValidName, resolveName, activeNetworkId, activeNetworkName, resolveNetworkLabel }),
+    [isValidName, resolveName, activeNetworkId, activeNetworkName, resolveNetworkLabel]
   );
 
   return <NameResolverContext.Provider value={value}>{children}</NameResolverContext.Provider>;

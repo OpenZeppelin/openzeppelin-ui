@@ -60,6 +60,16 @@ export { DEFAULT_CONFIG, type ResolutionConfig } from './hooks/nameResolution/re
 // SF-3: smart capability→context wiring for the ui-components NameResolver seam.
 export { useRuntimeNameResolver } from './hooks/nameResolution/useRuntimeNameResolver';
 
+// SF-4: runtime-creation opt-in wiring for mainnet-L1 miss-fallback
+export {
+  createResolveRuntime,
+  DEFAULT_RUNTIME_CREATION_CONFIG,
+  isMainnetL1MissFallbackEnabled,
+  useResolveRuntime,
+  type ResolveRuntimeFn,
+  type ResolveRuntimeParams,
+} from './hooks/runtime';
+
 // UI Components
 export { WalletConnectionHeader } from './components/WalletConnectionHeader';
 export { WalletConnectionUI, type WalletConnectionUIProps } from './components/WalletConnectionUI';

@@ -4,7 +4,7 @@ import type { NameResolver, ResolutionResult, ResolvedAddress } from '@openzeppe
 
 import { WalletStateContext } from '../WalletStateContext';
 import { useNameResolutionContext } from './NameResolutionContext';
-import { buildResolutionKey, isTransientError } from './resolutionConfig';
+import { buildResolutionKey, getRuntimeInstanceId, isTransientError } from './resolutionConfig';
 import { ResolutionQueryError, toNameResolutionError } from './resolutionState';
 
 /**
@@ -47,10 +47,12 @@ export function useRuntimeNameResolver(): NameResolver {
   const walletState = useContext(WalletStateContext);
   const { queryClient, config } = useNameResolutionContext();
 
-  const capability = walletState?.activeRuntime?.nameResolution;
+  const activeRuntime = walletState?.activeRuntime ?? null;
+  const capability = activeRuntime?.nameResolution;
   // Canonical selected-network id — part of the shared cache key (INV-119);
   // '' when no network is selected, mirroring the SF-2 engine.
   const networkId = walletState?.activeNetworkId ?? '';
+  const runtimeInstanceId = getRuntimeInstanceId(activeRuntime);
 
   return useMemo<NameResolver>(() => {
     if (!capability) {
@@ -69,7 +71,7 @@ export function useRuntimeNameResolver(): NameResolver {
             const normalized = name.trim().toLowerCase();
             try {
               const value = await queryClient.fetchQuery<ResolvedAddress, Error>({
-                queryKey: buildResolutionKey('name', networkId, normalized),
+                queryKey: buildResolutionKey('name', networkId, normalized, runtimeInstanceId),
                 queryFn: async (): Promise<ResolvedAddress> => {
                   // Same ok:false → thrown-error bridge as SF-2's engine, so a
                   // field-initiated fetch and a hook-initiated fetch populate the
@@ -108,5 +110,5 @@ export function useRuntimeNameResolver(): NameResolver {
           }
         : undefined,
     };
-  }, [capability, queryClient, config, networkId]);
+  }, [capability, queryClient, config, networkId, runtimeInstanceId]);
 }

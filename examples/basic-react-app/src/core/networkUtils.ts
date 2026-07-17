@@ -6,7 +6,11 @@
  * no hardcoded chain conditionals scattered across components.
  */
 
-import type { AddressingCapability, NetworkConfig } from '@openzeppelin/ui-types';
+import type {
+  AddressingCapability,
+  CreateRuntimeOptions,
+  NetworkConfig,
+} from '@openzeppelin/ui-types';
 
 import { ECOSYSTEM_METADATA, getRuntime, type DemoEcosystem } from './ecosystemManager';
 import type { DemoRuntime } from './runtimeCapabilities';
@@ -73,8 +77,11 @@ export function getRuntimeAddressPlaceholder(runtime: DemoRuntime | null): strin
 /**
  * Resolve a runtime for a given NetworkConfig.
  */
-export async function resolveRuntime(network: NetworkConfig): Promise<DemoRuntime> {
-  return getRuntime(network);
+export async function resolveRuntime(
+  network: NetworkConfig,
+  options?: CreateRuntimeOptions
+): Promise<DemoRuntime> {
+  return getRuntime(network, options);
 }
 
 /**

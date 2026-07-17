@@ -1,8 +1,15 @@
-import { Check, Copy, ExternalLink, Pencil } from 'lucide-react';
+import { Check, Copy, ExternalLink, Pencil, TriangleAlert } from 'lucide-react';
 import * as React from 'react';
 
 import type { ResolvedName } from '@openzeppelin/ui-types';
-import { cn, truncateMiddle } from '@openzeppelin/ui-utils';
+import {
+  cn,
+  crossNetworkFallbackMessageNames,
+  getFallbackNetworks,
+  isCrossNetworkFallback,
+  nameResolutionCrossNetworkFallbackMessage,
+  truncateMiddle,
+} from '@openzeppelin/ui-utils';
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../tooltip';
 import { AddressAvatar, type AddressAvatarVariant } from './address-avatar';
@@ -194,6 +201,14 @@ export interface AddressDisplayProps extends React.HTMLAttributes<HTMLDivElement
   resolvedName?: ResolvedName;
 
   /**
+   * When `false`, suppresses the reverse cross-network fallback indicator
+   * (amber triangle-alert icon + tooltip) inline after the verified name.
+   * Default `true`. Provenance classification is unchanged — only presentation
+   * is omitted so the labeled branch stays byte-identical to a row without fallback.
+   */
+  showCrossNetworkFallbackDisclaimer?: boolean;
+
+  /**
    * Additional CSS classes
    */
   className?: string;
@@ -279,6 +294,7 @@ export function AddressDisplay({
   avatar,
   avatarVariant = 'fill',
   resolvedName,
+  showCrossNetworkFallbackDisclaimer = true,
   className,
   onPointerEnter,
   onPointerLeave,
@@ -325,6 +341,24 @@ export function AddressDisplay({
   // Collapses to the pre-enhancement `resolvedLabel` when nothing is injected
   // (INV-54: zero-injection byte-identical).
   const effectiveLabel = resolvedLabel ?? ensName;
+
+  // INV-178 / INV-189: disclaimer only when the verified ENS name won label precedence.
+  const showFallbackNote =
+    showCrossNetworkFallbackDisclaimer &&
+    ensName !== undefined &&
+    effectiveLabel === ensName &&
+    record !== undefined &&
+    isCrossNetworkFallback(record.provenance);
+
+  const fallbackNote = (() => {
+    if (!showFallbackNote) return undefined;
+    const networks = getFallbackNetworks(record.provenance);
+    if (networks === undefined) return undefined;
+    return nameResolutionCrossNetworkFallbackMessage(
+      networks,
+      crossNetworkFallbackMessageNames(networks, nameResolver?.resolveNetworkLabel)
+    );
+  })();
 
   const effectiveTruncate =
     truncateProp !== undefined
@@ -521,8 +555,28 @@ export function AddressDisplay({
     // their existing a11y surface (INV-68).
     const labelColumn = (
       <>
-        <span className="truncate font-sans font-medium text-slate-900 leading-snug">
-          {effectiveLabel}
+        <span className="inline-flex min-w-0 max-w-full items-center gap-1">
+          <span className="truncate font-sans font-medium text-slate-900 leading-snug">
+            {effectiveLabel}
+          </span>
+          {fallbackNote && showCrossNetworkFallbackDisclaimer ? (
+            <TooltipProvider delayDuration={300}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex shrink-0 rounded-sm text-amber-500 outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
+                    aria-label={fallbackNote}
+                  >
+                    <TriangleAlert className="h-3 w-3" aria-hidden />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs font-sans text-xs font-normal normal-case">
+                  {fallbackNote}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : null}
         </span>
         <div className="flex min-w-0 items-center font-mono text-[10px] text-slate-400 leading-snug">
           <span className={addressTextClassName}>{displayAddress}</span>

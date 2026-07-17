@@ -1,4 +1,4 @@
-import { AlertTriangle } from 'lucide-react';
+import { TriangleAlert } from 'lucide-react';
 
 import { useEcosystem } from '../context';
 
@@ -33,7 +33,7 @@ export function NetworkRequirementHint({
       role="status"
       className={`flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-300 ${className}`.trim()}
     >
-      <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
+      <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
       <p>{children}</p>
     </div>
   );

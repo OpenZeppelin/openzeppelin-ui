@@ -22,6 +22,13 @@
 import type { ResolvedName } from './name-resolution';
 
 /**
+ * Maps repo `networkConfig.id` slugs (e.g. `ethereum-sepolia`) to a human-readable
+ * label for display copy. Returns `undefined` when unknown — callers fall back to
+ * the raw id or generic copy (003 SF-3 / INV-138 parity).
+ */
+export type NetworkLabelResolver = (networkId: string) => string | undefined;
+
+/**
  * Synchronous, value-only resolver surfacing an already-resolved reverse
  * name record for an address.
  *
@@ -58,4 +65,11 @@ export interface AddressNameResolver {
    *   when none is available
    */
   resolveAddressName: (address: string, networkId?: string) => ResolvedName | undefined;
+
+  /**
+   * Optional slug → display name for provenance disclaimer copy (003 SF-3).
+   * When omitted, cross-network fallback notes use generic copy or raw slugs
+   * per {@link NetworkLabelResolver} contract.
+   */
+  readonly resolveNetworkLabel?: NetworkLabelResolver;
 }

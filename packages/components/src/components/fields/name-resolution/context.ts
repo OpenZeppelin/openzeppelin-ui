@@ -1,6 +1,6 @@
 import { createContext, type Context } from 'react';
 
-import type { NameResolver } from '@openzeppelin/ui-types';
+import type { NameResolver, NetworkLabelResolver } from '@openzeppelin/ui-types';
 
 /**
  * Value held by NameResolverContext. Extends the SF-3 injection seam with
@@ -19,6 +19,11 @@ export interface NameResolverContextValue extends NameResolver {
    * chain-scope mismatch message only (same seam as INV-78 networkName).
    */
   readonly activeNetworkName?: string;
+
+  /**
+   * Optional slug → display name for provenance disclaimer copy (003 SF-3).
+   */
+  readonly resolveNetworkLabel?: NetworkLabelResolver;
 }
 
 /**

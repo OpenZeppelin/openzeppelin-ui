@@ -237,6 +237,43 @@ describe('INV-40: cache keys are network-scoped (same input, two networks → tw
   });
 });
 
+describe('INV-230: cache keys are runtime-instance-scoped (same network + input, new runtime → re-resolve)', () => {
+  it('forward: replacing activeRuntime on the same network triggers a fresh resolution', async () => {
+    const resolveName = vi.fn(
+      async (): Promise<ResolutionResult<ResolvedAddress>> => ({ ok: true, value: ALICE })
+    );
+    const capability = makeCapability({ resolveName });
+    const initialWallet = walletWithCapability(capability, { activeNetworkId: 'eip155:1' });
+    const { Wrapper, setWallet } = makeWalletWrapper(initialWallet);
+
+    renderHook(() => useResolveName('alice.eth'), { wrapper: Wrapper });
+    await tick(0);
+    expect(resolveName).toHaveBeenCalledTimes(1);
+
+    setWallet(walletWithCapability(capability, { activeNetworkId: 'eip155:1' }));
+    await tick(0);
+    expect(resolveName).toHaveBeenCalledTimes(2);
+  });
+
+  it('reverse: replacing activeRuntime on the same network triggers a fresh resolution', async () => {
+    const resolveAddress = vi.fn(
+      async (): Promise<ResolutionResult<ResolvedName>> => ({ ok: true, value: REVERSE_UNVERIFIED })
+    );
+    const capability = makeCapability({ resolveAddress });
+    const { Wrapper, setWallet } = makeWalletWrapper(
+      walletWithCapability(capability, { activeNetworkId: 'eip155:1' })
+    );
+
+    renderHook(() => useResolveAddress('0xabc'), { wrapper: Wrapper });
+    await tick(0);
+    expect(resolveAddress).toHaveBeenCalledTimes(1);
+
+    setWallet(walletWithCapability(capability, { activeNetworkId: 'eip155:1' }));
+    await tick(0);
+    expect(resolveAddress).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe('INV-41: resolution never fires from a window-focus event', () => {
   it('a resolved value is not refetched when the window regains focus', async () => {
     const resolveAddress = vi.fn(

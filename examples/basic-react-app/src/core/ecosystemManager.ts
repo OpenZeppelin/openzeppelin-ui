@@ -8,6 +8,7 @@
  */
 
 import type {
+  CreateRuntimeOptions,
   Ecosystem,
   EcosystemExport,
   NetworkConfig,
@@ -216,9 +217,12 @@ export async function getEcosystemMetadata(ecosystem: DemoEcosystem): Promise<Ec
  * are no longer needed. Caching here would return stale, disposed instances
  * after an ecosystem switch.
  */
-export async function getRuntime(networkConfig: NetworkConfig): Promise<DemoRuntime> {
+export async function getRuntime(
+  networkConfig: NetworkConfig,
+  options?: CreateRuntimeOptions
+): Promise<DemoRuntime> {
   const def = await loadEcosystemDefinition(networkConfig.ecosystem as DemoEcosystem);
-  return def.createRuntime('composer', networkConfig) as DemoRuntime;
+  return def.createRuntime('composer', networkConfig, options) as DemoRuntime;
 }
 
 // ============================================================================

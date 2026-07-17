@@ -25,3 +25,10 @@ export const NETWORK_OPTIONS: NetworkOption[] = [
   { id: 'ethereum-sepolia', label: 'Ethereum - Sepolia', icon: 'ethereum' },
   { id: 'stellar-testnet', label: 'Stellar - Testnet', icon: 'stellar' },
 ];
+
+const LABEL_BY_ID = Object.fromEntries(NETWORK_OPTIONS.map((option) => [option.id, option.label]));
+
+/** Human label for a catalog network id (falls back to the raw id). */
+export function networkLabel(networkId: string): string {
+  return LABEL_BY_ID[networkId] ?? networkId;
+}
