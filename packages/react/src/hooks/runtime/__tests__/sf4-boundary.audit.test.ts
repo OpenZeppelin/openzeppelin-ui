@@ -118,13 +118,11 @@ describe('INV-210 / INV-216: hook and display layers do not accept or read runti
 });
 
 describe('INV-203 / INV-229: example app reference toggle copy and accessibility', () => {
-  const ENS_DEMO_SOURCE = readRepoFile(
-    'examples/basic-react-app/src/components/ENSResolutionDemo.tsx'
-  );
-
-  const toggleSource = ENS_DEMO_SOURCE.slice(
-    ENS_DEMO_SOURCE.indexOf('function MainnetL1FallbackOptInToggle'),
-    ENS_DEMO_SOURCE.indexOf('// Live resolver widget')
+  // The opt-in toggle is a shared component reused across the Name Resolution
+  // demo and the AddressField/AddressDisplay gallery pages, so the audit reads
+  // it from its dedicated module rather than an inline slice.
+  const toggleSource = readRepoFile(
+    'examples/basic-react-app/src/components/MainnetL1FallbackOptInToggle.tsx'
   );
 
   it('uses plain-language toggle label without mechanism branding (INV-203)', () => {

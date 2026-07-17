@@ -7,6 +7,7 @@ import { classifyAddressInput } from '@openzeppelin/ui-utils';
 import { useEcosystem } from '../context';
 import { DemoSection } from './DemoSection';
 import { EcosystemIndicator } from './EcosystemIndicator';
+import { MainnetL1FallbackOptInToggle } from './MainnetL1FallbackOptInToggle';
 import { NameResolutionNetworkHint } from './NameResolutionNetworkHint';
 
 interface ValidationForm {
@@ -207,6 +208,8 @@ function NameResolutionSection(): React.ReactElement {
           follows the active network chosen from the header selector.
         </p>
       </div>
+
+      <MainnetL1FallbackOptInToggle />
 
       <NameResolutionNetworkHint />
 
