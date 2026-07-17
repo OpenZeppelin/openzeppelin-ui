@@ -1,5 +1,24 @@
 # @openzeppelin/ui-react
 
+## 3.2.0
+
+### Minor Changes
+
+- [#188](https://github.com/OpenZeppelin/openzeppelin-ui/pull/188) [`b4eab15`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/b4eab1593a31035a54368ae9a845c359377613dc) Thanks [@pasevin](https://github.com/pasevin)! - Add mainnet-L1 miss-fallback consumer opt-in runtime wiring (initiative 003, SF-4).
+
+  Exports `createResolveRuntime`, `useResolveRuntime`, `DEFAULT_RUNTIME_CREATION_CONFIG`, `buildCreateRuntimeOptions`, and `isMainnetL1MissFallbackEnabled`. Opt-in threads `enableMainnetL1MissFallback: true` to `EcosystemExport.createRuntime` only when explicitly enabled; default OFF omits the `nameResolution` slice entirely.
+
+  `RuntimeProvider` now fully disposes cached runtimes when the `resolveRuntime` callback identity changes (INV-218) — registry flush, loading reset, and deferred `dispose()` — so toggling fallback opt-in or swapping factory wiring cannot serve stale adapter capabilities from a prior config.
+
+  Resolution query cache keys now include a stable per-active-runtime-instance id via `getRuntimeInstanceId` (INV-230), so toggling the opt-in — which recreates runtimes through INV-218 — forces forward and reverse re-resolution instead of serving stale cached names (fixes stale reverse displays and one-way toggle behavior).
+
+### Patch Changes
+
+- Updated dependencies [[`b4eab15`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/b4eab1593a31035a54368ae9a845c359377613dc), [`b4eab15`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/b4eab1593a31035a54368ae9a845c359377613dc)]:
+  - @openzeppelin/ui-utils@3.3.0
+  - @openzeppelin/ui-components@3.5.0
+  - @openzeppelin/ui-types@3.3.0
+
 ## 3.1.0
 
 ### Minor Changes

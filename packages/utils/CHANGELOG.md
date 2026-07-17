@@ -1,5 +1,22 @@
 # @openzeppelin/ui-utils
 
+## 3.3.0
+
+### Minor Changes
+
+- [#188](https://github.com/OpenZeppelin/openzeppelin-ui/pull/188) [`b4eab15`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/b4eab1593a31035a54368ae9a845c359377613dc) Thanks [@pasevin](https://github.com/pasevin)! - Add cross-network fallback disclaimer display (initiative 003, SF-2 + SF-3).
+
+  `@openzeppelin/ui-utils` adds pure classifiers `isCrossNetworkFallback` and `getFallbackNetworks` reading only base `ResolutionProvenance` fallback fields (Principle II — no ENS adapter imports), plus copy helpers `networkDisplayName`, `nameResolutionCrossNetworkFallbackMessage`, and `crossNetworkFallbackMessageNames` for mechanism-neutral disclaimer text.
+
+  `@openzeppelin/ui-components` surfaces the disclaimer when the complete fallback triplet is present. **Reverse (`AddressDisplay`):** a small amber `TriangleAlert` icon inline immediately after the verified name; the locked copy appears in a tooltip on hover and keyboard focus via a focusable button whose `aria-label` is the full message. **Forward (`AddressField`):** a muted `role="note"` line under the resolved success template. Both components expose `showCrossNetworkFallbackDisclaimer?: boolean` (default `true`) to suppress presentation entirely. Classification uses SF-2 helpers only; `002` scope-gate behavior (`isChainScopeMismatch` / `scopedToNetworkId`) is unchanged — the disclaimer is additive copy, not a suppression gate. Optional `resolveNetworkLabel` threads through `AddressNameProvider`, `NameResolverProvider`, and related context types.
+
+  `@openzeppelin/ui-renderer` forwards `resolveNetworkLabel` from `AddressNameResolutionProvider`; `TransactionForm` wires a reference resolver via `activeRuntime.networkCatalog`.
+
+### Patch Changes
+
+- Updated dependencies [[`b4eab15`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/b4eab1593a31035a54368ae9a845c359377613dc)]:
+  - @openzeppelin/ui-types@3.3.0
+
 ## 3.2.0
 
 ### Minor Changes
