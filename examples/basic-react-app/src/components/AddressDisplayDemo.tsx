@@ -3,6 +3,7 @@ import { AddressDisplay } from '@openzeppelin/ui-components';
 import { useEcosystem } from '../context';
 import { DemoSection } from './DemoSection';
 import { EcosystemIndicator } from './EcosystemIndicator';
+import { MainnetL1FallbackOptInToggle } from './MainnetL1FallbackOptInToggle';
 import { NameResolutionNetworkHint } from './NameResolutionNetworkHint';
 import { ResolvedAddressDisplay } from './ResolvedAddressDisplay';
 
@@ -31,6 +32,8 @@ function NameResolutionSection(): React.ReactElement {
         address. An explicit <code className="bg-muted rounded px-1">label</code> still takes
         precedence. Records below are resolved against the app&apos;s active network.
       </p>
+
+      <MainnetL1FallbackOptInToggle />
 
       <NameResolutionNetworkHint />
 
