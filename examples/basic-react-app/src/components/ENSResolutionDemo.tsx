@@ -246,6 +246,7 @@ function LiveResolverWidget(): React.ReactElement {
             // Suppress the forward disclaimer here — the resolved-address card below
             // shows the reverse disclaimer via AddressDisplay (default on).
             showCrossNetworkFallbackDisclaimer={false}
+            showForwardResolutionSuccessAnnouncer={false}
           />
 
           {hasResolvedAddress && (

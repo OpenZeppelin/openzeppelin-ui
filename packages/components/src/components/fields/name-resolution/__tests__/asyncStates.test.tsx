@@ -315,3 +315,37 @@ describe('INV-119 (field half) / INV-87: absent resolveName → UNSUPPORTED_NETW
     errorSpy.mockRestore();
   });
 });
+
+describe('showForwardResolutionSuccessAnnouncer: suppress success when sibling display owns UX', () => {
+  it('hides the Resolved-to announcer on success while keeping loading copy', async () => {
+    const r = controlledResolver();
+    const h = renderAddressField({
+      resolver: { resolveName: r.resolveName },
+      showForwardResolutionSuccessAnnouncer: false,
+    });
+
+    typeValue('alice.eth');
+    await elapseDebounce();
+    expect(h.region()?.textContent).toContain('Resolving');
+
+    await settle(r.deferreds[0], okResult('alice.eth', HEX_ALICE));
+    expect(h.region()?.textContent).not.toContain('Resolved to');
+    expect(h.region()?.querySelector('code')).toBeNull();
+  });
+
+  it('still surfaces error outcomes when success announcer is suppressed', async () => {
+    const r = controlledResolver();
+    renderAddressField({
+      resolver: { resolveName: r.resolveName },
+      showForwardResolutionSuccessAnnouncer: false,
+    });
+
+    typeValue('alice.eth');
+    await elapseDebounce();
+    await settle(r.deferreds[0], errResult({ code: 'NAME_NOT_FOUND', name: 'alice.eth' }));
+
+    expect(screen.getByRole('alert').textContent).toContain(
+      nameResolutionMessageForCode('NAME_NOT_FOUND')
+    );
+  });
+});
