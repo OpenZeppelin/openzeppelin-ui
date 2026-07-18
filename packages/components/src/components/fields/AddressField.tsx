@@ -74,6 +74,14 @@ export interface AddressFieldProps<TFieldValues extends FieldValues = FieldValue
    * `AddressDisplay` already surfaces the same message (e.g. demo resolved card).
    */
   showCrossNetworkFallbackDisclaimer?: boolean;
+
+  /**
+   * When `false`, suppresses the mechanism-neutral **"Resolved to `0x…`"**
+   * success announcer while still rendering loading, error, and chain-scope
+   * mismatch outcomes. Default `true`. Use when a sibling `AddressDisplay`
+   * already presents the resolved address (e.g. a rich ENS preview card).
+   */
+  showForwardResolutionSuccessAnnouncer?: boolean;
 }
 
 /**
@@ -158,6 +166,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   onSuggestionSelect,
   onResolvedNameChange,
   showCrossNetworkFallbackDisclaimer = true,
+  showForwardResolutionSuccessAnnouncer = true,
 }: AddressFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
@@ -492,6 +501,9 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
             fallbackNetworks,
             crossNetworkFallbackMessageNames(fallbackNetworks, resolveNetworkLabel)
           );
+        if (!showForwardResolutionSuccessAnnouncer) {
+          return null;
+        }
         // INV-126 / INV-127 / INV-128: frozen mechanism-neutral success template.
         return (
           <span className="text-sm">

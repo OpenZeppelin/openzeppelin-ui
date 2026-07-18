@@ -121,6 +121,7 @@ export interface HarnessOptions {
   readonly required?: boolean;
   readonly helperText?: string;
   readonly onResolvedNameChange?: (name: string | undefined) => void;
+  readonly showForwardResolutionSuccessAnnouncer?: boolean;
 }
 
 export interface Harness {
@@ -155,6 +156,7 @@ export function renderAddressField(opts: HarnessOptions = {}): Harness {
           validation={opts.required ? { required: true } : undefined}
           helperText={opts.helperText}
           onResolvedNameChange={opts.onResolvedNameChange}
+          showForwardResolutionSuccessAnnouncer={opts.showForwardResolutionSuccessAnnouncer}
         />
         <Probe control={control} writes={writes} />
       </>
