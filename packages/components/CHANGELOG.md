@@ -1,5 +1,13 @@
 # @openzeppelin/ui-components
 
+## 3.6.0
+
+### Minor Changes
+
+- [#191](https://github.com/OpenZeppelin/openzeppelin-ui/pull/191) [`f656a45`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/f656a458bfbc370c61e84991fedbe662b0853c24) Thanks [@pasevin](https://github.com/pasevin)! - Add `showForwardResolutionSuccessAnnouncer` to `AddressField` (default `true`).
+
+  When set to `false`, suppresses the mechanism-neutral **"Resolved to `0x…`"** success announcer while still rendering loading copy, typed error messages, and chain-scope mismatch alerts. Use when a sibling `AddressDisplay` already presents the resolved address (e.g. a rich ENS preview card below the field). Pairs with the existing `showCrossNetworkFallbackDisclaimer` prop, which only controls the amber cross-network note under the success template.
+
 ## 3.5.0
 
 ### Minor Changes
