@@ -6,6 +6,8 @@
  */
 
 export * from './AddressField';
+export * from './AddressFieldWithResolvedPreview';
+export * from './ResolvedAddressFieldPreview';
 export * from './AddressListField';
 export * from './address-suggestion';
 export * from './name-resolution';

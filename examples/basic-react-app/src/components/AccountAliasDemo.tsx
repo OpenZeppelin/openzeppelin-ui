@@ -191,13 +191,15 @@ function App() {
                 <code className="bg-muted rounded px-1">enableNameResolution</code>)
               </Label>
               <p className="text-muted-foreground text-xs">
-                A single opt-in prop. When on, the Add-alias dialog becomes ENS-aware (type a name →
-                it resolves to hex and auto-suggests the alias) and rows render the base{' '}
+                A single opt-in prop. When on, the Add-alias dialog uses{' '}
+                <code className="bg-muted rounded px-1">AddressFieldWithResolvedPreview</code> (type
+                a name → it resolves to hex, shows a reverse ENS preview card, and auto-suggests the
+                alias) and rows render the base{' '}
                 <code className="bg-muted rounded px-1">AddressDisplay</code> fed by the
                 reverse-name bridge. Requires an ambient{' '}
                 <code className="bg-muted rounded px-1">WalletStateProvider</code> (present here).
-                Names resolve against the active network — select Ethereum Mainnet in the
-                header/Name Resolution demo for real names.
+                Names resolve against the active network — select Ethereum Mainnet in the header for
+                real names.
               </p>
             </div>
           </div>

@@ -1,10 +1,17 @@
 import { useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 
-import { AddressField, Input, Label } from '@openzeppelin/ui-components';
+import {
+  AddressField,
+  AddressFieldWithResolvedPreview,
+  Input,
+  Label,
+} from '@openzeppelin/ui-components';
+import { ResolvedAddressFieldPreviewWithNameResolution } from '@openzeppelin/ui-renderer';
 import { classifyAddressInput } from '@openzeppelin/ui-utils';
 
 import { useEcosystem } from '../context';
+import { CodeBlock } from './CodeBlock';
 import { DemoSection } from './DemoSection';
 import { EcosystemIndicator } from './EcosystemIndicator';
 import { MainnetL1FallbackOptInToggle } from './MainnetL1FallbackOptInToggle';
@@ -55,7 +62,44 @@ function TransferForm({ adapter }) {
 //
 //   <NameResolverProvider {...useRuntimeNameResolver()}>
 //     <TransferForm adapter={adapter} />
-//   </NameResolverProvider>`;
+//   </NameResolverProvider>
+//
+// For a rich ENS preview card below the field (reverse name + avatar) instead of
+// the mechanism-neutral "Resolved to 0x…" announcer, use AddressFieldWithResolvedPreview
+// — see the "Rich ENS preview" section below.`;
+
+const PREVIEW_USAGE = `import { useForm, useWatch } from 'react-hook-form';
+import { AddressFieldWithResolvedPreview } from '@openzeppelin/ui-components';
+import { ResolvedAddressFieldPreviewWithNameResolution } from '@openzeppelin/ui-renderer';
+
+function RecipientWithPreview({ adapter, networkId }) {
+  const { control } = useForm({ mode: 'onChange', defaultValues: { recipient: '' } });
+  const previewAddress = useWatch({ control, name: 'recipient' });
+
+  return (
+    <AddressFieldWithResolvedPreview
+      id="recipient"
+      name="recipient"
+      label="Recipient"
+      control={control}
+      addressing={adapter.addressing}
+      validation={{ required: true }}
+      previewAddress={previewAddress}
+      previewNetworkId={networkId}
+      preview={
+        <ResolvedAddressFieldPreviewWithNameResolution
+          address={previewAddress}
+          networkId={networkId}
+          addressing={adapter.addressing}
+        />
+      }
+    />
+  );
+}
+
+// AddressFieldWithResolvedPreview suppresses the forward success announcer and
+// cross-network disclaimer by default — the preview card replaces them. Pass a
+// custom preview slot when reverse resolution needs a different runtime bridge.`;
 
 /**
  * Gallery demo for the base {@link AddressField}: a chain-agnostic address
@@ -90,6 +134,8 @@ export function AddressFieldDemo(): React.ReactElement {
       <SuggestionsNote />
 
       <NameResolutionSection />
+
+      <RichPreviewSection />
 
       <InputClassifierPlayground
         isValidAddress={capabilities.isValidAddress}
@@ -201,9 +247,11 @@ function NameResolutionSection(): React.ReactElement {
           With a <code className="bg-muted rounded px-1">NameResolverProvider</code> mounted, the
           same field also accepts a name — e.g. ENS: try{' '}
           <code className="bg-muted rounded px-1">vitalik.eth</code>. The form value is always the
-          resolved address, never the name, and submit stays gated until resolution completes.
-          Without the provider (or on networks without a resolver) the field behaves exactly as
-          above. This app mounts that provider globally, fed by{' '}
+          resolved address, never the name, and submit stays gated until resolution completes. The
+          field surfaces a mechanism-neutral &ldquo;Resolved to 0x…&rdquo; announcer on success (see
+          the rich preview section below for the recommended card UX). Without the provider (or on
+          networks without a resolver) the field behaves exactly as above. This app mounts that
+          provider globally, fed by{' '}
           <code className="bg-muted rounded px-1">useRuntimeNameResolver</code> — so the field
           follows the active network chosen from the header selector.
         </p>
@@ -253,6 +301,74 @@ function NameResolutionSection(): React.ReactElement {
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// Rich ENS preview (AddressFieldWithResolvedPreview)
+// ----------------------------------------------------------------------------
+
+function RichPreviewSection(): React.ReactElement {
+  const { capabilities, network } = useEcosystem();
+  const networkId = network?.id;
+  const networkName = network?.name ?? '…';
+
+  const { control } = useForm<ResolutionForm>({
+    mode: 'onChange',
+    defaultValues: { recipient: '' },
+  });
+
+  const previewAddress = useWatch({ control, name: 'recipient' });
+
+  return (
+    <div className="space-y-4 border-t border-border/60 pt-6">
+      <div>
+        <h3 className="text-lg font-medium">Rich ENS preview</h3>
+        <p className="text-muted-foreground text-sm">
+          <code className="bg-muted rounded px-1">AddressFieldWithResolvedPreview</code> composes
+          the base field with a reverse-resolved preview card below. It suppresses the redundant
+          forward &ldquo;Resolved to 0x…&rdquo; announcer — watch the same field name and pass the
+          value as <code className="bg-muted rounded px-1">previewAddress</code>. Wire async reverse
+          lookup through{' '}
+          <code className="bg-muted rounded px-1">
+            ResolvedAddressFieldPreviewWithNameResolution
+          </code>{' '}
+          (renderer) or pass <code className="bg-muted rounded px-1">resolvedName</code> directly to{' '}
+          <code className="bg-muted rounded px-1">ResolvedAddressFieldPreview</code>.
+        </p>
+      </div>
+
+      <MainnetL1FallbackOptInToggle />
+
+      <NameResolutionNetworkHint />
+
+      <div className="max-w-md space-y-4">
+        <AddressFieldWithResolvedPreview
+          id="ens-preview-recipient"
+          name="recipient"
+          label="Recipient"
+          placeholder={`Address or name on ${networkName}`}
+          helperText="Forward resolves inline; the preview card shows reverse ENS (name + avatar)."
+          control={control}
+          addressing={capabilities ?? undefined}
+          validation={{ required: true }}
+          previewAddress={previewAddress}
+          previewNetworkId={networkId}
+          preview={
+            <ResolvedAddressFieldPreviewWithNameResolution
+              address={previewAddress}
+              networkId={networkId}
+              addressing={capabilities ?? undefined}
+            />
+          }
+        />
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-sm font-medium">Usage</p>
+        <CodeBlock code={PREVIEW_USAGE} language="tsx" />
+      </div>
     </div>
   );
 }
