@@ -51,12 +51,13 @@ interface AddAliasFormData {
 
 interface ResolvingAliasAddressFieldProps extends AddressFieldProps<AddAliasFormData> {
   /**
-   * Network the dialog will save the alias under. The SF-6 chain-scope gate
-   * must compare provenance against THIS id (not the wallet's active network),
-   * otherwise a mainnet resolve can be saved as a Base-scoped book entry.
+   * Network the dialog will save the alias under. Forward and reverse ENS use
+   * this network's runtime when set, so resolution follows the dropdown without
+   * switching the wallet-global network. The SF-6 chain-scope gate must compare
+   * provenance against THIS id (not the wallet's active network), otherwise a
+   * mainnet resolve can be saved as a Base-scoped book entry.
    */
-  dialogNetworkId?: string | null;
-  dialogNetworkName?: string;
+  dialogNetwork?: NetworkConfig | null;
 }
 
 /**
@@ -69,29 +70,28 @@ interface ResolvingAliasAddressFieldProps extends AddressFieldProps<AddAliasForm
  * Chain-scope gate uses the dialog-selected network (fallback: wallet active)
  * so the gate network matches `onSave`'s `networkId`.
  */
-function ResolvingAliasAddressField({
-  dialogNetworkId,
-  dialogNetworkName,
-  ...props
-}: ResolvingAliasAddressFieldProps) {
-  const resolver = useRuntimeNameResolver();
+function ResolvingAliasAddressField({ dialogNetwork, ...props }: ResolvingAliasAddressFieldProps) {
+  const resolver = useRuntimeNameResolver(dialogNetwork ?? undefined);
   const walletState = useContext(WalletStateContext);
+  const dialogNetworkId = dialogNetwork?.id;
   const previewAddress = useWatch({ control: props.control, name: props.name });
 
   return (
     <NameResolverProvider
       {...resolver}
       activeNetworkId={dialogNetworkId ?? walletState?.activeNetworkId ?? null}
-      activeNetworkName={dialogNetworkName ?? walletState?.activeNetworkConfig?.name}
+      activeNetworkName={dialogNetwork?.name ?? walletState?.activeNetworkConfig?.name}
     >
       <AddressFieldWithResolvedPreview<AddAliasFormData>
         {...props}
         previewAddress={previewAddress}
-        previewNetworkId={dialogNetworkId ?? undefined}
+        previewNetworkId={dialogNetworkId}
+        showForwardResolutionSuccessAnnouncer={false}
         preview={
           <ResolvedAddressFieldPreviewWithNameResolution
             address={previewAddress}
-            networkId={dialogNetworkId ?? undefined}
+            network={dialogNetwork ?? undefined}
+            networkId={dialogNetworkId}
             addressing={props.addressing}
           />
         }
@@ -300,6 +300,7 @@ export function AddAliasDialog({
               branches except the ENS-only `onResolvedNameChange` notification. */}
           {enableNameResolution ? (
             <ResolvingAliasAddressField
+              key={selectedNetwork?.id ?? 'no-network'}
               id="new-alias-address"
               name="address"
               label="Address"
@@ -308,8 +309,7 @@ export function AddAliasDialog({
               validation={{ required: true }}
               addressing={activeAddressing}
               onResolvedNameChange={handleResolvedName}
-              dialogNetworkId={selectedNetwork?.id}
-              dialogNetworkName={selectedNetwork?.name}
+              dialogNetwork={selectedNetwork}
             />
           ) : (
             <AddressField

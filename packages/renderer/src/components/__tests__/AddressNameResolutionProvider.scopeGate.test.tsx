@@ -318,6 +318,26 @@ describe('INV-157: display requestedNetworkId must match provider networkId', ()
 
     expectHexFallback(container, 'sepolia-local.eth');
   });
+
+  it('network.id is authoritative when both network and networkId are set', () => {
+    const record = verifiedRecord('sepolia-local.eth', scopedProvenance(SEPOLIA));
+    mockUseResolveAddress.mockReturnValue({
+      status: 'resolved',
+      data: record,
+    });
+
+    render(
+      <AddressNameResolutionProvider
+        address={TEST_ADDRESS}
+        networkId={BASE}
+        network={{ id: SEPOLIA } as NetworkConfig}
+      >
+        <AddressDisplay address={TEST_ADDRESS} networkId={SEPOLIA} />
+      </AddressNameResolutionProvider>
+    );
+
+    expectVerifiedName('sepolia-local.eth');
+  });
 });
 
 describe('INV-159: scope mismatch returns undefined — record passes verbatim on success', () => {

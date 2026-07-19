@@ -59,6 +59,8 @@ export {
 export { DEFAULT_CONFIG, type ResolutionConfig } from './hooks/nameResolution/resolutionConfig';
 // SF-3: smart capability→context wiring for the ui-components NameResolver seam.
 export { useRuntimeNameResolver } from './hooks/nameResolution/useRuntimeNameResolver';
+export { useNetworkNameResolver } from './hooks/nameResolution/useNetworkNameResolver';
+export { useNetworkResolveAddress } from './hooks/nameResolution/useNetworkResolveAddress';
 
 // SF-4: runtime-creation opt-in wiring for mainnet-L1 miss-fallback
 export {

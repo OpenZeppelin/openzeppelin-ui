@@ -50,7 +50,11 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import React from 'react';
 
-import { WalletStateContext, type WalletStateContextValue } from '@openzeppelin/ui-react';
+import {
+  RuntimeProvider,
+  WalletStateContext,
+  type WalletStateContextValue,
+} from '@openzeppelin/ui-react';
 import type {
   EcosystemRuntime,
   NameResolutionCapability,
@@ -92,6 +96,38 @@ function mapResolver(
     const hit = byName.get(name);
     return hit ? { ok: true, value: hit } : { ok: false, error: { code: 'NAME_NOT_FOUND', name } };
   });
+}
+
+function makeResolveRuntime(
+  resolveName?: NameResolutionCapability['resolveName'],
+  resolveAddress?: NameResolutionCapability['resolveAddress']
+): (networkConfig: NetworkConfig) => Promise<EcosystemRuntime> {
+  return async (networkConfig: NetworkConfig): Promise<EcosystemRuntime> => {
+    const nameResolution: NameResolutionCapability = {
+      networkConfig,
+      dispose: () => undefined,
+      isValidName,
+      ...(resolveName ? { resolveName } : {}),
+      ...(resolveAddress ? { resolveAddress } : {}),
+    };
+    return {
+      nameResolution,
+      networkConfig,
+      dispose: () => undefined,
+    } as EcosystemRuntime;
+  };
+}
+
+function withResolutionProviders(
+  resolveName: NameResolutionCapability['resolveName'] | undefined,
+  wallet: WalletStateContextValue,
+  children: React.ReactNode
+): React.ReactElement {
+  return (
+    <RuntimeProvider resolveRuntime={makeResolveRuntime(resolveName)}>
+      <WalletStateContext.Provider value={wallet}>{children}</WalletStateContext.Provider>
+    </RuntimeProvider>
+  );
 }
 
 /**
@@ -165,18 +201,16 @@ function renderDialog({
     />
   );
   render(
-    withProvider ? (
-      <WalletStateContext.Provider
-        value={makeWallet(resolveName, {
-          activeNetworkId: walletActiveNetworkId,
-          activeNetworkName: walletActiveNetworkName,
-        })}
-      >
-        {dialog}
-      </WalletStateContext.Provider>
-    ) : (
-      dialog
-    )
+    withProvider
+      ? withResolutionProviders(
+          resolveName,
+          makeWallet(resolveName, {
+            activeNetworkId: walletActiveNetworkId,
+            activeNetworkName: walletActiveNetworkName,
+          }),
+          dialog
+        )
+      : dialog
   );
   return { onSave };
 }
@@ -303,13 +337,9 @@ function renderDialogRaw(enableNameResolution: boolean): { unmount: () => void }
     />
   );
   return render(
-    enableNameResolution ? (
-      <WalletStateContext.Provider value={makeWallet(mapResolver([ALICE]))}>
-        {dialog}
-      </WalletStateContext.Provider>
-    ) : (
-      dialog
-    )
+    enableNameResolution
+      ? withResolutionProviders(mapResolver([ALICE]), makeWallet(mapResolver([ALICE])), dialog)
+      : dialog
   );
 }
 

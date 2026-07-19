@@ -102,7 +102,7 @@ const PREVIEW_WIRING = `import { useForm, useWatch } from 'react-hook-form';
 import { AddressFieldWithResolvedPreview } from '@openzeppelin/ui-components';
 import { ResolvedAddressFieldPreviewWithNameResolution } from '@openzeppelin/ui-renderer';
 
-function TransferRecipientField({ control, addressing, networkId }) {
+function TransferRecipientField({ control, addressing, networkId, network }) {
   const previewAddress = useWatch({ control, name: 'recipient' });
 
   return (
@@ -119,6 +119,7 @@ function TransferRecipientField({ control, addressing, networkId }) {
         <ResolvedAddressFieldPreviewWithNameResolution
           address={previewAddress}
           networkId={networkId}
+          network={network}
           addressing={addressing}
         />
       }
@@ -126,9 +127,50 @@ function TransferRecipientField({ control, addressing, networkId }) {
   );
 }
 
+// When preview network === wallet-global active network, omit \`network\`.
+// Pass \`network\` when the field/preview may target a different network than
+// WalletStateProvider (e.g. Address Book Add Alias dropdown) — reverse lookup
+// loads that network's runtime via RuntimeProvider without switching the wallet.
+
 // Suppresses the forward "Resolved to 0x…" announcer by default — the preview
 // card replaces it. Cross-network fallback disclaimer appears on AddressDisplay
 // inside the card (amber triangle-alert) unless you pass resolvedName with custom UI.`;
+
+const NETWORK_SCOPED_WIRING = `import { NameResolverProvider } from '@openzeppelin/ui-components';
+import {
+  ResolvedAddressFieldPreviewWithNameResolution,
+} from '@openzeppelin/ui-renderer';
+import { useRuntimeNameResolver } from '@openzeppelin/ui-react';
+import type { NetworkConfig } from '@openzeppelin/ui-types';
+
+function DialogScopedAddressField({ dialogNetwork, ...fieldProps }) {
+  const resolver = useRuntimeNameResolver(dialogNetwork ?? undefined);
+
+  return (
+    <NameResolverProvider
+      {...resolver}
+      activeNetworkId={dialogNetwork?.id ?? null}
+      activeNetworkName={dialogNetwork?.name}
+    >
+      <AddressFieldWithResolvedPreview
+        {...fieldProps}
+        preview={
+          <ResolvedAddressFieldPreviewWithNameResolution
+            address={fieldProps.previewAddress}
+            network={dialogNetwork}
+            networkId={dialogNetwork?.id}
+            addressing={fieldProps.addressing}
+          />
+        }
+      />
+    </NameResolverProvider>
+  );
+}
+
+// useRuntimeNameResolver(network) and useResolveAddress(addr, { network }) share
+// the same SF-2 cache as the wallet-global hooks (INV-119). AddressBookWidget
+// with enableNameResolution wires this internally — integrators only need
+// RuntimeProvider + WalletStateProvider mounted.`;
 
 const DISCLAIMER_PROPS = `import {
   AddressField,
@@ -218,6 +260,10 @@ function OptInWiringReference(): React.ReactElement {
       <div className="space-y-2">
         <p className="text-sm font-medium">Rich preview field (recommended)</p>
         <CodeBlock code={PREVIEW_WIRING} language="tsx" />
+      </div>
+      <div className="space-y-2">
+        <p className="text-sm font-medium">Network-scoped resolution (dialog / dropdown)</p>
+        <CodeBlock code={NETWORK_SCOPED_WIRING} language="tsx" />
       </div>
       <div className="space-y-2">
         <p className="text-sm font-medium">Disclaimer presentation (default on)</p>

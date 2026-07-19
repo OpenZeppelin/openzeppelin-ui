@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { AddressNameProvider } from '@openzeppelin/ui-components';
 import { useResolveAddress, type UseResolveAddressOptions } from '@openzeppelin/ui-react';
-import type { NetworkLabelResolver } from '@openzeppelin/ui-types';
+import type { NetworkConfig, NetworkLabelResolver } from '@openzeppelin/ui-types';
 import { isChainScopeMismatch } from '@openzeppelin/ui-utils';
 
 /**
@@ -26,11 +26,19 @@ export interface AddressNameResolutionProviderProps {
   readonly networkId?: string;
 
   /**
-   * Forwarded verbatim to `useResolveAddress` — `enabled` (e.g. gate on row
-   * visibility for long lists) and `debounceMs`. Gating lives here in the
-   * react layer, never in the base component (INV-63).
+   * When set, reverse resolution uses this network's runtime via
+   * {@link RuntimeProvider} instead of the wallet-global active runtime.
+   * When both `network` and `networkId` are set, `network.id` is authoritative
+   * for scope gating so resolution and display cannot diverge.
    */
-  readonly options?: UseResolveAddressOptions;
+  readonly network?: NetworkConfig;
+
+  /**
+   * Forwarded to `useResolveAddress` — `enabled` (e.g. gate on row visibility
+   * for long lists) and `debounceMs`. Gating lives here in the react layer,
+   * never in the base component (INV-63).
+   */
+  readonly options?: Omit<UseResolveAddressOptions, 'network'>;
 
   /**
    * Optional network slug → display name; forwarded to `AddressNameProvider`.
@@ -73,11 +81,17 @@ export interface AddressNameResolutionProviderProps {
 export function AddressNameResolutionProvider({
   address,
   networkId,
+  network,
   options,
   resolveNetworkLabel,
   children,
 }: AddressNameResolutionProviderProps): React.ReactElement {
-  const rev = useResolveAddress(address ?? null, options);
+  const rowNetworkId = network?.id ?? networkId;
+
+  const rev = useResolveAddress(
+    address ?? null,
+    network != null ? { ...options, network } : options
+  );
 
   const record = rev.status === 'resolved' ? rev.data : undefined;
 
@@ -92,20 +106,20 @@ export function AddressNameResolutionProvider({
       if (record === undefined || address == null) return undefined;
       if (requested.toLowerCase() !== address.toLowerCase()) return undefined;
 
-      if (networkId !== undefined) {
+      if (rowNetworkId !== undefined) {
         // INV-157: display and provider row networks must agree.
-        if (requestedNetworkId !== undefined && requestedNetworkId !== networkId) {
+        if (requestedNetworkId !== undefined && requestedNetworkId !== rowNetworkId) {
           return undefined;
         }
         // INV-152: suppress network-local provenance mismatches (INV-133).
-        if (isChainScopeMismatch(record.provenance, networkId)) {
+        if (isChainScopeMismatch(record.provenance, rowNetworkId)) {
           return undefined;
         }
       }
 
       return record;
     },
-    [record, address, networkId]
+    [record, address, rowNetworkId]
   );
 
   return (

@@ -5,6 +5,8 @@
 export { useResolveName, type UseResolveNameOptions } from './useResolveName';
 export { useResolveAddress, type UseResolveAddressOptions } from './useResolveAddress';
 export { useRuntimeNameResolver } from './useRuntimeNameResolver';
+export { useNetworkNameResolver } from './useNetworkNameResolver';
+export { useNetworkResolveAddress } from './useNetworkResolveAddress';
 
 // Public result / status types
 export type {

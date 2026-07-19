@@ -17,6 +17,7 @@ export {
   type AddressNameResolutionProviderProps,
 } from './AddressNameResolutionProvider';
 export { ResolvedAddressFieldPreviewWithNameResolution } from './ResolvedAddressFieldPreviewWithNameResolution';
+export type { ResolvedAddressFieldPreviewWithNameResolutionProps } from './ResolvedAddressFieldPreviewWithNameResolution';
 
 // Address Book
 export { AddressBookWidget } from './AddressBookWidget';
