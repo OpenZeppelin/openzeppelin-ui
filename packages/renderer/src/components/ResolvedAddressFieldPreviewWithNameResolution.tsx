@@ -38,7 +38,11 @@ export function ResolvedAddressFieldPreviewWithNameResolution({
   }
 
   return (
-    <AddressNameResolutionProvider address={trimmed} networkId={props.networkId} network={network}>
+    <AddressNameResolutionProvider
+      address={trimmed}
+      networkId={network?.id ?? props.networkId}
+      network={network}
+    >
       <ResolvedAddressFieldPreview {...props} address={trimmed} />
     </AddressNameResolutionProvider>
   );

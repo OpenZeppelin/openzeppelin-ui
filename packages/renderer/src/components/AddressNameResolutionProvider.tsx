@@ -28,7 +28,8 @@ export interface AddressNameResolutionProviderProps {
   /**
    * When set, reverse resolution uses this network's runtime via
    * {@link RuntimeProvider} instead of the wallet-global active runtime.
-   * `networkId` should match `network.id` when both are provided.
+   * When both `network` and `networkId` are set, `network.id` is authoritative
+   * for scope gating so resolution and display cannot diverge.
    */
   readonly network?: NetworkConfig;
 
@@ -85,6 +86,8 @@ export function AddressNameResolutionProvider({
   resolveNetworkLabel,
   children,
 }: AddressNameResolutionProviderProps): React.ReactElement {
+  const rowNetworkId = network?.id ?? networkId;
+
   const rev = useResolveAddress(
     address ?? null,
     network != null ? { ...options, network } : options
@@ -103,20 +106,20 @@ export function AddressNameResolutionProvider({
       if (record === undefined || address == null) return undefined;
       if (requested.toLowerCase() !== address.toLowerCase()) return undefined;
 
-      if (networkId !== undefined) {
+      if (rowNetworkId !== undefined) {
         // INV-157: display and provider row networks must agree.
-        if (requestedNetworkId !== undefined && requestedNetworkId !== networkId) {
+        if (requestedNetworkId !== undefined && requestedNetworkId !== rowNetworkId) {
           return undefined;
         }
         // INV-152: suppress network-local provenance mismatches (INV-133).
-        if (isChainScopeMismatch(record.provenance, networkId)) {
+        if (isChainScopeMismatch(record.provenance, rowNetworkId)) {
           return undefined;
         }
       }
 
       return record;
     },
-    [record, address, networkId]
+    [record, address, rowNetworkId]
   );
 
   return (

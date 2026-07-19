@@ -24,8 +24,12 @@ export interface NetworkRuntimeSource {
 export function useNetworkRuntimeSource(network: NetworkConfig | null): NetworkRuntimeSource {
   const runtimeContext = useContext(RuntimeContext);
 
-  if (!network || !runtimeContext) {
+  if (!network) {
     return { runtime: null, networkId: '', isRuntimeLoading: false };
+  }
+
+  if (!runtimeContext) {
+    return { runtime: null, networkId: network.id, isRuntimeLoading: false };
   }
 
   const { runtime, isLoading } = runtimeContext.getRuntimeForNetwork(network);
