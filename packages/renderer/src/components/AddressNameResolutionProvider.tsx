@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import { AddressNameProvider } from '@openzeppelin/ui-components';
 import { useResolveAddress, type UseResolveAddressOptions } from '@openzeppelin/ui-react';
-import type { NetworkLabelResolver } from '@openzeppelin/ui-types';
+import type { NetworkConfig, NetworkLabelResolver } from '@openzeppelin/ui-types';
 import { isChainScopeMismatch } from '@openzeppelin/ui-utils';
 
 /**
@@ -26,11 +26,18 @@ export interface AddressNameResolutionProviderProps {
   readonly networkId?: string;
 
   /**
-   * Forwarded verbatim to `useResolveAddress` — `enabled` (e.g. gate on row
-   * visibility for long lists) and `debounceMs`. Gating lives here in the
-   * react layer, never in the base component (INV-63).
+   * When set, reverse resolution uses this network's runtime via
+   * {@link RuntimeProvider} instead of the wallet-global active runtime.
+   * `networkId` should match `network.id` when both are provided.
    */
-  readonly options?: UseResolveAddressOptions;
+  readonly network?: NetworkConfig;
+
+  /**
+   * Forwarded to `useResolveAddress` — `enabled` (e.g. gate on row visibility
+   * for long lists) and `debounceMs`. Gating lives here in the react layer,
+   * never in the base component (INV-63).
+   */
+  readonly options?: Omit<UseResolveAddressOptions, 'network'>;
 
   /**
    * Optional network slug → display name; forwarded to `AddressNameProvider`.
@@ -73,11 +80,15 @@ export interface AddressNameResolutionProviderProps {
 export function AddressNameResolutionProvider({
   address,
   networkId,
+  network,
   options,
   resolveNetworkLabel,
   children,
 }: AddressNameResolutionProviderProps): React.ReactElement {
-  const rev = useResolveAddress(address ?? null, options);
+  const rev = useResolveAddress(
+    address ?? null,
+    network != null ? { ...options, network } : options
+  );
 
   const record = rev.status === 'resolved' ? rev.data : undefined;
 

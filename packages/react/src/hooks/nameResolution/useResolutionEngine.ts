@@ -1,7 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { useContext, useEffect, useRef, useState } from 'react';
 
-import type { NameResolutionCapability, ResolutionResult } from '@openzeppelin/ui-types';
+import type {
+  EcosystemRuntime,
+  NameResolutionCapability,
+  ResolutionResult,
+} from '@openzeppelin/ui-types';
 import { logger } from '@openzeppelin/ui-utils';
 
 import { WalletStateContext } from '../WalletStateContext';
@@ -13,6 +17,7 @@ import {
   type ResolutionNamespace,
 } from './resolutionConfig';
 import { mapSettledQuery, ResolutionQueryError, type EngineResult } from './resolutionState';
+import type { NetworkRuntimeSource } from './useNetworkRuntimeSource';
 
 const LOG_SCOPE = 'useResolutionEngine';
 
@@ -42,6 +47,11 @@ export interface ResolutionEngineParams<T> {
   readonly getMethod: (
     cap: NameResolutionCapability
   ) => ((input: string) => Promise<ResolutionResult<T>>) | undefined;
+  /**
+   * When set, resolves against this runtime instead of the wallet-global active
+   * runtime. Used by network-scoped hooks (e.g. address-book dropdown).
+   */
+  readonly runtimeSource?: NetworkRuntimeSource;
 }
 
 /**
@@ -51,15 +61,21 @@ export interface ResolutionEngineParams<T> {
  * {@link EngineResult}. Not exported from the package.
  */
 export function useResolutionEngine<T>(params: ResolutionEngineParams<T>): EngineResult<T> {
-  const { input, namespace, debounceMs, enabled, shouldAttempt, getMethod } = params;
+  const { input, namespace, debounceMs, enabled, shouldAttempt, getMethod, runtimeSource } = params;
 
   // Soft read — never throw. Mirrors `useRuntimeNameResolver`: read the context
   // directly (not `useWalletState()`, which throws) so wallet-less consumers
   // degrade to idle / UNSUPPORTED_NETWORK instead of crashing the tree.
   const walletState = useContext(WalletStateContext);
-  const activeRuntime = walletState?.activeRuntime ?? null;
-  const activeNetworkId = walletState?.activeNetworkId ?? null;
-  const isRuntimeLoading = walletState?.isRuntimeLoading ?? false;
+  const activeRuntime: EcosystemRuntime | null = runtimeSource
+    ? runtimeSource.runtime
+    : (walletState?.activeRuntime ?? null);
+  const activeNetworkId = runtimeSource
+    ? runtimeSource.networkId
+    : (walletState?.activeNetworkId ?? null);
+  const isRuntimeLoading = runtimeSource
+    ? runtimeSource.isRuntimeLoading
+    : (walletState?.isRuntimeLoading ?? false);
   const { queryClient, config } = useNameResolutionContext();
 
   // INV-26: normalize exactly once (trim, then lowercase). The trimmed original-case

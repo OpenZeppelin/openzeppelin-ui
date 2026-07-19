@@ -196,10 +196,12 @@ function App() {
                 a name → it resolves to hex, shows a reverse ENS preview card, and auto-suggests the
                 alias) and rows render the base{' '}
                 <code className="bg-muted rounded px-1">AddressDisplay</code> fed by the
-                reverse-name bridge. Requires an ambient{' '}
+                reverse-name bridge. Requires ambient{' '}
+                <code className="bg-muted rounded px-1">RuntimeProvider</code> +{' '}
                 <code className="bg-muted rounded px-1">WalletStateProvider</code> (present here).
-                Names resolve against the active network — select Ethereum Mainnet in the header for
-                real names.
+                Forward and reverse resolution follow the dialog&apos;s{' '}
+                <strong>network dropdown</strong>— pick Ethereum Mainnet in Add Alias to resolve
+                real ENS names without changing the app-wide header network.
               </p>
             </div>
           </div>

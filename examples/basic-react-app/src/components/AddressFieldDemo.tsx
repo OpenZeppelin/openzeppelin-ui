@@ -72,7 +72,7 @@ const PREVIEW_USAGE = `import { useForm, useWatch } from 'react-hook-form';
 import { AddressFieldWithResolvedPreview } from '@openzeppelin/ui-components';
 import { ResolvedAddressFieldPreviewWithNameResolution } from '@openzeppelin/ui-renderer';
 
-function RecipientWithPreview({ adapter, networkId }) {
+function RecipientWithPreview({ adapter, networkId, network }) {
   const { control } = useForm({ mode: 'onChange', defaultValues: { recipient: '' } });
   const previewAddress = useWatch({ control, name: 'recipient' });
 
@@ -90,12 +90,17 @@ function RecipientWithPreview({ adapter, networkId }) {
         <ResolvedAddressFieldPreviewWithNameResolution
           address={previewAddress}
           networkId={networkId}
+          network={network}
           addressing={adapter.addressing}
         />
       }
     />
   );
 }
+
+// Pass \`network\` when reverse resolution should follow a specific network
+// (e.g. a dialog dropdown) instead of the wallet-global active runtime.
+// Omit when preview network matches the app-wide active network.
 
 // AddressFieldWithResolvedPreview suppresses the forward success announcer and
 // cross-network disclaimer by default — the preview card replaces them. Pass a
@@ -334,8 +339,10 @@ function RichPreviewSection(): React.ReactElement {
           <code className="bg-muted rounded px-1">
             ResolvedAddressFieldPreviewWithNameResolution
           </code>{' '}
-          (renderer) or pass <code className="bg-muted rounded px-1">resolvedName</code> directly to{' '}
-          <code className="bg-muted rounded px-1">ResolvedAddressFieldPreview</code>.
+          (renderer). Pass optional <code className="bg-muted rounded px-1">network</code> when the
+          preview network may differ from the wallet-global runtime (Address Book Add Alias does
+          this automatically). Or pass <code className="bg-muted rounded px-1">resolvedName</code>{' '}
+          directly to <code className="bg-muted rounded px-1">ResolvedAddressFieldPreview</code>.
         </p>
       </div>
 
