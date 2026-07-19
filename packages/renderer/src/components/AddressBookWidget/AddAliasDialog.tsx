@@ -300,6 +300,7 @@ export function AddAliasDialog({
               branches except the ENS-only `onResolvedNameChange` notification. */}
           {enableNameResolution ? (
             <ResolvingAliasAddressField
+              key={selectedNetwork?.id ?? 'no-network'}
               id="new-alias-address"
               name="address"
               label="Address"

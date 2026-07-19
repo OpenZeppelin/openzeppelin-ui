@@ -277,7 +277,7 @@ export function AppProviders({
 }: AppProvidersProps): React.ReactElement {
   const [isInitialized, setIsInitialized] = useState(false);
   const [initialNetworkId, setInitialNetworkId] = useState<string | null>(null);
-  const [enableMainnetL1MissFallback, setEnableMainnetL1MissFallback] = useState(false);
+  const [enableMainnetL1MissFallback, setEnableMainnetL1MissFallback] = useState(true);
 
   // Integrator reference: pass the third `createRuntime` arg only when opted in.
   // RuntimeProvider flushes cached runtimes when this identity changes, so forward

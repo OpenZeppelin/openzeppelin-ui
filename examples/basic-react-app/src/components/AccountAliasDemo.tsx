@@ -6,8 +6,6 @@ import {
   AddressField,
   AddressLabelProvider,
   AddressSuggestionProvider,
-  Checkbox,
-  Label,
 } from '@openzeppelin/ui-components';
 import { AddressBookWidget, AliasEditPopover, useAliasEditState } from '@openzeppelin/ui-renderer';
 import {
@@ -49,7 +47,6 @@ export function AccountAliasDemo(): React.ReactElement {
   const { capabilities, network, availableNetworks, runtime } = useEcosystem();
 
   const [filterNetworkIds, setFilterNetworkIds] = useState<string[]>([]);
-  const [enableEns, setEnableEns] = useState(false);
 
   const widgetProps = useAddressBookWidgetProps(demoDb, {
     networkId: network?.id,
@@ -142,8 +139,7 @@ function App() {
 
           <AddressBookWidget
             {...widgetProps}
-            addressing={capabilities ?? undefined}
-            networks={availableNetworks}
+            enableNameResolution
             resolveNetwork={resolveNetwork}
             resolveExplorerUrl={resolveExplorerUrl}
             resolveAddressing={resolveAddressing}
@@ -175,41 +171,14 @@ function App() {
           <h3 className="text-lg font-medium">Address Book Widget</h3>
           <p className="text-sm text-muted-foreground">
             Full-featured address book with network picker, network badges, filtering, search,
-            import/export, and CRUD operations. Add some aliases below, then scroll down to see them
-            automatically resolved.
+            import/export, and CRUD operations. Add Alias supports ENS inline (network follows the
+            dialog dropdown). Add some aliases below, then scroll down to see them automatically
+            resolved.
           </p>
-
-          <div className="bg-muted/40 flex items-start gap-3 rounded-lg border p-3">
-            <Checkbox
-              id="enable-ens"
-              checked={enableEns}
-              onCheckedChange={(v) => setEnableEns(v === true)}
-            />
-            <div className="space-y-1">
-              <Label htmlFor="enable-ens" className="font-medium">
-                Enable ENS name resolution (
-                <code className="bg-muted rounded px-1">enableNameResolution</code>)
-              </Label>
-              <p className="text-muted-foreground text-xs">
-                A single opt-in prop. When on, the Add-alias dialog uses{' '}
-                <code className="bg-muted rounded px-1">AddressFieldWithResolvedPreview</code> (type
-                a name → it resolves to hex, shows a reverse ENS preview card, and auto-suggests the
-                alias) and rows render the base{' '}
-                <code className="bg-muted rounded px-1">AddressDisplay</code> fed by the
-                reverse-name bridge. Requires ambient{' '}
-                <code className="bg-muted rounded px-1">RuntimeProvider</code> +{' '}
-                <code className="bg-muted rounded px-1">WalletStateProvider</code> (present here).
-                Forward and reverse resolution follow the dialog&apos;s{' '}
-                <strong>network dropdown</strong>— pick Ethereum Mainnet in Add Alias to resolve
-                real ENS names without changing the app-wide header network.
-              </p>
-            </div>
-          </div>
 
           <AddressBookWidget
             {...widgetProps}
-            enableNameResolution={enableEns}
-            addressing={enableEns ? undefined : (capabilities ?? undefined)}
+            enableNameResolution
             addressPlaceholder={addressPlaceholder}
             resolveNetwork={resolveNetwork}
             resolveExplorerUrl={resolveExplorerUrl}
