@@ -1,5 +1,13 @@
 # @openzeppelin/ui-components
 
+## 3.8.0
+
+### Minor Changes
+
+- [#195](https://github.com/OpenZeppelin/openzeppelin-ui/pull/195) [`b56165d`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/b56165d7c3145faaf4b875df6d01339df544241d) Thanks [@pasevin](https://github.com/pasevin)! - Add `AddressFieldWithResolvedPreview` and `ResolvedAddressFieldPreview` — a reusable composition for ENS forward resolution in `AddressField` plus a rich reverse-resolved preview card below the field.
+
+  `AddressFieldWithResolvedPreview` always suppresses the forward "Resolved to `0x…`" success announcer and cross-network disclaimer (overridable), collapses the empty aria-live region, and accepts an optional `preview` slot for custom reverse-resolution bridges. `ResolvedAddressFieldPreview` is the presentational preview card; pass `resolvedName` for sync display or wrap with `AddressNameProvider` / `AddressNameResolutionProvider` for async reverse lookup.
+
 ## 3.7.0
 
 ### Minor Changes

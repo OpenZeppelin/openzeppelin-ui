@@ -1,5 +1,21 @@
 # @openzeppelin/ui-renderer
 
+## 3.4.0
+
+### Minor Changes
+
+- [#195](https://github.com/OpenZeppelin/openzeppelin-ui/pull/195) [`b56165d`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/b56165d7c3145faaf4b875df6d01339df544241d) Thanks [@pasevin](https://github.com/pasevin)! - Add optional network-scoped ENS resolution so forward and reverse lookups can follow a selected network (e.g. Address Book Add Alias dropdown) without switching the wallet-global active network.
+
+  `useRuntimeNameResolver(scopedNetwork?)` and `useResolveAddress(..., { network })` load the target runtime via `RuntimeProvider.getRuntimeForNetwork`, sharing the same SF-2 cache keys (INV-119). `AddressNameResolutionProvider`, `ResolvedAddressFieldPreviewWithNameResolution`, and `AddAliasDialog` accept an optional `network` prop. Deprecated aliases: `useNetworkNameResolver`, `useNetworkResolveAddress`.
+
+### Patch Changes
+
+- [#195](https://github.com/OpenZeppelin/openzeppelin-ui/pull/195) [`b56165d`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/b56165d7c3145faaf4b875df6d01339df544241d) Thanks [@pasevin](https://github.com/pasevin)! - Use `AddressFieldWithResolvedPreview` from `@openzeppelin/ui-components` and `ResolvedAddressFieldPreviewWithNameResolution` from `@openzeppelin/ui-renderer` for the Address Book add-alias ENS preview. Removes the duplicated renderer-local preview component.
+
+- Updated dependencies [[`b56165d`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/b56165d7c3145faaf4b875df6d01339df544241d), [`b56165d`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/b56165d7c3145faaf4b875df6d01339df544241d)]:
+  - @openzeppelin/ui-components@3.8.0
+  - @openzeppelin/ui-react@3.3.0
+
 ## 3.3.1
 
 ### Patch Changes
