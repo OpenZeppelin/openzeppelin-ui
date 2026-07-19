@@ -187,6 +187,15 @@ const aliasInput = (): HTMLInputElement =>
   document.getElementById('new-alias-name') as HTMLInputElement;
 const resolutionRegion = (): HTMLElement | null =>
   document.getElementById('new-alias-address-resolution');
+/** Rich ENS preview card below the field (replaces forward success announcer copy). */
+const resolvedPreviewRegion = (): HTMLElement | null =>
+  screen.queryByLabelText('Resolved address preview');
+const expectResolvedAddressVisible = (address: string): void => {
+  const preview = resolvedPreviewRegion();
+  expect(preview).not.toBeNull();
+  // AddressDisplay truncates by default; the leading hex is enough to prove settlement.
+  expect(preview?.textContent).toContain(address.slice(0, 6));
+};
 const addButton = (): HTMLButtonElement =>
   screen.getByRole('button', { name: /^Add/ }) as HTMLButtonElement;
 
@@ -357,7 +366,7 @@ describe('INV-102 / INV-105: auto-suggestion seeds (and keeps updating) the alia
     // (INV-105) means successive resolutions keep updating the suggestion (INV-102).
     await typeAddress('bob.eth');
     await settleResolution();
-    expect(resolutionRegion()?.textContent).toContain(BOB.address); // resolution DID land
+    expectResolvedAddressVisible(BOB.address); // resolution DID land
     expect(aliasInput().value).toBe('bob.eth');
   });
 });
@@ -373,7 +382,7 @@ describe('INV-103: once the user edits the alias, it is theirs for the rest of t
     // A resolving address must NOT overwrite it.
     await typeAddress('alice.eth');
     await settleResolution();
-    expect(resolutionRegion()?.textContent).toContain(ALICE.address); // resolution DID land
+    expectResolvedAddressVisible(ALICE.address); // resolution DID land
     expect(aliasInput().value).toBe('Mum');
 
     // Clearing the address must NOT withdraw it either (INV-103 covers both seed & withdraw).
@@ -424,7 +433,7 @@ describe('INV-112: aliasDirtyRef mirrors the dirty flag every render — no stal
     await typeAlias('M');
     await settleResolution();
 
-    expect(resolutionRegion()?.textContent).toContain(ALICE.address); // resolution DID land
+    expectResolvedAddressVisible(ALICE.address); // resolution DID land
     expect(aliasInput().value).toBe('M');
   });
 });
@@ -506,7 +515,7 @@ describe('SF-6: chain-scope gate compares against the dialog-selected network', 
     await typeAddress('alice-base-scope.eth');
     await settleResolution();
 
-    expect(resolutionRegion()?.textContent).toContain(ALICE_BASE_SCOPED.address);
+    expectResolvedAddressVisible(ALICE_BASE_SCOPED.address);
     expect(addButton().disabled).toBe(false);
     fireEvent.click(addButton());
     await flush();

@@ -1,9 +1,10 @@
 import { Plus } from 'lucide-react';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 
 import {
   AddressField,
+  AddressFieldWithResolvedPreview,
   Button,
   Dialog,
   DialogContent,
@@ -20,6 +21,8 @@ import {
 } from '@openzeppelin/ui-components';
 import { useRuntimeNameResolver, WalletStateContext } from '@openzeppelin/ui-react';
 import type { AddressingCapability, NetworkConfig } from '@openzeppelin/ui-types';
+
+import { ResolvedAddressFieldPreviewWithNameResolution } from '../ResolvedAddressFieldPreviewWithNameResolution';
 
 interface AddAliasDialogProps {
   open: boolean;
@@ -73,6 +76,7 @@ function ResolvingAliasAddressField({
 }: ResolvingAliasAddressFieldProps) {
   const resolver = useRuntimeNameResolver();
   const walletState = useContext(WalletStateContext);
+  const previewAddress = useWatch({ control: props.control, name: props.name });
 
   return (
     <NameResolverProvider
@@ -80,7 +84,18 @@ function ResolvingAliasAddressField({
       activeNetworkId={dialogNetworkId ?? walletState?.activeNetworkId ?? null}
       activeNetworkName={dialogNetworkName ?? walletState?.activeNetworkConfig?.name}
     >
-      <AddressField<AddAliasFormData> {...props} />
+      <AddressFieldWithResolvedPreview<AddAliasFormData>
+        {...props}
+        previewAddress={previewAddress}
+        previewNetworkId={dialogNetworkId ?? undefined}
+        preview={
+          <ResolvedAddressFieldPreviewWithNameResolution
+            address={previewAddress}
+            networkId={dialogNetworkId ?? undefined}
+            addressing={props.addressing}
+          />
+        }
+      />
     </NameResolverProvider>
   );
 }

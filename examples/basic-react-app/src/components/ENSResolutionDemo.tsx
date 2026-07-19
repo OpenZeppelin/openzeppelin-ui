@@ -2,13 +2,14 @@ import { ArrowRight } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
 
 import {
-  AddressField,
+  AddressFieldWithResolvedPreview,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from '@openzeppelin/ui-components';
+import { ResolvedAddressFieldPreviewWithNameResolution } from '@openzeppelin/ui-renderer';
 import type { NameResolutionErrorCode } from '@openzeppelin/ui-utils';
 import { nameResolutionMessageForCode } from '@openzeppelin/ui-utils';
 
@@ -97,15 +98,51 @@ const resolveRuntime = useCallback(
   <WalletStateProvider /* … */>{children}</WalletStateProvider>
 </RuntimeProvider>;`;
 
-const DISCLAIMER_PROPS = `import { AddressField, AddressDisplay } from '@openzeppelin/ui-components';
+const PREVIEW_WIRING = `import { useForm, useWatch } from 'react-hook-form';
+import { AddressFieldWithResolvedPreview } from '@openzeppelin/ui-components';
+import { ResolvedAddressFieldPreviewWithNameResolution } from '@openzeppelin/ui-renderer';
 
-// Forward: muted note under the success template (default on).
-<AddressField
-  /* … */
-  showCrossNetworkFallbackDisclaimer={false} // omit duplicate when a card shows reverse disclaimer
-/>
+function TransferRecipientField({ control, addressing, networkId }) {
+  const previewAddress = useWatch({ control, name: 'recipient' });
 
-// Reverse: amber triangle-alert + tooltip after the verified name (default on).
+  return (
+    <AddressFieldWithResolvedPreview
+      id="recipient"
+      name="recipient"
+      label="Recipient"
+      control={control}
+      addressing={addressing}
+      validation={{ required: true }}
+      previewAddress={previewAddress}
+      previewNetworkId={networkId}
+      preview={
+        <ResolvedAddressFieldPreviewWithNameResolution
+          address={previewAddress}
+          networkId={networkId}
+          addressing={addressing}
+        />
+      }
+    />
+  );
+}
+
+// Suppresses the forward "Resolved to 0x…" announcer by default — the preview
+// card replaces it. Cross-network fallback disclaimer appears on AddressDisplay
+// inside the card (amber triangle-alert) unless you pass resolvedName with custom UI.`;
+
+const DISCLAIMER_PROPS = `import {
+  AddressField,
+  AddressFieldWithResolvedPreview,
+  AddressDisplay,
+} from '@openzeppelin/ui-components';
+
+// Base field: muted note under the success template (default on).
+<AddressField showCrossNetworkFallbackDisclaimer={false} />
+
+// Rich preview: announcers suppressed by default — disclaimer on the card instead.
+<AddressFieldWithResolvedPreview previewAddress={watch('recipient')} /* … */ />
+
+// Reverse-only: amber triangle-alert + tooltip after the verified name (default on).
 <AddressDisplay address={hex} resolvedName={record} showCrossNetworkFallbackDisclaimer />`;
 
 interface DemoProps {
@@ -138,7 +175,7 @@ export function ENSResolutionDemo({ onNavigate }: DemoProps): React.ReactElement
   return (
     <DemoSection
       title="Name Resolution"
-      description="ENS across the UIKit: type a name into any address field (forward), render an address as its reverse-ENS name (reverse), or opt an address book into ENS. Resolution follows the app-wide active network (`ethereum-mainnet`, `ethereum-sepolia`, …) — switch networks from the header selector. On Sepolia, only brantly.eth has a native testnet record; enable mainnet fallback below to resolve mainnet-only names while staying on Sepolia. Forward and reverse both honor the toggle and show a provenance disclaimer when fallback was used."
+      description="ENS across the UIKit: type a name into any address field (forward), render an address as its reverse-ENS name (reverse), or opt an address book into ENS. Use AddressFieldWithResolvedPreview for the recommended forward + rich preview card UX. Resolution follows the app-wide active network (`ethereum-mainnet`, `ethereum-sepolia`, …) — switch networks from the header selector. On Sepolia, only brantly.eth has a native testnet record; enable mainnet fallback below to resolve mainnet-only names while staying on Sepolia. Forward and reverse both honor the toggle and show a provenance disclaimer when fallback was used."
       codeExample={ZERO_WIRING}
     >
       <EcosystemIndicator
@@ -179,6 +216,10 @@ function OptInWiringReference(): React.ReactElement {
         <CodeBlock code={OPT_IN_WIRING} language="tsx" />
       </div>
       <div className="space-y-2">
+        <p className="text-sm font-medium">Rich preview field (recommended)</p>
+        <CodeBlock code={PREVIEW_WIRING} language="tsx" />
+      </div>
+      <div className="space-y-2">
         <p className="text-sm font-medium">Disclaimer presentation (default on)</p>
         <CodeBlock code={DISCLAIMER_PROPS} language="tsx" />
       </div>
@@ -212,7 +253,6 @@ function LiveResolverWidget(): React.ReactElement {
   // so watching it gives us the address to render. Gate on the active network's
   // address validation so we only render a display for a settled hex.
   const recipient = useWatch({ control, name: 'recipient' });
-  const hasResolvedAddress = Boolean(recipient && capabilities?.isValidAddress(recipient));
 
   return (
     <Card>
@@ -234,7 +274,7 @@ function LiveResolverWidget(): React.ReactElement {
 
         {/* Forward: name → address (ambient app-wide resolver) */}
         <div className="space-y-2">
-          <AddressField
+          <AddressFieldWithResolvedPreview
             id="ens-recipient"
             name="recipient"
             label="Resolve a name"
@@ -243,29 +283,22 @@ function LiveResolverWidget(): React.ReactElement {
             control={control}
             addressing={capabilities ?? undefined}
             validation={{ required: true }}
-            // Suppress the forward disclaimer here — the resolved-address card below
-            // shows the reverse disclaimer via AddressDisplay (default on).
-            showCrossNetworkFallbackDisclaimer={false}
-            showForwardResolutionSuccessAnnouncer={false}
-          />
-
-          {hasResolvedAddress && (
-            <div className="bg-muted/30 space-y-1 rounded-lg p-3">
-              <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-                Resolved address
-              </p>
-              <ResolvedAddressDisplay
+            previewAddress={recipient}
+            previewNetworkId={networkId}
+            preview={
+              <ResolvedAddressFieldPreviewWithNameResolution
                 address={recipient}
-                truncate={false}
-                showCopyButton
-                showExplorerLink
+                networkId={networkId}
+                addressing={capabilities ?? undefined}
+                label="Resolved address"
+                displayProps={{ truncate: false, showCopyButton: true }}
               />
-              <p className="text-muted-foreground text-xs">
-                Reverse-resolved display for the hex above. Cross-network fallback provenance shows
-                as an amber triangle-alert inline after the name (default on).
-              </p>
-            </div>
-          )}
+            }
+          />
+          <p className="text-muted-foreground text-xs">
+            Reverse-resolved display for the hex above. Cross-network fallback provenance shows as
+            an amber triangle-alert inline after the name (default on).
+          </p>
         </div>
 
         {/* Reverse: address → name + avatar */}
@@ -333,8 +366,12 @@ function ZeroWiringNote(): React.ReactElement {
         <code className="bg-muted rounded px-1">useRuntimeNameResolver</code> (the app-wide active
         network). Every dynamic-form address field becomes ENS-capable automatically — the only
         requirement is an ambient <code className="bg-muted rounded px-1">WalletStateProvider</code>
-        . The live widget above rides that same ambient resolver, so it follows whichever network
-        you select in the header. See the code snippet below.
+        . The live widget above uses{' '}
+        <code className="bg-muted rounded px-1">AddressFieldWithResolvedPreview</code> with the
+        renderer&apos;s{' '}
+        <code className="bg-muted rounded px-1">ResolvedAddressFieldPreviewWithNameResolution</code>{' '}
+        bridge — the same ambient resolver as dynamic forms, so it follows whichever network you
+        select in the header. See the code snippets below.
       </p>
     </div>
   );
@@ -396,7 +433,7 @@ function ComponentLinks({ onNavigate }: DemoProps): React.ReactElement {
     {
       key: 'address-field',
       title: 'AddressField',
-      desc: 'The form field — name resolution is an opt-in section (Forms).',
+      desc: 'Base field + rich ENS preview section (Forms).',
     },
     {
       key: 'address-display',

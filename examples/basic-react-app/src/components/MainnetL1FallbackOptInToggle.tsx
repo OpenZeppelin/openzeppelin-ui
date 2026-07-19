@@ -4,8 +4,8 @@ import { networkLabel } from './networkOptions';
 /**
  * Reference integrator pattern for runtime opt-in. Toggling recreates runtimes
  * via RuntimeProvider registry flush; when enabled, cross-network fallback
- * provenance drives disclaimer copy on forward (AddressField) and reverse
- * (AddressDisplay) surfaces.
+ * provenance drives disclaimer copy on forward (AddressField announcer) and reverse
+ * (AddressDisplay / AddressFieldWithResolvedPreview preview card) surfaces.
  *
  * The opt-in is app-wide shared state, so this control stays in sync wherever it
  * is mounted (the Name Resolution demo and the AddressField/AddressDisplay
@@ -35,9 +35,11 @@ export function MainnetL1FallbackOptInToggle(): React.ReactElement {
             Opt in to cross-network ENS lookup when a record is missing on the bound network (e.g.
             resolving <code className="bg-muted rounded px-1">vitalik.eth</code> on{' '}
             <span className="font-medium">{networkLabel('ethereum-sepolia')}</span>). When results
-            include fallback provenance, AddressField shows a muted note (unless suppressed) and
-            AddressDisplay shows an amber triangle-alert with tooltip. Toggling re-resolves forward
-            and reverse results immediately.
+            include fallback provenance, the base AddressField shows a muted note (unless
+            suppressed) and AddressDisplay — including inside{' '}
+            <code className="bg-muted rounded px-1">AddressFieldWithResolvedPreview</code> — shows
+            an amber triangle-alert with tooltip. Toggling re-resolves forward and reverse results
+            immediately.
           </p>
         </div>
       </div>

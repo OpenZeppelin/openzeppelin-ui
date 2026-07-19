@@ -2,19 +2,19 @@ import { useCallback, useLayoutEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 
 import {
-  AddressField,
+  AddressFieldWithResolvedPreview,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from '@openzeppelin/ui-components';
+import { ResolvedAddressFieldPreviewWithNameResolution } from '@openzeppelin/ui-renderer';
 
 import { useEcosystem } from '../context';
 import { getNetworkById } from '../core/ecosystemManager';
 import { ENS_RESOLUTION_NETWORK_ID } from './NameResolutionNetworkHint';
 import { NetworkRequirementHint } from './NetworkRequirementHint';
-import { ResolvedAddressDisplay } from './ResolvedAddressDisplay';
 
 // ----------------------------------------------------------------------------
 // Live-verified preset catalog (resolved through local adapter-evm + viem)
@@ -273,7 +273,6 @@ function LiveShowcaseForm({ seedName }: LiveShowcaseFormProps): React.ReactEleme
   });
 
   const recipient = useWatch({ control, name: 'recipient' });
-  const hasResolvedAddress = Boolean(recipient && capabilities?.isValidAddress(recipient));
   const networkName = network?.name ?? '…';
 
   useProgrammaticNameInput(SHOWCASE_RECIPIENT_FIELD_ID, seedName, true, fieldSeedVersion);
@@ -289,9 +288,20 @@ function LiveShowcaseForm({ seedName }: LiveShowcaseFormProps): React.ReactEleme
         ? activePreset.expectedAddress
         : undefined;
 
+  const explorerUrl = (() => {
+    if (!recipient || !capabilities) {
+      return undefined;
+    }
+    try {
+      return capabilities.getExplorerUrl(recipient) ?? undefined;
+    } catch {
+      return undefined;
+    }
+  })();
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <AddressField
+      <AddressFieldWithResolvedPreview
         id={SHOWCASE_RECIPIENT_FIELD_ID}
         name="recipient"
         label="ENS name or address"
@@ -300,6 +310,17 @@ function LiveShowcaseForm({ seedName }: LiveShowcaseFormProps): React.ReactEleme
         control={control}
         addressing={capabilities ?? undefined}
         validation={{ required: true }}
+        previewAddress={recipient}
+        previewNetworkId={networkId}
+        preview={
+          <ResolvedAddressFieldPreviewWithNameResolution
+            address={recipient}
+            networkId={networkId}
+            addressing={capabilities ?? undefined}
+            label="Resolved address"
+            displayProps={{ truncate: false, showCopyButton: true, explorerUrl }}
+          />
+        }
       />
 
       <button
@@ -310,25 +331,12 @@ function LiveShowcaseForm({ seedName }: LiveShowcaseFormProps): React.ReactEleme
         Submit resolved address
       </button>
 
-      {hasResolvedAddress && (
-        <div className="bg-muted/30 space-y-2 rounded-lg p-3">
-          <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-            Resolved address
-          </p>
-          <ResolvedAddressDisplay
-            address={recipient}
-            truncate={false}
-            showCopyButton
-            showExplorerLink
-          />
-          {expectedAddress && (
-            <p className="text-muted-foreground text-xs">
-              Verified live preset for <code className="bg-muted rounded px-1">{seedName}</code> on{' '}
-              <span className="font-medium">{networkName}</span>:{' '}
-              <code className="bg-muted rounded px-1 font-mono">{expectedAddress}</code>
-            </p>
-          )}
-        </div>
+      {expectedAddress && recipient && capabilities?.isValidAddress(recipient) && (
+        <p className="text-muted-foreground text-xs">
+          Verified live preset for <code className="bg-muted rounded px-1">{seedName}</code> on{' '}
+          <span className="font-medium">{networkName}</span>:{' '}
+          <code className="bg-muted rounded px-1 font-mono">{expectedAddress}</code>
+        </p>
       )}
 
       {submitted && (
@@ -347,8 +355,8 @@ function LiveShowcaseForm({ seedName }: LiveShowcaseFormProps): React.ReactEleme
 }
 
 /**
- * AddressField + submit gate + mechanism-neutral resolved display. Resolution
- * rides the ambient NameResolverProvider; no hand-rolled ENS calls.
+ * AddressFieldWithResolvedPreview + submit gate. Resolution rides the ambient
+ * NameResolverProvider; reverse display rides ResolvedAddressFieldPreviewWithNameResolution.
  */
 function LiveShowcaseWidget({
   seedName,
@@ -426,9 +434,10 @@ export function EnsV1V2ShowcaseSection(): React.ReactElement {
         <CardDescription>
           Live names verified against the local adapter-evm stack. Click a chip to populate the
           field — classic on-chain ENS (v1), CCIP-Read off-chain gateway records, and coinType
-          cross-chain addresses all resolve through the same{' '}
-          <code className="bg-muted rounded px-1">AddressField</code>. The resolved-address display
-          is identical regardless of mechanism; the grouping below is demo copy only.
+          cross-chain addresses all resolve through{' '}
+          <code className="bg-muted rounded px-1">AddressFieldWithResolvedPreview</code>. The
+          preview card below the field shows reverse ENS regardless of resolution mechanism; the
+          grouping below is demo copy only.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
