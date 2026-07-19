@@ -1,5 +1,14 @@
 # @openzeppelin/ui-renderer
 
+## 3.3.1
+
+### Patch Changes
+
+- [#193](https://github.com/OpenZeppelin/openzeppelin-ui/pull/193) [`3696502`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/36965021895ea1520e4e8c5845660ff203ee6adb) Thanks [@pasevin](https://github.com/pasevin)! - Use `AddressFieldWithResolvedPreview` from `@openzeppelin/ui-components` and `ResolvedAddressFieldPreviewWithNameResolution` from `@openzeppelin/ui-renderer` for the Address Book add-alias ENS preview. Removes the duplicated renderer-local preview component.
+
+- Updated dependencies [[`3696502`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/36965021895ea1520e4e8c5845660ff203ee6adb)]:
+  - @openzeppelin/ui-components@3.7.0
+
 ## 3.3.0
 
 ### Minor Changes
