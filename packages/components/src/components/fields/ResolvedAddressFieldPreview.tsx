@@ -1,3 +1,5 @@
+import type * as React from 'react';
+
 import type { AddressingCapability, ResolvedName } from '@openzeppelin/ui-types';
 
 import { AddressDisplay, type AddressDisplayProps } from '../ui/address-display';
@@ -14,8 +16,8 @@ export interface ResolvedAddressFieldPreviewProps {
   resolvedName?: ResolvedName;
   /** Heading above the display. @default "Resolved account" */
   label?: string;
-  /** Props forwarded to the inner `AddressDisplay` (excluding `address` / `networkId`). */
-  displayProps?: Omit<AddressDisplayProps, 'address' | 'networkId'>;
+  /** Props forwarded to the inner `AddressDisplay` (excluding `address` / `networkId` / `resolvedName`). */
+  displayProps?: Omit<AddressDisplayProps, 'address' | 'networkId' | 'resolvedName'>;
 }
 
 /**

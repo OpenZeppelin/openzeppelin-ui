@@ -1,3 +1,5 @@
+import type * as React from 'react';
+
 import {
   ResolvedAddressFieldPreview,
   type ResolvedAddressFieldPreviewProps,

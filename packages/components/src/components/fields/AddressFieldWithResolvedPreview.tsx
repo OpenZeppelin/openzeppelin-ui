@@ -1,3 +1,4 @@
+import type * as React from 'react';
 import type { FieldValues } from 'react-hook-form';
 
 import { cn } from '@openzeppelin/ui-utils';
@@ -47,7 +48,7 @@ export function AddressFieldWithResolvedPreview<TFieldValues extends FieldValues
       <AddressField
         {...addressFieldProps}
         addressing={addressing}
-        // Always suppress forward success copy — the preview card below replaces it.
+        // Suppress forward success copy by default — the preview card below replaces it.
         // Conditional suppression raced the form watch: the announcer rendered on the
         // resolution frame before previewAddress caught up with the resolved hex write.
         showCrossNetworkFallbackDisclaimer={showCrossNetworkFallbackDisclaimer ?? false}
