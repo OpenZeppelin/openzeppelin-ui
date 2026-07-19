@@ -209,7 +209,7 @@ function App() {
           <AddressBookWidget
             {...widgetProps}
             enableNameResolution={enableEns}
-            addressing={capabilities ?? undefined}
+            addressing={enableEns ? undefined : (capabilities ?? undefined)}
             addressPlaceholder={addressPlaceholder}
             resolveNetwork={resolveNetwork}
             resolveExplorerUrl={resolveExplorerUrl}

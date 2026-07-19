@@ -86,6 +86,7 @@ function ResolvingAliasAddressField({ dialogNetwork, ...props }: ResolvingAliasA
         {...props}
         previewAddress={previewAddress}
         previewNetworkId={dialogNetworkId}
+        showForwardResolutionSuccessAnnouncer={false}
         preview={
           <ResolvedAddressFieldPreviewWithNameResolution
             address={previewAddress}
