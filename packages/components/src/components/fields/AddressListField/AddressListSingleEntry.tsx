@@ -78,8 +78,8 @@ export function AddressListSingleEntry({
             addressing={addressing}
             validation={{ required: false }}
             readOnly={inputDisabled}
+            announcerEndSlot={modeToggle}
           />
-          {modeToggle ? <div className="-mt-px flex justify-end pr-2">{modeToggle}</div> : null}
         </div>
         <Button
           type="button"
