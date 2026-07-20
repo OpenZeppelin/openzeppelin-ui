@@ -92,20 +92,18 @@ export function AddressListBulkEntry({
       </div>
 
       <div>
-        <div className="relative">
-          <TextAreaField
-            id={`address-list-bulk-${fieldId}`}
-            name="input"
-            label=""
-            placeholder={placeholder}
-            helperText={statusMessage}
-            control={control}
-            rows={4}
-            validation={{ required: false }}
-            readOnly={inputDisabled}
-          />
-        </div>
-        {modeToggle ? <div className="flex justify-end pr-2">{modeToggle}</div> : null}
+        <TextAreaField
+          id={`address-list-bulk-${fieldId}`}
+          name="input"
+          label=""
+          placeholder={placeholder}
+          helperText={statusMessage}
+          control={control}
+          rows={4}
+          validation={{ required: false }}
+          readOnly={inputDisabled}
+          helperEndSlot={modeToggle}
+        />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2">

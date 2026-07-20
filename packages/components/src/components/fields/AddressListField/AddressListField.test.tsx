@@ -24,11 +24,18 @@ const copyProps = {
 
 describe('AddressListField', () => {
   it('defaults to single-address entry with AddressField', () => {
-    render(<AddressListField value={[]} onChange={vi.fn()} {...copyProps} />);
+    const { container } = render(<AddressListField value={[]} onChange={vi.fn()} {...copyProps} />);
     expect(screen.getByRole('textbox')).toBeTruthy();
     expect(screen.getByRole('button', { name: /^add$/i })).toBeTruthy();
     expect(screen.getByRole('button', { name: /bulk paste/i })).toBeTruthy();
     expect(screen.queryByText(copyProps.formatHint)).toBeNull();
+
+    const toggle = screen.getByRole('button', { name: /bulk paste/i });
+    const resolutionRegion = container.querySelector('[id$="-resolution"]');
+    expect(resolutionRegion).not.toBeNull();
+    expect(resolutionRegion?.className).toContain('mt-4');
+    expect(resolutionRegion?.contains(toggle)).toBe(false);
+    expect(resolutionRegion?.parentElement?.contains(toggle)).toBe(true);
   });
 
   it('adds a single address from the default entry mode', async () => {
@@ -127,6 +134,26 @@ describe('AddressListField', () => {
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith([validAddr]);
     });
+  });
+
+  it('pins the bulk mode toggle under the textarea when preview text appears', async () => {
+    render(
+      <AddressListField value={[]} onChange={vi.fn()} addressing={mockAddressing} {...copyProps} />
+    );
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /bulk paste/i }));
+    });
+    const input = screen.getByRole('textbox');
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'not-valid' } });
+    });
+
+    const toggle = screen.getByRole('button', { name: /single entry/i });
+    const helper = screen.getByText(/1 invalid/i);
+    expect(toggle.parentElement?.parentElement?.className).toContain('pr-2.5');
+    expect(helper.className).toContain('mt-4');
+    expect(helper.className).toContain('flex-1');
+    expect(helper.contains(toggle)).toBe(false);
   });
 
   it('shows a live preview while typing in bulk mode', async () => {

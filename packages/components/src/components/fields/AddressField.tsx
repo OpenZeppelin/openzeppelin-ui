@@ -82,6 +82,15 @@ export interface AddressFieldProps<TFieldValues extends FieldValues = FieldValue
    * already presents the resolved address (e.g. a rich ENS preview card).
    */
   showForwardResolutionSuccessAnnouncer?: boolean;
+
+  /**
+   * Optional trailing content on the resolution announcer row (e.g. an entry-mode
+   * toggle). When set, the announcer and slot share one flex row beneath the
+   * input — the slot stays right-aligned and the announcer fills the left.
+   * The row renders even when no resolver is mounted so the slot is always visible;
+   * without a resolver the announcer cell is empty and no `min-h-5` is reserved.
+   */
+  announcerEndSlot?: React.ReactNode;
 }
 
 /**
@@ -167,6 +176,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   onResolvedNameChange,
   showCrossNetworkFallbackDisclaimer = true,
   showForwardResolutionSuccessAnnouncer = true,
+  announcerEndSlot,
 }: AddressFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
@@ -544,6 +554,84 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
     }
   };
 
+  const hasAnnouncerEndSlot = announcerEndSlot != null;
+  const showResolutionAnnouncer = resolver !== null || hasAnnouncerEndSlot;
+  const includeResolutionInDescribedBy = resolver !== null || hasAnnouncerEndSlot;
+
+  const resolutionAnnouncerRow = showResolutionAnnouncer ? (
+    hasAnnouncerEndSlot ? (
+      // The end slot (mode toggle) is pinned flush to the input's bottom-right
+      // (an attached tab) while the announcer sits on a separate gapped row on the
+      // left. Both share one in-flow row so the toggle keeps its position when the
+      // announcer gets content (INV: no shift) and the row reserves height so it
+      // never overlaps content rendered below the field. The row cancels the parent
+      // `gap-2` (`-mt-2`) so the toggle can sit flush against the input's border.
+      <div className="-mt-2 flex items-start justify-between gap-2 pr-2.5">
+        <div id={resolutionRegionId} aria-live="polite" className="mt-4 min-w-0 flex-1 text-sm">
+          {resolver !== null ? renderOutcome() : null}
+        </div>
+        <div className="-mt-px shrink-0">{announcerEndSlot}</div>
+      </div>
+    ) : (
+      <div id={resolutionRegionId} aria-live="polite" className="min-h-5">
+        {renderOutcome()}
+      </div>
+    )
+  ) : null;
+
+  const inputBlock = (
+    // With a flush end slot the toggle overlaps the input's bottom border; lift
+    // the input so its focus ring is not covered by the toggle.
+    <div
+      ref={containerRef}
+      className={hasAnnouncerEndSlot ? 'relative z-10' : 'relative'}
+      onKeyDown={onContainerKeyDown}
+    >
+      <Input
+        {...field}
+        id={id}
+        placeholder={placeholder || (resolver !== null ? '0x... or name' : '0x...')}
+        className={validationClasses}
+        onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
+        data-slot="input"
+        // INV-69: the input always shows the typed string — never the resolved hex.
+        // Identical to binding `field.value` when no resolver is mounted (INV-82).
+        value={inputValue}
+        {...accessibilityProps}
+        // INV-92: preserve the legacy describedby wiring verbatim when no resolver
+        // is mounted; with a resolver, additively associate the dedicated
+        // resolution announcer (never overwriting error/description).
+        aria-describedby={
+          !includeResolutionInDescribedBy
+            ? `${helperText ? descriptionId : ''} ${hasRealError ? errorId : ''}`
+            : [helperText ? descriptionId : '', hasRealError ? errorId : '', resolutionRegionId]
+                .filter(Boolean)
+                .join(' ') || undefined
+        }
+        aria-expanded={hasSuggestions}
+        aria-autocomplete={suggestionsDisabled ? undefined : 'list'}
+        aria-controls={hasSuggestions ? `${id}-suggestions` : undefined}
+        aria-activedescendant={
+          hasSuggestions && highlightedIndex >= 0
+            ? `${id}-suggestion-${highlightedIndex}`
+            : undefined
+        }
+        disabled={readOnly}
+      />
+
+      {hasSuggestions && (
+        <AddressSuggestionList
+          id={id}
+          suggestions={resolvedSuggestions}
+          highlightedIndex={highlightedIndex}
+          onSelect={applySuggestion}
+          onHighlight={setHighlightedIndex}
+        />
+      )}
+    </div>
+  );
+
   return (
     <div
       className={`flex flex-col gap-2 ${width === 'full' ? 'w-full' : width === 'half' ? 'w-1/2' : 'w-1/3'}`}
@@ -554,74 +642,51 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
         </Label>
       )}
 
-      <div ref={containerRef} className="relative" onKeyDown={onContainerKeyDown}>
-        <Input
-          {...field}
-          id={id}
-          placeholder={placeholder || (resolver !== null ? '0x... or name' : '0x...')}
-          className={validationClasses}
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          data-slot="input"
-          // INV-69: the input always shows the typed string — never the resolved hex.
-          // Identical to binding `field.value` when no resolver is mounted (INV-82).
-          value={inputValue}
-          {...accessibilityProps}
-          // INV-92: preserve the legacy describedby wiring verbatim when no resolver
-          // is mounted; with a resolver, additively associate the dedicated
-          // resolution announcer (never overwriting error/description).
-          aria-describedby={
-            resolver === null
-              ? `${helperText ? descriptionId : ''} ${hasRealError ? errorId : ''}`
-              : [helperText ? descriptionId : '', hasRealError ? errorId : '', resolutionRegionId]
-                  .filter(Boolean)
-                  .join(' ') || undefined
-          }
-          aria-expanded={hasSuggestions}
-          aria-autocomplete={suggestionsDisabled ? undefined : 'list'}
-          aria-controls={hasSuggestions ? `${id}-suggestions` : undefined}
-          aria-activedescendant={
-            hasSuggestions && highlightedIndex >= 0
-              ? `${id}-suggestion-${highlightedIndex}`
-              : undefined
-          }
-          disabled={readOnly}
-        />
+      {hasAnnouncerEndSlot ? (
+        <>
+          {inputBlock}
+          {resolutionAnnouncerRow}
+        </>
+      ) : (
+        <>
+          {inputBlock}
+          {/* Display helper text */}
+          {helperText && (
+            <div id={descriptionId} className="text-muted-foreground text-sm">
+              {helperText}
+            </div>
+          )}
 
-        {hasSuggestions && (
-          <AddressSuggestionList
-            id={id}
-            suggestions={resolvedSuggestions}
-            highlightedIndex={highlightedIndex}
-            onSelect={applySuggestion}
-            onHighlight={setHighlightedIndex}
+          {/* Display error message — unchanged; the pending gate string is suppressed. */}
+          <ErrorMessage
+            error={hasRealError ? fieldState.error : undefined}
+            id={errorId}
+            message={shouldShowError ? fieldState.error?.message || patternErrorMessage : undefined}
           />
-        )}
-      </div>
 
-      {/* Display helper text */}
-      {helperText && (
-        <div id={descriptionId} className="text-muted-foreground text-sm">
-          {helperText}
-        </div>
+          {/* INV-92: dedicated aria-live announcer, distinct from the RHF error region;
+              absent entirely with no resolver and no end slot (INV-82). Kept mounted
+              while a resolver is present so live-region announcements are reliable.
+              INV-93: it never steals focus — announcement is via aria-live only. */}
+          {resolutionAnnouncerRow}
+        </>
       )}
 
-      {/* Display error message — unchanged; the pending gate string is suppressed. */}
-      <ErrorMessage
-        error={hasRealError ? fieldState.error : undefined}
-        id={errorId}
-        message={shouldShowError ? fieldState.error?.message || patternErrorMessage : undefined}
-      />
+      {hasAnnouncerEndSlot ? (
+        <>
+          {helperText && (
+            <div id={descriptionId} className="text-muted-foreground text-sm">
+              {helperText}
+            </div>
+          )}
 
-      {/* INV-92: dedicated aria-live announcer, distinct from the RHF error region;
-          absent entirely with no resolver (INV-82). Kept mounted while a resolver is
-          present so live-region announcements are reliable. INV-93: it never steals
-          focus — announcement is via aria-live only. */}
-      {resolver !== null && (
-        <div id={resolutionRegionId} aria-live="polite" className="min-h-5">
-          {renderOutcome()}
-        </div>
-      )}
+          <ErrorMessage
+            error={hasRealError ? fieldState.error : undefined}
+            id={errorId}
+            message={shouldShowError ? fieldState.error?.message || patternErrorMessage : undefined}
+          />
+        </>
+      ) : null}
     </div>
   );
 }

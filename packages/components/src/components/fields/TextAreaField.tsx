@@ -30,6 +30,13 @@ export interface TextAreaFieldProps<TFieldValues extends FieldValues = FieldValu
    * Custom validation function for textarea values
    */
   validateTextArea?: (value: string) => boolean | string;
+
+  /**
+   * Optional trailing content pinned under the textarea's bottom-right edge
+   * (e.g. an entry-mode toggle). When set, helper text renders on a separate
+   * row beneath with spacing so the slot stays flush to the textarea.
+   */
+  helperEndSlot?: React.ReactNode;
 }
 
 /**
@@ -64,6 +71,7 @@ export function TextAreaField<TFieldValues extends FieldValues = FieldValues>({
   maxLength,
   validateTextArea,
   readOnly,
+  helperEndSlot,
 }: TextAreaFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
@@ -119,25 +127,37 @@ export function TextAreaField<TFieldValues extends FieldValues = FieldValues>({
             hasHelperText: !!helperText,
           });
 
+          const hasHelperEndSlot = helperEndSlot != null;
+
+          const textareaElement = (
+            <Textarea
+              {...field}
+              id={id}
+              placeholder={placeholder}
+              rows={rows}
+              maxLength={maxLength}
+              // With a flush end slot the toggle overlaps the bottom border; lift
+              // the textarea so its focus ring is not covered by the toggle.
+              className={
+                hasHelperEndSlot ? `relative z-10 ${validationClasses}` : validationClasses
+              }
+              value={field.value ?? ''}
+              disabled={readOnly}
+              {...accessibilityProps}
+              aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
+              onKeyDown={handleEscapeKey((value) => {
+                if (typeof field.onChange === 'function') {
+                  field.onChange(value);
+                }
+              }, field.value)}
+            />
+          );
+
+          const helperTextContent = helperText != null && helperText !== '' ? helperText : null;
+
           return (
             <>
-              <Textarea
-                {...field}
-                id={id}
-                placeholder={placeholder}
-                rows={rows}
-                maxLength={maxLength}
-                className={validationClasses}
-                value={field.value ?? ''}
-                disabled={readOnly}
-                {...accessibilityProps}
-                aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
-                onKeyDown={handleEscapeKey((value) => {
-                  if (typeof field.onChange === 'function') {
-                    field.onChange(value);
-                  }
-                }, field.value)}
-              />
+              {textareaElement}
 
               {/* Display character count if maxLength is provided */}
               {maxLength && typeof field.value === 'string' && (
@@ -146,11 +166,29 @@ export function TextAreaField<TFieldValues extends FieldValues = FieldValues>({
                 </div>
               )}
 
-              {/* Display helper text */}
-              {helperText && (
-                <div id={descriptionId} className="text-muted-foreground text-sm">
-                  {helperText}
+              {/* When an end slot is present, the toggle is pinned flush to the
+                  textarea's bottom-right (an attached tab) while helper text sits
+                  on a separate gapped row on the left — both share one in-flow row
+                  so the toggle keeps its position when helper text appears (INV: no
+                  shift) and the row reserves height so it never overlaps content
+                  below. The row cancels the parent `gap-2` (`-mt-2`) so the toggle
+                  can sit flush against the textarea's border. */}
+              {hasHelperEndSlot ? (
+                <div className="-mt-2 flex items-start justify-between gap-2 pr-2.5">
+                  <div
+                    id={descriptionId}
+                    className="mt-4 min-w-0 flex-1 text-sm text-muted-foreground"
+                  >
+                    {helperTextContent}
+                  </div>
+                  <div className="-mt-px shrink-0">{helperEndSlot}</div>
                 </div>
+              ) : (
+                helperTextContent && (
+                  <div id={descriptionId} className="text-muted-foreground text-sm">
+                    {helperTextContent}
+                  </div>
+                )
               )}
 
               {/* Display error message */}
