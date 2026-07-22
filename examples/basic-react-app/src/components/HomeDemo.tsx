@@ -250,7 +250,7 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
           <div className="rounded-lg border p-4">
             <p className="font-medium">Pay for what you use</p>
             <p className="text-muted-foreground mt-1 text-sm">
-              13 capabilities across 3 tiers with sub-path exports. A config wizard loads zero
+              17 capabilities across 3 tiers with sub-path exports. A config wizard loads zero
               wallet code; a full dApp gets everything.
             </p>
           </div>
@@ -342,7 +342,7 @@ export function HomeDemo({ onNavigate }: HomeDemoProps): React.ReactElement {
           <div className="flex-1">
             <h3 className="font-semibold">Ready to dive deeper?</h3>
             <p className="text-muted-foreground mt-1 text-sm">
-              Learn how 13 capabilities, 5 profiles, and tiered sub-path exports make adapters both
+              Learn how 17 capabilities, 5 profiles, and tiered sub-path exports make adapters both
               powerful and lightweight. Or explore the Component Gallery.
             </p>
           </div>
