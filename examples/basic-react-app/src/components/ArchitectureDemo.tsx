@@ -9,14 +9,27 @@
  */
 
 import {
+  ArrowLeftRight,
+  AtSign,
+  BadgeCheck,
   Boxes,
   Check,
   Code2,
+  Compass,
+  Component,
   ExternalLink,
+  FileJson,
   FileSearch,
+  Fingerprint,
+  Fuel,
+  MapPin,
+  Network,
   Puzzle,
+  Search,
   Send,
   Shield,
+  Tags,
+  Vault,
   Wallet,
   X,
 } from 'lucide-react';
@@ -271,21 +284,33 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-lg border bg-emerald-50/50 p-3 dark:bg-emerald-950/20">
-                <p className="text-sm font-medium">Addressing</p>
+                <div className="flex items-center gap-2">
+                  <MapPin className="size-3.5 text-emerald-600" />
+                  <p className="text-sm font-medium">Addressing</p>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Address validation, formatting, checksumming
                 </p>
               </div>
               <div className="rounded-lg border bg-emerald-50/50 p-3 dark:bg-emerald-950/20">
-                <p className="text-sm font-medium">Explorer</p>
+                <div className="flex items-center gap-2">
+                  <Compass className="size-3.5 text-emerald-600" />
+                  <p className="text-sm font-medium">Explorer</p>
+                </div>
                 <p className="text-xs text-muted-foreground">Block explorer URL generation</p>
               </div>
               <div className="rounded-lg border bg-emerald-50/50 p-3 dark:bg-emerald-950/20">
-                <p className="text-sm font-medium">NetworkCatalog</p>
+                <div className="flex items-center gap-2">
+                  <Network className="size-3.5 text-emerald-600" />
+                  <p className="text-sm font-medium">NetworkCatalog</p>
+                </div>
                 <p className="text-xs text-muted-foreground">Available networks and metadata</p>
               </div>
               <div className="rounded-lg border bg-emerald-50/50 p-3 dark:bg-emerald-950/20">
-                <p className="text-sm font-medium">UiLabels</p>
+                <div className="flex items-center gap-2">
+                  <Tags className="size-3.5 text-emerald-600" />
+                  <p className="text-sm font-medium">UiLabels</p>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Human-readable ecosystem-specific terms
                 </p>
@@ -305,7 +330,10 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-lg border bg-blue-50/50 p-3 dark:bg-blue-950/20">
-                <p className="text-sm font-medium">NameResolution</p>
+                <div className="flex items-center gap-2">
+                  <AtSign className="size-3.5 text-blue-600" />
+                  <p className="text-sm font-medium">NameResolution</p>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Forward and reverse name resolution (e.g. ENS)
                 </p>
@@ -320,19 +348,28 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
                 </p>
               </div>
               <div className="rounded-lg border bg-blue-50/50 p-3 dark:bg-blue-950/20">
-                <p className="text-sm font-medium">Schema</p>
+                <div className="flex items-center gap-2">
+                  <FileJson className="size-3.5 text-blue-600" />
+                  <p className="text-sm font-medium">Schema</p>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Transform definitions into form-renderable schemas
                 </p>
               </div>
               <div className="rounded-lg border bg-blue-50/50 p-3 dark:bg-blue-950/20">
-                <p className="text-sm font-medium">TypeMapping</p>
+                <div className="flex items-center gap-2">
+                  <ArrowLeftRight className="size-3.5 text-blue-600" />
+                  <p className="text-sm font-medium">TypeMapping</p>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Map blockchain types to form field types
                 </p>
               </div>
               <div className="rounded-lg border bg-blue-50/50 p-3 dark:bg-blue-950/20">
-                <p className="text-sm font-medium">Query</p>
+                <div className="flex items-center gap-2">
+                  <Search className="size-3.5 text-blue-600" />
+                  <p className="text-sm font-medium">Query</p>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Read-only contract calls (view functions)
                 </p>
@@ -370,13 +407,19 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
                 </p>
               </div>
               <div className="rounded-lg border bg-violet-50/50 p-3 dark:bg-violet-950/20">
-                <p className="text-sm font-medium">UiKit</p>
+                <div className="flex items-center gap-2">
+                  <Component className="size-3.5 text-violet-600" />
+                  <p className="text-sm font-medium">UiKit</p>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Ecosystem-specific React components and hooks
                 </p>
               </div>
               <div className="rounded-lg border bg-violet-50/50 p-3 dark:bg-violet-950/20">
-                <p className="text-sm font-medium">Relayer</p>
+                <div className="flex items-center gap-2">
+                  <Fuel className="size-3.5 text-violet-600" />
+                  <p className="text-sm font-medium">Relayer</p>
+                </div>
                 <p className="text-xs text-muted-foreground">Gas-sponsored transaction execution</p>
               </div>
               <div className="rounded-lg border bg-violet-50/50 p-3 dark:bg-violet-950/20">
@@ -389,19 +432,28 @@ export function ArchitectureDemo({ onNavigate }: ArchitectureDemoProps): React.R
                 </p>
               </div>
               <div className="rounded-lg border bg-violet-50/50 p-3 dark:bg-violet-950/20">
-                <p className="text-sm font-medium">ERC3643</p>
+                <div className="flex items-center gap-2">
+                  <BadgeCheck className="size-3.5 text-violet-600" />
+                  <p className="text-sm font-medium">ERC3643</p>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   ERC-3643 (T-REX) permissioned token operations
                 </p>
               </div>
               <div className="rounded-lg border bg-violet-50/50 p-3 dark:bg-violet-950/20">
-                <p className="text-sm font-medium">ERC4626</p>
+                <div className="flex items-center gap-2">
+                  <Vault className="size-3.5 text-violet-600" />
+                  <p className="text-sm font-medium">ERC4626</p>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   ERC-4626 tokenized-vault deposits and withdrawals
                 </p>
               </div>
               <div className="rounded-lg border bg-violet-50/50 p-3 dark:bg-violet-950/20">
-                <p className="text-sm font-medium">IRS</p>
+                <div className="flex items-center gap-2">
+                  <Fingerprint className="size-3.5 text-violet-600" />
+                  <p className="text-sm font-medium">IRS</p>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Identity Registry Storage (ONCHAINID) identity management
                 </p>
