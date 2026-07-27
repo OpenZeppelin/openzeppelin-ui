@@ -73,6 +73,26 @@ export interface OnchainIdLookup {
 }
 
 /**
+ * Result of resolving the ONCHAINID deployed for a wallet via the identity factory.
+ *
+ * `not_found` (zero address) is distinct from `read_failed` (RPC/transport failure).
+ */
+export type FactoryIdentityLookup =
+  | { readonly status: 'found'; readonly onchainId: string }
+  | { readonly status: 'not_found' }
+  | { readonly status: 'read_failed'; readonly cause: Error };
+
+/**
+ * Result of probing whether an address holds a given ERC-734 key purpose on an ONCHAINID.
+ *
+ * `lacks` (on-chain false) is distinct from `read_failed` (RPC/transport failure).
+ */
+export type IdentityKeyPurposeLookup =
+  | { readonly status: 'has' }
+  | { readonly status: 'lacks' }
+  | { readonly status: 'read_failed'; readonly cause: Error };
+
+/**
  * Result of `deployOnchainId`: the operation id plus the freshly deployed ONCHAINID address.
  */
 export interface DeployOnchainIdResult extends OperationResult {

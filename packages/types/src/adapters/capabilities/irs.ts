@@ -4,6 +4,8 @@ import type { OperationResult } from '../access-control';
 import type {
   ClaimPayload,
   DeployOnchainIdResult,
+  FactoryIdentityLookup,
+  IdentityKeyPurposeLookup,
   IdentityRegistration,
   OnboardingClaim,
   OnchainIdLookup,
@@ -34,6 +36,27 @@ export interface IRSCapability extends RuntimeCapability {
    * Returns `{ found: false }` (never throws) when no identity exists.
    */
   getOnchainId(holder: string): Promise<OnchainIdLookup>;
+
+  /**
+   * Resolve the ONCHAINID the identity factory deployed for `holder`.
+   *
+   * Used by resume/idempotency paths that must detect deployed-but-unregistered holders.
+   * `not_found` is distinct from `read_failed` — transport failures must not be treated as
+   * "no identity".
+   */
+  getFactoryIdentity(holder: string): Promise<FactoryIdentityLookup>;
+
+  /**
+   * Probe whether `address` holds `purpose` on an ONCHAINID identity.
+   *
+   * Used by resume/idempotency paths that must detect whether `grantHolderManagementKey`
+   * already ran — `read_failed` must not be treated as `lacks`.
+   */
+  hasIdentityKeyPurpose(input: {
+    onchainId: string;
+    address: string;
+    purpose: number;
+  }): Promise<IdentityKeyPurposeLookup>;
 
   /**
    * The IRS verification pre-check.
@@ -74,6 +97,19 @@ export interface IRSCapability extends RuntimeCapability {
     onStatusChange?: (status: TxStatus, details: TransactionStatusUpdate) => void,
     runtimeApiKey?: string
   ): Promise<DeployOnchainIdResult>;
+
+  /**
+   * Grant the holder a MANAGEMENT key on their ONCHAINID (submits `addKey(holder, MANAGEMENT)`).
+   *
+   * **Saga ordering is load-bearing:** consumers MUST call this after `deployOnchainId` and
+   * **before** `attachClaim` so the holder can rescue their identity if a later step fails.
+   */
+  grantHolderManagementKey(
+    input: { onchainId: string; holder: string },
+    executionConfig: ExecutionConfig,
+    onStatusChange?: (status: TxStatus, details: TransactionStatusUpdate) => void,
+    runtimeApiKey?: string
+  ): Promise<OperationResult>;
 
   /**
    * Register a trusted issuer for the given claim `topics`. Idempotent: safe to

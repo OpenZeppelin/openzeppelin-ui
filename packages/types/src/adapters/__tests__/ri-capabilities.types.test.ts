@@ -16,6 +16,8 @@ import type {
   ClaimPayload,
   ERC3643Capability,
   ERC4626Capability,
+  FactoryIdentityLookup,
+  IdentityKeyPurposeLookup,
   IdentityRegistration,
   IRSCapability,
   NetworkConfig,
@@ -69,6 +71,14 @@ const irsStub = {
   networkConfig,
   dispose: () => undefined,
   getOnchainId: async (_holder: string): Promise<OnchainIdLookup> => ({ found: false }),
+  getFactoryIdentity: async (_holder: string): Promise<FactoryIdentityLookup> => ({
+    status: 'not_found',
+  }),
+  hasIdentityKeyPurpose: async (_input: {
+    onchainId: string;
+    address: string;
+    purpose: number;
+  }): Promise<IdentityKeyPurposeLookup> => ({ status: 'lacks' }),
   isVerified: async (_holder: string): Promise<boolean> => false,
   getJurisdiction: async (_holder: string): Promise<string | undefined> => undefined,
   buildClaimPayload: (input: {
@@ -83,6 +93,7 @@ const irsStub = {
     data: input.data,
   }),
   deployOnchainId: async (_input: { holder: string }) => ({ ...opResult, onchainId: '0x' }),
+  grantHolderManagementKey: async (_input: { onchainId: string; holder: string }) => opResult,
   registerTrustedIssuer: async (_input: { issuer: string; topics: string[] }) => opResult,
   attachClaim: async (_input: { onchainId: string; claim: OnboardingClaim }) => opResult,
   registerIdentity: async (_input: IdentityRegistration) => opResult,
