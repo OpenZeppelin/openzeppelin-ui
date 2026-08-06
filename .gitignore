@@ -49,3 +49,4 @@ packages/cli/autoresearch/
 
 # Development artifacts (maintained out-of-tree)
 /artifacts/
+.maestri/
