@@ -5,6 +5,7 @@ import type { RelayerExecutionConfig } from './relayer';
 export * from './eoa';
 export * from './multisig';
 export * from './relayer';
+export * from './write-completion';
 
 /**
  * Execution configuration type (union of all execution methods)
