@@ -94,8 +94,55 @@ export type IdentityKeyPurposeLookup =
 
 /**
  * Result of `deployOnchainId`: the operation id plus the freshly deployed ONCHAINID address.
+ *
+ * This is the **confirmed-path** shape — `onchainId` is only knowable once the deployment is
+ * mined. Prefer {@link DeployOnchainIdOutcome} when writing code that must also handle the
+ * submit-only path; narrow on `completion === 'confirmed'` to reach `onchainId`.
  */
 export interface DeployOnchainIdResult extends OperationResult {
   /** The deployed ONCHAINID contract address. */
   onchainId: string;
 }
+
+/**
+ * Confirmed-path `deployOnchainId` outcome: the deployment was mined and the ONCHAINID
+ * address was read from the factory event, so `onchainId` is required.
+ */
+export interface DeployOnchainIdConfirmedResult extends DeployOnchainIdResult {
+  /** Discriminant — this arm carries a resolved `onchainId`. */
+  readonly completion: 'confirmed';
+}
+
+/**
+ * Submit-only `deployOnchainId` outcome: the write resolved as soon as submission was known,
+ * so the ONCHAINID address does not exist yet.
+ *
+ * **Mechanism, not convention:** this arm has *no* `onchainId` property at all — rather than
+ * an optional `onchainId?: string` on one shared shape. A caller therefore cannot read a
+ * fabricated or empty address without first narrowing on `completion`, and the compiler
+ * enforces it. `id` is the preferred submission id (the relayer submission id when the
+ * strategy supplied one, else the tx hash).
+ */
+export interface DeployOnchainIdSubmittedResult extends OperationResult {
+  /** Discriminant — this arm has no `onchainId`; resolve it later via `findIdentityByWallet`. */
+  readonly completion: 'submitted';
+}
+
+/**
+ * Completion-keyed discriminated union returned by
+ * {@link IRSCapability.deployOnchainId}.
+ *
+ * Narrow before reading the ONCHAINID address:
+ *
+ * ```ts
+ * const outcome = await irs.deployOnchainId({ holder }, executionConfig);
+ * if (outcome.completion === 'confirmed') {
+ *   use(outcome.onchainId); // required on this arm
+ * } else {
+ *   // submit-only: persist outcome.id and resolve the address on resume
+ * }
+ * ```
+ */
+export type DeployOnchainIdOutcome =
+  | DeployOnchainIdConfirmedResult
+  | DeployOnchainIdSubmittedResult;

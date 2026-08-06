@@ -14,6 +14,7 @@ import { describe, expect, it } from 'vitest';
 import type {
   Amount,
   ClaimPayload,
+  DeployOnchainIdOutcome,
   ERC3643Capability,
   ERC4626Capability,
   FactoryIdentityLookup,
@@ -92,7 +93,11 @@ const irsStub = {
     scheme: input.scheme,
     data: input.data,
   }),
-  deployOnchainId: async (_input: { holder: string }) => ({ ...opResult, onchainId: '0x' }),
+  deployOnchainId: async (_input: { holder: string }): Promise<DeployOnchainIdOutcome> => ({
+    ...opResult,
+    completion: 'confirmed',
+    onchainId: '0x',
+  }),
   grantHolderManagementKey: async (_input: { onchainId: string; holder: string }) => opResult,
   registerTrustedIssuer: async (_input: { issuer: string; topics: string[] }) => opResult,
   attachClaim: async (_input: { onchainId: string; claim: OnboardingClaim }) => opResult,

@@ -1,3 +1,5 @@
+import type { WriteCompletionOptions } from './write-completion';
+
 export interface RelayerDetails {
   relayerId: string;
   name: string;
@@ -18,6 +20,9 @@ export interface RelayerExecutionConfig {
   method: 'relayer';
   serviceUrl: string;
   relayer: RelayerDetails;
-  // Chain-agnostic options - adapters will define their specific types
-  transactionOptions?: Record<string, unknown>;
+  /**
+   * Known completion keys (`completion`, `onSubmitted`) are typed; residual keys
+   * remain passthrough so existing callers keep compiling.
+   */
+  transactionOptions?: WriteCompletionOptions & Record<string, unknown>;
 }

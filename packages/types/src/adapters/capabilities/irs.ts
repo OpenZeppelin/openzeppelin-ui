@@ -3,7 +3,7 @@ import type { TransactionStatusUpdate, TxStatus } from '../../transactions/statu
 import type { OperationResult } from '../access-control';
 import type {
   ClaimPayload,
-  DeployOnchainIdResult,
+  DeployOnchainIdOutcome,
   FactoryIdentityLookup,
   IdentityKeyPurposeLookup,
   IdentityRegistration,
@@ -84,7 +84,16 @@ export interface IRSCapability extends RuntimeCapability {
 
   /**
    * Deploy a new ONCHAINID for `holder`.
-   * Resolves with the operation id plus the deployed `onchainId` address.
+   *
+   * Resolves with a completion-keyed {@link DeployOnchainIdOutcome}:
+   *
+   * - `completion: 'confirmed'` (the default when the execution config does not request
+   *   submit-only) — the deployment was mined and `onchainId` is available.
+   * - `completion: 'submitted'` — resolved at submission time; the arm carries **no**
+   *   `onchainId`, only the submission `id`. Resolve the address later via
+   *   `findIdentityByWallet` when the deployment is mined.
+   *
+   * Narrow on `completion` before reading `onchainId`; the compiler enforces it.
    *
    * @param input - The holder to deploy an ONCHAINID for.
    * @param executionConfig - Execution method (eoa, relayer, etc.).
@@ -96,7 +105,7 @@ export interface IRSCapability extends RuntimeCapability {
     executionConfig: ExecutionConfig,
     onStatusChange?: (status: TxStatus, details: TransactionStatusUpdate) => void,
     runtimeApiKey?: string
-  ): Promise<DeployOnchainIdResult>;
+  ): Promise<DeployOnchainIdOutcome>;
 
   /**
    * Grant the holder a MANAGEMENT key on their ONCHAINID (submits `addKey(holder, MANAGEMENT)`).
