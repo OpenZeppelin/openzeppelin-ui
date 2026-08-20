@@ -150,14 +150,11 @@ export function registerInitCommand(parent: Command): void {
 
         process.stdout.write('\n' + pc.bold('Next steps:\n'));
         process.stdout.write(
-          `  1. Update ${pc.cyan('public/app.config.json')} with your WalletConnect project ID\n`
+          `  1. Wrap your app root with <OzProviders> from src/oz/OzProviders.tsx\n`
         );
+        process.stdout.write(`  2. Configure adapters in src/oz/resolve-runtime.ts\n`);
         process.stdout.write(
-          `  2. Wrap your app root with <OzProviders> from src/oz/OzProviders.tsx\n`
-        );
-        process.stdout.write(`  3. Configure adapters in src/oz/resolve-runtime.ts\n`);
-        process.stdout.write(
-          `  4. Run ${pc.cyan('oz-ui migrate analyze --project .')} to scan your codebase\n`
+          `  3. Run ${pc.cyan('oz-ui migrate analyze --project .')} to scan your codebase\n`
         );
       } catch (error) {
         printError(error, Boolean(options.json));

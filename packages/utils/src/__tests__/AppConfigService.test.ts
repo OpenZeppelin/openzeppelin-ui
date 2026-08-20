@@ -69,13 +69,13 @@ describe('AppConfigService', () => {
     });
 
     it('should parse VITE_APP_CFG_SERVICE_ variables correctly into camelCase paramNames', async () => {
-      mockViteEnv['VITE_APP_CFG_SERVICE_WALLETCONNECT_PROJECT_ID'] = 'wc_pid_789';
+      mockViteEnv['VITE_APP_CFG_SERVICE_MYSERVICE_PROJECT_ID'] = 'wc_pid_789';
       mockViteEnv['VITE_APP_CFG_SERVICE_ANOTHERSERVICE_API_URL'] = 'http://api.anotherservice.com';
 
       await appConfigServiceInstance.initialize([{ type: 'viteEnv', env: mockViteEnv }]);
       const config = appConfigServiceInstance.getConfig();
 
-      expect(config.globalServiceConfigs?.['walletconnect']?.['projectId']).toBe('wc_pid_789');
+      expect(config.globalServiceConfigs?.['myservice']?.['projectId']).toBe('wc_pid_789');
       expect(config.globalServiceConfigs?.['anotherservice']?.['apiUrl']).toBe(
         'http://api.anotherservice.com'
       );
@@ -194,7 +194,7 @@ describe('AppConfigService', () => {
           'etherscan-mainnet': { apiKey: 'json_etherscan_key' },
         },
         globalServiceConfigs: {
-          walletconnect: { projectId: 'json_wc_pid' },
+          myservice: { projectId: 'json_wc_pid' },
         },
         rpcEndpoints: {
           'ethereum-mainnet': 'https://json.rpc.com',
@@ -217,7 +217,7 @@ describe('AppConfigService', () => {
       expect(config.networkServiceConfigs?.['etherscan-mainnet']?.apiKey).toBe(
         'json_etherscan_key'
       );
-      expect(config.globalServiceConfigs?.['walletconnect']?.['projectId']).toBe('json_wc_pid');
+      expect(config.globalServiceConfigs?.['myservice']?.['projectId']).toBe('json_wc_pid');
       expect(config.rpcEndpoints?.['ethereum-mainnet']).toBe('https://json.rpc.com');
       expect(config.featureFlags?.['jsonFeature']).toBe(true);
       expect(config.defaultLanguage).toBe('es');
@@ -405,10 +405,10 @@ describe('AppConfigService', () => {
               },
             },
           },
-          walletconnect: {
+          myservice: {
             projectId: 'wc_project_id_123',
             relay: {
-              url: 'wss://relay.walletconnect.com',
+              url: 'wss://relay.example.com',
             },
             metadata: {
               name: 'My App',
@@ -478,7 +478,7 @@ describe('AppConfigService', () => {
       expect(appConfigServiceInstance.isFeatureEnabled('non_existent_flag')).toBe(false);
 
       // 5. Global service params - simple
-      expect(appConfigServiceInstance.getGlobalServiceParam('walletconnect', 'projectId')).toBe(
+      expect(appConfigServiceInstance.getGlobalServiceParam('myservice', 'projectId')).toBe(
         'wc_project_id_123'
       );
 
@@ -506,12 +506,12 @@ describe('AppConfigService', () => {
       // 7. Deeper nested config
       type RelayConfig = { url: string };
       const relayConfig = appConfigServiceInstance.getTypedNestedConfig<RelayConfig>(
-        'walletconnect',
+        'myservice',
         'relay'
       );
 
       expect(relayConfig).toBeDefined();
-      expect(relayConfig?.url).toBe('wss://relay.walletconnect.com');
+      expect(relayConfig?.url).toBe('wss://relay.example.com');
 
       // 8. Accessing entire config sections
       const entireAnalyticsConfig = appConfigServiceInstance.getTypedNestedConfig('analytics', '');
@@ -533,7 +533,7 @@ describe('AppConfigService', () => {
       mockViteEnv = {
         VITE_APP_CFG_API_KEY_TEST_EXPLORER: 'key123',
         VITE_APP_CFG_SERVICE_TESTSERVICE_PARAM_A: 'valueA',
-        VITE_APP_CFG_SERVICE_WALLETCONNECT_PROJECT_ID: 'wc_pid_test',
+        VITE_APP_CFG_SERVICE_MYSERVICE_PROJECT_ID: 'wc_pid_test',
         VITE_APP_CFG_FEATURE_FLAG_TEST_GETTER: 'true',
         VITE_APP_CFG_RPC_ENDPOINT_TEST_NETWORK: 'https://testrpc.com',
       };
@@ -554,7 +554,7 @@ describe('AppConfigService', () => {
       expect(appConfigServiceInstance.getGlobalServiceParam('testservice', 'paramA')).toBe(
         'valueA'
       );
-      expect(appConfigServiceInstance.getGlobalServiceParam('walletconnect', 'projectId')).toBe(
+      expect(appConfigServiceInstance.getGlobalServiceParam('myservice', 'projectId')).toBe(
         'wc_pid_test'
       );
       expect(

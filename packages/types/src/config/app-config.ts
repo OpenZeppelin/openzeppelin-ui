@@ -40,7 +40,7 @@ export interface ServiceParameterConfig {
 /**
  * A collection of configurations for global services, keyed by service name.
  * Adapters or services will look up their specific configurations here.
- * Example: globalServiceConfigs['walletconnect']?.['projectId']
+ * Example: globalServiceConfigs['myservice']?.['apiKey']
  */
 export interface GlobalServiceConfigs {
   [serviceName: string]: ServiceParameterConfig | undefined;

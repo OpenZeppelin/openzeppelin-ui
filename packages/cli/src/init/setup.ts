@@ -216,10 +216,9 @@ function getPublicDir(projectRoot: string): string {
 function detectWalletEcosystem(projectRoot: string): {
   ecosystem: string | null;
   kitName: string | null;
-  hasWalletConnect: boolean;
 } {
   const pkgPath = path.join(projectRoot, 'package.json');
-  if (!fs.existsSync(pkgPath)) return { ecosystem: null, kitName: null, hasWalletConnect: false };
+  if (!fs.existsSync(pkgPath)) return { ecosystem: null, kitName: null };
 
   try {
     const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8')) as {
@@ -231,21 +230,17 @@ function detectWalletEcosystem(projectRoot: string): {
     const hasRainbowKit = Boolean(deps['@rainbow-me/rainbowkit']);
     const hasWagmi = Boolean(deps['wagmi']);
     const hasStellarWalletsKit = Boolean(deps['@creit-tech/stellar-wallets-kit']);
-    const hasWalletConnect =
-      hasRainbowKit ||
-      Boolean(deps['@walletconnect/web3-provider']) ||
-      Boolean(deps['@web3modal/ethers']);
 
     if (hasRainbowKit || hasWagmi) {
-      return { ecosystem: 'evm', kitName: 'rainbowkit', hasWalletConnect };
+      return { ecosystem: 'evm', kitName: 'rainbowkit' };
     }
     if (hasStellarWalletsKit) {
-      return { ecosystem: 'stellar', kitName: 'stellar-wallets-kit', hasWalletConnect };
+      return { ecosystem: 'stellar', kitName: 'stellar-wallets-kit' };
     }
 
-    return { ecosystem: null, kitName: null, hasWalletConnect };
+    return { ecosystem: null, kitName: null };
   } catch {
-    return { ecosystem: null, kitName: null, hasWalletConnect: false };
+    return { ecosystem: null, kitName: null };
   }
 }
 
@@ -256,7 +251,7 @@ interface AppConfigResult {
 
 /**
  * Generates `public/app.config.json` with a minimal working config
- * (walletconnect placeholder + detected wallet UI ecosystem) and
+ * (detected wallet UI ecosystem) and
  * `public/app.config.json.example` with the full documented template.
  *
  * Prevents the common "No projectId found" failure for RainbowKit
@@ -278,9 +273,6 @@ export function writeAppConfigFiles(projectRoot: string): AppConfigResult {
   if (!fs.existsSync(activeConfigPath)) {
     const activeConfig: Record<string, unknown> = {
       globalServiceConfigs: {
-        walletconnect: {
-          projectId: 'YOUR_WALLETCONNECT_PROJECT_ID_HERE',
-        },
         ...(wallet.ecosystem && wallet.kitName
           ? {
               walletui: {
@@ -307,10 +299,6 @@ export function writeAppConfigFiles(projectRoot: string): AppConfigResult {
         'See: https://docs.openzeppelin.com/ui-kit/config',
       ],
       globalServiceConfigs: {
-        walletconnect: {
-          projectId: 'YOUR_WALLETCONNECT_PROJECT_ID_HERE',
-          _comment: 'Required for WalletConnect v2. Get one at https://cloud.walletconnect.com',
-        },
         walletui: {
           _comment:
             'Wallet UI config, keyed by ecosystem. Supported kitNames: rainbowkit, stellar-wallets-kit, custom.',
