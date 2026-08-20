@@ -1,5 +1,60 @@
 # @openzeppelin/ui-dev-cli
 
+## 1.1.0
+
+### Minor Changes
+
+- [#210](https://github.com/OpenZeppelin/openzeppelin-ui/pull/210) [`f7498bc`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/f7498bce0eb6952dd08c516b16147b08a28c05d8) Thanks [@pasevin](https://github.com/pasevin)! - Remove WalletConnect support entirely.
+
+  WalletConnect's provider pulls in `@reown/appkit`, which moved to the Reown
+  Community License at 1.8.3 — commercial fees above 500 monthly active users, a
+  clause making it a material condition that all use connect to Reown's gateway, and
+  a confidentiality clause. Pinning is a dead end: every non-deprecated
+  `@walletconnect/ethereum-provider` release pins a community-licensed AppKit, and
+  every release still pinning Apache-2.0 AppKit 1.7.8 is deprecated on npm.
+
+  ## Breaking changes
+  - **`@openzeppelin/ui-utils`** — `AppConfigService` no longer reads
+    `VITE_APP_CFG_WALLETCONNECT_PROJECT_ID`. The generic
+    `VITE_APP_CFG_SERVICE_<NAME>_<PARAM>` mechanism is unchanged, so if you still
+    need an arbitrary service value you can express it that way; nothing in the
+    stack consumes a WalletConnect project ID any more.
+  - **`@openzeppelin/ui-cli`** — `oz-ui init` no longer writes a
+    `globalServiceConfigs.walletconnect.projectId` placeholder into
+    `public/app.config.json`, nor documents it in `app.config.json.example`.
+    `oz-ui migrate init` no longer tells you to set a WalletConnect project ID.
+    `detectWalletEcosystem()` no longer returns `hasWalletConnect` — that field was
+    already computed and never consumed.
+
+  Remove any `globalServiceConfigs.walletconnect` entry from your `app.config.json`;
+  it is inert.
+
+  ## Other changes
+  - **`@openzeppelin/ui-dev-cli`** — the generated `.pnpmfile.cjs` now also strips
+    `@walletconnect/ethereum-provider` from `@wagmi/connectors`, and
+    `@walletconnect/modal` plus `sign-client` from the Stellar wallets kit, alongside
+    the existing Trezor strip. Without this, regenerating a consumer repo's hook
+    would silently drop the WalletConnect strip and quietly reintroduce
+    `@reown/appkit`.
+  - `GlobalServiceConfigs` no longer uses WalletConnect as its docstring example.
+
+### Patch Changes
+
+- [#209](https://github.com/OpenZeppelin/openzeppelin-ui/pull/209) [`bc4a433`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/bc4a433985b4f306eaccb48149ca736263988e6b) Thanks [@pasevin](https://github.com/pasevin)! - Strip the T-RSL-licensed Trezor stack from the generated `.pnpmfile.cjs` hook.
+
+  `@creit.tech/stellar-wallets-kit` hard-depends on `@trezor/connect-web` and
+  `@trezor/connect-plugin-stellar`, which together pull in 22 `@trezor/*` packages
+  licensed under the Trezor Reference Source License (T-RSL). T-RSL permits
+  "reference use" within the company only and excludes the right to distribute.
+
+  The generated hook now removes both dependencies from the kit's manifest during
+  resolution. Nothing reaches that code today: the kit's barrel does not
+  re-export `modules/trezor.module`, `allowAllModules()` returns only the eight
+  non-Trezor modules, and `trezor.module` is an isolated leaf. Bundle output is
+  unchanged; only the install tree shrinks.
+
+  Repos that run `oz-ui-dev init` pick this up when they regenerate their hook.
+
 ## 1.0.0
 
 ### Major Changes
