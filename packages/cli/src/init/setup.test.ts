@@ -45,7 +45,7 @@ describe('writeAppConfigFiles', () => {
     expect(fs.existsSync(path.join(dir, 'public', 'app.config.json.example'))).toBe(true);
   });
 
-  it('includes walletconnect placeholder in active config', () => {
+  it('does not scaffold any WalletConnect config', () => {
     const dir = createTempDir();
     writeJson(path.join(dir, 'package.json'), {
       name: 'test-app',
@@ -54,10 +54,15 @@ describe('writeAppConfigFiles', () => {
 
     writeAppConfigFiles(dir);
 
-    const config = JSON.parse(fs.readFileSync(path.join(dir, 'public', 'app.config.json'), 'utf8'));
-    expect(config.globalServiceConfigs.walletconnect.projectId).toBe(
-      'YOUR_WALLETCONNECT_PROJECT_ID_HERE'
-    );
+    // WalletConnect support was removed, so nothing should invite the user to
+    // configure it -- in either the active config or the documented example.
+    const activeRaw = fs.readFileSync(path.join(dir, 'public', 'app.config.json'), 'utf8');
+    const exampleRaw = fs.readFileSync(path.join(dir, 'public', 'app.config.json.example'), 'utf8');
+
+    expect(JSON.parse(activeRaw).globalServiceConfigs.walletconnect).toBeUndefined();
+    expect(activeRaw).not.toContain('walletconnect');
+    expect(exampleRaw).not.toContain('walletconnect');
+    expect(exampleRaw).not.toContain('WALLETCONNECT');
   });
 
   it('detects RainbowKit and adds evm walletui config', () => {

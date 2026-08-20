@@ -91,12 +91,12 @@ export class AppConfigService {
           }
           loadedNetworkServiceConfigs[serviceIdentifier]!.apiKey = value;
         } else if (key.startsWith(`${VITE_ENV_PREFIX}SERVICE_`)) {
-          const fullSuffix = key.substring(`${VITE_ENV_PREFIX}SERVICE_`.length); // e.g., WALLETCONNECT_PROJECT_ID or ANOTHER_SERVICE_API_URL
+          const fullSuffix = key.substring(`${VITE_ENV_PREFIX}SERVICE_`.length); // e.g., MYSERVICE_PROJECT_ID or ANOTHER_SERVICE_API_URL
 
           const firstUnderscoreIndex = fullSuffix.indexOf('_');
           if (firstUnderscoreIndex > 0 && firstUnderscoreIndex < fullSuffix.length - 1) {
             // Ensure underscore is present and not at start/end
-            const serviceName = fullSuffix.substring(0, firstUnderscoreIndex).toLowerCase(); // e.g., "walletconnect", "anotherservice"
+            const serviceName = fullSuffix.substring(0, firstUnderscoreIndex).toLowerCase(); // e.g., "myservice", "anotherservice"
             const paramNameRaw = fullSuffix.substring(firstUnderscoreIndex + 1); // e.g., "PROJECT_ID", "API_URL"
 
             // Convert paramNameRaw (e.g., PROJECT_ID or API_URL) to camelCase (projectId, apiUrl)
@@ -122,16 +122,6 @@ export class AppConfigService {
               `Could not determine service and param from key (missing underscore separator): ${key}`
             );
           }
-        } else if (key === `${VITE_ENV_PREFIX}WALLETCONNECT_PROJECT_ID`) {
-          // Directly handle the VITE_APP_CFG_WALLETCONNECT_PROJECT_ID case
-          if (!loadedGlobalServiceConfigs.walletconnect) {
-            loadedGlobalServiceConfigs.walletconnect = {};
-          }
-          loadedGlobalServiceConfigs.walletconnect.projectId = value;
-          logger.debug(
-            LOG_SYSTEM,
-            `Parsed WalletConnect Project ID directly from key: ${key}, value: ${value}`
-          );
         } else if (key.startsWith(`${VITE_ENV_PREFIX}RPC_ENDPOINT_`)) {
           const networkIdSuffix = key.substring(`${VITE_ENV_PREFIX}RPC_ENDPOINT_`.length);
           const networkId = networkIdSuffix.toLowerCase().replace(/_/g, '-');

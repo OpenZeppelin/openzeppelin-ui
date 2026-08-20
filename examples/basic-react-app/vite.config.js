@@ -1,4 +1,5 @@
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineOpenZeppelinAdapterViteConfig } from '@openzeppelin/adapters-vite';
@@ -26,6 +27,11 @@ var viteConfig = defineOpenZeppelinAdapterViteConfig({
             // across the wallet dependency graph in dev mode (see note above).
             alias: {
                 eventemitter3: eventemitter3EsmEntry,
+                // WalletConnect was removed and its provider is stripped from the install
+                // tree, but @wagmi/connectors still ships an unreachable walletConnect
+                // module that dynamically imports it. Rollup resolves dynamic imports even
+                // when unreachable, so point it at a stub.
+                '@walletconnect/ethereum-provider': fileURLToPath(new URL('./src/shims/walletconnect-removed.ts', import.meta.url)),
             },
         },
         optimizeDeps: {
