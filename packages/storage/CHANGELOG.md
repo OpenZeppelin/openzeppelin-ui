@@ -1,5 +1,13 @@
 # @openzeppelin/ui-storage
 
+## 1.2.4
+
+### Patch Changes
+
+- Updated dependencies [[`f7498bc`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/f7498bce0eb6952dd08c516b16147b08a28c05d8)]:
+  - @openzeppelin/ui-utils@4.0.0
+  - @openzeppelin/ui-types@3.5.1
+
 ## 1.2.3
 
 ### Patch Changes

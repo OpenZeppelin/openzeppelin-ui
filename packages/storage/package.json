@@ -1,6 +1,6 @@
 {
   "name": "@openzeppelin/ui-storage",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "private": false,
   "description": "Universal, app-agnostic storage abstraction built on Dexie.js for IndexedDB.",
   "type": "module",

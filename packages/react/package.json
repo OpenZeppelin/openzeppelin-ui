@@ -1,6 +1,6 @@
 {
   "name": "@openzeppelin/ui-react",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "private": false,
   "description": "Core React context providers and hooks for the OpenZeppelin UI ecosystem.",
   "type": "module",
