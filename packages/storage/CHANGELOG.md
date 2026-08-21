@@ -1,5 +1,23 @@
 # @openzeppelin/ui-storage
 
+## 1.2.5
+
+### Patch Changes
+
+- [#214](https://github.com/OpenZeppelin/openzeppelin-ui/pull/214) [`ddd681e`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/ddd681eaaeef9fc1e30645e84f1b0e471626979a) Thanks [@pasevin](https://github.com/pasevin)! - Ship the AGPL-3.0 licence text inside each published package.
+
+  The repository has a root `LICENSE`, but npm does not walk up to the repository root
+  when packing, and these packages declare narrow `files` arrays (`dist`,
+  `README.md`). So every published tarball carried an AGPL-3.0 declaration in its
+  `package.json` with no accompanying licence text — confirmed with
+  `npm pack --dry-run`, which listed no `LICENSE` entry.
+
+  Each published package now has its own copy, which npm includes automatically.
+
+- Updated dependencies [[`ddd681e`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/ddd681eaaeef9fc1e30645e84f1b0e471626979a)]:
+  - @openzeppelin/ui-types@3.5.2
+  - @openzeppelin/ui-utils@4.0.1
+
 ## 1.2.4
 
 ### Patch Changes
