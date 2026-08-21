@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 
+import { registerCheckPeersCommand } from './commands/checkPeers';
 import { registerDoctorCommand } from './commands/doctor';
 import { registerInitCommand } from './commands/init';
 import { registerStatusCommand } from './commands/status';
@@ -18,6 +19,7 @@ registerInitCommand(program);
 registerUseCommand(program);
 registerStatusCommand(program);
 registerDoctorCommand(program);
+registerCheckPeersCommand(program);
 registerTailwindCommand(program);
 
 program.parse();
