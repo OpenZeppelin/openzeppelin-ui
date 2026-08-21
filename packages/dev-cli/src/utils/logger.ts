@@ -6,6 +6,7 @@ import type {
   TailwindPrintResult,
 } from '@openzeppelin/ui-tailwind-utils';
 
+import { AdapterPeerResult } from '../lib/adapterPeers';
 import { DoctorResult, StatusResult, UseLocalResult, UseRemoteResult } from '../lib/localDev';
 
 function writeStdout(message: string): void {
@@ -87,6 +88,33 @@ export function printDoctorResult(result: DoctorResult): void {
   for (const issue of result.issues) {
     const color = issue.severity === 'error' ? pc.red : pc.yellow;
     writeStdout(color(`  [${issue.severity}] ${issue.family}: ${issue.message}`));
+  }
+}
+
+/**
+ * Prints a human-readable summary for `check-peers`.
+ */
+export function printAdapterPeerResult(result: AdapterPeerResult): void {
+  if (result.ok) {
+    const pairLabel = result.pairs.length === 1 ? 'pair' : 'pairs';
+    writeStdout(
+      pc.green(
+        `Adapter peer check passed for ${result.projectRoot} (${result.pairs.length} adapter/peer ${pairLabel})`
+      )
+    );
+    return;
+  }
+
+  writeStdout(pc.red(`Adapter peer check failed for ${result.projectRoot}`));
+  for (const issue of result.issues) {
+    writeStdout(pc.red(`  [${issue.severity}] ${issue.message}`));
+  }
+
+  if (result.remediation.length > 0) {
+    writeStdout('');
+    for (const line of result.remediation) {
+      writeStdout(line);
+    }
   }
 }
 
