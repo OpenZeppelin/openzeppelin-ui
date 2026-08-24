@@ -36,6 +36,7 @@ var viteConfig = defineOpenZeppelinAdapterViteConfig({
                 // (proprietary, Non-Commercial Use only) and needs the same treatment:
                 // @wagmi/connectors re-exports an unreachable metaMask module that
                 // dynamically imports it.
+                '@metamask/sdk': fileURLToPath(new URL('./src/shims/metamask-removed.ts', import.meta.url)),
             },
         },
         optimizeDeps: {
