@@ -5,6 +5,15 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# Compiled output of examples/basic-react-app/vite.config.ts. The example
+# builds with `tsc -b && vite build`, and its tsconfig.node.json is a
+# composite project that includes vite.config.ts -- so `tsc -b` emits these
+# on every build. They were committed by accident once, and because Vite
+# resolves vite.config.js ahead of vite.config.ts, the stale committed copy
+# silently became the config that took effect.
+examples/*/vite.config.js
+examples/*/vite.config.d.ts
+
 # Foundry (Solidity) artifacts
 **/contracts/**/out/
 **/contracts/**/cache/
