@@ -106,11 +106,11 @@ importers:
         specifier: ^1.8.0
         version: 1.9.5(@stellar/stellar-base@14.0.4)(bufferutil@4.1.0)(near-api-js@5.1.1)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@openzeppelin/adapter-evm':
-        specifier: ^4.0.0
-        version: 4.0.0(bf446cffb2309cd034b5b5e1a37fa7de)
+        specifier: ^5.0.0
+        version: 5.0.0(bf446cffb2309cd034b5b5e1a37fa7de)
       '@openzeppelin/adapter-stellar':
-        specifier: ^4.0.0
-        version: 4.0.0(@openzeppelin/ui-components@packages+components)(@openzeppelin/ui-types@packages+types)(@openzeppelin/ui-utils@packages+utils)(@stellar/stellar-base@14.0.4)(bufferutil@4.1.0)(near-api-js@5.1.1)(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.79.0(react@19.2.7))(react@19.2.7)(typescript@5.9.3)(utf-8-validate@5.0.10)
+        specifier: ^4.0.1
+        version: 4.0.1(@openzeppelin/ui-components@packages+components)(@openzeppelin/ui-types@packages+types)(@openzeppelin/ui-utils@packages+utils)(@stellar/stellar-base@14.0.4)(bufferutil@4.1.0)(near-api-js@5.1.1)(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.79.0(react@19.2.7))(react@19.2.7)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@openzeppelin/ui-components':
         specifier: workspace:^
         version: link:../../packages/components
@@ -179,8 +179,8 @@ importers:
         version: 5.0.11(@types/react@19.2.8)(react@19.2.7)(use-sync-external-store@1.4.0(react@19.2.7))
     devDependencies:
       '@openzeppelin/adapters-vite':
-        specifier: ^11.0.0
-        version: 11.0.0(@openzeppelin/adapter-evm@4.0.0(bf446cffb2309cd034b5b5e1a37fa7de))(@openzeppelin/adapter-stellar@4.0.0(@openzeppelin/ui-components@packages+components)(@openzeppelin/ui-types@packages+types)(@openzeppelin/ui-utils@packages+utils)(@stellar/stellar-base@14.0.4)(bufferutil@4.1.0)(near-api-js@5.1.1)(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.79.0(react@19.2.7))(react@19.2.7)(typescript@5.9.3)(utf-8-validate@5.0.10))(vite@7.3.5(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.30.2))
+        specifier: ^12.0.0
+        version: 12.0.0(@openzeppelin/adapter-evm@5.0.0(bf446cffb2309cd034b5b5e1a37fa7de))(@openzeppelin/adapter-stellar@4.0.1(@openzeppelin/ui-components@packages+components)(@openzeppelin/ui-types@packages+types)(@openzeppelin/ui-utils@packages+utils)(@stellar/stellar-base@14.0.4)(bufferutil@4.1.0)(near-api-js@5.1.1)(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.79.0(react@19.2.7))(react@19.2.7)(typescript@5.9.3)(utf-8-validate@5.0.10))(vite@7.3.5(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.30.2))
       '@tailwindcss/vite':
         specifier: ^4.1.11
         version: 4.1.18(vite@7.3.5(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.30.2))
@@ -1475,8 +1475,8 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@openzeppelin/adapter-evm@4.0.0':
-    resolution: {integrity: sha512-Bffn+0Z4e9OTnb859QUjgeezi9pzHoGrRjDDUjYqXgGMoweEaOcbyjYaIqqUATYCW7yTamhcvEbXzGEtI/MQMA==}
+  '@openzeppelin/adapter-evm@5.0.0':
+    resolution: {integrity: sha512-/78k0Ev4MoEYgZHGAelxtaKOgEAwCOoLNXu8L02k+zGowPC2yDIm6dHJWRgeJHJGTdcCxbmg+jGZPaEtIWM21g==}
     peerDependencies:
       '@openzeppelin/ui-components': ^2.0.0
       '@openzeppelin/ui-react': ^2.0.1
@@ -1490,8 +1490,8 @@ packages:
       viem: ^2.35.0
       wagmi: ^2.15.0
 
-  '@openzeppelin/adapter-stellar@4.0.0':
-    resolution: {integrity: sha512-7YHGAO381jH0TuMAEQlBZss2U6/0G+rYDe3BH7MibptaKqPSXNXiZZarwVVOtsCTX1vQXKLkXyZX6w1gK4y3/w==}
+  '@openzeppelin/adapter-stellar@4.0.1':
+    resolution: {integrity: sha512-fBg96i5rk//35BwBGJFYvf/2OCee+OM3rwkquwXo9bCMRHq3OPaWizH+91R/zBoS934xJ7utXXaHLUhyPVgYSw==}
     peerDependencies:
       '@openzeppelin/ui-components': ^2.0.0
       '@openzeppelin/ui-types': ^3.2.0
@@ -1500,14 +1500,14 @@ packages:
       react-dom: ^19.0.0
       react-hook-form: ^7.62.0
 
-  '@openzeppelin/adapters-vite@11.0.0':
-    resolution: {integrity: sha512-NrKGwkF2pJ04LIR1nudx19DhmupuLvxKSBp7VaOuLO0p771tHeAFrtSOpG4CRTW6iQxp0tTeTNKfBuKYeRYaxw==}
+  '@openzeppelin/adapters-vite@12.0.0':
+    resolution: {integrity: sha512-SD0TT5AE2PaW3WcsL50ekbT/LVUGRbjnsxGWnZvZw1iFUfSBLuPgPMkx++YC/WAlH5PoyMve40pQQsAJr7fXDA==}
     peerDependencies:
-      '@openzeppelin/adapter-evm': ^4.0.0
-      '@openzeppelin/adapter-midnight': ^4.0.0
-      '@openzeppelin/adapter-polkadot': ^3.0.0
-      '@openzeppelin/adapter-solana': ^4.0.0
-      '@openzeppelin/adapter-stellar': ^4.0.0
+      '@openzeppelin/adapter-evm': ^5.0.0
+      '@openzeppelin/adapter-midnight': ^4.0.1
+      '@openzeppelin/adapter-polkadot': ^5.0.0
+      '@openzeppelin/adapter-solana': ^4.0.1
+      '@openzeppelin/adapter-stellar': ^4.0.1
       vite: ^7.0.0
     peerDependenciesMeta:
       '@openzeppelin/adapter-evm':
@@ -7686,7 +7686,7 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.20.1
 
-  '@openzeppelin/adapter-evm@4.0.0(bf446cffb2309cd034b5b5e1a37fa7de)':
+  '@openzeppelin/adapter-evm@5.0.0(bf446cffb2309cd034b5b5e1a37fa7de)':
     dependencies:
       '@openzeppelin/relayer-sdk': 1.9.0
       '@openzeppelin/ui-components': link:packages/components
@@ -7717,7 +7717,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@openzeppelin/adapter-stellar@4.0.0(@openzeppelin/ui-components@packages+components)(@openzeppelin/ui-types@packages+types)(@openzeppelin/ui-utils@packages+utils)(@stellar/stellar-base@14.0.4)(bufferutil@4.1.0)(near-api-js@5.1.1)(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.79.0(react@19.2.7))(react@19.2.7)(typescript@5.9.3)(utf-8-validate@5.0.10)':
+  '@openzeppelin/adapter-stellar@4.0.1(@openzeppelin/ui-components@packages+components)(@openzeppelin/ui-types@packages+types)(@openzeppelin/ui-utils@packages+utils)(@stellar/stellar-base@14.0.4)(bufferutil@4.1.0)(near-api-js@5.1.1)(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.79.0(react@19.2.7))(react@19.2.7)(typescript@5.9.3)(utf-8-validate@5.0.10)':
     dependencies:
       '@creit.tech/stellar-wallets-kit': 1.9.5(@stellar/stellar-base@14.0.4)(bufferutil@4.1.0)(near-api-js@5.1.1)(typescript@5.9.3)(utf-8-validate@5.0.10)
       '@openzeppelin/relayer-sdk': 1.9.0
@@ -7743,12 +7743,12 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@openzeppelin/adapters-vite@11.0.0(@openzeppelin/adapter-evm@4.0.0(bf446cffb2309cd034b5b5e1a37fa7de))(@openzeppelin/adapter-stellar@4.0.0(@openzeppelin/ui-components@packages+components)(@openzeppelin/ui-types@packages+types)(@openzeppelin/ui-utils@packages+utils)(@stellar/stellar-base@14.0.4)(bufferutil@4.1.0)(near-api-js@5.1.1)(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.79.0(react@19.2.7))(react@19.2.7)(typescript@5.9.3)(utf-8-validate@5.0.10))(vite@7.3.5(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.30.2))':
+  '@openzeppelin/adapters-vite@12.0.0(@openzeppelin/adapter-evm@5.0.0(bf446cffb2309cd034b5b5e1a37fa7de))(@openzeppelin/adapter-stellar@4.0.1(@openzeppelin/ui-components@packages+components)(@openzeppelin/ui-types@packages+types)(@openzeppelin/ui-utils@packages+utils)(@stellar/stellar-base@14.0.4)(bufferutil@4.1.0)(near-api-js@5.1.1)(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.79.0(react@19.2.7))(react@19.2.7)(typescript@5.9.3)(utf-8-validate@5.0.10))(vite@7.3.5(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.30.2))':
     dependencies:
       vite: 7.3.5(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.30.2)
     optionalDependencies:
-      '@openzeppelin/adapter-evm': 4.0.0(bf446cffb2309cd034b5b5e1a37fa7de)
-      '@openzeppelin/adapter-stellar': 4.0.0(@openzeppelin/ui-components@packages+components)(@openzeppelin/ui-types@packages+types)(@openzeppelin/ui-utils@packages+utils)(@stellar/stellar-base@14.0.4)(bufferutil@4.1.0)(near-api-js@5.1.1)(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.79.0(react@19.2.7))(react@19.2.7)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@openzeppelin/adapter-evm': 5.0.0(bf446cffb2309cd034b5b5e1a37fa7de)
+      '@openzeppelin/adapter-stellar': 4.0.1(@openzeppelin/ui-components@packages+components)(@openzeppelin/ui-types@packages+types)(@openzeppelin/ui-utils@packages+utils)(@stellar/stellar-base@14.0.4)(bufferutil@4.1.0)(near-api-js@5.1.1)(react-dom@19.2.7(react@19.2.7))(react-hook-form@7.79.0(react@19.2.7))(react@19.2.7)(typescript@5.9.3)(utf-8-validate@5.0.10)
 
   '@openzeppelin/relayer-sdk@1.9.0':
     dependencies:
