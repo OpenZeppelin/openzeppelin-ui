@@ -35,6 +35,13 @@ allowBuilds:
 
 # Migrated from the package.json "pnpm" field, which pnpm v11 no longer reads.
 overrides:
+  # @metamask/eth-json-rpc-provider published no `license` field (and no LICENSE
+  # file) for 1.0.0-2.1.0; 2.2.0 onwards are ISC and ship the licence text.
+  # eth-block-tracker@7 declares ^1.0.0, but it imports only the
+  # `SafeEventEmitterProvider` *type* -- there is no runtime reference in any of its
+  # dist/*.js -- and 2.2.0 still exports that type, so crossing the major here is
+  # type-only. Reached via @coinbase/wallet-sdk from @wagmi/connectors.
+  '@metamask/eth-json-rpc-provider': ^2.2.0
   'protobufjs@<7.6.3': ^7.6.3
   'ws@>=8.0.0 <8.21.0': ^8.21.0
   'ws@>=7.0.0 <7.5.11': ^7.5.11
@@ -46,8 +53,6 @@ overrides:
   'esbuild@>=0.27.3 <0.28.1': ^0.28.1
   '@babel/core@<7.29.6': ^7.29.6
   'prismjs@<1.30.0': ^1.30.0
-  '@metamask/sdk@<0.33.1': ^0.33.1
-  '@metamask/sdk-communication-layer@<0.33.1': ^0.33.1
 supportedArchitectures:
   os:
     - current

@@ -38,6 +38,13 @@ const viteConfig: Promise<UserConfig> = defineOpenZeppelinAdapterViteConfig({
         '@walletconnect/ethereum-provider': fileURLToPath(
           new URL('./src/shims/walletconnect-removed.ts', import.meta.url)
         ),
+        // The MetaMask SDK is stripped from the install tree for licence reasons
+        // (proprietary, Non-Commercial Use only) and needs the same treatment:
+        // @wagmi/connectors re-exports an unreachable metaMask module that
+        // dynamically imports it.
+        '@metamask/sdk': fileURLToPath(
+          new URL('./src/shims/metamask-removed.ts', import.meta.url)
+        ),
       },
     },
     optimizeDeps: {
