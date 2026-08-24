@@ -32,6 +32,10 @@ var viteConfig = defineOpenZeppelinAdapterViteConfig({
                 // module that dynamically imports it. Rollup resolves dynamic imports even
                 // when unreachable, so point it at a stub.
                 '@walletconnect/ethereum-provider': fileURLToPath(new URL('./src/shims/walletconnect-removed.ts', import.meta.url)),
+                // The MetaMask SDK is stripped from the install tree for licence reasons
+                // (proprietary, Non-Commercial Use only) and needs the same treatment:
+                // @wagmi/connectors re-exports an unreachable metaMask module that
+                // dynamically imports it.
             },
         },
         optimizeDeps: {
