@@ -50,3 +50,6 @@ packages/cli/autoresearch/
 # Development artifacts (maintained out-of-tree)
 /artifacts/
 .maestri/
+
+# Browser-test attachments
+.vitest-attachments/
