@@ -52,7 +52,13 @@ export function CodeView({
 }: CodeViewProps): React.ReactElement {
   const highlightResult = useMemo(() => highlightSource(source, language), [source, language]);
 
-  const codeContent = renderHighlightResult(source, language, highlightResult, decorateToken);
+  // Rebuilding the React tree from the token tree costs one node per leaf, so a
+  // parent that re-renders on every pointer move (a drag-resizable container)
+  // would otherwise reconcile the whole file each frame.
+  const codeContent = useMemo(
+    () => renderHighlightResult(source, language, highlightResult, decorateToken),
+    [source, language, highlightResult, decorateToken]
+  );
 
   return (
     <pre

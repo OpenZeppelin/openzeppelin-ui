@@ -15,6 +15,7 @@ import { RUST_IMPORT_FIXTURE } from './fixtures/rust-import';
 
 import { CodeView } from '../CodeView';
 import * as highlightModule from '../highlight';
+import * as renderHastModule from '../render-hast';
 import { expectExactSourceText, renderCodeView } from './helpers';
 
 const MODULE_DIR = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -95,5 +96,57 @@ describe('INV-8: tokenization depends only on source and language', () => {
       /useMemo\(\(\) => highlightSource\(source, language\), \[source, language\]\)/
     );
     expect(source).not.toMatch(/\[source, language, decorateToken\]/);
+  });
+});
+
+describe('INV-8: the rendered tree is memoized over every input it is built from', () => {
+  const SOURCE = LANGUAGE_SAMPLES.rust;
+  const NOOP_DECORATOR = (): undefined => undefined;
+
+  /** Each case varies exactly one input; the others are held at identical references. */
+  const REBUILD_CASES = [
+    {
+      dimension: 'source',
+      next: { source: `${SOURCE}\n// appended\n`, language: 'rust' as const },
+    },
+    { dimension: 'language', next: { source: SOURCE, language: 'toml' as const } },
+    {
+      dimension: 'decorateToken',
+      next: {
+        source: SOURCE,
+        language: 'rust' as const,
+        decorateToken: () => <mark>decorated</mark>,
+      },
+    },
+  ] as const;
+
+  it('reuses the rendered tree when the parent re-renders with unchanged props', () => {
+    const spy = vi.spyOn(renderHastModule, 'renderHast');
+    const props = { source: SOURCE, language: 'rust' as const, decorateToken: NOOP_DECORATOR };
+
+    const view = renderCodeView(props);
+    expect(spy).toHaveBeenCalledTimes(1);
+
+    view.rerender(<CodeView {...props} />);
+    view.rerender(<CodeView {...props} />);
+
+    expect(
+      spy,
+      'a parent re-render with identical props must not rebuild the React tree'
+    ).toHaveBeenCalledTimes(1);
+    spy.mockRestore();
+  });
+
+  it.each(REBUILD_CASES)('rebuilds the tree when only $dimension changes', ({ next }) => {
+    const spy = vi.spyOn(renderHastModule, 'renderHast');
+    const props = { source: SOURCE, language: 'rust' as const, decorateToken: NOOP_DECORATOR };
+
+    const view = renderCodeView(props);
+    const callsAfterMount = spy.mock.calls.length;
+
+    view.rerender(<CodeView decorateToken={NOOP_DECORATOR} {...next} />);
+
+    expect(spy.mock.calls.length).toBeGreaterThan(callsAfterMount);
+    spy.mockRestore();
   });
 });
