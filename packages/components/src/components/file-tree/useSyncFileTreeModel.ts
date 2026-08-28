@@ -34,6 +34,13 @@ export function useSyncFileTreeModel(options: UseSyncFileTreeModelOptions): void
   const prevPathsSetRef = useRef<ReadonlySet<FileTreePath>>(new Set());
   const prevChangeEntriesRef = useRef<ChangeStatusEntry[]>([]);
   const disappearedPathRef = useRef<FileTreePath | null>(null);
+  /**
+   * Selection this hook last moved focus to. Undefined means "never synced", so
+   * the first pass always focuses; afterwards focus only follows a selection
+   * that actually changed. Without it, any parent re-render re-focused the
+   * selected row and discarded the user's arrow-key position.
+   */
+  const focusedSelectionRef = useRef<FileTreePath | null | undefined>(undefined);
 
   useLayoutEffect(() => {
     const pathSet = pathsToSet(paths);
@@ -64,6 +71,12 @@ export function useSyncFileTreeModel(options: UseSyncFileTreeModelOptions): void
       disappearedPathRef.current = null;
     }
 
-    syncControlledSelection(model, selectedPath, pathSet, suppressSelectionEmitRef);
+    // A selection that is not in the tree yet was never focused, so re-arm the
+    // ref and let the pass that first sees the path move focus to it.
+    const selectionIsPresent = selectedPath !== null && pathSet.has(selectedPath);
+    const moveFocus = selectionIsPresent && focusedSelectionRef.current !== selectedPath;
+    focusedSelectionRef.current = selectionIsPresent ? selectedPath : undefined;
+
+    syncControlledSelection(model, selectedPath, pathSet, suppressSelectionEmitRef, moveFocus);
   });
 }

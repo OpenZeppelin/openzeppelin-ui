@@ -5,12 +5,17 @@ import type { FileTreePath } from './types';
 /**
  * Aligns Pierre selection with controlled `selectedPath` without emitting user
  * selection callbacks.
+ *
+ * `moveFocus` is separate from selection because focus is the user's, not the
+ * model's: re-asserting it on a sync that did not change the selection would
+ * throw away the row the user had arrow-keyed to.
  */
 export function syncControlledSelection(
   model: PierreFileTreeModel,
   selectedPath: FileTreePath | null,
   pathSet: ReadonlySet<FileTreePath>,
-  suppressSelectionEmit: { current: boolean }
+  suppressSelectionEmit: { current: boolean },
+  moveFocus: boolean
 ): void {
   suppressSelectionEmit.current = true;
 
@@ -39,7 +44,9 @@ export function syncControlledSelection(
       item.select();
     }
 
-    model.focusPath(selectedPath);
+    if (moveFocus) {
+      model.focusPath(selectedPath);
+    }
   } finally {
     suppressSelectionEmit.current = false;
   }
