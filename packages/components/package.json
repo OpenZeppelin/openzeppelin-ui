@@ -54,6 +54,7 @@
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "prepublishOnly": "[ \"$SKIP_PUBLISH_BUILD\" = \"true\" ] || pnpm run build",
     "typecheck": "tsc --noEmit",
+    "pretest": "pnpm run build",
     "test": "vitest run --passWithNoTests",
     "test:browser": "vitest run --config vitest.browser.config.ts --passWithNoTests",
     "test:watch": "vitest",

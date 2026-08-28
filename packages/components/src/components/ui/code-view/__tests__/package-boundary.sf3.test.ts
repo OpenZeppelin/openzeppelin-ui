@@ -17,11 +17,11 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../../');
+import { PACKAGE_ROOT, readDistArtifact } from '../../../../__tests__/distArtifact';
+
 const WORKSPACE_NODE_MODULES = join(PACKAGE_ROOT, 'node_modules');
 const RUST_SOURCE = 'fn main() { let x: u32 = 1; }';
 const HIGHLIGHTER_MARKERS = [
@@ -109,7 +109,7 @@ describe('INV-11: built main entry never ships the highlighter', () => {
   it.each(['index.mjs', 'index.cjs'] as const)(
     'dist/%s excludes CodeView, lowlight, highlight.js, and hljs token strings',
     (fileName) => {
-      const bundle = readFileSync(join(PACKAGE_ROOT, 'dist', fileName), 'utf-8');
+      const bundle = readDistArtifact(fileName);
       for (const marker of HIGHLIGHTER_MARKERS) {
         expect(bundle, `main bundle ${fileName} must stay free of ${marker}`).not.toMatch(marker);
       }
@@ -117,13 +117,13 @@ describe('INV-11: built main entry never ships the highlighter', () => {
   );
 
   it('does not export CodeView from the built main declaration file', () => {
-    const mainTypes = readFileSync(join(PACKAGE_ROOT, 'dist/index.d.mts'), 'utf-8');
+    const mainTypes = readDistArtifact('index.d.mts');
     expect(mainTypes).not.toMatch(/\bCodeView\b/);
   });
 
   it('resolves matching declaration files for import and require conditions', () => {
-    const importTypes = readFileSync(join(PACKAGE_ROOT, 'dist/code-view.d.mts'), 'utf-8');
-    const requireTypes = readFileSync(join(PACKAGE_ROOT, 'dist/code-view.d.cts'), 'utf-8');
+    const importTypes = readDistArtifact('code-view.d.mts');
+    const requireTypes = readDistArtifact('code-view.d.cts');
     for (const types of [importTypes, requireTypes]) {
       expect(types).toContain('CodeView');
       expect(types).toContain('CodeViewLanguage');
