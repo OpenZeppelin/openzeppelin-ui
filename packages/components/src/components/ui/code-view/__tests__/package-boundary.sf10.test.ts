@@ -46,6 +46,7 @@ describe('INV-4: built declarations expose decoration types without domain leaka
       expect(types).toContain('CodeViewToken');
       expect(types).toContain('CodeViewDecorationContext');
       expect(types).toContain('CodeViewTokenDecorator');
+      expect(types).toContain('isCodeViewLanguage');
       expect(types).not.toContain('HighlightResult');
       expect(types).not.toContain('RenderHastOptions');
     }

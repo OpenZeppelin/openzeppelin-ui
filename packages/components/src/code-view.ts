@@ -17,3 +17,7 @@ export {
   type CodeViewToken,
   type CodeViewTokenDecorator,
 } from './components/ui/code-view/CodeView';
+// The language list and its guard live with the type rather than with the
+// component, so a consumer can narrow a language id without importing the
+// component file.
+export { CODE_VIEW_LANGUAGES, isCodeViewLanguage } from './components/ui/code-view/types';
