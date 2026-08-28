@@ -66,9 +66,7 @@ export const CODE_VIEW_LANGUAGES: readonly CodeViewLanguage[] = [
   'plaintext',
 ] as const;
 
-/**
- *
- */
+/** Narrows an arbitrary string to a grammar CodeView can render. */
 export function isCodeViewLanguage(value: string): value is CodeViewLanguage {
   return (CODE_VIEW_LANGUAGES as readonly string[]).includes(value);
 }

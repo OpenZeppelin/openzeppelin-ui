@@ -1,11 +1,14 @@
 import { useEffect, useRef } from 'react';
 
+import { logger } from '@openzeppelin/ui-utils';
+
 const IS_DEV = process.env.NODE_ENV !== 'production';
+
+const DIAGNOSTIC_SYSTEM = 'FileTree';
 
 function reportAccessibleNameIssue(message: string): void {
   // Intentional dev-only diagnostic; production never calls this helper.
-  // eslint-disable-next-line no-console -- design matches BottomSheet posture
-  console.error(message);
+  logger.error(DIAGNOSTIC_SYSTEM, message);
 }
 
 /**
@@ -30,7 +33,7 @@ export function useAccessibleNameDiagnostics(props: {
     if (!hasLabel && !hasLabelledBy && !reportedBlankRef.current) {
       reportedBlankRef.current = true;
       reportAccessibleNameIssue(
-        '[FileTree] Accessible name required: provide a nonblank aria-label or aria-labelledby.'
+        'Accessible name required: provide a nonblank aria-label or aria-labelledby.'
       );
     }
   }, [ariaLabel, ariaLabelledBy]);
@@ -48,7 +51,7 @@ export function useAccessibleNameDiagnostics(props: {
     if (document.getElementById(labelledBy) == null && !reportedMissingTargetRef.current) {
       reportedMissingTargetRef.current = true;
       reportAccessibleNameIssue(
-        `[FileTree] aria-labelledby="${labelledBy}" does not match any element in the document.`
+        `aria-labelledby="${labelledBy}" does not match any element in the document.`
       );
     }
   }, [ariaLabelledBy]);

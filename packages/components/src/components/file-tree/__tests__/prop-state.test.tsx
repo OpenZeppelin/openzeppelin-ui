@@ -21,7 +21,7 @@ describe('INV-6: accessible name XOR and dev diagnostics', () => {
 
     expect(requireKitHost(container)).toBeTruthy();
     expect(errorSpy).toHaveBeenCalledWith(
-      '[FileTree] Accessible name required: provide a nonblank aria-label or aria-labelledby.'
+      '[ERROR][FileTree] Accessible name required: provide a nonblank aria-label or aria-labelledby.'
     );
     errorSpy.mockRestore();
   });
@@ -34,7 +34,7 @@ describe('INV-6: accessible name XOR and dev diagnostics', () => {
       />
     );
     expect(errorSpy).toHaveBeenCalledWith(
-      '[FileTree] aria-labelledby="missing-label" does not match any element in the document.'
+      '[ERROR][FileTree] aria-labelledby="missing-label" does not match any element in the document.'
     );
     errorSpy.mockRestore();
   });

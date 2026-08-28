@@ -2,9 +2,9 @@ import { X } from 'lucide-react';
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 
-import { cn } from '@openzeppelin/ui-utils';
+import { cn, logger } from '@openzeppelin/ui-utils';
 
-import type { BottomSheetHeightPx } from './bottom-sheet-height';
+import { BOTTOM_SHEET_DIAGNOSTIC_SYSTEM, type BottomSheetHeightPx } from './bottom-sheet-height';
 import { useBottomSheetHeight } from './use-bottom-sheet-height';
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
@@ -74,8 +74,7 @@ function isNonblank(value: string | undefined): value is string {
 
 function emitDevError(message: string): void {
   // Dev-only diagnostic; production never calls this helper.
-  // eslint-disable-next-line no-console -- design: unnamed region is a diagnostic, not a throw
-  console.error(message);
+  logger.error(BOTTOM_SHEET_DIAGNOSTIC_SYSTEM, message);
 }
 
 /**
@@ -173,7 +172,7 @@ export const BottomSheet = React.forwardRef<HTMLElement, BottomSheetProps>(funct
     if (issue != null && nameIssueRef.current !== issue) {
       nameIssueRef.current = issue;
       emitDevError(
-        '[BottomSheet] Accessible name required: provide exactly one of a nonblank aria-label or aria-labelledby.'
+        'Accessible name required: provide exactly one of a nonblank aria-label or aria-labelledby.'
       );
     }
   }, [ariaLabel, ariaLabelledBy, open, portalRoot]);
@@ -189,7 +188,7 @@ export const BottomSheet = React.forwardRef<HTMLElement, BottomSheetProps>(funct
     ) {
       missingTargetRef.current = ariaLabelledBy;
       emitDevError(
-        `[BottomSheet] aria-labelledby="${ariaLabelledBy}" does not match any element in the document.`
+        `aria-labelledby="${ariaLabelledBy}" does not match any element in the document.`
       );
     }
   }, [ariaLabelledBy, open, portalRoot]);

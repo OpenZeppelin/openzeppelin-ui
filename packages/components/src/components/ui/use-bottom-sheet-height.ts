@@ -7,7 +7,10 @@ import {
   type PointerEvent,
 } from 'react';
 
+import { logger } from '@openzeppelin/ui-utils';
+
 import {
+  BOTTOM_SHEET_DIAGNOSTIC_SYSTEM,
   BOTTOM_SHEET_KEYBOARD_STEP_PX,
   bottomSheetHeightBounds,
   resolveBottomSheetHeight,
@@ -45,8 +48,7 @@ export interface UseBottomSheetHeightResult {
 
 function emitDevWarning(message: string): void {
   // Dev-only diagnostic; production never calls this helper.
-  // eslint-disable-next-line no-console -- design: non-finite height is a warning, not a throw
-  console.warn(message);
+  logger.warn(BOTTOM_SHEET_DIAGNOSTIC_SYSTEM, message);
 }
 
 function releasePointerCapture(node: HTMLDivElement | null, pointerId: number): void {
@@ -156,7 +158,7 @@ export function useBottomSheetHeight({
       if (!Object.is(lastNonFiniteWarningRef.current, height)) {
         lastNonFiniteWarningRef.current = height;
         emitDevWarning(
-          `[BottomSheet] height must be a finite number. Received ${String(height)}; using defaultBottomSheetHeight(viewport).`
+          `height must be a finite number. Received ${String(height)}; using defaultBottomSheetHeight(viewport).`
         );
       }
     }

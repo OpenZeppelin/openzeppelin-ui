@@ -4,6 +4,9 @@
  */
 export type BottomSheetHeightPx = number;
 
+/** Subsystem name every BottomSheet dev diagnostic is logged under. Internal. */
+export const BOTTOM_SHEET_DIAGNOSTIC_SYSTEM = 'BottomSheet';
+
 /** Floor used when the viewport is at least this tall. Internal. */
 export const BOTTOM_SHEET_MIN_HEIGHT_PX = 160;
 
