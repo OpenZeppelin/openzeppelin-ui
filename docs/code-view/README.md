@@ -12,7 +12,9 @@ without letting the user edit it. It is not an editor, not a form field, and doe
 guess the language from a filename: you tell it which of five grammars to use, and
 anything else renders as plain text. An optional `decorateToken` callback lets you wrap
 pieces of the highlighted text in your own elements (links, marks, tooltips) without
-the component ever changing the text itself.
+the component ever changing the text itself. An optional `reveal` prop marks a line
+range in the source and scrolls it into view, so a host can jump the pane to the lines
+a search hit, a diff, or a tooltip points at.
 
 The single most important thing to know: **import it from
 `@openzeppelin/ui-components/code-view`, not from the package's main entry.** The main
@@ -108,17 +110,46 @@ that is what you are handed. A throwing decorator costs you one undecorated run,
 the pane. The kit ships no built-in decorations; it provides the hook and you provide
 the meaning. See [Pattern 4](./integration-guide.md#pattern-4-decorate-tokens).
 
+**Reveal is controlled, not invoked.** To bring lines 12–15 into view you pass
+`reveal={{ startLine: 12, endLine: 15 }}`; there is no `ref`, no `scrollTo()`, and no
+handle to call. That is deliberate: every primitive in this kit is controlled, and an
+imperative reveal would be the one exception. The pane wraps the characters of those
+lines in a `<mark>` and scrolls that mark into view once. Four things about it that the
+types cannot tell you:
+
+1. **The lines are 1-indexed and inclusive.** `{ startLine: 1, endLine: 1 }` is the
+   first line. The mark covers the whole line, including its line break.
+2. **Re-revealing the same range needs a new `id`.** The pane compares `startLine`,
+   `endLine`, and `id` by value, never the `reveal` object's identity. A parent that
+   re-renders, say while the user drags a resizable panel, and passes a fresh object
+   with the same numbers does nothing, which is what stops the pane from yanking the
+   user back to the range on every frame. When you *do* want to scroll to the same
+   lines again (the user scrolled away and clicked the same result), change `id`.
+3. **Invalid ranges are silent no-ops.** Zero, negative, or non-integer lines, an
+   inverted range, either bound past the last line, or an empty `source`: no mark, no
+   scroll, no exception, no console output, nothing clamped. A range is checked against
+   the text currently on screen, so a stale range from a previous file either lands on
+   those line numbers in the new text or, if they do not exist, does nothing.
+4. **There is no line-number gutter, and reveal does not add one.** The range is marked
+   in place. `CodeView` chose not to render line numbers, and this feature keeps that
+   choice rather than reversing it.
+
+Reveal composes with `decorateToken`: both can apply to the same text, and the source
+characters are preserved exactly under either or both. See
+[Pattern 5](./integration-guide.md#pattern-5-reveal-a-line-range).
+
 ## API Reference
 
 See [api-reference.md](./api-reference.md) for `CodeView`, `CodeViewProps`,
-`CodeViewLanguage`, and the decoration types `CodeViewTokenDecorator`,
-`CodeViewDecorationContext`, and `CodeViewToken`.
+`CodeViewLanguage`, the decoration types `CodeViewTokenDecorator`,
+`CodeViewDecorationContext`, and `CodeViewToken`, the reveal type `CodeViewReveal`, and
+the `CODE_VIEW_LANGUAGES` list with its `isCodeViewLanguage` guard.
 
 ## Integration Guide
 
 See [integration-guide.md](./integration-guide.md) for mapping filenames to languages,
 sizing the pane inside a layout, applying a custom theme, decorating tokens with links
-or marks, and common mistakes.
+or marks, revealing a line range, and common mistakes.
 
 ## Safety
 
@@ -143,9 +174,20 @@ or marks, and common mistakes.
 - **Decoration is domain-free.** The kit has no built-in mappings, link types, URL
   templates, or convenience overloads. It never invents an `href`. Anything a link
   points to is your decision, made in your code.
+- **Reveal never throws and never clamps.** Any `reveal` value that does not name an
+  existing, ordered, 1-indexed line range of the current `source` is ignored: no mark,
+  no scroll, no error. You can pass a range computed from stale data without guarding
+  it first.
+- **Reveal never moves focus.** Scrolling the range into view is a scroll only. The
+  `<pre>` keeps `tabIndex={0}` as the sole tab stop; the mark has no `tabindex`, no
+  `role`, and no `aria-label`, so a screen reader still reads the source characters and
+  a form field elsewhere on the page keeps focus.
+- **Reveal preserves text.** The mark wraps characters; it inserts none. With `reveal`,
+  with `decorateToken`, or with both, `code.textContent === source` holds and is
+  asserted byte-for-byte by the kit's tests.
 - **Synchronous.** Highlighting runs in the render, memoized on `source` and `language`.
   Re-rendering with a different `className` or `aria-label`, or flipping color mode,
-  does not re-tokenize. The kit's largest known generated file (~31 kB, ~770 lines of
+  does not re-tokenize. Changing `reveal` does not re-tokenize either. The kit's largest known generated file (~31 kB, ~770 lines of
   shell) highlights in well under the 50 ms tokenizer budget; there is no size cutoff
   at which highlighting turns off.
 - **Accessibility.** The `<pre>` is the focusable, scrolling region (`tabIndex={0}`),

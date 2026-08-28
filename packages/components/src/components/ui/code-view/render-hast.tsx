@@ -1,14 +1,18 @@
 import type { Element, Root, Text } from 'hast';
 import React from 'react';
 
+import { CODE_VIEW_REVEAL_ATTRIBUTE, type RevealOffsets } from './reveal';
 import type { CodeViewDecorationContext, CodeViewLanguage, CodeViewTokenDecorator } from './types';
 
 const ALLOWED_SPAN_PROPERTIES = new Set(['className']);
+
+const REVEAL_MARK_PROPS = { [CODE_VIEW_REVEAL_ATTRIBUTE]: '' } as const;
 
 export interface RenderHastOptions {
   readonly source: string;
   readonly language: CodeViewLanguage;
   readonly decorateToken?: CodeViewTokenDecorator;
+  readonly revealOffsets?: RevealOffsets | null;
 }
 
 interface OffsetState {
@@ -21,6 +25,106 @@ function isTextNode(node: Root['children'][number]): node is Text {
 
 function isSpanElement(node: Root['children'][number]): node is Element {
   return node.type === 'element' && node.tagName === 'span';
+}
+
+function revealMark(children?: React.ReactNode): React.ReactElement {
+  return <mark {...REVEAL_MARK_PROPS}>{children}</mark>;
+}
+
+function leafOverlapsReveal(leafStart: number, leafEnd: number, offsets: RevealOffsets): boolean {
+  return leafStart < offsets.endOffset && offsets.startOffset < leafEnd;
+}
+
+function wrapDefaultString(
+  text: string,
+  leafStart: number,
+  offsets: RevealOffsets
+): React.ReactNode {
+  const from = Math.max(0, offsets.startOffset - leafStart);
+  const to = Math.min(text.length, offsets.endOffset - leafStart);
+  const prefix = text.slice(0, from);
+  const highlighted = text.slice(from, to);
+  const suffix = text.slice(to);
+
+  if (prefix.length === 0 && suffix.length === 0) {
+    return revealMark(highlighted);
+  }
+
+  return (
+    <>
+      {prefix.length > 0 ? prefix : null}
+      {revealMark(highlighted)}
+      {suffix.length > 0 ? suffix : null}
+    </>
+  );
+}
+
+function applyRevealWrap(
+  leafContent: React.ReactNode,
+  originalText: string,
+  leafStart: number,
+  revealOffsets: RevealOffsets | null | undefined
+): React.ReactNode {
+  if (!revealOffsets || revealOffsets.startOffset === revealOffsets.endOffset) {
+    return leafContent;
+  }
+
+  const leafEnd = leafStart + originalText.length;
+  if (!leafOverlapsReveal(leafStart, leafEnd, revealOffsets)) {
+    return leafContent;
+  }
+
+  // Default string (omit / nullish / throw-fallback) may slice. Custom nodes wrap whole.
+  if (leafContent === originalText) {
+    return wrapDefaultString(originalText, leafStart, revealOffsets);
+  }
+
+  return revealMark(leafContent);
+}
+
+function appendEmptyRevealMark(
+  content: React.ReactNode,
+  source: string,
+  revealOffsets: RevealOffsets | null | undefined
+): React.ReactNode {
+  if (
+    !revealOffsets ||
+    revealOffsets.startOffset !== revealOffsets.endOffset ||
+    revealOffsets.startOffset !== source.length
+  ) {
+    return content;
+  }
+
+  return (
+    <>
+      {content}
+      {revealMark()}
+    </>
+  );
+}
+
+/**
+ * Wrap plaintext (requested or tokenizer-error fallback) with the same reveal
+ * interval used on the highlighted path. Null offsets return `source` unchanged.
+ */
+export function wrapRevealedSource(
+  source: string,
+  revealOffsets: RevealOffsets | null | undefined
+): React.ReactNode {
+  if (!revealOffsets) {
+    return source;
+  }
+
+  if (revealOffsets.startOffset === revealOffsets.endOffset) {
+    return (
+      <>
+        {source}
+        {revealMark()}
+      </>
+    );
+  }
+
+  return wrapDefaultString(source, 0, revealOffsets);
 }
 
 function assertSpanProperties(properties: Element['properties']): string | undefined {
@@ -83,9 +187,10 @@ function renderTextLeaf(
     }
   }
 
+  // INV-3: decorate on the intact leaf, then advance, then wrap. Do not slice first.
   state.offset += node.value.length;
 
-  return leafContent;
+  return applyRevealWrap(leafContent, node.value, token.offset, options.revealOffsets);
 }
 
 function renderHastChildren(
@@ -128,5 +233,6 @@ function renderHastNode(
  */
 export function renderHast(tree: Root, options: RenderHastOptions): React.ReactNode {
   const state: OffsetState = { offset: 0 };
-  return renderHastChildren(tree.children, [], options, state);
+  const children = renderHastChildren(tree.children, [], options, state);
+  return appendEmptyRevealMark(children, options.source, options.revealOffsets);
 }

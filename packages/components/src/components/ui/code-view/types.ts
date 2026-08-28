@@ -33,6 +33,23 @@ export type CodeViewTokenDecorator = (
   context: CodeViewDecorationContext
 ) => React.ReactNode | null | undefined;
 
+/**
+ * A 1-indexed inclusive line range to mark and scroll into view.
+ * Invalid ranges are a no-op: no mark, no scroll, no throw.
+ */
+export interface CodeViewReveal {
+  /** First line to include. 1 is the first line of `source`. */
+  readonly startLine: number;
+  /** Last line to include. Must be >= startLine. */
+  readonly endLine: number;
+  /**
+   * Retrigger token. Compared with Object.is.
+   * Change this value to scroll again when the line numbers did not change.
+   * Omit it if you never need to re-reveal the same range.
+   */
+  readonly id?: number | string;
+}
+
 export interface CodeViewProps {
   /** Source text to render. Whitespace and trailing newlines are preserved. */
   readonly source: string;
@@ -47,6 +64,11 @@ export interface CodeViewProps {
    * When omitted, output matches standard syntax highlighting with no added decoration.
    */
   readonly decorateToken?: CodeViewTokenDecorator;
+  /**
+   * Optional range to mark and bring into view.
+   * Omit for the same highlighted output as a pane without the feature: no mark, no scroll.
+   */
+  readonly reveal?: CodeViewReveal;
 }
 
 export type HighlightResult =

@@ -1,14 +1,17 @@
 # CodeView — API Reference
 
-Everything exported from `@openzeppelin/ui-components/code-view`. There are exactly six
-public members: one component and five types. Nothing about this feature is exported from
-the package's main entry.
+Everything exported from `@openzeppelin/ui-components/code-view`. There are exactly nine
+public members: one component, six types, one constant, and one type guard. Nothing
+about this feature is exported from the package's main entry.
 
 ```ts
 import {
   CodeView,
+  CODE_VIEW_LANGUAGES,
+  isCodeViewLanguage,
   type CodeViewProps,
   type CodeViewLanguage,
+  type CodeViewReveal,
   type CodeViewTokenDecorator,
   type CodeViewDecorationContext,
   type CodeViewToken,
@@ -18,6 +21,8 @@ import {
 - [`CodeView`](#codeview) — the component
 - [`CodeViewProps`](#codeviewprops) — its props
 - [`CodeViewLanguage`](#codeviewlanguage) — the closed language union
+- [`CODE_VIEW_LANGUAGES` and `isCodeViewLanguage`](#code_view_languages-and-iscodeviewlanguage) — the union as runtime data
+- [`CodeViewReveal`](#codeviewreveal) — the controlled line range to mark and scroll to
 - [`CodeViewTokenDecorator`](#codeviewtokendecorator) — the optional decoration callback
 - [`CodeViewDecorationContext`](#codeviewdecorationcontext) — what the callback receives
 - [`CodeViewToken`](#codeviewtoken) — one run of text, with its offset
@@ -36,8 +41,8 @@ Renders `props.source` as a read-only, syntax-highlighted code region.
 
 The component is a pure function of its props. It owns no state, registers no event
 listeners, and performs no I/O. Tokenization happens synchronously during render and is
-memoized on `source` and `language`; the other props, `decorateToken` included, can
-change freely without re-tokenizing.
+memoized on `source` and `language`; the other props, `decorateToken` and `reveal`
+included, can change freely without re-tokenizing.
 
 **Behavior guarantees**
 
@@ -47,6 +52,9 @@ change freely without re-tokenizing.
 | Never empty | Every input renders the focusable region. Empty `source` renders an empty, still-named, still-focusable `<pre>`. |
 | Fail-soft | If the tokenizer throws, or a runtime caller passes a `language` outside the union, the source renders as plain text. If `decorateToken` throws, only that run of text falls back to default rendering. No error UI, no exception through React. |
 | Decoration is presentational | `decorateToken` can change the elements a run of text is rendered in, never the text. Omitting it yields output identical to a pane without the feature. |
+| Reveal is controlled | `reveal` is a prop, not a method. The pane marks the named lines and scrolls the mark into view when `startLine`, `endLine`, or `id` change by value. There is no `ref` and no handle. Omitting it yields output identical to a pane without the feature. |
+| Reveal never clamps or throws | A `reveal` that does not name an existing, ordered, 1-indexed range of the current `source` produces no mark and no scroll. Nothing is adjusted to fit. |
+| Reveal never moves focus | Revealing scrolls the region's content. It does not call `focus()` on anything and adds no tab stop. |
 | No injection | Output is built from React text nodes and `<span>` elements with class names only. There is no `dangerouslySetInnerHTML` and no HTML parsing. |
 | Native navigation | Scrolling, text selection, copying, and browser find work as on any static text. No keyboard shortcuts are intercepted. |
 | No announcements | There is no `aria-live` region. Changing `source` does not trigger screen-reader announcements. |
@@ -90,6 +98,12 @@ interface CodeViewProps {
    * Omitted → output identical to a pane without the feature.
    */
   readonly decorateToken?: CodeViewTokenDecorator;
+
+  /**
+   * Optional 1-indexed inclusive line range to mark and bring into view.
+   * Omitted → no mark, no scroll; output identical to a pane without the feature.
+   */
+  readonly reveal?: CodeViewReveal;
 }
 ```
 
@@ -146,7 +160,32 @@ Two things the kit guarantees about the callback, and one it asks of you:
   what makes decoration presentational rather than editorial; see
   [`CodeViewTokenDecorator`](#codeviewtokendecorator).
 
-These five props are the entire surface. `CodeView` does not accept arbitrary DOM
+### `reveal` (optional)
+
+[`CodeViewReveal`](#codeviewreveal) — a 1-indexed, inclusive line range. When it names
+lines that exist in `source`, the pane wraps the characters of those lines in a `<mark>`
+and, on the render where `startLine`, `endLine`, or `id` changed, scrolls that mark into
+the center of the pane. Omit the prop and nothing changes: no mark, no scroll, and the
+output is identical to the pane before this prop existed.
+
+Three rules govern it; each is spelled out under [`CodeViewReveal`](#codeviewreveal):
+
+- **Comparison is by value.** The pane reads `startLine`, `endLine`, and `id` and
+  compares each with `Object.is`. The identity of the `reveal` object is never
+  consulted. Passing `reveal={{ startLine: 4, endLine: 4 }}` inline is fine: a parent
+  re-render that allocates a new object with the same numbers does not scroll again.
+- **Re-reveal by changing `id`.** To scroll to the same lines a second time, pass a
+  different `id`. Nothing else re-triggers the scroll, not a new object, not a change to
+  `source`, not a change to `decorateToken`.
+- **Invalid is a no-op.** See the [validity table](#validity). No exception, no
+  console output, no clamping.
+
+`reveal` is not part of the tokenization memo. Changing it re-renders the marked output
+from the already-tokenized tree; it does not re-tokenize `source`. The mark and the
+scroll are the whole effect: the pane adds no line-number gutter, no anchors, and no
+announcement.
+
+These six props are the entire surface. `CodeView` does not accept arbitrary DOM
 attributes, `style`, `ref`, a theme object, event handlers, or line-number options.
 
 ---
@@ -177,6 +216,159 @@ failure and renders plain text; it does not throw.
 
 Consumers cannot register additional grammars. The registry is private to the module
 and finalized when the subpath loads.
+
+---
+
+## `CODE_VIEW_LANGUAGES` and `isCodeViewLanguage`
+
+```ts
+const CODE_VIEW_LANGUAGES: readonly CodeViewLanguage[];
+
+function isCodeViewLanguage(value: string): value is CodeViewLanguage;
+```
+
+The [`CodeViewLanguage`](#codeviewlanguage) union as runtime data, for the case where a
+language id arrives from data (a file manifest, a URL, a saved preference) rather than
+from a literal in your code.
+
+- **`CODE_VIEW_LANGUAGES`** — the six members, in the order listed above. Read-only;
+  do not mutate it.
+- **`isCodeViewLanguage(value)`** — `true` when `value` is one of those six strings,
+  narrowing the argument to `CodeViewLanguage`. Use it instead of a cast: a cast of an
+  unlisted string compiles and then silently renders as plain text at runtime, while the
+  guard lets you decide what to do (fall back to `'plaintext'` explicitly, warn, or
+  reject) where you still know the value's provenance.
+
+```ts
+import { isCodeViewLanguage, type CodeViewLanguage } from '@openzeppelin/ui-components/code-view';
+
+function languageFromManifest(id: string): CodeViewLanguage {
+  return isCodeViewLanguage(id) ? id : 'plaintext';
+}
+```
+
+---
+
+## `CodeViewReveal`
+
+```ts
+interface CodeViewReveal {
+  /** First line to include. 1 is the first line of `source`. */
+  readonly startLine: number;
+  /** Last line to include. Must be >= startLine. */
+  readonly endLine: number;
+  /**
+   * Retrigger token. Compared with Object.is.
+   * Change this value to scroll again when the line numbers did not change.
+   * Omit it if you never need to re-reveal the same range.
+   */
+  readonly id?: number | string;
+}
+```
+
+The type of the [`reveal`](#reveal-optional) prop: a closed, inclusive range of lines to
+mark and scroll into view, plus an optional token for asking the pane to scroll there
+again.
+
+**Why a prop and not a method.** Every primitive in this kit is controlled: the host
+owns the state and the component renders it. A `ref.current.reveal()` call would be the
+sole imperative exception, and it would need hidden state inside the pane to remember
+what it last revealed, state that can stick to the wrong file when `source` changes. So
+the host holds the range (next to whatever selected-file state it already has) and
+passes it down. What the pane shows is always a function of the props it was given on
+this render.
+
+### Fields
+
+| Field | Type | Meaning |
+|---|---|---|
+| `startLine` | `number` | First line to mark, **1-indexed**. `1` is the first line of `source`. |
+| `endLine` | `number` | Last line to mark, **inclusive**. `startLine === endLine` marks one line. The mark covers the whole line, including its trailing line break when there is one. |
+| `id` | `number \| string`, optional | Retrigger token. Change it to scroll to the same lines again. Omit it if you never need that; an omitted `id` is `undefined` and is stable. |
+
+Lines are delimited by `\n` (U+000A) only. A `\r` is an ordinary character on its line.
+An empty `source` has zero lines; a non-empty `source` has one more line than it has
+`\n` characters, so a file ending in a newline has an empty last line that a range may
+legitimately include.
+
+### Comparison
+
+On each render the pane reads the three fields out of `reveal` and compares each to the
+previous render's value with `Object.is`. Object identity is never compared. The
+consequences:
+
+| You pass, compared with the last render | Mark | Scroll |
+|---|---|---|
+| Same `startLine`, `endLine`, and `id`, in a **new object** | unchanged | **no** |
+| Different `startLine` or `endLine` | rebuilt for the new lines | yes |
+| Same lines, different `id` | unchanged | yes |
+| Same lines and `id`, different `source` | rebuilt against the new text | **no** |
+| `reveal` removed (`undefined`) | removed | no |
+
+The first and fourth rows are the ones to hold on to. A host that regenerates `source`
+on every keystroke (a live preview) keeps its mark on the named lines of each new text,
+but the pane does not re-scroll under the user's cursor each time. And a component that
+re-renders constantly, such as one inside a drag-resizable panel, can build `reveal`
+inline without the pane yanking the user back to the range on every frame.
+
+`id` is deliberately excluded from the work of rebuilding the mark: changing only `id`
+re-scrolls without re-rendering the marked tree.
+
+### Validity
+
+A range is resolved against the `source` on this render and nothing else. Every row
+below yields no mark and no scroll; none throws, none logs, and none is adjusted to fit.
+
+| `reveal` | Result | Why not clamp |
+|---|---|---|
+| omitted / `undefined` | nothing | Baseline. Output identical to a pane without the feature. |
+| `startLine` or `endLine` not an integer (`1.5`, `NaN`, `Infinity`) | nothing | There is no line 1.5. |
+| `startLine` or `endLine` is `0` or negative | nothing | Lines are 1-indexed. Clamping `0` to `1` would hide an off-by-one in the caller. |
+| `startLine > endLine` | nothing | Swapping the bounds would guess at intent. |
+| `startLine` or `endLine` greater than the line count | nothing | Painting to the end of a shorter file would look like success for a range that belongs to a different file. |
+| `source === ''` | nothing | Zero lines; there is nothing to reveal. |
+
+Valid: `1 <= startLine <= endLine <= lineCount`, both integers, `source` non-empty. The
+common one-line hit, `{ startLine: n, endLine: n }`, is valid for any `n` in range.
+
+**Stale ranges.** Because resolution is against the current `source`, a range computed
+from a previous version of the text, or from a different file, is not an error. If the
+line numbers still exist, those lines in the *current* text are marked, which may or may
+not be the content you meant. If they do not exist, nothing is marked, and the previous
+mark does not linger. The pane keeps no memory of an earlier `source`, and
+`CodeViewReveal` has no `path` field for it to key on; pairing the range with the text it
+was computed from is the caller's job. Update `source` and `reveal` in the same render
+(one state update, or two in the same event handler), or omit `reveal` until the range
+for the new text is ready.
+
+### With `decorateToken`
+
+Both features may apply to the same text. The order on each run of text is fixed:
+`decorateToken` sees the intact run first and returns its node; the pane then wraps the
+part of that output that falls inside the range in the reveal `<mark>`. The decorator is
+called exactly as often with `reveal` as without it, and `code.textContent === source`
+holds under reveal alone, decoration alone, and both; the kit's tests assert this
+byte-for-byte.
+
+One presentational consequence to know. When a run of text straddles the range boundary
+(part of it on a revealed line, part not) and the decorator returned the default (nothing),
+the pane slices the run and marks only the characters inside the range. If instead the
+decorator returned a custom node for that run, the pane does not take that node apart: it
+wraps the whole node in the mark, so the highlight may extend a few characters past the
+line boundary. This affects paint only. The text is unchanged either way, and the source
+characters remain exactly what the user would download.
+
+**Example**
+
+```tsx
+import { CodeView, type CodeViewReveal } from '@openzeppelin/ui-components/code-view';
+
+const reveal: CodeViewReveal = { startLine: 2, endLine: 4 };
+
+export function RevealedSnippet({ source }: { source: string }) {
+  return <CodeView source={source} language="rust" reveal={reveal} aria-label="lib.rs source code" />;
+}
+```
 
 ---
 
@@ -335,6 +527,24 @@ most of your work on runs where `className` is `undefined`.
   output. Everything above about token spans still holds for the spans the kit renders;
   the elements *you* return are yours, including any `href`, `tabindex`, or `role` they
   carry. An `<a href>` you return is a real link and a real tab stop.
+- With a valid `reveal`, the characters of the named lines are wrapped in one or more
+  `<mark>` elements, one per run of text (or part of a run) inside the range, so a
+  three-line range over highlighted Rust yields several adjacent marks rather than one:
+
+  ```html
+  <span class="hljs-keyword"><mark>fn</mark></span><mark> </mark><span class="hljs-title function_"><mark>hello</mark></span><mark>() {}
+  </mark>
+  ```
+
+  The marks sit *inside* the `hljs-*` spans, so token colors are unchanged under the
+  highlight; the mark paints a translucent kit selected-color background and inherits
+  its text color. Marks carry no `id`, `role`, `tabindex`, or `aria-*`. They may carry a
+  private attribute the kit uses to tell its own marks from `<mark>` elements a
+  decorator returned; it is not a published hook, and consumers must not select on it.
+  If a decorator returned `<mark>` for a run inside the range, the two nest
+  (`<mark><mark>fn</mark></mark>`), which is valid HTML with unchanged `textContent`.
+  When the range covers only the empty line after a trailing newline, the mark is
+  empty but present, so the pane still has something to scroll to.
 
 ## Token classes
 
@@ -360,3 +570,10 @@ arbitrary variants of the form `[&_.hljs-keyword]:text-primary`). They are not a
 stylesheet you import and they do not touch any `.hljs-*` element outside a `CodeView`.
 The mapping is a styling default, not part of the typed API; the class names are the
 stable contract.
+
+The reveal `<mark>` is painted the same way, by a descendant rule from the `<code>`
+element that applies only while a valid `reveal` is active: a translucent background from
+the kit's `--selected` token and `color: inherit`, so a revealed keyword keeps its
+keyword color. To restyle it, target `.hljs mark` under a class you pass through
+`className`, at the same specificity discussed in
+[Theming](./integration-guide.md#pattern-3-apply-a-highlightjs-theme).

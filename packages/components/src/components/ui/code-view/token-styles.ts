@@ -29,3 +29,12 @@ export const CODE_VIEW_TOKEN_STYLE_CLASSES = [
   '[&_.hljs-property]:text-chart-4',
   '[&_.hljs-punctuation]:text-muted-foreground',
 ].join(' ');
+
+/**
+ * Kit-token paint for `<mark>` inside `.hljs`. Applied only when a reveal range
+ * resolved, so omitting `reveal` keeps the same class list as a pane without one.
+ */
+export const CODE_VIEW_REVEAL_MARK_STYLE_CLASSES = [
+  '[&_mark]:bg-selected/15',
+  '[&_mark]:text-inherit',
+].join(' ');

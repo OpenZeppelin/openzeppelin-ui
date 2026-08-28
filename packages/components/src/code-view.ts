@@ -14,6 +14,7 @@ export {
   type CodeViewDecorationContext,
   type CodeViewLanguage,
   type CodeViewProps,
+  type CodeViewReveal,
   type CodeViewToken,
   type CodeViewTokenDecorator,
 } from './components/ui/code-view/CodeView';

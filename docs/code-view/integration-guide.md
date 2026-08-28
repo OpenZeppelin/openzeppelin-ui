@@ -1,6 +1,6 @@
 # CodeView — Integration Guide
 
-Four patterns cover the ways teams use `CodeView`, followed by the mistakes we expect
+Five patterns cover the ways teams use `CodeView`, followed by the mistakes we expect
 people to make and how to avoid them. Every snippet imports from the subpath and
 type-checks against the current `CodeViewProps`.
 
@@ -8,6 +8,7 @@ type-checks against the current `CodeViewProps`.
 - [Pattern 2: Map filenames to languages](#pattern-2-map-filenames-to-languages)
 - [Pattern 3: Apply a highlight.js theme](#pattern-3-apply-a-highlightjs-theme)
 - [Pattern 4: Decorate tokens](#pattern-4-decorate-tokens)
+- [Pattern 5: Reveal a line range](#pattern-5-reveal-a-line-range)
 - [Large files](#large-files)
 - [Common mistakes](#common-mistakes)
 
@@ -310,6 +311,239 @@ Run it against an input that exercises every branch of your decorator (a run wit
 matches, a match at the start, a match at the end). If it passes, the pane is showing
 the user exactly the file they will download, with your decorations on top.
 
+## Pattern 5: Reveal a line range
+
+`reveal` jumps the pane to a range of lines and marks them, so a search result, a diff
+hunk, or an annotation can point the reader at the exact spot in a long file. You do not
+call anything. You pass the range, and the pane scrolls to it.
+
+```tsx
+import { CodeView, type CodeViewReveal } from '@openzeppelin/ui-components/code-view';
+
+export function RevealedPreview({
+  source,
+  range,
+}: {
+  source: string;
+  range: CodeViewReveal | undefined;
+}) {
+  return (
+    <CodeView
+      source={source}
+      language="rust"
+      reveal={range}
+      aria-label="lib.rs source code"
+      className="h-96"
+    />
+  );
+}
+```
+
+Lines are 1-indexed and the range is inclusive: `{ startLine: 12, endLine: 15 }` marks
+four lines. When `range` becomes defined, or its numbers change, the pane wraps those
+lines in a `<mark>` and scrolls the mark to the center of the pane. When `range` is
+`undefined`, there is no mark and the pane is exactly the pane from Pattern 1.
+
+The pane has no line-number gutter, and reveal does not add one. The range is shown by
+marking the lines in place. That is a deliberate continuation of `CodeView`'s original
+decision not to render line numbers, not a gap.
+
+### Re-reveal the same lines with `id`
+
+The pane decides whether to scroll by comparing `startLine`, `endLine`, and `id` to the
+previous render's values. It never compares the `reveal` object itself. So this parent,
+which re-renders on every pointer move while the user drags a panel divider, does
+**not** scroll the pane back on every frame even though it allocates a new object each
+time:
+
+```tsx
+import { CodeView } from '@openzeppelin/ui-components/code-view';
+
+export function InsideAResizablePanel({ source, height }: { source: string; height: number }) {
+  // `height` changes on every drag frame; the reveal object is new each render,
+  // but its numbers are not, so the pane scrolls once and then holds still.
+  return (
+    <div style={{ height }}>
+      <CodeView
+        source={source}
+        language="shell"
+        reveal={{ startLine: 40, endLine: 42 }}
+        className="h-full"
+      />
+    </div>
+  );
+}
+```
+
+The flip side is the single most surprising thing about the API: **passing the same
+numbers again does nothing, even in a new object.** If the user scrolls away and then
+clicks the same result a second time, and you set `reveal` to a fresh
+`{ startLine: 40, endLine: 42 }`, the pane stays where it is, because as far as it can
+tell nothing changed. To ask for the scroll again, change `id`:
+
+```tsx
+import { useState } from 'react';
+import { CodeView, type CodeViewReveal } from '@openzeppelin/ui-components/code-view';
+
+interface Hit {
+  path: string;
+  startLine: number;
+  endLine: number;
+}
+
+export function ResultsWithPreview({
+  files,
+  hits,
+}: {
+  files: Readonly<Record<string, string>>;
+  hits: readonly Hit[];
+}) {
+  const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const [reveal, setReveal] = useState<CodeViewReveal | undefined>(undefined);
+  const [requestId, setRequestId] = useState(0);
+
+  function jumpTo(hit: Hit) {
+    const nextId = requestId + 1;
+    setRequestId(nextId);
+    // Same handler, same commit: the pane sees the new source and the new range together.
+    setSelectedPath(hit.path);
+    setReveal({ startLine: hit.startLine, endLine: hit.endLine, id: nextId });
+  }
+
+  const source = selectedPath === null ? '' : (files[selectedPath] ?? '');
+
+  return (
+    <>
+      <ul>
+        {hits.map((hit) => (
+          <li key={`${hit.path}:${hit.startLine}`}>
+            <button type="button" onClick={() => jumpTo(hit)}>
+              {hit.path} lines {hit.startLine}–{hit.endLine}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <CodeView
+        source={source}
+        language="rust"
+        reveal={reveal}
+        aria-label={selectedPath ? `${selectedPath} source code` : 'Source code'}
+        className="h-96"
+      />
+    </>
+  );
+}
+```
+
+`requestId` lives next to `selectedPath` in the host's state, which is where a
+controlled reveal belongs. Every click produces a new `id`, so clicking the same result
+twice scrolls twice, and clicking a different result changes the numbers and scrolls
+anyway. Any value that is different under `Object.is` works: a counter, a timestamp, a
+string key. The pane does not interpret it.
+
+Note what `id` does *not* do: it does not rebuild the mark. Changing only `id` re-scrolls
+to the existing mark; the marked tree is rebuilt only when `startLine`, `endLine`,
+`source`, `language`, or `decorateToken` change.
+
+### Ranges computed from a diff, and what happens when they are stale
+
+The common source of a range is a computation over an earlier version of the text: a
+diff between two generated outputs, a probe that perturbed one input and recorded which
+lines moved. By the time the user clicks, the text on screen may have moved on. Reveal
+is designed so you do not have to guard against that:
+
+- **Any range that does not fit the current `source` is a no-op.** Past the end,
+  inverted, zero, negative, non-integer, or a range against an empty string: no mark,
+  no scroll, no exception, and no console noise. Nothing is clamped, so a stale
+  `{ startLine: 80, endLine: 84 }` against a file that now has 60 lines does not paint
+  the last five lines and pretend it found them.
+- **A range that still fits is resolved against the text on screen.** Lines 12–15 of
+  the *current* `source` are marked, whether or not that is the content the range was
+  computed from. The pane keeps no memory of a previous `source` and has no `path` to
+  compare. If that matters to you, keep the range and the text it was computed from
+  together in your own state, and update `source` and `reveal` in the same render (the
+  `jumpTo` handler above does this). Never set `source` in one commit and `reveal` in
+  the next: the intervening frame will mark those line numbers in whatever text is
+  showing.
+- **A live preview that regenerates `source` does not re-scroll.** The mark follows the
+  named lines into each new text; the scroll happens only when `startLine`, `endLine`,
+  or `id` change. A host regenerating output on every keystroke keeps its reveal without
+  fighting the user for the scroll position.
+
+### Reveal and `decorateToken` together
+
+Both can apply to the same text. Your decorator runs first and sees each run of text
+whole, exactly as it would without `reveal`; the pane then wraps whatever falls inside
+the range in the reveal mark. Nothing about Pattern 4 changes: same call count, same
+`token.offset` values, same fidelity contract. `code.textContent === source` holds with
+reveal, with decoration, and with both, and the kit asserts it byte-for-byte.
+
+```tsx
+import { useCallback } from 'react';
+import {
+  CodeView,
+  type CodeViewReveal,
+  type CodeViewTokenDecorator,
+} from '@openzeppelin/ui-components/code-view';
+
+export function LinkedAndRevealed({
+  source,
+  reveal,
+  docsByName,
+}: {
+  source: string;
+  reveal: CodeViewReveal | undefined;
+  docsByName: Readonly<Record<string, string>>;
+}) {
+  const decorateToken = useCallback<CodeViewTokenDecorator>(
+    ({ token }) => {
+      if (token.className !== undefined) return undefined;
+      const href = docsByName[token.text.trim()];
+      if (href === undefined) return undefined;
+      return <a href={href}>{token.text}</a>;
+    },
+    [docsByName]
+  );
+
+  return (
+    <CodeView
+      source={source}
+      language="rust"
+      decorateToken={decorateToken}
+      reveal={reveal}
+      className="h-96"
+    />
+  );
+}
+```
+
+A revealed link renders as `<mark><a href="…">name</a></mark>` inside its span: still a
+link, still a tab stop, now also highlighted.
+
+One honest caveat about paint. When a run of text straddles the boundary of the range,
+partly on a revealed line and partly not, and your decorator left it alone, the pane
+slices the run and marks only the characters inside the range. If your decorator
+returned a custom node for that run, the pane does not take your node apart; it wraps the
+whole node, so the highlight may reach a few characters beyond the line boundary. That is
+a bounded over-highlight, it affects only the background paint, and the text is exactly
+what it would have been without either feature. If it bothers you in practice, return
+decorations that do not span line breaks.
+
+### Style the mark
+
+The mark takes a translucent background from the kit's selected-color token and inherits
+its text color, so a revealed keyword stays keyword-colored. To change it, scope a rule
+under a class you pass through `className`, as in
+[Pattern 3](#pattern-3-apply-a-highlightjs-theme):
+
+```css
+.my-code-theme .hljs mark { background-color: rgb(250 204 21 / 0.25); }
+```
+
+Do not rely on any attribute the kit's mark may carry to distinguish it from a `<mark>`
+your decorator returned; that is an internal hook and not part of the API. If you need
+your own marks styled differently, give them a class of your own.
+
 ## Large files
 
 There is no size cutoff. Highlighting stays on for every input; the kit's own performance
@@ -405,3 +639,49 @@ For the common case, do nothing special.
 - **Relying on the pane to report a broken decorator.**
   A throw is swallowed at the run and rendered as default text; there is no callback,
   log, or dev warning. Test the decorator directly.
+
+- **Looking for a `ref`, `scrollToLine()`, or `revealRef.current.reveal()`.**
+  There is no imperative handle, on purpose; every primitive in the kit is controlled.
+  Put the range in state and pass it as `reveal`
+  ([Pattern 5](#pattern-5-reveal-a-line-range)).
+
+- **Passing a fresh `reveal` object and expecting it to scroll again.**
+  Comparison is on `startLine`, `endLine`, and `id` by value, never on object identity.
+  Same numbers, no scroll, even in a new object. Change `id` to re-reveal.
+
+- **Forgetting `id` when the user can click the same result twice.**
+  The first click scrolls; the second, with the same numbers, does nothing. Keep a
+  counter next to the range and bump it on every request.
+
+- **Bumping `id` and expecting the mark to move.**
+  `id` only re-scrolls. Only `startLine` and `endLine` (and `source`) change where the
+  mark is.
+
+- **Expecting 0-indexed lines.**
+  `startLine: 0` is invalid and does nothing. The first line is `1`. If your range
+  source is 0-indexed, add one before passing it.
+
+- **Expecting a range past the end to be clamped, or an inverted range to be swapped.**
+  Neither happens. Any range that does not name existing lines in order is a silent
+  no-op: no mark, no scroll, no error. That is the contract, so you can pass a stale
+  range without guarding it, but it also means a wrong range fails quietly. If you see
+  no mark, check the numbers against the *current* `source`.
+
+- **Setting `source` in one render and `reveal` in the next.**
+  The pane resolves the range against whatever text it is showing on that render. Update
+  both in the same event handler (or omit `reveal` until the range for the new text
+  exists), or the in-between frame marks the wrong lines.
+
+- **Expecting reveal to add line numbers.**
+  It does not. The pane has no gutter and reveal keeps it that way; the range is shown by
+  marking the lines in place.
+
+- **Expecting reveal to move focus, or adding focus management around it.**
+  Reveal scrolls; it never calls `focus()`. A user typing in a form elsewhere on the
+  page keeps typing. If you want the pane focused after a jump, focus the `<pre>` from
+  your own code, and consider whether you should.
+
+- **Selecting the kit's mark by an attribute you saw in the DOM.**
+  Any attribute on the reveal `<mark>` beyond the element itself is a private hook the
+  kit uses internally. Style `.hljs mark` under your own scope, and give your own
+  decorator marks a class if you need to tell them apart.
