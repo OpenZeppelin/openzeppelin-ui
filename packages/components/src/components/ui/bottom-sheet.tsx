@@ -129,6 +129,14 @@ export const BottomSheet = React.forwardRef<HTMLElement, BottomSheetProps>(funct
     setPortalRoot(document.body);
   }, []);
 
+  // The height hook forgets the viewport when `open` turns false; keep the last
+  // rendered height so the exit slide, and the host inset under it, have a size
+  // to hold until the region unmounts.
+  if (open && viewportReady) {
+    lastHeightRef.current = effectiveHeight;
+  }
+  const insetHeight = open ? effectiveHeight : lastHeightRef.current;
+
   React.useEffect(() => {
     if (open) {
       setMounted(true);
@@ -140,12 +148,17 @@ export const BottomSheet = React.forwardRef<HTMLElement, BottomSheetProps>(funct
     return () => clearTimeout(timer);
   }, [open]);
 
+  // Keyed on `mounted`, not `open`: the region stays on screen for the exit
+  // slide, and dropping the inset on the first close frame pulled the host's
+  // layout up under a sheet that was still there. The variable is published for
+  // as long as something is rendered over the host, and `insetHeight` follows
+  // the same last-known value the region is rendered at.
   React.useEffect(() => {
-    if (layout !== 'inset' || !open || !viewportReady) {
+    if (layout !== 'inset' || !mounted || (open && !viewportReady)) {
       return;
     }
     const root = document.documentElement;
-    root.style.setProperty(BOTTOM_SHEET_INSET_PROPERTY, `${effectiveHeight}px`);
+    root.style.setProperty(BOTTOM_SHEET_INSET_PROPERTY, `${insetHeight}px`);
     // Value is 'resizing' during a pointer drag so hosts can suspend a height
     // transition and track the handle 1:1; otherwise empty.
     root.setAttribute(BOTTOM_SHEET_INSET_ATTRIBUTE, dragging ? 'resizing' : '');
@@ -153,7 +166,7 @@ export const BottomSheet = React.forwardRef<HTMLElement, BottomSheetProps>(funct
       root.style.removeProperty(BOTTOM_SHEET_INSET_PROPERTY);
       root.removeAttribute(BOTTOM_SHEET_INSET_ATTRIBUTE);
     };
-  }, [dragging, effectiveHeight, layout, open, viewportReady]);
+  }, [dragging, insetHeight, layout, mounted, open, viewportReady]);
 
   React.useEffect(() => {
     if (!IS_DEV || !open || portalRoot == null) {
@@ -209,13 +222,6 @@ export const BottomSheet = React.forwardRef<HTMLElement, BottomSheetProps>(funct
     onOpenChangeRef.current(false);
   };
 
-  // The height hook forgets the viewport when `open` turns false; keep the last
-  // rendered height so the exit slide has a size to slide from.
-  if (open && viewportReady) {
-    lastHeightRef.current = effectiveHeight;
-  }
-  const renderedHeight = open ? effectiveHeight : lastHeightRef.current;
-
   if (portalRoot == null || !mounted || (open && !viewportReady)) {
     return null;
   }
@@ -253,7 +259,7 @@ export const BottomSheet = React.forwardRef<HTMLElement, BottomSheetProps>(funct
           shown && open ? SHOWN_CLASSES : HIDDEN_CLASSES,
           !open && 'pointer-events-none'
         )}
-        style={{ height: `${renderedHeight}px` }}
+        style={{ height: `${insetHeight}px` }}
         onKeyDown={onRegionKeyDown}
       >
         <div

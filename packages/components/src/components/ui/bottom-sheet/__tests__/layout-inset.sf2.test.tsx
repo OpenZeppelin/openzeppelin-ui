@@ -4,12 +4,13 @@
  * SF-2 · `layout` prop — `'inset'` publishes the rendered height on `<html>` so the
  * host can shrink its layout; `'overlay'` (default) touches nothing.
  */
-import { fireEvent, render } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { act, fireEvent, render } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   BOTTOM_SHEET_INSET_ATTRIBUTE,
   BOTTOM_SHEET_INSET_PROPERTY,
+  BOTTOM_SHEET_TRANSITION_MS,
   BottomSheet,
   type BottomSheetLayout,
 } from '../../bottom-sheet';
@@ -79,12 +80,32 @@ describe('layout: inset', () => {
     expect(insetValue()).toBe('520px');
   });
 
-  it('clears the property and attribute on close', () => {
-    restoreViewport = mockViewportHeight(DEFAULT_VIEWPORT_HEIGHT);
-    const { rerender } = render(<Sheet open height={400} layout="inset" />);
-    rerender(<Sheet open={false} height={400} layout="inset" />);
-    expect(insetValue()).toBe('');
-    expect(root().hasAttribute(BOTTOM_SHEET_INSET_ATTRIBUTE)).toBe(false);
+  /**
+   * The region stays on screen for the exit slide, so the inset has to stay
+   * published for exactly as long. Dropping it on the first close frame pulled
+   * the host's own layout up while the sheet was still covering it.
+   */
+  it('holds the property and attribute through the exit transition, then clears them', () => {
+    vi.useFakeTimers();
+    try {
+      restoreViewport = mockViewportHeight(DEFAULT_VIEWPORT_HEIGHT);
+      const { rerender } = render(<Sheet open height={400} layout="inset" />);
+      expect(insetValue()).toBe('400px');
+
+      rerender(<Sheet open={false} height={400} layout="inset" />);
+
+      expect(insetValue(), 'the sheet is still on screen for the exit slide').toBe('400px');
+      expect(root().hasAttribute(BOTTOM_SHEET_INSET_ATTRIBUTE)).toBe(true);
+
+      act(() => {
+        vi.advanceTimersByTime(BOTTOM_SHEET_TRANSITION_MS);
+      });
+
+      expect(insetValue()).toBe('');
+      expect(root().hasAttribute(BOTTOM_SHEET_INSET_ATTRIBUTE)).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('clears the property and attribute on unmount', () => {
