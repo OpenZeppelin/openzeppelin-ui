@@ -51,5 +51,7 @@ packages/cli/autoresearch/
 /artifacts/
 .maestri/
 
-# Browser-test attachments
+# Browser-test run output. No suite compares against these, so they are failure
+# captures from the last local `pnpm test:browser`, not visual baselines.
 .vitest-attachments/
+__screenshots__/
