@@ -159,7 +159,7 @@ What to notice:
   "for later", the next drag would start from a height the user never saw.
 - **`Number('garbage')` is `NaN`, and that is fine.** The sheet replaces a non-finite
   `height` with `defaultBottomSheetHeight(viewport)`, reports it, and the effect
-  overwrites the bad storage entry. In development you also get one `console.warn`
+  overwrites the bad storage entry. In development you also get one kit `logger.warn`
   naming the bad value.
 - **Persist the value, not a viewport fraction.** The sheet speaks pixels. If you want
   "60% of whatever the window is" on every open, do not persist at all — seed with
@@ -374,7 +374,7 @@ to make one component do both jobs.
 
 - **Passing both `aria-label` and `aria-labelledby`, or neither.**
   Type error by design. Pick one. At runtime a blank string counts as missing and logs a
-  `console.error` in development.
+  kit `logger.error` in development.
 
 - **Spreading an untyped attribute bag into the sheet.**
   `<BottomSheet {...props}>` where `props` is `Record<string, unknown>` or a loose DOM

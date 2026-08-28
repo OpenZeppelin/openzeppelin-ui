@@ -130,8 +130,8 @@ into view; there is no imperative API.
 - **Instances are isolated.** Each sheet has its own id, listeners, and correction
   memory. Two sheets never share state.
 - **Rendering errors propagate.** There is no internal error boundary.
-- **Development diagnostics only.** Name problems (`console.error`) and non-finite
-  heights (`console.warn`) are reported once per distinct value in development builds
+- **Development diagnostics only.** Name problems (kit `logger.error`) and non-finite
+  heights (kit `logger.warn`) are reported once per distinct value in development builds
   and never in production. The component never throws for any prop combination.
 
 ---
@@ -191,7 +191,7 @@ keyboard resize, to viewport resize, and to `defaultBottomSheetHeight`.
    called after commit (never during render). Store it.
 4. **Non-finite fallback.** A `height` of `NaN`, `Infinity`, or `-Infinity` is not
    clamped; it is replaced by `defaultBottomSheetHeight(V)`, which is then reported. A
-   `console.warn` fires once per distinct offending value in development.
+   kit `logger.warn` fires once per distinct offending value in development.
 5. **Viewport resize while open** re-clamps and reports if the rendered height changed.
    The listener exists only while `open` is `true`.
 6. **Reported once per pair.** The same `(incoming, clamped)` pair is never reported

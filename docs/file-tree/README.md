@@ -82,7 +82,7 @@ export function ProjectFiles() {
 Three things that snippet does that every consumer must do:
 
 - **`aria-label`** (or `aria-labelledby`) — the tree needs an accessible name. The type
-  requires one of the two; in development, a blank name logs a `console.error`.
+  requires one of the two; in development, a blank name logs a kit `logger.error`.
 - **Controlled selection** — `selectedPath` is what the tree shows, `onSelectedPathChange`
   is how the tree asks you to change it. Store it yourself.
 - **A sized host** — the outer `h-96` plus `className="h-full"` on the tree.

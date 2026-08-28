@@ -89,9 +89,10 @@ tree model handle; there is no imperative API.
 - A changed row exposes its state as `data-item-git-status="modified"` and carries an
   accessible description in addition to the visual mark, so change state is not conveyed
   by colour alone.
-- Development-only diagnostics, both `console.error`, neither throws:
-  - `[FileTree] Accessible name required: provide a nonblank aria-label or aria-labelledby.`
-  - `[FileTree] aria-labelledby="<id>" does not match any element in the document.`
+- Development-only diagnostics, both emitted at error level through the kit `logger`
+  (`@openzeppelin/ui-utils`), neither throws:
+  - `[ERROR][FileTree] Accessible name required: provide a nonblank aria-label or aria-labelledby.`
+  - `[ERROR][FileTree] aria-labelledby="<id>" does not match any element in the document.`
 
   Production builds skip both checks and mount regardless.
 
@@ -153,7 +154,28 @@ internals from CSS.
 }
 ```
 
-ESM and CJS are both published. `import { FileTree } from '@openzeppelin/ui-components/file-tree'`
-and `const { FileTree } = require('@openzeppelin/ui-components/file-tree')` resolve to
-the respective build. In both, `@pierre/trees` stays an external import — it is never
-inlined into the kit bundle, which is why your own install of it is required.
+ESM and CJS builds are both published, and in both `@pierre/trees` stays an external
+import — it is never inlined into the kit bundle, which is why your own install of it
+is required.
+
+### This subpath is ESM-only at runtime
+
+Unlike the rest of the kit, `require('@openzeppelin/ui-components/file-tree')` does not
+work under Node. The CJS build exists and resolves, but it re-exports `@pierre/trees`,
+which publishes an `import` condition only:
+
+```jsonc
+// @pierre/trees/package.json (excerpt)
+"type": "module",
+"exports": {
+  "./react": { "types": "./dist/react/index.d.ts", "import": "./dist/react/index.js" }
+}
+```
+
+So a `require()` of the CJS build fails in Node with `ERR_PACKAGE_PATH_NOT_EXPORTED`
+when it reaches the peer. Bundler consumers (Vite, webpack, Next.js) are unaffected —
+they resolve the `import` condition regardless of the importing file's format, which is
+the only way this subpath is consumed in practice.
+
+Use `import` for this subpath. Every other kit entry point, including `./code-view`,
+honours both conditions under Node.

@@ -71,7 +71,7 @@ To put a title or notice beside the close button, add `header={<…/>}`; see
 Four things that snippet does that every consumer must do:
 
 - **Names the region.** Exactly one of `aria-label` or `aria-labelledby`. The type
-  requires one; in development, a blank or doubled name logs a `console.error`. The kit
+  requires one; in development, a blank or doubled name logs a kit `logger.error`. The kit
   never invents a title.
 - **Owns `open`.** The sheet calls `onOpenChange(false)` from its close button and from
   Escape pressed inside it. It never opens itself and never closes on outside click.
@@ -176,7 +176,7 @@ common mistakes.
   `aria-modal`, no `role="dialog"`. Use `Dialog` for modal work. Do not wrap the sheet in
   a `Dialog`, set `aria-modal` on it, or apply `inert` to the page to fake modality.
 - **Accessible name is on you.** Exactly one of `aria-label` / `aria-labelledby`. A
-  missing, blank, or doubled name logs a `console.error` in development and mounts an
+  missing, blank, or doubled name logs a kit `logger.error` in development and mounts an
   unnamed region in production. An `aria-labelledby` id that matches no element also
   logs; the attribute is left as-is.
 - **Store the reported height.** `onHeightChange` delivers the clamped value that is on

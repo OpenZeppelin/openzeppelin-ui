@@ -132,7 +132,7 @@ What to notice:
   missing.
 - `aria-labelledby` points at a heading that is in the document when the tree mounts. If
   the heading rendered later or under a different `id`, development would log
-  `[FileTree] aria-labelledby="preview-title" does not match any element in the document.`
+  `[ERROR][FileTree] aria-labelledby="preview-title" does not match any element in the document.`
 - The flex column: `flex-1` gives the tree the remaining height, `min-h-0` lets it
   scroll instead of pushing the column taller.
 
