@@ -70,12 +70,15 @@ describe('header slot: present', () => {
     expect(screen.getByText('contracts/lib.rs')).not.toBeNull();
 
     const region = getSheetRegion();
-    const rows = Array.from(region?.children ?? []);
+    const regionChildren = Array.from(region?.children ?? []);
+    const chrome = region?.querySelector('[data-slot="bottom-sheet-chrome"]');
+    const chromeRows = Array.from(chrome?.children ?? []);
     const headerRow = slot?.parentElement;
     const bodyRow = screen.getByText('Body content').parentElement;
-    expect(rows.indexOf(getSheetSeparator() as Element)).toBe(0);
-    expect(rows.indexOf(headerRow as Element)).toBe(1);
-    expect(rows.indexOf(bodyRow as Element)).toBe(2);
+    expect(regionChildren.indexOf(getSheetSeparator() as Element)).toBe(0);
+    expect(regionChildren.indexOf(chrome as Element)).toBe(1);
+    expect(chromeRows.indexOf(headerRow as Element)).toBe(0);
+    expect(chromeRows.indexOf(bodyRow as Element)).toBe(1);
     // The header lives outside the scroll container.
     expect(bodyRow?.contains(slot)).toBe(false);
     restore();
