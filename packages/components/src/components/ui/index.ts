@@ -2,6 +2,14 @@ export * from './accordion';
 export * from './address-display';
 export * from './alert';
 export * from './banner';
+export * from './bottom-sheet';
+export {
+  BOTTOM_SHEET_DEFAULT_HEIGHT_RATIO,
+  defaultBottomSheetHeight,
+  type BottomSheetHeightPx,
+  type BottomSheetSide,
+  type DefaultBottomSheetHeightOptions,
+} from './bottom-sheet-height';
 export * from './button';
 export * from './calendar';
 export * from './card';

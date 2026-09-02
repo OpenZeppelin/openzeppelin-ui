@@ -25,6 +25,58 @@ This package requires React 19:
 pnpm add react react-dom
 ```
 
+### Optional: file tree subpath
+
+`@openzeppelin/ui-components/file-tree` wraps `@pierre/trees` behind a kit-owned API. The tree library is an **optional peer** — main-entry consumers do not install it. File-tree consumers must pin the exact version:
+
+```bash
+pnpm add @openzeppelin/ui-components
+pnpm add @pierre/trees@1.0.0-beta.6
+```
+
+```tsx
+import { FileTree } from '@openzeppelin/ui-components/file-tree';
+```
+
+Importing the file-tree subpath without `@pierre/trees` installed fails at module resolution with a diagnostic that names the missing package. The component also fills its host rather than setting its own height, so mount it under a sized parent.
+
+Full documentation: [docs/file-tree](../../docs/file-tree/README.md).
+
+### Optional: code view subpath
+
+`@openzeppelin/ui-components/code-view` renders read-only, syntax-highlighted source. It is a **subpath-only** export: the main entry does not include it, so applications that never display code never bundle the highlighter. `lowlight` and `highlight.js` are direct dependencies of this package; nothing extra to install.
+
+```tsx
+import { CodeView } from '@openzeppelin/ui-components/code-view';
+
+<CodeView source={cargoToml} language="toml" aria-label="Cargo.toml source code" />;
+```
+
+`language` is a closed union: `'rust' | 'toml' | 'shell' | 'json' | 'markdown' | 'plaintext'`. Anything else renders as plain text via `'plaintext'`. Token spans use standard `hljs-*` class names, colored by kit tokens by default. Full docs: [`docs/code-view/`](../../docs/code-view/README.md).
+
+### Bottom sheet (main entry)
+
+`BottomSheet` is a **non-modal**, resizable panel anchored to the bottom of the viewport, exported from the main entry. It is not a dialog: it does not move focus, trap Tab, lock scrolling, or close on outside click, so the page behind it stays fully usable. Use `Dialog` for modal work.
+
+```tsx
+import { BottomSheet, defaultBottomSheetHeight } from '@openzeppelin/ui-components';
+
+const [open, setOpen] = useState(false);
+const [height, setHeight] = useState(() => defaultBottomSheetHeight(window.innerHeight));
+
+<BottomSheet
+  aria-label="Generated project preview"
+  open={open}
+  onOpenChange={setOpen}
+  height={height}
+  onHeightChange={setHeight}
+>
+  {preview}
+</BottomSheet>;
+```
+
+All four state props are required (controlled-only), and exactly one of `aria-label` / `aria-labelledby`. The sheet clamps `height` to `[160px, viewport]` and reports the clamped value through `onHeightChange`; store what it reports. Full docs: [`docs/bottom-sheet/`](../../docs/bottom-sheet/README.md).
+
 ## Overview
 
 This package provides a comprehensive set of shared React UI components. It serves as the central library for all common UI elements, including basic primitives, form field components, and their associated utilities.

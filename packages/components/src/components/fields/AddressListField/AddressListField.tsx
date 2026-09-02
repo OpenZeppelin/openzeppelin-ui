@@ -54,6 +54,31 @@ export interface AddressListFieldProps {
   allowModeToggle?: boolean;
   /** Optional UI labels to override {@link DEFAULT_ADDRESS_LIST_FIELD_LABELS}. */
   labels?: Partial<AddressListFieldLabels>;
+  /**
+   * Identifies this field in the DOM. The field renders a cluster rather than a
+   * single control, so the id lands in two places:
+   *
+   * - as `id` on the **active entry control** — the single-mode address input or
+   *   the bulk-mode textarea, whichever is rendered — matching how every other
+   *   kit field places its `id`. Only one entry control exists at a time, so the
+   *   id never duplicates across modes.
+   * - as `data-field-id` on the field's **root element**, so the surrounding
+   *   controls that carry no id of their own (Add, the entry-mode toggle, each
+   *   row's remove button) still resolve to this field via
+   *   `element.closest('[data-field-id]')`.
+   *
+   * Consumers reading `document.activeElement.id` therefore see this id only
+   * while the entry control holds focus — and never while the field is
+   * {@link disabled} or at {@link maxItems}, since the entry control is disabled
+   * (and so unfocusable) in both cases. Resolving through `closest` covers the
+   * whole cluster in every state.
+   *
+   * Defaults to a generated id on the active entry control (the same generated
+   * value in either mode). The generated id is not a stable contract — pass
+   * this whenever you need to identify the field. `data-field-id` is set only
+   * when this prop is passed, so omitting it leaves the root unmarked.
+   */
+  id?: string;
 }
 
 /**
@@ -76,8 +101,10 @@ export function AddressListField({
   defaultEntryMode = 'single',
   allowModeToggle = true,
   labels: labelOverrides,
+  id,
 }: AddressListFieldProps) {
-  const fieldId = useId();
+  const generatedId = useId();
+  const resolvedId = id ?? generatedId;
   const labels = useMemo(() => resolveAddressListFieldLabels(labelOverrides), [labelOverrides]);
   const [entryMode, setEntryMode] = useState<AddressListEntryMode>(defaultEntryMode);
   const resolvedBulkPlaceholder = bulkPlaceholder ?? placeholder;
@@ -121,7 +148,7 @@ export function AddressListField({
   );
 
   return (
-    <div className={cn('space-y-3', className)}>
+    <div className={cn('space-y-3', className)} data-field-id={id}>
       {label ? <Label className="text-sm font-medium leading-none">{label}</Label> : null}
       {helperText && entryMode === 'single' ? (
         <p className="text-sm leading-relaxed text-muted-foreground">{helperText}</p>
@@ -129,7 +156,7 @@ export function AddressListField({
 
       {entryMode === 'single' ? (
         <AddressListSingleEntry
-          fieldId={fieldId}
+          inputId={resolvedId}
           value={value}
           onAdd={handleAddSingle}
           placeholder={placeholder}
@@ -141,7 +168,7 @@ export function AddressListField({
         />
       ) : (
         <AddressListBulkEntry
-          fieldId={fieldId}
+          inputId={resolvedId}
           value={value}
           onAdd={handleAddBulk}
           placeholder={resolvedBulkPlaceholder}

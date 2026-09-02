@@ -59,3 +59,8 @@ packages/cli/autoresearch/
 # Development artifacts (maintained out-of-tree)
 /artifacts/
 .maestri/
+
+# Browser-test run output. No suite compares against these, so they are failure
+# captures from the last local `pnpm test:browser`, not visual baselines.
+.vitest-attachments/
+__screenshots__/

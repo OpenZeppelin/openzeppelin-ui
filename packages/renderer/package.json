@@ -91,6 +91,6 @@
     "@vitejs/plugin-react": "^4.7.0",
     "jsdom": "^26.1.0",
     "typescript": "^5.8.3",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.11"
   }
 }

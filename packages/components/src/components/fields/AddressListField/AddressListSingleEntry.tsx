@@ -13,7 +13,8 @@ interface AddressListSingleDraftForm {
 }
 
 export interface AddressListSingleEntryProps {
-  fieldId: string;
+  /** DOM id placed on the address input itself. */
+  inputId: string;
   value: readonly string[];
   onAdd: (address: string) => void;
   placeholder: string;
@@ -27,7 +28,7 @@ export interface AddressListSingleEntryProps {
 
 /** Single-address entry — inline {@link AddressField} with an Add button (address-book aware). */
 export function AddressListSingleEntry({
-  fieldId,
+  inputId,
   value,
   onAdd,
   placeholder,
@@ -69,7 +70,7 @@ export function AddressListSingleEntry({
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <AddressField
-            id={`address-list-single-${fieldId}`}
+            id={inputId}
             name="draft"
             label=""
             placeholder={placeholder}
