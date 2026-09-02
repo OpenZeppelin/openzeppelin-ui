@@ -64,7 +64,7 @@
   "devDependencies": {
     "@types/node": "^22.19.15",
     "typescript": "^5.8.3",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.11"
   },
   "engines": {
     "node": ">=22.13.0"
