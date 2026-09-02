@@ -73,8 +73,10 @@ export interface AddressListFieldProps {
    * (and so unfocusable) in both cases. Resolving through `closest` covers the
    * whole cluster in every state.
    *
-   * Defaults to a generated id; the generated inner ids are not a stable
-   * contract, so pass this whenever you need to identify the field.
+   * Defaults to a generated id on the active entry control (the same generated
+   * value in either mode). The generated id is not a stable contract — pass
+   * this whenever you need to identify the field. `data-field-id` is set only
+   * when this prop is passed, so omitting it leaves the root unmarked.
    */
   id?: string;
 }
@@ -102,8 +104,7 @@ export function AddressListField({
   id,
 }: AddressListFieldProps) {
   const generatedId = useId();
-  const singleEntryId = id ?? `address-list-single-${generatedId}`;
-  const bulkEntryId = id ?? `address-list-bulk-${generatedId}`;
+  const resolvedId = id ?? generatedId;
   const labels = useMemo(() => resolveAddressListFieldLabels(labelOverrides), [labelOverrides]);
   const [entryMode, setEntryMode] = useState<AddressListEntryMode>(defaultEntryMode);
   const resolvedBulkPlaceholder = bulkPlaceholder ?? placeholder;
@@ -155,7 +156,7 @@ export function AddressListField({
 
       {entryMode === 'single' ? (
         <AddressListSingleEntry
-          inputId={singleEntryId}
+          inputId={resolvedId}
           value={value}
           onAdd={handleAddSingle}
           placeholder={placeholder}
@@ -167,7 +168,7 @@ export function AddressListField({
         />
       ) : (
         <AddressListBulkEntry
-          inputId={bulkEntryId}
+          inputId={resolvedId}
           value={value}
           onAdd={handleAddBulk}
           placeholder={resolvedBulkPlaceholder}

@@ -241,4 +241,33 @@ describe('AddressListField', () => {
       expect(onChange).toHaveBeenCalledWith(['anything-goes']);
     });
   });
+
+  it('puts a consumer id on the active entry control and the root in either mode', async () => {
+    const { rerender } = render(
+      <AddressListField id="roles-minter" value={[]} onChange={vi.fn()} {...copyProps} />
+    );
+    const root = document.querySelector('[data-field-id="roles-minter"]');
+    expect(root).not.toBeNull();
+    expect(screen.getByRole('textbox').id).toBe('roles-minter');
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /bulk paste/i }));
+    });
+    expect(document.querySelector('[data-field-id="roles-minter"]')).toBe(root);
+    expect(screen.getByRole('textbox').id).toBe('roles-minter');
+
+    rerender(<AddressListField value={[]} onChange={vi.fn()} {...copyProps} />);
+    expect(document.querySelector('[data-field-id]')).toBeNull();
+  });
+
+  it('uses one generated entry id across single and bulk when id is omitted', async () => {
+    render(<AddressListField value={[]} onChange={vi.fn()} {...copyProps} />);
+    const generated = screen.getByRole('textbox').id;
+    expect(generated.length).toBeGreaterThan(0);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /bulk paste/i }));
+    });
+    expect(screen.getByRole('textbox').id).toBe(generated);
+  });
 });
