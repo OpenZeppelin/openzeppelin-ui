@@ -8,10 +8,20 @@
   range (`startLine`, `endLine`, optional `id`). The pane wraps those lines in a `<mark>`
   and scrolls it into view once. Re-reveal the same lines by changing `id`; a new object
   with the same numbers does nothing. Invalid ranges (zero, negative, non-integer,
-  inverted, past the end, or on empty `source`) are silent no-ops, never clamped. No
-  line-number gutter is added. See
-  [Pattern 5](./integration-guide.md#pattern-5-reveal-a-line-range).
+  inverted, past the end, or on empty `source`) are silent no-ops, never clamped.
+  Revealing a range does not turn line numbers on; that is `showLineNumbers`, and the two
+  compose. See [Pattern 5](./integration-guide.md#pattern-5-reveal-a-line-range).
 - Type `CodeViewReveal`, exported from `@openzeppelin/ui-components/code-view`.
+- `showLineNumbers?: boolean` on `CodeViewProps`, default `false`: a 1-indexed
+  line-number column to the left of the code. The numbers are CSS generated content, so
+  they never appear in `textContent`, cannot be copied with a selection of the code, and
+  are hidden from assistive technology. The row count is the same line count `reveal`
+  validates against, so a file ending in a newline gets a numbered empty final line that
+  is also a revealable range. Colour them with the `--code-view-line-number-color`
+  custom property on any ancestor; it falls back to the kit's muted-foreground token, and
+  it is the only supported hook — the column's classes and attributes are private. The
+  column assumes the pane's own non-wrapping layout, which is the only mode it ships. See
+  [Pattern 6](./integration-guide.md#pattern-6-show-line-numbers).
 - `CODE_VIEW_LANGUAGES` (the readonly list of `CodeViewLanguage` members) and the
   `isCodeViewLanguage(value: string)` type guard, for narrowing a language id that came
   from data rather than a literal.
@@ -26,11 +36,17 @@
 
 ### Changed
 
-- Nothing observable. With `decorateToken` and `reveal` omitted, rendered output is
-  identical to the previous release for every language, including the plaintext
-  fallback. Tokenization is still memoized on `source` and `language` only; changing
-  `reveal` does not re-tokenize. No new subpath, dependency, or
-  peer; the main entry still exports nothing from this feature.
+- Nothing observable. With `decorateToken`, `reveal`, and `showLineNumbers` omitted,
+  rendered output is identical to the previous release for every language, including the
+  plaintext fallback. Tokenization is still memoized on `source` and `language` only;
+  changing `reveal` does not re-tokenize, and neither does turning the gutter on. No new
+  subpath, dependency, or peer; the main entry still exports nothing from this feature.
+- Within the unreleased feature, reveal now leaves two lines of context above the range
+  instead of putting its first line flush against the top edge. Top alignment is
+  unchanged and deliberate — it is what gives the range the pane instead of the half a
+  centred first line left it — and the gap is a fixed two lines rather than a proportion,
+  so a range that fits the pane less those two lines is still brought fully into view.
+  It is expressed in `lh` units, so it stays two lines of context at any font size.
 
 ### Guarantees worth knowing
 
@@ -62,6 +78,11 @@
 - **Consumers who want to jump to lines:** pass `reveal={{ startLine, endLine }}`
   together with the `source` it belongs to, and change `id` when the same lines should
   scroll into view again. See [`CodeViewReveal`](./api-reference.md#codeviewreveal).
+- **Consumers who want line numbers:** add `showLineNumbers`. Nothing else changes, and
+  it is worth pairing with `reveal` — a reader jumped to line 207 in a pane with no
+  numbers has no way to see that it is line 207. If you already theme the pane's colours
+  through a scoped wrapper, add `--code-view-line-number-color` to it. See
+  [Pattern 6](./integration-guide.md#pattern-6-show-line-numbers).
 - **New decorator authors:** read [`CodeViewTokenDecorator`](./api-reference.md#codeviewtokendecorator)
   for the return contract, then follow [Pattern 4](./integration-guide.md#pattern-4-decorate-tokens).
   Only `undefined` / `null` mean "keep the default"; add one test asserting

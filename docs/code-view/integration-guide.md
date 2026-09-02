@@ -1,6 +1,6 @@
 # CodeView — Integration Guide
 
-Five patterns cover the ways teams use `CodeView`, followed by the mistakes we expect
+Six patterns cover the ways teams use `CodeView`, followed by the mistakes we expect
 people to make and how to avoid them. Every snippet imports from the subpath and
 type-checks against the current `CodeViewProps`.
 
@@ -9,6 +9,7 @@ type-checks against the current `CodeViewProps`.
 - [Pattern 3: Apply a highlight.js theme](#pattern-3-apply-a-highlightjs-theme)
 - [Pattern 4: Decorate tokens](#pattern-4-decorate-tokens)
 - [Pattern 5: Reveal a line range](#pattern-5-reveal-a-line-range)
+- [Pattern 6: Show line numbers](#pattern-6-show-line-numbers)
 - [Large files](#large-files)
 - [Common mistakes](#common-mistakes)
 
@@ -341,12 +342,24 @@ export function RevealedPreview({
 
 Lines are 1-indexed and the range is inclusive: `{ startLine: 12, endLine: 15 }` marks
 four lines. When `range` becomes defined, or its numbers change, the pane wraps those
-lines in a `<mark>` and scrolls the mark to the center of the pane. When `range` is
-`undefined`, there is no mark and the pane is exactly the pane from Pattern 1.
+lines in a `<mark>` and scrolls the first line of the range near the top of the visible
+area, two lines short of the edge. When `range` is `undefined`, there is no mark and the
+pane is exactly the pane from Pattern 1.
 
-The pane has no line-number gutter, and reveal does not add one. The range is shown by
-marking the lines in place. That is a deliberate continuation of `CodeView`'s original
-decision not to render line numbers, not a gap.
+Top-aligned rather than centred, and that matters for the size of range you can pass.
+A range that fits in the pane is brought fully into view; a range taller than the pane
+starts near the top with the rest below the fold. You do not have to keep ranges short to
+keep them visible, and you do not need to know the pane's height to call this correctly.
+
+The two lines above the range are context, not padding: without them the first revealed
+line sits flush against the top edge and nothing on screen says the file continues above
+it. The gap is fixed and expressed in lines, so it follows your font size, and there is
+no prop to change it — the same reason there is no alignment prop.
+
+Reveal does not turn on line numbers. The range is shown by marking the lines in place,
+and a pane that did not ask for a gutter does not grow one because a range was revealed.
+If you want the reader to see *which* lines they landed on, that is
+[Pattern 6](#pattern-6-show-line-numbers), and the two compose.
 
 ### Re-reveal the same lines with `id`
 
@@ -525,24 +538,97 @@ partly on a revealed line and partly not, and your decorator left it alone, the 
 slices the run and marks only the characters inside the range. If your decorator
 returned a custom node for that run, the pane does not take your node apart; it wraps the
 whole node, so the highlight may reach a few characters beyond the line boundary. That is
-a bounded over-highlight, it affects only the background paint, and the text is exactly
+a bounded over-highlight, it affects only the highlight paint, and the text is exactly
 what it would have been without either feature. If it bothers you in practice, return
 decorations that do not span line breaks.
 
 ### Style the mark
 
-The mark takes a translucent background from the kit's selected-color token and inherits
-its text color, so a revealed keyword stays keyword-colored. To change it, scope a rule
-under a class you pass through `className`, as in
+The mark takes a translucent background from the kit's selected-color token, underlines
+the revealed run in that same color, and inherits its text color, so a revealed keyword
+stays keyword-colored. The underline is the part that carries visibility: a range becomes
+one `<mark>` per token run, so a border would repeat at every token boundary, while an
+underline joins across the runs and draws once per revealed line. The wash is kept light
+so it does not eat the contrast of the syntax colors under it.
+
+To change either, scope a rule under a class you pass through `className`, as in
 [Pattern 3](#pattern-3-apply-a-highlightjs-theme):
 
 ```css
-.my-code-theme .hljs mark { background-color: rgb(250 204 21 / 0.25); }
+.my-code-theme .hljs mark {
+  background-color: rgb(250 204 21 / 0.25);
+  text-decoration: none; /* the kit's underline is on the mark, so opt out explicitly */
+}
 ```
 
 Do not rely on any attribute the kit's mark may carry to distinguish it from a `<mark>`
 your decorator returned; that is an internal hook and not part of the API. If you need
 your own marks styled differently, give them a class of your own.
+
+## Pattern 6: Show line numbers
+
+Off by default. Pass the prop and the pane grows a 1-indexed column to the left of the
+code:
+
+```tsx
+<CodeView source={source} language="rust" showLineNumbers className="h-96" />
+```
+
+It composes with everything else. The pairing it exists for is `reveal`: jumping a reader
+to lines 201–218 is only half the job if the pane cannot tell them that is where they
+are.
+
+```tsx
+<CodeView
+  source={source}
+  language="rust"
+  showLineNumbers
+  reveal={{ startLine: 201, endLine: 218, id: hitId }}
+  className="h-96"
+/>
+```
+
+### The numbers are not text
+
+Each row is an empty element and its digits are painted by a `::before` rule. Three
+things follow, and they are the reason for the design rather than side effects of it:
+
+- **Copying code cannot pick up a number.** Generated content is not part of a selection
+  in any engine, so a user selecting a block and copying it gets source characters only.
+  A `user-select: none` rule would have been the easy version of this and is not reliable
+  across browsers; this is.
+- **`textContent` is still exactly `source`.** Both `code.textContent` and
+  `pre.textContent`. Anything you already do that reads the pane's text is unaffected.
+- **Assistive technology never hears them.** The column is `aria-hidden` and the `<pre>`
+  is still the only tab stop.
+
+### Theme them with the rest of your palette
+
+The numbers read from a custom property, so you set them wherever you set the rest of
+your code theme — including the scoped wrapper from
+[Pattern 3](#pattern-3-apply-a-highlightjs-theme):
+
+```css
+.my-code-theme {
+  --code-view-line-number-color: #5c6370;
+}
+```
+
+Unset, they use the kit's muted-foreground token. This property is the supported hook;
+the column's own classes and attributes are private and will change without notice.
+
+### What the column assumes
+
+Rows are one logical line tall, and the code is `whitespace-pre`, so row `n` sits on code
+line `n` exactly and a long line scrolls sideways underneath a column pinned to the left
+edge. If your own stylesheet forces the `<code>` element to soft-wrap, that assumption
+breaks and the column drifts out of step — one wrapped line is several visual lines but
+still one row. The pane exposes no wrapping option for this reason.
+
+One more thing worth expecting rather than discovering: a file that ends in a newline has
+an empty final line, and it gets a number. That is deliberate and matches what an editor
+shows. It is also the line count `reveal` validates against, so a range naming that last
+line is valid rather than a silent no-op.
 
 ## Large files
 
@@ -673,8 +759,15 @@ For the common case, do nothing special.
   exists), or the in-between frame marks the wrong lines.
 
 - **Expecting reveal to add line numbers.**
-  It does not. The pane has no gutter and reveal keeps it that way; the range is shown by
-  marking the lines in place.
+  It does not. Reveal marks the lines in place; the gutter is a separate opt-in prop.
+  Pass `showLineNumbers` alongside `reveal` if you want the reader to be able to read the
+  number off the screen ([Pattern 6](#pattern-6-show-line-numbers)).
+
+- **Reading line numbers back out of the DOM.**
+  There is nothing to read. The numbers are CSS generated content, so they are absent
+  from `textContent` and from any selection. That is the point — it is what stops a user
+  copying a snippet and pasting line numbers with it. Compute the numbers you need from
+  `source`, the same way `reveal` does.
 
 - **Expecting reveal to move focus, or adding focus management around it.**
   Reveal scrolls; it never calls `focus()`. A user typing in a form elsewhere on the

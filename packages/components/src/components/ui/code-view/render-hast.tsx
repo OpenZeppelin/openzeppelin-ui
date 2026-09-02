@@ -193,6 +193,31 @@ function renderTextLeaf(
   return applyRevealWrap(leafContent, node.value, token.offset, options.revealOffsets);
 }
 
+/**
+ * Key a text leaf that did not render as a plain string.
+ *
+ * Text leaves are siblings inside the `children.map(...)` array below, so React
+ * requires a key on any of them that renders as an element. The kit's own default
+ * leaf is the raw string, and a string in an array needs no key — which is why the
+ * missing key only ever surfaced for a grammar whose leaves a consumer actually
+ * decorated. A `decorateToken` return value and a reveal wrap are both elements,
+ * and React attributes the warning to `CodeView`.
+ *
+ * The path is already unique among siblings, so it is a stable key across renders:
+ * the same leaf keeps its identity while `source` is regenerated on every keystroke.
+ *
+ * A `Fragment` wrapper rather than `cloneElement`, so the consumer's node reaches
+ * the DOM exactly as it was returned (SF-10 INV-1, SF-13 INV-2) and the kit never
+ * rewrites a key the consumer set for its own reasons.
+ */
+function keyTextLeaf(leaf: React.ReactNode, path: readonly number[]): React.ReactNode {
+  if (typeof leaf === 'string') {
+    return leaf;
+  }
+
+  return <React.Fragment key={path.join('.')}>{leaf}</React.Fragment>;
+}
+
 function renderHastChildren(
   children: Root['children'],
   path: readonly number[],
@@ -213,7 +238,7 @@ function renderHastNode(
   parentSpanClassName?: string
 ): React.ReactNode {
   if (isTextNode(node)) {
-    return renderTextLeaf(node, options, state, parentSpanClassName);
+    return keyTextLeaf(renderTextLeaf(node, options, state, parentSpanClassName), path);
   }
 
   if (isSpanElement(node)) {

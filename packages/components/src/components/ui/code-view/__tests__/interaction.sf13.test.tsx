@@ -112,8 +112,16 @@ describe('INV-11: the first kit mark is the scroll target', () => {
     expect(decoratorMark?.hasAttribute('data-code-view-reveal')).toBe(false);
     expect(calledOn[0], 'INV-11: first kit mark is the scroll target').toBe(kitMarks[0]);
     expect(calledOn[0]).not.toBe(decoratorMark);
+    // INV-11 restated, not relaxed: the first kit mark is still the sole scroll
+    // target, and it is aligned to the START of the pane. `block: 'center'` put
+    // that first line at the pane's midpoint, so only half the pane height was
+    // left for the rest of the range and anything taller ran off the bottom
+    // (measured in a consuming app: 56% of an 18-line range visible, 29% of a
+    // 34-line range). `start` gives the range the full pane height,
+    // so a range that fits is fully visible and one that cannot fit starts at
+    // the top. Changing this back to 'center' reopens QA A3.
     expect(scroll.mock.calls[0]?.[0]).toEqual({
-      block: 'center',
+      block: 'start',
       inline: 'nearest',
       behavior: 'instant',
     });
@@ -131,13 +139,28 @@ describe('INV-11: the first kit mark is the scroll target', () => {
     scroll.mockRestore();
   });
 
-  it('does not add a line-number gutter or line-number text', () => {
+  /**
+   * INV-11 restated for SF-14, with every assertion kept.
+   *
+   * The statement used to be "the pane has no line-number gutter" full stop. It is now
+   * "reveal does not add one" — the gutter is a separate opt-in prop, and asking for a
+   * range to be revealed still never conjures a column the consumer did not request.
+   * That is the part of INV-11 reveal owns, and it is what this case pins: the reveal
+   * arguments below are the only props passed, and nothing numbered appears.
+   *
+   * The opt-in side is `line-numbers.sf14.test.tsx`, which asserts the mirror property:
+   * with `showLineNumbers`, the numbers exist and still contribute no characters to
+   * `textContent`, so this file's last assertion holds in both modes for the same
+   * reason — the numbers are generated content, never text nodes.
+   */
+  it('does not add a line-number gutter or line-number text when only reveal is set', () => {
     const { container } = renderCodeView({
       source: THREE_LINE_RUST,
       language: 'rust',
       reveal: { startLine: 2, endLine: 2 },
     });
     expect(container.querySelector('[class*="gutter"]')).toBeNull();
+    expect(container.querySelector('[data-code-view-gutter]')).toBeNull();
     expect(container.querySelector('[id="n2"]')).toBeNull();
     expect(container.textContent).not.toMatch(/^\s*2\s/);
     expect(getScrollRegion(container).textContent).toBe(THREE_LINE_RUST);

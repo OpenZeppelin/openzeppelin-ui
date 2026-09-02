@@ -7,6 +7,7 @@ export {
   BOTTOM_SHEET_DEFAULT_HEIGHT_RATIO,
   defaultBottomSheetHeight,
   type BottomSheetHeightPx,
+  type BottomSheetSide,
   type DefaultBottomSheetHeightOptions,
 } from './bottom-sheet-height';
 export * from './button';

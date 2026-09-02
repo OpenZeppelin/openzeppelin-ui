@@ -16,10 +16,17 @@ export interface RevealOffsets {
 }
 
 /**
- * Line count for reveal validity.
+ * Line count for reveal validity, and the row count of the line-number gutter.
  * Empty source is 0 lines. Otherwise one plus the number of U+000A characters.
+ *
+ * Module-private to the package, exported so the gutter cannot invent a second
+ * line count. The gutter numbers exactly the lines `reveal` can address, which is
+ * the whole reason both callers share this function rather than each counting.
+ * A source ending in `\n` therefore gets a final row for the empty last line, the
+ * way an editor does — and that line is addressable, so `{ startLine: n, endLine: n }`
+ * on it is a valid range, not a no-op.
  */
-function countSourceLines(source: string): number {
+export function countSourceLines(source: string): number {
   if (source.length === 0) {
     return 0;
   }

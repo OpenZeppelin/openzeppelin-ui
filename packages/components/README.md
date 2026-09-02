@@ -64,7 +64,13 @@ import { BottomSheet, defaultBottomSheetHeight } from '@openzeppelin/ui-componen
 const [open, setOpen] = useState(false);
 const [height, setHeight] = useState(() => defaultBottomSheetHeight(window.innerHeight));
 
-<BottomSheet aria-label="Generated project preview" open={open} onOpenChange={setOpen} height={height} onHeightChange={setHeight}>
+<BottomSheet
+  aria-label="Generated project preview"
+  open={open}
+  onOpenChange={setOpen}
+  height={height}
+  onHeightChange={setHeight}
+>
   {preview}
 </BottomSheet>;
 ```

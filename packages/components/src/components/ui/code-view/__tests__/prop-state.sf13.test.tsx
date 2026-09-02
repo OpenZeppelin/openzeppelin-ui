@@ -45,6 +45,7 @@ const PRODUCT_FILES = [
   'highlight.ts',
   'token-styles.ts',
   'reveal.ts',
+  'line-numbers.tsx',
 ] as const;
 
 const INVALID_REVEALS: ReadonlyArray<{ label: string; reveal: CodeViewReveal }> = [
@@ -69,16 +70,44 @@ describe('INV-4: public API stays one optional prop and one type', () => {
     expect(entrySource).not.toContain('forwardRef');
   });
 
-  it('does not grow a handle, gutter, or second reveal API on product modules', () => {
+  /**
+   * INV-4 restated, not relaxed.
+   *
+   * The original assertion here was `types).not.toMatch(/\blineNumbers\b/)`, standing
+   * for SF-3 design decision 8 and SF-13's "out of scope: a visible line-number gutter,
+   * `lineNumbers` prop, or CSS counter". SF-14 reverses that one item on the consumer's
+   * request: a reveal that lands you on line 207 in a pane with no numbers cannot tell
+   * you it is line 207, which is the whole point of jumping there.
+   *
+   * What INV-4 was actually protecting survives and is asserted below: no handle, no
+   * imperative reveal, no second alignment API, and — the part that matters most — the
+   * gutter is opt-in, so a consumer that does not ask for it gets the DOM it had.
+   *
+   * Note the original regex would have gone on passing untouched: `showLineNumbers`
+   * contains no word boundary before `lineNumbers`, and the dist scan's
+   * `toContain('lineNumbers')` is case-sensitive against `LineNumbers`. Leaving them in
+   * place would have left two assertions that read as a ban on a feature that ships.
+   */
+  it('does not grow a handle or a second reveal API, and keeps the gutter opt-in', () => {
     const codeView = readFileSync(join(MODULE_DIR, 'CodeView.tsx'), 'utf-8');
     const types = readFileSync(join(MODULE_DIR, 'types.ts'), 'utf-8');
     expect(codeView).not.toMatch(/useImperativeHandle/);
     expect(codeView).not.toMatch(/forwardRef/);
-    expect(types).not.toMatch(/\blineNumbers\b/);
     expect(types).not.toMatch(/\bhighlightClassName\b/);
     expect(types).not.toMatch(/\bscrollBehavior\b/);
     expect(types).not.toMatch(/\bIfOutsideViewport\b/);
     expect(codeView).not.toMatch(/reveal\s*\(/);
+
+    expect(types, 'the gutter is one optional boolean, not an options object').toMatch(
+      /readonly showLineNumbers\?: boolean;/
+    );
+    expect(codeView, 'INV-4: off unless asked for, so an existing consumer sees no change').toMatch(
+      /showLineNumbers = false/
+    );
+    expect(
+      types,
+      'INV-4: reveal alignment stays the pane\u2019s business, gutter or not'
+    ).not.toMatch(/\bcontextLines\b|\bscrollMargin\b|\brevealBlock\b/);
   });
 
   it.each(PRODUCT_FILES)('keeps %s free of Stellar/RWA/field-impact vocabulary', (fileName) => {

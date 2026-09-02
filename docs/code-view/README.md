@@ -14,7 +14,8 @@ anything else renders as plain text. An optional `decorateToken` callback lets y
 pieces of the highlighted text in your own elements (links, marks, tooltips) without
 the component ever changing the text itself. An optional `reveal` prop marks a line
 range in the source and scrolls it into view, so a host can jump the pane to the lines
-a search hit, a diff, or a tooltip points at.
+a search hit, a diff, or a tooltip points at, and an optional `showLineNumbers` prop puts
+a line-number column beside the code so the reader can see which line they landed on.
 
 The single most important thing to know: **import it from
 `@openzeppelin/ui-components/code-view`, not from the package's main entry.** The main
@@ -110,29 +111,62 @@ that is what you are handed. A throwing decorator costs you one undecorated run,
 the pane. The kit ships no built-in decorations; it provides the hook and you provide
 the meaning. See [Pattern 4](./integration-guide.md#pattern-4-decorate-tokens).
 
+**Line numbers are opt-in, and are not text.** Pass `showLineNumbers` for a 1-indexed
+column to the left of the code. Four things worth knowing:
+
+1. **They cannot be copied with the code.** Each number is CSS generated content on an
+   empty element, not a text node, so it is absent from `textContent` and no selection
+   can include it. Select a block, copy it, and you get source characters only.
+2. **They are hidden from assistive technology.** The column is `aria-hidden`, so a
+   screen reader still reads one document in one order. The `<pre>` remains the only
+   tab stop.
+3. **They count the same lines `reveal` does.** A file ending in a newline opens an
+   empty final line; it gets a number, and `reveal` can address it. The two can never
+   disagree because they share one line count.
+4. **They need the pane's own non-wrapping layout.** Rows are one logical line tall and
+   the code is `whitespace-pre`, so they line up exactly and long lines scroll sideways
+   under a pinned column. Forcing soft wrapping from your own stylesheet is outside the
+   contract and will put the column out of step.
+
+Colour them with the `--code-view-line-number-color` custom property on any ancestor —
+see [Theming](./integration-guide.md#pattern-3-apply-a-highlightjs-theme). Omit the prop
+and the rendered DOM is exactly what it was before the feature existed.
+
 **Reveal is controlled, not invoked.** To bring lines 12–15 into view you pass
 `reveal={{ startLine: 12, endLine: 15 }}`; there is no `ref`, no `scrollTo()`, and no
 handle to call. That is deliberate: every primitive in this kit is controlled, and an
 imperative reveal would be the one exception. The pane wraps the characters of those
-lines in a `<mark>` and scrolls that mark into view once. Four things about it that the
+lines in a `<mark>` and scrolls the range into view once. Five things about it that the
 types cannot tell you:
 
 1. **The lines are 1-indexed and inclusive.** `{ startLine: 1, endLine: 1 }` is the
    first line. The mark covers the whole line, including its line break.
-2. **Re-revealing the same range needs a new `id`.** The pane compares `startLine`,
+2. **The range is top-aligned, not centred, and keeps two lines of context above it.**
+   The first revealed line goes near the top of the visible area, so nearly the full pane
+   height is available to the rest of the range: a range that fits is brought fully into
+   view, and a range taller than the pane starts at the top rather than in the middle.
+   The two lines held back above it are there so the range does not sit flush against the
+   edge with no sign that the file continues above; the gap is expressed in lines, so it
+   follows the font size you set. There is no alignment prop and no way to change the
+   gap — the pane knows its own height and you do not.
+3. **Re-revealing the same range needs a new `id`.** The pane compares `startLine`,
    `endLine`, and `id` by value, never the `reveal` object's identity. A parent that
    re-renders, say while the user drags a resizable panel, and passes a fresh object
    with the same numbers does nothing, which is what stops the pane from yanking the
    user back to the range on every frame. When you *do* want to scroll to the same
    lines again (the user scrolled away and clicked the same result), change `id`.
-3. **Invalid ranges are silent no-ops.** Zero, negative, or non-integer lines, an
+4. **Invalid ranges are silent no-ops.** Zero, negative, or non-integer lines, an
    inverted range, either bound past the last line, or an empty `source`: no mark, no
    scroll, no exception, no console output, nothing clamped. A range is checked against
    the text currently on screen, so a stale range from a previous file either lands on
    those line numbers in the new text or, if they do not exist, does nothing.
-4. **There is no line-number gutter, and reveal does not add one.** The range is marked
-   in place. `CodeView` chose not to render line numbers, and this feature keeps that
-   choice rather than reversing it.
+5. **Reveal does not turn line numbers on.** The range is marked in place, and a pane
+   that did not ask for a gutter does not grow one because a range was revealed. Line
+   numbers are a separate opt-in: pass `showLineNumbers` and you get them whether or not
+   you use `reveal`. (`CodeView` originally shipped with no gutter at all. That changed
+   once `reveal` was in use: landing a reader on line 207 in a pane with no numbers gave
+   them no way to see it was line 207. The prop is off by default so nothing changed for
+   panes that never ask.)
 
 Reveal composes with `decorateToken`: both can apply to the same text, and the source
 characters are preserved exactly under either or both. See
@@ -185,6 +219,10 @@ or marks, revealing a line range, and common mistakes.
 - **Reveal preserves text.** The mark wraps characters; it inserts none. With `reveal`,
   with `decorateToken`, or with both, `code.textContent === source` holds and is
   asserted byte-for-byte by the kit's tests.
+- **Line numbers preserve text too.** With `showLineNumbers` on, both
+  `code.textContent === source` and `pre.textContent === source` still hold: the digits
+  are painted by a pseudo-element and exist nowhere in the DOM's text. This is what makes
+  copying a snippet safe, and it is asserted alongside the reveal cases.
 - **Synchronous.** Highlighting runs in the render, memoized on `source` and `language`.
   Re-rendering with a different `className` or `aria-label`, or flipping color mode,
   does not re-tokenize. Changing `reveal` does not re-tokenize either. The kit's largest known generated file (~31 kB, ~770 lines of

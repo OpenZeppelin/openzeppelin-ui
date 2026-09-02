@@ -69,6 +69,21 @@ export interface CodeViewProps {
    * Omit for the same highlighted output as a pane without the feature: no mark, no scroll.
    */
   readonly reveal?: CodeViewReveal;
+  /**
+   * Show a 1-indexed line-number column to the left of the code.
+   *
+   * Off by default: omit it and the rendered DOM is exactly a pane without the
+   * feature. The numbers are painted as CSS generated content, so they are never
+   * part of `textContent` and cannot be copied with a selection of the code.
+   * Colour them with the `--code-view-line-number-color` custom property on any
+   * ancestor; it falls back to the kit's muted-foreground token.
+   *
+   * A boolean, not an options object: numbering always starts at 1 because the
+   * pane always renders a whole document, and the same count `reveal` addresses.
+   * A start offset for rendering a detached fragment would be an additive change
+   * if a consumer ever needs one.
+   */
+  readonly showLineNumbers?: boolean;
 }
 
 export type HighlightResult =

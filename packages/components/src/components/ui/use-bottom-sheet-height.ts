@@ -15,20 +15,27 @@ import {
   bottomSheetHeightBounds,
   resolveBottomSheetHeight,
   type BottomSheetHeightPx,
+  type BottomSheetSide,
 } from './bottom-sheet-height';
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
 
 interface DragSession {
   pointerId: number;
-  startY: number;
+  startCoord: number;
   startEffectiveHeight: number;
+  /** +1 when increasing the pointer coord grows the sheet; −1 otherwise. */
+  growSign: number;
 }
 
 export interface UseBottomSheetHeightArgs {
   open: boolean;
   height: number;
   onHeightChange: (height: BottomSheetHeightPx) => void;
+  /** Dock edge; selects axis viewport and drag/keyboard direction. Default bottom. */
+  side?: BottomSheetSide;
+  /** Optional ceiling below the axis viewport. */
+  maxHeight?: number;
 }
 
 export interface UseBottomSheetHeightResult {
@@ -61,6 +68,33 @@ function releasePointerCapture(node: HTMLDivElement | null, pointerId: number): 
   }
 }
 
+function isHorizontalSide(side: BottomSheetSide): boolean {
+  return side === 'left' || side === 'right';
+}
+
+function readAxisViewport(side: BottomSheetSide): number {
+  return isHorizontalSide(side) ? window.innerWidth : window.innerHeight;
+}
+
+/** Dragging the handle toward the viewport centre grows the sheet. */
+function growSignForSide(side: BottomSheetSide): number {
+  switch (side) {
+    case 'bottom':
+    case 'right':
+      return -1;
+    case 'top':
+    case 'left':
+      return 1;
+  }
+}
+
+function resolveCeiling(axisViewport: number, maxHeight: number | undefined): number {
+  if (maxHeight === undefined || !Number.isFinite(maxHeight) || maxHeight < 0) {
+    return axisViewport;
+  }
+  return Math.min(axisViewport, maxHeight);
+}
+
 /**
  * Owns clamp, pointer capture, keyboard resize, viewport subscription, and
  * correction reporting. INV-6, INV-7, INV-8, INV-11, INV-12, INV-13, INV-14
@@ -69,8 +103,10 @@ export function useBottomSheetHeight({
   open,
   height,
   onHeightChange,
+  side = 'bottom',
+  maxHeight: maxHeightProp,
 }: UseBottomSheetHeightArgs): UseBottomSheetHeightResult {
-  const [viewportHeight, setViewportHeight] = useState<number | undefined>(undefined);
+  const [viewportSpan, setViewportSpan] = useState<number | undefined>(undefined);
   const [dragging, setDragging] = useState(false);
   const separatorNodeRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<DragSession | null>(null);
@@ -80,10 +116,13 @@ export function useBottomSheetHeight({
   onHeightChangeRef.current = onHeightChange;
   const heightRef = useRef(height);
   heightRef.current = height;
+  const sideRef = useRef(side);
+  sideRef.current = side;
 
-  const viewportReady = viewportHeight !== undefined;
-  const effectiveHeight = resolveBottomSheetHeight(height, viewportHeight ?? 0);
-  const { min: minHeight, max: maxHeight } = bottomSheetHeightBounds(viewportHeight ?? 0);
+  const ceiling = viewportSpan === undefined ? 0 : resolveCeiling(viewportSpan, maxHeightProp);
+  const viewportReady = viewportSpan !== undefined;
+  const effectiveHeight = resolveBottomSheetHeight(height, ceiling);
+  const { min: minHeight, max: maxHeight } = bottomSheetHeightBounds(ceiling);
 
   const reportCorrection = useCallback((incoming: number, effective: number) => {
     // INV-8: skip when already in sync; dedupe on the pair, not incoming alone.
@@ -128,20 +167,20 @@ export function useBottomSheetHeight({
   useLayoutEffect(() => {
     if (!open) {
       endDrag();
-      setViewportHeight(undefined);
+      setViewportSpan(undefined);
       return;
     }
 
     const onResize = (): void => {
-      setViewportHeight(window.innerHeight);
+      setViewportSpan(readAxisViewport(sideRef.current));
     };
 
-    setViewportHeight(window.innerHeight);
+    setViewportSpan(readAxisViewport(side));
     window.addEventListener('resize', onResize);
     return () => {
       window.removeEventListener('resize', onResize);
     };
-  }, [open, endDrag]);
+  }, [open, side, endDrag]);
 
   useLayoutEffect(() => {
     return () => {
@@ -150,7 +189,7 @@ export function useBottomSheetHeight({
   }, [endDrag]);
 
   useLayoutEffect(() => {
-    if (!open || viewportHeight === undefined) {
+    if (!open || viewportSpan === undefined) {
       return;
     }
 
@@ -163,39 +202,45 @@ export function useBottomSheetHeight({
       }
     }
 
-    reportCorrection(height, resolveBottomSheetHeight(height, viewportHeight));
-  }, [open, height, viewportHeight, reportCorrection]);
+    const span = resolveCeiling(viewportSpan, maxHeightProp);
+    reportCorrection(height, resolveBottomSheetHeight(height, span));
+  }, [open, height, viewportSpan, maxHeightProp, reportCorrection]);
 
   const proposeHeight = useCallback(
     (proposed: number) => {
-      if (viewportHeight === undefined) {
+      if (viewportSpan === undefined) {
         return;
       }
-      reportCorrection(heightRef.current, resolveBottomSheetHeight(proposed, viewportHeight));
+      const span = resolveCeiling(viewportSpan, maxHeightProp);
+      reportCorrection(heightRef.current, resolveBottomSheetHeight(proposed, span));
     },
-    [reportCorrection, viewportHeight]
+    [reportCorrection, viewportSpan, maxHeightProp]
   );
 
   const onSeparatorPointerDown = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
-      if (!event.isPrimary || viewportHeight === undefined) {
+      if (!event.isPrimary || viewportSpan === undefined) {
         return;
       }
       if (event.pointerType === 'mouse' && event.button !== 0) {
         return;
       }
       event.preventDefault();
+      const currentSide = sideRef.current;
+      const span = resolveCeiling(viewportSpan, maxHeightProp);
+      const coord = isHorizontalSide(currentSide) ? event.clientX : event.clientY;
       dragRef.current = {
         pointerId: event.pointerId,
-        startY: event.clientY,
-        startEffectiveHeight: resolveBottomSheetHeight(heightRef.current, viewportHeight),
+        startCoord: coord,
+        startEffectiveHeight: resolveBottomSheetHeight(heightRef.current, span),
+        growSign: growSignForSide(currentSide),
       };
       setDragging(true);
       if (typeof event.currentTarget.setPointerCapture === 'function') {
         event.currentTarget.setPointerCapture(event.pointerId);
       }
     },
-    [viewportHeight]
+    [viewportSpan, maxHeightProp]
   );
 
   const onSeparatorPointerMove = useCallback(
@@ -204,7 +249,9 @@ export function useBottomSheetHeight({
       if (session == null || event.pointerId !== session.pointerId) {
         return;
       }
-      proposeHeight(session.startEffectiveHeight + session.startY - event.clientY);
+      const currentSide = sideRef.current;
+      const coord = isHorizontalSide(currentSide) ? event.clientX : event.clientY;
+      proposeHeight(session.startEffectiveHeight + session.growSign * (coord - session.startCoord));
     },
     [proposeHeight]
   );
@@ -233,18 +280,36 @@ export function useBottomSheetHeight({
 
   const onSeparatorKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
-      if (viewportHeight === undefined) {
+      if (viewportSpan === undefined) {
         return;
       }
-      const current = resolveBottomSheetHeight(heightRef.current, viewportHeight);
-      const bounds = bottomSheetHeightBounds(viewportHeight);
+      const span = resolveCeiling(viewportSpan, maxHeightProp);
+      const current = resolveBottomSheetHeight(heightRef.current, span);
+      const bounds = bottomSheetHeightBounds(span);
+      const currentSide = sideRef.current;
+      const horizontal = isHorizontalSide(currentSide);
+
+      const growKey = horizontal
+        ? currentSide === 'left'
+          ? 'ArrowRight'
+          : 'ArrowLeft'
+        : currentSide === 'top'
+          ? 'ArrowDown'
+          : 'ArrowUp';
+      const shrinkKey = horizontal
+        ? currentSide === 'left'
+          ? 'ArrowLeft'
+          : 'ArrowRight'
+        : currentSide === 'top'
+          ? 'ArrowUp'
+          : 'ArrowDown';
 
       switch (event.key) {
-        case 'ArrowUp':
+        case growKey:
           event.preventDefault();
           proposeHeight(current + BOTTOM_SHEET_KEYBOARD_STEP_PX);
           break;
-        case 'ArrowDown':
+        case shrinkKey:
           event.preventDefault();
           proposeHeight(current - BOTTOM_SHEET_KEYBOARD_STEP_PX);
           break;
@@ -260,7 +325,7 @@ export function useBottomSheetHeight({
           break;
       }
     },
-    [proposeHeight, viewportHeight]
+    [proposeHeight, viewportSpan, maxHeightProp]
   );
 
   return {

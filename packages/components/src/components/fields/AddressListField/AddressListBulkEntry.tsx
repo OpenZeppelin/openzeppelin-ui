@@ -18,7 +18,8 @@ interface AddressListBulkDraftForm {
 }
 
 export interface AddressListBulkEntryProps {
-  fieldId: string;
+  /** DOM id placed on the bulk textarea itself. */
+  inputId: string;
   value: readonly string[];
   onAdd: (addresses: string[]) => void;
   placeholder: string;
@@ -34,7 +35,7 @@ export interface AddressListBulkEntryProps {
 
 /** Bulk paste entry — info callout, textarea, and add action in a compact stack. */
 export function AddressListBulkEntry({
-  fieldId,
+  inputId,
   value,
   onAdd,
   placeholder,
@@ -93,7 +94,7 @@ export function AddressListBulkEntry({
 
       <div>
         <TextAreaField
-          id={`address-list-bulk-${fieldId}`}
+          id={inputId}
           name="input"
           label=""
           placeholder={placeholder}

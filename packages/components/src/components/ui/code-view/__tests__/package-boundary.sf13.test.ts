@@ -44,7 +44,18 @@ describe('INV-4: built declarations expose CodeViewReveal and hide private symbo
       expect(types).not.toContain('RenderHastOptions');
       expect(types).not.toContain('useImperativeHandle');
       expect(types).not.toContain('forwardRef');
-      expect(types).not.toContain('lineNumbers');
+
+      // INV-4 restated for SF-14. This line was `not.toContain('lineNumbers')`, the
+      // published half of SF-3 design decision 8. The gutter now ships as an opt-in
+      // prop, so the ban is replaced by the shape that ban was really about: one
+      // optional boolean, and still no alignment or handle API on the reveal.
+      //
+      // The old assertion would have kept passing regardless — `toContain` is
+      // case-sensitive and `showLineNumbers` carries a capital L — so it is replaced
+      // rather than left standing as a ban on something the package now exports.
+      expect(types).toContain('showLineNumbers?: boolean');
+      expect(types).not.toContain('scrollBehavior');
+      expect(types).not.toContain('IfOutsideViewport');
     }
   );
 

@@ -52,7 +52,8 @@ included, can change freely without re-tokenizing.
 | Never empty | Every input renders the focusable region. Empty `source` renders an empty, still-named, still-focusable `<pre>`. |
 | Fail-soft | If the tokenizer throws, or a runtime caller passes a `language` outside the union, the source renders as plain text. If `decorateToken` throws, only that run of text falls back to default rendering. No error UI, no exception through React. |
 | Decoration is presentational | `decorateToken` can change the elements a run of text is rendered in, never the text. Omitting it yields output identical to a pane without the feature. |
-| Reveal is controlled | `reveal` is a prop, not a method. The pane marks the named lines and scrolls the mark into view when `startLine`, `endLine`, or `id` change by value. There is no `ref` and no handle. Omitting it yields output identical to a pane without the feature. |
+| Reveal is controlled | `reveal` is a prop, not a method. The pane marks the named lines and scrolls the start of the range near the top of the visible area — two lines short of the edge — when `startLine`, `endLine`, or `id` change by value. There is no `ref` and no handle. Omitting it yields output identical to a pane without the feature. |
+| Line numbers are opt-in | `showLineNumbers` is off by default. The numbers are CSS generated content, so they are absent from `textContent`, cannot be copied with a selection, and are hidden from assistive technology. |
 | Reveal never clamps or throws | A `reveal` that does not name an existing, ordered, 1-indexed range of the current `source` produces no mark and no scroll. Nothing is adjusted to fit. |
 | Reveal never moves focus | Revealing scrolls the region's content. It does not call `focus()` on anything and adds no tab stop. |
 | No injection | Output is built from React text nodes and `<span>` elements with class names only. There is no `dangerouslySetInnerHTML` and no HTML parsing. |
@@ -104,6 +105,12 @@ interface CodeViewProps {
    * Omitted → no mark, no scroll; output identical to a pane without the feature.
    */
   readonly reveal?: CodeViewReveal;
+
+  /**
+   * Show a 1-indexed line-number column to the left of the code.
+   * Omitted or false → output identical to a pane without the feature.
+   */
+  readonly showLineNumbers?: boolean;
 }
 ```
 
@@ -164,11 +171,19 @@ Two things the kit guarantees about the callback, and one it asks of you:
 
 [`CodeViewReveal`](#codeviewreveal) — a 1-indexed, inclusive line range. When it names
 lines that exist in `source`, the pane wraps the characters of those lines in a `<mark>`
-and, on the render where `startLine`, `endLine`, or `id` changed, scrolls that mark into
-the center of the pane. Omit the prop and nothing changes: no mark, no scroll, and the
-output is identical to the pane before this prop existed.
+and, on the render where `startLine`, `endLine`, or `id` changed, scrolls the start of
+that range to the top of the pane. Omit the prop and nothing changes: no mark, no scroll,
+and the output is identical to the pane before this prop existed.
 
-Three rules govern it; each is spelled out under [`CodeViewReveal`](#codeviewreveal):
+Four rules govern it; each is spelled out under [`CodeViewReveal`](#codeviewreveal):
+
+- **The range is top-aligned, not centred, and two lines of context are kept above it.**
+  The first revealed line goes two lines below the top of the visible area, so nearly the
+  whole pane height is available to the rest of the range. A range at most as tall as the
+  pane less those two lines is therefore brought fully into view, and a taller range
+  starts at that offset with its remainder below the fold, reachable by scrolling. There
+  is no prop to choose a different alignment or a different gap: the pane knows its own
+  height and the caller does not, so picking both is the pane's job.
 
 - **Comparison is by value.** The pane reads `startLine`, `endLine`, and `id` and
   compares each with `Object.is`. The identity of the `reveal` object is never
@@ -182,11 +197,44 @@ Three rules govern it; each is spelled out under [`CodeViewReveal`](#codeviewrev
 
 `reveal` is not part of the tokenization memo. Changing it re-renders the marked output
 from the already-tokenized tree; it does not re-tokenize `source`. The mark and the
-scroll are the whole effect: the pane adds no line-number gutter, no anchors, and no
-announcement.
+scroll are the whole effect: reveal adds no anchors, no announcement, and no line-number
+gutter — the gutter is `showLineNumbers`, and revealing a range in a pane that did not
+ask for one does not turn it on.
 
-These six props are the entire surface. `CodeView` does not accept arbitrary DOM
-attributes, `style`, `ref`, a theme object, event handlers, or line-number options.
+---
+
+### `showLineNumbers` (optional)
+
+`boolean`, default `false`. Renders a 1-indexed line-number column to the left of the
+code.
+
+The numbers are painted as CSS generated content on empty elements, which is what makes
+three things true at once:
+
+- `code.textContent === source` and `pre.textContent === source` still hold, so the
+  pane's source-fidelity guarantee is unaffected.
+- No selection can include a number, so copying a block of code copies source characters
+  only. This is a property of generated content, not of a `user-select` rule that a
+  browser might ignore.
+- The column carries `aria-hidden`, so assistive technology reads one document in one
+  order and the `<pre>` stays the only tab stop.
+
+The row count is the same line count `reveal` validates against, so the two can never
+disagree: a file ending in a newline opens an empty final line, and that line both gets a
+number and can be revealed.
+
+Rows are one logical line tall. The pane paints `whitespace-pre` and exposes no wrapping
+option, so rows and code lines line up exactly and a long line scrolls sideways beneath a
+column that stays pinned to the left edge. A consumer stylesheet that forces soft
+wrapping on the `<code>` element is outside this contract and will put the two out of
+step.
+
+Colour the numbers by setting `--code-view-line-number-color` on any ancestor; it falls
+back to the kit's muted-foreground token. That property is the supported theming hook —
+the column's own attributes and classes are private.
+
+These seven props are the entire surface. `CodeView` does not accept arbitrary DOM
+attributes, `style`, `ref`, a theme object, event handlers, or reveal-alignment options.
 
 ---
 
@@ -313,6 +361,32 @@ inline without the pane yanking the user back to the range on every frame.
 
 `id` is deliberately excluded from the work of rebuilding the mark: changing only `id`
 re-scrolls without re-rendering the marked tree.
+
+### Alignment
+
+When the pane scrolls, it puts the first line of the range two lines below the top of the
+visible area. It does not centre the range, and there is no prop to change either the
+alignment or the size of that gap.
+
+Centring is the wrong default for a range, as opposed to a point. Anchoring the first
+line to the midpoint leaves only half the pane height for everything after it, so a range
+taller than half the pane hangs off the bottom while the top half of the pane sits empty.
+Top-aligning gives the range nearly the full height instead:
+
+| Range height relative to the pane | Result |
+|---|---|
+| Fits in the pane, less the two-line gap | Brought fully into view, first line two lines down |
+| Taller than that | Starts two lines down; the remainder is below the fold and reachable by scrolling |
+
+The two-line gap is a fixed cost, not a proportion: it is there so the range does not sit
+flush against the edge with nothing to show the file continues above, and it is small
+enough that the difference from a flush top alignment is two lines rather than half a
+pane. It is expressed in `lh` units, so it stays two lines of context at whatever font
+size you give the pane.
+
+The pane is the only party that knows its own rendered height, so it owns this decision
+rather than exposing an alignment option the caller would have to compute a range height
+to use correctly.
 
 ### Validity
 
@@ -537,10 +611,11 @@ most of your work on runs where `className` is `undefined`.
   ```
 
   The marks sit *inside* the `hljs-*` spans, so token colors are unchanged under the
-  highlight; the mark paints a translucent kit selected-color background and inherits
-  its text color. Marks carry no `id`, `role`, `tabindex`, or `aria-*`. They may carry a
-  private attribute the kit uses to tell its own marks from `<mark>` elements a
-  decorator returned; it is not a published hook, and consumers must not select on it.
+  highlight; the mark paints a translucent kit selected-color background, underlines the
+  revealed run in that same color, and inherits its text color. Marks carry no `id`,
+  `role`, `tabindex`, or `aria-*`. They may carry a private attribute the kit uses to
+  tell its own marks from `<mark>` elements a decorator returned; it is not a published
+  hook, and consumers must not select on it.
   If a decorator returned `<mark>` for a run inside the range, the two nest
   (`<mark><mark>fn</mark></mark>`), which is valid HTML with unchanged `textContent`.
   When the range covers only the empty line after a trailing newline, the mark is
@@ -573,7 +648,18 @@ stable contract.
 
 The reveal `<mark>` is painted the same way, by a descendant rule from the `<code>`
 element that applies only while a valid `reveal` is active: a translucent background from
-the kit's `--selected` token and `color: inherit`, so a revealed keyword keeps its
-keyword color. To restyle it, target `.hljs mark` under a class you pass through
-`className`, at the same specificity discussed in
+the kit's `--selected` token, a 2px underline in `--selected` at a 4px offset, and
+`color: inherit`, so a revealed keyword keeps its keyword color.
+
+The underline is what makes the range findable, and it carries that job for a reason. A
+range resolves to one `<mark>` per token run rather than one per line, so a border, ring,
+or outline would repeat at every token boundary instead of framing the range; an
+underline joins across adjacent inline boxes and draws once per revealed line. The
+background stays a light wash on purpose: compositing `--selected` over `--background`
+raises the band's luminance, and in the dark palette `--success` — the string color —
+already sits near 2.3:1 against `--background`, so a heavier fill would cost the revealed
+line the legibility the reveal exists to give it.
+
+To restyle it, target `.hljs mark` under a class you pass through `className`, at the
+same specificity discussed in
 [Theming](./integration-guide.md#pattern-3-apply-a-highlightjs-theme).

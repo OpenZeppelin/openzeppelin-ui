@@ -4,6 +4,9 @@
  */
 export type BottomSheetHeightPx = number;
 
+/** Edge the sheet docks to. Default `'bottom'` preserves pre-side call sites. */
+export type BottomSheetSide = 'top' | 'right' | 'bottom' | 'left';
+
 /** Subsystem name every BottomSheet dev diagnostic is logged under. Internal. */
 export const BOTTOM_SHEET_DIAGNOSTIC_SYSTEM = 'BottomSheet';
 

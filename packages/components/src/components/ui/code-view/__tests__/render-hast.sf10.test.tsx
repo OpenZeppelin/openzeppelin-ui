@@ -2,17 +2,22 @@
  * @vitest-environment jsdom
  *
  * SF-10 · HAST traversal — INV-1, INV-5, INV-6, INV-7.
+ *
+ * Also guards the decorator half of QA A7: a decorator that returns an element puts
+ * that element into a mapped sibling array, where React requires a key.
  */
 import { render } from '@testing-library/react';
 import type { Root } from 'hast';
 import { describe, expect, it } from 'vitest';
+import React from 'react';
 
 import { RUST_IMPORT_FIXTURE } from './fixtures/rust-import';
 
 import { highlightSource } from '../highlight';
 import { renderHast } from '../render-hast';
-import type { CodeViewDecorationContext } from '../types';
+import type { CodeViewDecorationContext, CodeViewTokenDecorator } from '../types';
 import { expectNoNestedDuplicateHljsSpans } from './decoration-helpers';
+import { expectEveryElementChildKeyed } from './helpers';
 
 function highlightedTree(children: Root['children']): Root {
   return { type: 'root', children };
@@ -195,5 +200,50 @@ describe('INV-7: decorator failure falls back per leaf', () => {
         </code>
       )
     ).not.toThrow();
+  });
+});
+
+describe('INV-1: a decorator-returned element is keyed like any other mapped sibling', () => {
+  const source = RUST_IMPORT_FIXTURE;
+
+  function renderedTree(decorateToken: CodeViewTokenDecorator): React.ReactNode {
+    const result = highlightSource(source, 'rust');
+    expect(result.kind).toBe('highlighted');
+    if (result.kind !== 'highlighted') {
+      throw new Error('rust fixture must tokenize');
+    }
+    return renderHast(result.tree, { source, language: 'rust', decorateToken });
+  }
+
+  it('keys a Fragment-returning decorator, the shape a consumer builds link runs with', () => {
+    // The reported consumer returns <Fragment>{parts}</Fragment> for an import path.
+    // Its inner parts are keyed by the consumer; the Fragment itself is the kit's
+    // responsibility, because the kit is what puts it in an array.
+    const node = renderedTree(({ token }) =>
+      token.text.includes('acme_lib') ? (
+        <React.Fragment>
+          <a href="https://example.test/acme_lib">{token.text}</a>
+        </React.Fragment>
+      ) : undefined
+    );
+
+    expectEveryElementChildKeyed(node, 'QA A7 / SF-10: Fragment-returning decorator');
+  });
+
+  it('keys a decorator that returns a plain element for every leaf', () => {
+    const node = renderedTree(({ token }) => <span data-decorated="">{token.text}</span>);
+
+    expectEveryElementChildKeyed(node, 'QA A7 / SF-10: element-returning decorator');
+  });
+
+  it('leaves an undecorated leaf as an unkeyed string, which needs no key', () => {
+    const node = renderedTree(() => undefined);
+
+    expect(Array.isArray(node)).toBe(true);
+    expectEveryElementChildKeyed(node, 'QA A7 / SF-10: no decoration');
+    expect(
+      (node as React.ReactNode[]).some((member) => typeof member === 'string'),
+      'the default leaf must stay a raw string: keying it would cost a wrapper per leaf'
+    ).toBe(true);
   });
 });

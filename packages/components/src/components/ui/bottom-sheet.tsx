@@ -4,8 +4,14 @@ import { createPortal } from 'react-dom';
 
 import { cn, logger } from '@openzeppelin/ui-utils';
 
-import { BOTTOM_SHEET_DIAGNOSTIC_SYSTEM, type BottomSheetHeightPx } from './bottom-sheet-height';
+import {
+  BOTTOM_SHEET_DIAGNOSTIC_SYSTEM,
+  type BottomSheetHeightPx,
+  type BottomSheetSide,
+} from './bottom-sheet-height';
 import { useBottomSheetHeight } from './use-bottom-sheet-height';
+
+export type { BottomSheetSide } from './bottom-sheet-height';
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
 
@@ -16,29 +22,51 @@ const SEPARATOR_LABEL = 'Resize';
 export const BOTTOM_SHEET_INSET_PROPERTY = '--bottom-sheet-inset';
 /** Attribute set on `<html>` while an `inset` sheet is open; value `'resizing'` during a drag, else `''`. */
 export const BOTTOM_SHEET_INSET_ATTRIBUTE = 'data-bottom-sheet-inset';
+/** Attribute set on `<html>` while an `inset` sheet is open; matches the docked edge. */
+export const BOTTOM_SHEET_SIDE_ATTRIBUTE = 'data-bottom-sheet-side';
 
 /**
  * How the sheet relates to the page behind it.
  *
  * - `'overlay'` (default): the sheet floats over the page; nothing else moves.
- * - `'inset'`: the sheet additionally publishes its rendered height as
+ * - `'inset'`: the sheet additionally publishes its rendered size as
  *   `--bottom-sheet-inset` on `<html>` (and sets `data-bottom-sheet-inset`) so the
  *   host layout can reserve that space — e.g. `height: calc(100dvh - var(--bottom-sheet-inset, 0px))`
  *   on viewport-height containers. Cleared when the sheet closes or unmounts.
  */
 export type BottomSheetLayout = 'overlay' | 'inset';
 
-const SHEET_REGION_CLASSES =
-  'pointer-events-auto absolute inset-x-0 bottom-0 z-40 flex flex-col overflow-hidden border-t-2 border-border bg-background shadow-lg';
+function isHorizontalSide(side: BottomSheetSide): boolean {
+  return side === 'left' || side === 'right';
+}
+
+const SHEET_REGION_BASE =
+  'pointer-events-auto absolute z-40 overflow-hidden border-border bg-background shadow-lg';
+
+const SIDE_REGION_CLASSES: Record<BottomSheetSide, string> = {
+  bottom: 'inset-x-0 bottom-0 flex flex-col border-t-2',
+  top: 'inset-x-0 top-0 flex flex-col-reverse border-b-2',
+  left: 'inset-y-0 left-0 flex flex-row-reverse border-r-2',
+  right: 'inset-y-0 right-0 flex flex-row border-l-2',
+};
 
 /** Enter/exit slide. The region stays mounted this long after `open` turns false. */
 export const BOTTOM_SHEET_TRANSITION_MS = 200;
-const TRANSITION_CLASSES =
+
+const TRANSITION_CLASSES_BLOCK =
   'transition-[translate,opacity,height] duration-200 ease-out motion-reduce:transition-none';
-/** While the handle is being dragged the height must track the pointer 1:1. */
+const TRANSITION_CLASSES_INLINE =
+  'transition-[translate,opacity,width] duration-200 ease-out motion-reduce:transition-none';
+/** While the handle is being dragged the size must track the pointer 1:1. */
 const DRAGGING_CLASSES = 'transition-none';
-const SHOWN_CLASSES = 'translate-y-0 opacity-100';
-const HIDDEN_CLASSES = 'translate-y-full opacity-0';
+const SHOWN_CLASSES = 'translate-x-0 translate-y-0 opacity-100';
+
+const HIDDEN_CLASSES: Record<BottomSheetSide, string> = {
+  bottom: 'translate-y-full opacity-0',
+  top: '-translate-y-full opacity-0',
+  left: '-translate-x-full opacity-0',
+  right: 'translate-x-full opacity-0',
+};
 
 const LAYER_CLASSES = 'pointer-events-none fixed inset-0 z-40';
 
@@ -55,6 +83,10 @@ export type BottomSheetProps = AccessibleName & {
   id?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /**
+   * Perpendicular size in px. Named `height` for back-compat; on left/right docks
+   * this is the sheet width.
+   */
   height: BottomSheetHeightPx;
   onHeightChange: (height: BottomSheetHeightPx) => void;
   /** Accessible name of the close control. Default `'Close'`. */
@@ -64,8 +96,19 @@ export type BottomSheetProps = AccessibleName & {
    * scrolling body. The row grows to fit it. Omit for the default chrome.
    */
   header?: React.ReactNode;
-  /** Overlay the page (default) or publish the height so the host can inset its layout. */
+  /** Overlay the page (default) or publish the size so the host can inset its layout. */
   layout?: BottomSheetLayout;
+  /**
+   * Edge the sheet docks to. Default `'bottom'`.
+   * Drives region placement, separator orientation, slide axis, and
+   * `data-bottom-sheet-side` on `<html>` while inset+mounted.
+   */
+  side?: BottomSheetSide;
+  /**
+   * Optional ceiling below the axis viewport (e.g. leave room for a form).
+   * Effective max is `min(axisViewport, maxHeight)`.
+   */
+  maxHeight?: number;
 };
 
 function isNonblank(value: string | undefined): value is string {
@@ -78,8 +121,9 @@ function emitDevError(message: string): void {
 }
 
 /**
- * Non-modal bottom sheet. Open and height are always controlled.
+ * Non-modal docked sheet. Open and size are always controlled.
  * Does not move focus, lock the document, or present dialog semantics.
+ * The portal layer is `pointer-events-none`; only the region is interactive.
  */
 export const BottomSheet = React.forwardRef<HTMLElement, BottomSheetProps>(function BottomSheet(
   {
@@ -93,6 +137,8 @@ export const BottomSheet = React.forwardRef<HTMLElement, BottomSheetProps>(funct
     closeLabel,
     header,
     layout = 'overlay',
+    side = 'bottom',
+    maxHeight,
     'aria-label': ariaLabel,
     'aria-labelledby': ariaLabelledBy,
   },
@@ -111,10 +157,12 @@ export const BottomSheet = React.forwardRef<HTMLElement, BottomSheetProps>(funct
   const onOpenChangeRef = React.useRef(onOpenChange);
   onOpenChangeRef.current = onOpenChange;
 
+  const horizontal = isHorizontalSide(side);
+
   const {
     effectiveHeight,
     minHeight,
-    maxHeight,
+    maxHeight: resolvedMax,
     viewportReady,
     dragging,
     assignSeparatorRef,
@@ -123,14 +171,14 @@ export const BottomSheet = React.forwardRef<HTMLElement, BottomSheetProps>(funct
     onSeparatorPointerUp,
     onSeparatorPointerCancel,
     onSeparatorKeyDown,
-  } = useBottomSheetHeight({ open, height, onHeightChange });
+  } = useBottomSheetHeight({ open, height, onHeightChange, side, maxHeight });
 
   React.useEffect(() => {
     setPortalRoot(document.body);
   }, []);
 
   // The height hook forgets the viewport when `open` turns false; keep the last
-  // rendered height so the exit slide, and the host inset under it, have a size
+  // rendered size so the exit slide, and the host inset under it, have a size
   // to hold until the region unmounts.
   if (open && viewportReady) {
     lastHeightRef.current = effectiveHeight;
@@ -162,11 +210,13 @@ export const BottomSheet = React.forwardRef<HTMLElement, BottomSheetProps>(funct
     // Value is 'resizing' during a pointer drag so hosts can suspend a height
     // transition and track the handle 1:1; otherwise empty.
     root.setAttribute(BOTTOM_SHEET_INSET_ATTRIBUTE, dragging ? 'resizing' : '');
+    root.setAttribute(BOTTOM_SHEET_SIDE_ATTRIBUTE, side);
     return () => {
       root.style.removeProperty(BOTTOM_SHEET_INSET_PROPERTY);
       root.removeAttribute(BOTTOM_SHEET_INSET_ATTRIBUTE);
+      root.removeAttribute(BOTTOM_SHEET_SIDE_ATTRIBUTE);
     };
-  }, [dragging, insetHeight, layout, mounted, open, viewportReady]);
+  }, [dragging, insetHeight, layout, mounted, open, side, viewportReady]);
 
   React.useEffect(() => {
     if (!IS_DEV || !open || portalRoot == null) {
@@ -227,6 +277,9 @@ export const BottomSheet = React.forwardRef<HTMLElement, BottomSheetProps>(funct
   }
 
   const hasHeader = header != null && header !== false;
+  const sizeStyle = horizontal
+    ? ({ width: `${insetHeight}px` } as const)
+    : ({ height: `${insetHeight}px` } as const);
 
   const closeButton = (
     <button
@@ -251,30 +304,39 @@ export const BottomSheet = React.forwardRef<HTMLElement, BottomSheetProps>(funct
         aria-label={namedLabel}
         aria-labelledby={namedBy}
         data-slot="bottom-sheet"
+        data-side={side}
         data-state={open ? 'open' : 'closed'}
         className={cn(
           className,
-          SHEET_REGION_CLASSES,
-          dragging ? DRAGGING_CLASSES : TRANSITION_CLASSES,
-          shown && open ? SHOWN_CLASSES : HIDDEN_CLASSES,
+          SHEET_REGION_BASE,
+          SIDE_REGION_CLASSES[side],
+          dragging
+            ? DRAGGING_CLASSES
+            : horizontal
+              ? TRANSITION_CLASSES_INLINE
+              : TRANSITION_CLASSES_BLOCK,
+          shown && open ? SHOWN_CLASSES : HIDDEN_CLASSES[side],
           !open && 'pointer-events-none'
         )}
-        style={{ height: `${insetHeight}px` }}
+        style={sizeStyle}
         onKeyDown={onRegionKeyDown}
       >
         <div
           ref={assignSeparatorRef}
           role="separator"
           tabIndex={0}
-          aria-orientation="horizontal"
+          aria-orientation={horizontal ? 'vertical' : 'horizontal'}
           aria-label={SEPARATOR_LABEL}
           aria-controls={regionId}
           aria-valuemin={minHeight}
           aria-valuenow={effectiveHeight}
-          aria-valuemax={maxHeight}
+          aria-valuemax={resolvedMax}
           data-slot="bottom-sheet-separator"
           className={cn(
-            'flex min-h-11 cursor-ns-resize touch-none items-center justify-center',
+            'flex shrink-0 touch-none items-center justify-center',
+            horizontal
+              ? 'min-w-11 cursor-ew-resize flex-col self-stretch'
+              : 'min-h-11 w-full cursor-ns-resize',
             CONTROL_FOCUS_CLASSES
           )}
           onPointerDown={onSeparatorPointerDown}
@@ -283,25 +345,43 @@ export const BottomSheet = React.forwardRef<HTMLElement, BottomSheetProps>(funct
           onPointerCancel={onSeparatorPointerCancel}
           onKeyDown={onSeparatorKeyDown}
         >
-          <div className="flex flex-col gap-1" aria-hidden="true">
-            <div className="h-0.5 w-12 rounded-full bg-muted-foreground/30" />
-            <div className="h-0.5 w-12 rounded-full bg-muted-foreground/30" />
+          <div
+            className={cn('flex gap-1', horizontal ? 'flex-row' : 'flex-col')}
+            aria-hidden="true"
+          >
+            <div
+              className={cn(
+                'rounded-full bg-muted-foreground/30',
+                horizontal ? 'h-12 w-0.5' : 'h-0.5 w-12'
+              )}
+            />
+            <div
+              className={cn(
+                'rounded-full bg-muted-foreground/30',
+                horizontal ? 'h-12 w-0.5' : 'h-0.5 w-12'
+              )}
+            />
           </div>
         </div>
-        {hasHeader ? (
-          <div className="flex shrink-0 items-start gap-2 pr-2 pl-4">
-            <div
-              data-slot="bottom-sheet-header"
-              className="flex min-h-11 min-w-0 flex-1 items-center py-1"
-            >
-              {header}
+        <div
+          data-slot="bottom-sheet-chrome"
+          className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+        >
+          {hasHeader ? (
+            <div className="flex shrink-0 items-start gap-2 pr-2 pl-4">
+              <div
+                data-slot="bottom-sheet-header"
+                className="flex min-h-11 min-w-0 flex-1 items-center py-1"
+              >
+                {header}
+              </div>
+              {closeButton}
             </div>
-            {closeButton}
-          </div>
-        ) : (
-          <div className="flex shrink-0 justify-end px-2">{closeButton}</div>
-        )}
-        <div className="min-h-0 flex-1 overflow-auto">{children}</div>
+          ) : (
+            <div className="flex shrink-0 justify-end px-2">{closeButton}</div>
+          )}
+          <div className="min-h-0 flex-1 overflow-auto">{children}</div>
+        </div>
       </section>
     </div>,
     portalRoot
