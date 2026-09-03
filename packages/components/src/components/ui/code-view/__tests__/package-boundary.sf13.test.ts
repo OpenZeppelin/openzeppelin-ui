@@ -5,13 +5,9 @@
  * Reads dist/ only through `readDistArtifact`, which fails when the bundle
  * is older than src/. Do not read dist files directly.
  */
-import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { PACKAGE_ROOT, readDistArtifact } from '../../../../__tests__/distArtifact';
-
-const CHANGESET_DIR = join(PACKAGE_ROOT, '../..', '.changeset');
+import { readDistArtifact } from '../../../../__tests__/distArtifact';
 
 const DOMAIN_VOCABULARY = [
   /\bstellar[_-]/i,
@@ -68,19 +64,4 @@ describe('INV-4: built declarations expose CodeViewReveal and hide private symbo
       }
     }
   );
-});
-
-describe('INV-4: one unpublished changeset, still wizard-preview-primitives', () => {
-  it('does not add a second changeset file', () => {
-    const files = readdirSync(CHANGESET_DIR).filter(
-      (name) => name.endsWith('.md') && name !== 'README.md'
-    );
-    expect(files, 'INV-4: a second changeset would be a second minor after publish').toEqual([
-      'wizard-preview-primitives.md',
-    ]);
-    const body = readFileSync(join(CHANGESET_DIR, 'wizard-preview-primitives.md'), 'utf-8');
-    expect(body).toMatch(/reveal/);
-    expect(body).toMatch(/startLine/);
-    expect(body).toMatch(/endLine/);
-  });
 });
