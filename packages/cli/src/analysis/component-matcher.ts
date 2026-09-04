@@ -14,6 +14,12 @@ import {
   type ImportSourceKind,
 } from './import-classifier';
 import {
+  createAnalysisSourceFile,
+  extractImportBindings,
+  type ImportBinding,
+  type ImportInfo,
+} from './import-extract';
+import {
   findWorkspacePackageForImport,
   isFileInDesignSystemPackage,
   resolveLocalImportToFile,
@@ -91,17 +97,6 @@ export interface ComponentMatch {
 // ---------------------------------------------------------------------------
 // Internal types
 // ---------------------------------------------------------------------------
-
-interface ImportBinding {
-  importedName: string;
-  localName: string;
-  kind: 'named' | 'default' | 'namespace';
-}
-
-interface ImportInfo {
-  source: string;
-  bindings: ImportBinding[];
-}
 
 interface ParsedFileFacts {
   imports: ImportInfo[];
@@ -185,15 +180,6 @@ function localModuleTransitivelyImportsExternalLibrary(
 // AST helpers — parsing TypeScript / JSX into structured facts
 // ---------------------------------------------------------------------------
 
-function getScriptKind(filePath: string): ts.ScriptKind {
-  if (filePath.endsWith('.tsx')) return ts.ScriptKind.TSX;
-  if (filePath.endsWith('.jsx')) return ts.ScriptKind.JSX;
-  if (filePath.endsWith('.mts')) return ts.ScriptKind.TS;
-  if (filePath.endsWith('.cts')) return ts.ScriptKind.TS;
-  if (filePath.endsWith('.js')) return ts.ScriptKind.JS;
-  return ts.ScriptKind.TS;
-}
-
 function incrementCount(map: Map<string, number>, key: string): void {
   map.set(key, (map.get(key) ?? 0) + 1);
 }
@@ -268,44 +254,6 @@ function collectJsxFacts(
     incrementCount(facts.inputTypeUsages, parseInputTypeFromAttributes(attributes));
 }
 
-function extractImports(sourceFile: ts.SourceFile): ImportInfo[] {
-  const imports: ImportInfo[] = [];
-  for (const statement of sourceFile.statements) {
-    if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier))
-      continue;
-    const clause = statement.importClause;
-    if (!clause) continue;
-
-    const bindings: ImportBinding[] = [];
-    if (clause.name) {
-      bindings.push({
-        importedName: clause.name.text,
-        localName: clause.name.text,
-        kind: 'default',
-      });
-    }
-    if (clause.namedBindings) {
-      if (ts.isNamedImports(clause.namedBindings)) {
-        for (const el of clause.namedBindings.elements) {
-          bindings.push({
-            importedName: el.propertyName?.text ?? el.name.text,
-            localName: el.name.text,
-            kind: 'named',
-          });
-        }
-      } else if (ts.isNamespaceImport(clause.namedBindings)) {
-        bindings.push({
-          importedName: clause.namedBindings.name.text,
-          localName: clause.namedBindings.name.text,
-          kind: 'namespace',
-        });
-      }
-    }
-    imports.push({ source: statement.moduleSpecifier.text, bindings });
-  }
-  return imports;
-}
-
 function hasExportModifier(node: ts.Node): boolean {
   const mods = ts.canHaveModifiers(node) ? ts.getModifiers(node) : undefined;
   return mods?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) ?? false;
@@ -316,13 +264,7 @@ function hasExportModifier(node: ts.Node): boolean {
  * modules (no third-party UI imports) whose exports are all catalog-mapped.
  */
 function extractExportedFunctionComponentNames(file: ScannedFile): string[] {
-  const sourceFile = ts.createSourceFile(
-    file.relativePath,
-    file.content,
-    ts.ScriptTarget.Latest,
-    true,
-    getScriptKind(file.relativePath)
-  );
+  const sourceFile = createAnalysisSourceFile(file.relativePath, file.content);
 
   const names: string[] = [];
   for (const stmt of sourceFile.statements) {
@@ -403,16 +345,10 @@ function qualifiesForExportShapeInference(resolved: ScannedFile, exportedNames: 
 }
 
 function parseFileFacts(file: ScannedFile): ParsedFileFacts {
-  const sourceFile = ts.createSourceFile(
-    file.relativePath,
-    file.content,
-    ts.ScriptTarget.Latest,
-    true,
-    getScriptKind(file.relativePath)
-  );
+  const sourceFile = createAnalysisSourceFile(file.relativePath, file.content);
 
   const facts: ParsedFileFacts = {
-    imports: extractImports(sourceFile),
+    imports: extractImportBindings(sourceFile),
     componentUsages: new Map(),
     namespaceUsages: new Map(),
     htmlTagUsages: new Map(),

@@ -13,6 +13,7 @@ import { registerDoctorCommand } from './doctor';
 import { registerExecuteCommand } from './execute';
 import { registerFailCommand } from './fail';
 import { registerInitCommand } from './init';
+import { CLI_PACKAGE_NAME, JSON_SCHEMA_VERSION } from './json-results';
 import { registerPlanCommand } from './plan';
 import { registerStatusCommand } from './status';
 
@@ -139,6 +140,8 @@ describe('migrate command JSON output', () => {
     const payload = JSON.parse(stdout);
     expect(payload.action).toBe('migrate-init');
     expect(payload.ok).toBe(true);
+    expect(payload.schemaVersion).toBe(JSON_SCHEMA_VERSION);
+    expect(payload.cli).toEqual({ name: CLI_PACKAGE_NAME, version: expect.any(String) });
     expect(payload.project).toBe(dir);
     expect(payload.agentAssetProfiles).toEqual(['standard', 'claude']);
     expect(payload.agentProfileSelectionWritten).toBe('.oz-ui-migrate.json');

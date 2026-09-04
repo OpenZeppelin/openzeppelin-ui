@@ -1,6 +1,8 @@
 /**
- * Assistant install targets: each profile maps to concrete paths for migration
- * SKILL and agent templates (shared `.agents` layout vs native `.claude` / legacy `.cursor` mirrors).
+ * Assistant install targets: each profile maps to base directories under
+ * which skill and agent assets are copied. The skill ID is supplied by the
+ * caller so a single registry can serve multiple skills (`migrate-to-oz-uikit`,
+ * `scaffold-dapp`, …).
  */
 
 import fs from 'node:fs';
@@ -8,8 +10,23 @@ import path from 'node:path';
 
 import type { AgentAssetProfile, MigrationManifest } from '../manifest/schema';
 
-const SKILL_ID = 'migrate-to-oz-uikit';
+/**
+ * Skill identifiers shipped by `@openzeppelin/ui-cli`. Adding a new skill is
+ * a matter of authoring `src/templates/skills/<id>/SKILL.md` and threading a
+ * new constant here through the consumers that copy and verify it.
+ */
+export const MIGRATE_SKILL_ID = 'migrate-to-oz-uikit';
+export const SCAFFOLD_DAPP_SKILL_ID = 'scaffold-dapp';
+
+/** Profile-selection persistence filename written by `oz-ui migrate init`. */
 export const AGENT_PROFILE_SELECTION_FILENAME = '.oz-ui-migrate.json';
+
+/**
+ * Profile-selection persistence filename written by `oz-ui create init`.
+ * Same shape as `AGENT_PROFILE_SELECTION_FILENAME`; lives next to the workspace
+ * where scaffold-dapp skill assets are installed.
+ */
+export const CREATE_PROFILE_SELECTION_FILENAME = '.oz-ui-create.json';
 
 const AGENT_FILES = [
   'migration-analyzer.md',
@@ -19,24 +36,26 @@ const AGENT_FILES = [
 
 interface AgentAssetProfileDefinition {
   id: AgentAssetProfile;
-  skillDirectory: string;
+  /** Base directory under which `<skillId>/SKILL.md` is written. */
+  skillBaseDirectory: string;
+  /** Optional shared agent directory (subagent prompts). Some skills do not ship subagents. */
   agentDirectory?: string;
 }
 
 export const AGENT_ASSET_PROFILE_REGISTRY = {
   standard: {
     id: 'standard',
-    skillDirectory: `.agents/skills/${SKILL_ID}`,
+    skillBaseDirectory: '.agents/skills',
     agentDirectory: '.cursor/agents',
   },
   claude: {
     id: 'claude',
-    skillDirectory: `.claude/skills/${SKILL_ID}`,
+    skillBaseDirectory: '.claude/skills',
     agentDirectory: '.claude/agents',
   },
   'legacy-cursor': {
     id: 'legacy-cursor',
-    skillDirectory: `.cursor/skills/${SKILL_ID}`,
+    skillBaseDirectory: '.cursor/skills',
     agentDirectory: '.cursor/agents',
   },
 } as const satisfies Record<AgentAssetProfile, AgentAssetProfileDefinition>;
@@ -172,34 +191,44 @@ function validateAgentProfiles(profiles: unknown): AgentAssetProfile[] {
 }
 
 /**
- * @description Absolute path to the init persistence file for `agentAssetProfiles`.
+ * @description Absolute path to a profile-selection persistence file relative to the given filename.
+ *
+ * `migrate init` writes `.oz-ui-migrate.json`; `create init` writes `.oz-ui-create.json`. The shape
+ * is identical so the same read/write helpers can serve both.
  */
-export function getAgentProfileSelectionPath(projectRoot: string): string {
-  return path.join(projectRoot, AGENT_PROFILE_SELECTION_FILENAME);
+export function getAgentProfileSelectionPath(
+  projectRoot: string,
+  filename: string = AGENT_PROFILE_SELECTION_FILENAME
+): string {
+  return path.join(projectRoot, filename);
 }
 
 /**
- * @description Writes the chosen profiles to disk so `migrate plan` can load them without repeating flags.
+ * @description Writes the chosen profiles to disk so later commands can load them without repeating flags.
  * @returns Relative path of the written file (for CLI output).
  */
 export function writeAgentProfileSelection(
   projectRoot: string,
-  profiles: readonly AgentAssetProfile[]
+  profiles: readonly AgentAssetProfile[],
+  filename: string = AGENT_PROFILE_SELECTION_FILENAME
 ): string {
-  const filePath = getAgentProfileSelectionPath(projectRoot);
+  const filePath = getAgentProfileSelectionPath(projectRoot, filename);
   const payload: AgentProfileSelectionFile = {
     agentAssetProfiles: [...profiles],
     updatedAt: new Date().toISOString(),
   };
   fs.writeFileSync(filePath, JSON.stringify(payload, null, 2) + '\n', 'utf8');
-  return AGENT_PROFILE_SELECTION_FILENAME;
+  return filename;
 }
 
 /**
  * @description Reads profiles written by `writeAgentProfileSelection`; used when generating the migration manifest.
  */
-export function readAgentProfileSelection(projectRoot: string): AgentAssetProfile[] {
-  const filePath = getAgentProfileSelectionPath(projectRoot);
+export function readAgentProfileSelection(
+  projectRoot: string,
+  filename: string = AGENT_PROFILE_SELECTION_FILENAME
+): AgentAssetProfile[] {
+  const filePath = getAgentProfileSelectionPath(projectRoot, filename);
   if (!fs.existsSync(filePath)) {
     throw new Error(
       `Agent profile selection not found. Run \`oz-ui migrate init --agent-profile <profiles> --project ${projectRoot}\` before generating a plan.`
@@ -223,10 +252,13 @@ export function expectedAgentPathsForProfiles(profiles: AgentAssetProfile[]): st
 }
 
 /**
- * @description Expected SKILL.md paths for doctor / dry-run, relative to project root.
+ * @description Expected SKILL.md paths for doctor / dry-run, relative to project root, for the given skill id.
  */
-export function expectedSkillPathsForProfiles(profiles: AgentAssetProfile[]): string[] {
-  return skillDirectoriesForProfiles(profiles).map((directory) => `${directory}/SKILL.md`);
+export function expectedSkillPathsForProfiles(
+  profiles: AgentAssetProfile[],
+  skillId: string
+): string[] {
+  return skillDirectoriesForProfiles(profiles, skillId).map((directory) => `${directory}/SKILL.md`);
 }
 
 /**
@@ -244,10 +276,17 @@ export function agentDirectoriesForProfiles(profiles: readonly AgentAssetProfile
 }
 
 /**
- * @description Skill install directory per profile (under `AGENT_ASSET_PROFILE_REGISTRY`), de-duplicated.
+ * @description Skill install directory per profile for the given skill id (e.g. `.agents/skills/scaffold-dapp`), de-duplicated.
  */
-export function skillDirectoriesForProfiles(profiles: readonly AgentAssetProfile[]): string[] {
+export function skillDirectoriesForProfiles(
+  profiles: readonly AgentAssetProfile[],
+  skillId: string
+): string[] {
   return [
-    ...new Set(profiles.map((profile) => AGENT_ASSET_PROFILE_REGISTRY[profile].skillDirectory)),
+    ...new Set(
+      profiles.map(
+        (profile) => `${AGENT_ASSET_PROFILE_REGISTRY[profile].skillBaseDirectory}/${skillId}`
+      )
+    ),
   ];
 }
