@@ -20,11 +20,19 @@ import { collectWorkspacePackageDirs } from './localDev';
  * marked failed and never retried, leaving the UI spinning. That is how bumping the
  * adapters to a new major while leaving the `ui-*` pins behind reaches staging.
  *
- * Semantics deliberately mirror `validatePeerVersions`. Each adapter bakes its peer
- * minimums at build time as `range.replace(/^\^/, '')`, so the runtime compares
+ * Error semantics deliberately mirror `validatePeerVersions`. Each adapter bakes its
+ * peer minimums at build time as `range.replace(/^\^/, '')`, so the runtime compares
  * against the *minimum* the range admits, not the range itself: `ui-utils` 4.0.0
  * against a declared `^2.0.0` passes, because the adapter only asks for `>=2.0.0`.
- * Enforcing the caret strictly here would report failures the adapters do not have.
+ * Enforcing the caret strictly as an error here would report failures the adapters do
+ * not have.
+ *
+ * That floor-only comparison leaves the opposite drift invisible, which is its own
+ * defect: an adapter declaring `^2.0.0` against an installed 4.0.1 satisfies its own
+ * runtime check and still cannot be installed by anything on the current major, because
+ * a package manager reads the declared range and not the baked minimum. Nothing warned
+ * about that, so it survived two majors. Such pairs are reported as warnings -- named,
+ * but not fatal, so an existing `check-peers` in CI keeps its exit code.
  */
 
 const ADAPTER_PREFIX = 'adapter-';
@@ -38,18 +46,26 @@ export interface AdapterPeerPair {
   adapter: string;
   /** Peer being checked, e.g. `@openzeppelin/ui-types`. */
   peer: string;
+  /** Range as the adapter declares it, e.g. `^3.5.0`. */
+  range: string;
   /** Lowest peer version the declared range admits, e.g. `3.5.0`. */
   minimum: string;
   /** Peer version actually installed and therefore loaded at runtime. */
   installed: string;
   satisfied: boolean;
+  /**
+   * Whether the declared range itself admits the installed version, as a package
+   * manager reads it. `null` when the range syntax is not one this module models, so
+   * an unrecognised range is never reported as drift.
+   */
+  rangeSatisfied: boolean | null;
   /** Scope directory the adapter was found in, relative to the project root. */
   scopeDir: string;
 }
 
 export interface AdapterPeerIssue {
   severity: 'error' | 'warning';
-  code: 'stale-peer' | 'no-scope-dirs' | 'no-adapters' | 'no-peers-resolved';
+  code: 'stale-peer' | 'outdated-range' | 'no-scope-dirs' | 'no-adapters' | 'no-peers-resolved';
   message: string;
 }
 
@@ -162,6 +178,92 @@ export function compareSemver(a: string, b: string): number {
   }
 
   return 0;
+}
+
+/** Parsed `major.minor.patch`, prerelease stripped. */
+function segmentsOf(version: string): [number, number, number] | null {
+  const match = /^(\d+)\.(\d+)\.(\d+)/.exec(version.replace(/^[vV]/, ''));
+  return match ? [Number(match[1]), Number(match[2]), Number(match[3])] : null;
+}
+
+/**
+ * Whether one comparator admits `version`, or `null` for syntax this module does not
+ * model. Covers what the adapters and the kit actually declare: `^`, `~`, exact pins,
+ * the four inequalities, and the any-version wildcards.
+ */
+function comparatorAdmits(comparator: string, version: string): boolean | null {
+  const trimmed = comparator.trim();
+  if (trimmed === '' || trimmed === '*' || trimmed === 'x') {
+    return true;
+  }
+
+  const installed = segmentsOf(version);
+  if (!installed) {
+    return null;
+  }
+
+  const match = /^(\^|~|>=|<=|>|<|=)?\s*(\d+\.\d+\.\d+[^\s]*)$/.exec(trimmed);
+  if (!match) {
+    return null;
+  }
+
+  const bound = segmentsOf(match[2]);
+  if (!bound) {
+    return null;
+  }
+
+  const order = compareSemver(version, match[2]);
+
+  switch (match[1]) {
+    case '^':
+      // npm's caret pins the leftmost non-zero segment: ^0.5.x stays on 0.5, ^0.0.3
+      // admits only 0.0.3.
+      if (order < 0) {
+        return false;
+      }
+      if (bound[0] !== 0) {
+        return installed[0] === bound[0];
+      }
+      if (bound[1] !== 0) {
+        return installed[0] === 0 && installed[1] === bound[1];
+      }
+      return order === 0;
+    case '~':
+      return order >= 0 && installed[0] === bound[0] && installed[1] === bound[1];
+    case '>=':
+      return order >= 0;
+    case '<=':
+      return order <= 0;
+    case '>':
+      return order > 0;
+    case '<':
+      return order < 0;
+    default:
+      return order === 0;
+  }
+}
+
+/**
+ * Whether the declared range admits `version` the way a package manager reads it,
+ * or `null` when the range is not modelled here.
+ *
+ * Unlike `minimumVersionOf`, this respects the range's upper bound, which is what
+ * decides whether an install succeeds. Only `||` unions and single comparators are
+ * understood; a range this returns `null` for is left unreported rather than guessed at.
+ */
+export function rangeAdmits(range: string, version: string): boolean | null {
+  const alternatives = range.split('||');
+  let admitted = false;
+
+  for (const alternative of alternatives) {
+    const verdict = comparatorAdmits(alternative, version);
+    if (verdict === null) {
+      return null;
+    }
+    admitted = admitted || verdict;
+  }
+
+  return admitted;
 }
 
 /**
@@ -293,9 +395,41 @@ function buildRemediation(declaringManifests: string[], overriddenPeers: string[
   return lines;
 }
 
+function buildOutdatedRangeRemediation(
+  outdatedRangePairs: AdapterPeerPair[],
+  declaringManifests: string[]
+): string[] {
+  const lines = [
+    '',
+    'These declared ranges are behind the versions installed beside them. The adapters',
+    'run fine here because their runtime check only enforces the range minimum, so this',
+    'stays quiet until a consumer app tries to install an adapter against the current',
+    'kit and the package manager rejects the peer.',
+    '',
+    'Fix: raise the range in the adapter manifest to the major that is actually installed.',
+  ];
+
+  for (const pair of outdatedRangePairs) {
+    lines.push(`  - ${pair.adapter}: ${pair.peer} ${pair.range} -> ^${pair.installed}`);
+  }
+
+  if (declaringManifests.length > 0) {
+    lines.push('', 'Also declared in this repository:');
+    for (const manifest of declaringManifests) {
+      lines.push(`  - ${manifest}`);
+    }
+  }
+
+  return lines;
+}
+
 /**
  * Compares every installed adapter's `@openzeppelin/ui-*` peer minimum against the
  * `@openzeppelin/ui-*` version actually installed alongside it.
+ *
+ * An installed version below the minimum is an error, matching what the adapter throws
+ * at runtime. An installed version the *declared range* does not admit is a warning:
+ * harmless in this tree, fatal for a consumer whose package manager reads the range.
  *
  * Missing packages are treated as configuration errors rather than a silent pass: in
  * CI, "no adapters installed" almost always means the install did not run or the
@@ -350,11 +484,25 @@ export function checkAdapterPeers(projectRootInput: string): AdapterPeerResult {
   }
 
   const stalePairs = pairs.filter((pair) => !pair.satisfied);
-  const issues: AdapterPeerIssue[] = stalePairs.map((pair) => ({
-    severity: 'error' as const,
-    code: 'stale-peer' as const,
-    message: `${pair.adapter} requires ${pair.peer} >=${pair.minimum}, but ${pair.installed} is installed.`,
-  }));
+
+  // Only pairs the floor check already passes: a stale peer is reported once, as the
+  // error it is, rather than twice.
+  const outdatedRangePairs = pairs.filter(
+    (pair) => pair.satisfied && pair.rangeSatisfied === false
+  );
+
+  const issues: AdapterPeerIssue[] = [
+    ...stalePairs.map((pair) => ({
+      severity: 'error' as const,
+      code: 'stale-peer' as const,
+      message: `${pair.adapter} requires ${pair.peer} >=${pair.minimum}, but ${pair.installed} is installed.`,
+    })),
+    ...outdatedRangePairs.map((pair) => ({
+      severity: 'warning' as const,
+      code: 'outdated-range' as const,
+      message: `${pair.adapter} declares ${pair.peer} ${pair.range}, which does not admit the installed ${pair.installed}. The adapter's own runtime check passes, but a package manager reads the range and refuses the install.`,
+    })),
+  ];
 
   const declaringManifests = collectPeerDeclaringManifests(
     projectRoot,
@@ -362,15 +510,15 @@ export function checkAdapterPeers(projectRootInput: string): AdapterPeerResult {
   );
 
   return {
-    ok: issues.length === 0,
+    ok: issues.every((issue) => issue.severity !== 'error'),
     projectRoot,
     scopeDirs: relativeScopeDirs,
     declaringManifests,
     overriddenPeers,
     pairs,
     issues,
-    remediation:
-      stalePairs.length === 0
+    remediation: [
+      ...(stalePairs.length === 0
         ? []
         : buildRemediation(
             collectPeerDeclaringManifests(
@@ -378,7 +526,17 @@ export function checkAdapterPeers(projectRootInput: string): AdapterPeerResult {
               stalePairs.map((pair) => pair.peer)
             ),
             overriddenPeers
-          ),
+          )),
+      ...(outdatedRangePairs.length === 0
+        ? []
+        : buildOutdatedRangeRemediation(
+            outdatedRangePairs,
+            collectPeerDeclaringManifests(
+              projectRoot,
+              outdatedRangePairs.map((pair) => pair.peer)
+            )
+          )),
+    ],
   };
 }
 
@@ -425,9 +583,11 @@ function collectPairs(projectRoot: string, scopeDirs: string[]): AdapterPeerPair
         pairs.set(key, {
           adapter,
           peer,
+          range,
           minimum,
           installed,
           satisfied: compareSemver(installed, minimum) >= 0,
+          rangeSatisfied: rangeAdmits(range, installed),
           scopeDir: path.relative(projectRoot, scopeDir),
         });
       }
