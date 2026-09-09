@@ -35,7 +35,8 @@
     "version": "changeset version",
     "release": "pnpm build && changeset publish",
     "dev:npm": "pnpm build:cli && oz-ui-dev use remote --project \"$PWD\"",
-    "check-licenses": "node scripts/check-dependency-licenses.cjs"
+    "check-licenses": "node scripts/check-dependency-licenses.cjs",
+    "check-changesets": "node scripts/check-changeset-reuse.cjs"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",
