@@ -42,13 +42,21 @@ It scans `node_modules/@openzeppelin` at the repository root and next to every w
 package declared in `pnpm-workspace.yaml`, so it works whether dependencies are hoisted to
 the root or installed under an app. For each installed adapter it compares the *minimum* of
 each declared `@openzeppelin/ui-*` range against the `ui-*` version actually installed,
-matching `validatePeerVersions` semantics — a peer newer than the range is fine, because the
-adapter only requires `>=` the minimum.
+matching `validatePeerVersions` semantics — a peer newer than the range does not fail,
+because the adapter only requires `>=` the minimum.
+
+That floor-only comparison hides the opposite drift, so a peer newer than the declared range
+is reported as a **warning** (`outdated-range`) instead of passing silently. An adapter
+declaring `^2.0.0` against an installed `4.0.1` satisfies its own runtime check and still
+cannot be installed by a consumer app, because a package manager reads the declared range and
+not the baked minimum. Ranges whose syntax the check does not model are left unreported rather
+than guessed at.
 
 Exit code is `1` when a peer is stale, and also when nothing could be checked (no
 `@openzeppelin` packages, no adapters installed, or no peers resolved). Those are treated as
 failures on purpose: in CI they mean the install did not run or `--project` points at the
-wrong root, and passing would be a false green.
+wrong root, and passing would be a false green. An `outdated-range` warning does **not** fail
+the command, so adding this to an existing pipeline does not change its exit code.
 
 Run it after install in CI:
 
