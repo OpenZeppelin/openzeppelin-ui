@@ -12,8 +12,9 @@
  * - #113 was squash-merged as 52f2823 and released by #115 (2026-04-02) as
  *   components/react/utils/types 2.0.0. Its original branch was then merged as well,
  *   and a `Merge branch 'main' into feat/...` kept the branch's copies of the three
- *   changeset files main had just deleted. The next release (0c01a4a, 2026-04-26)
- *   consumed them again as 3.0.0: one breaking change, two majors, identical notes.
+ *   changeset files main had just deleted. `changeset version` consumed them again in
+ *   0c01a4a (2026-04-26), published as 3.0.0 when #139 merged on 2026-05-12: one
+ *   breaking change, two majors, identical notes bar the commit SHA they cite.
  *   Consumers that pinned the first round -- the `openzeppelin-adapters` packages, on
  *   `ui-components ^2.0.0` / `ui-react ^2.0.1` / `ui-utils ^2.0.0` -- then sat a full
  *   major behind an API that had not changed again, with nothing to tell them so.
