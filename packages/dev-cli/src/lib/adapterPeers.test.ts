@@ -10,6 +10,7 @@ import {
   collectPeerDeclaringManifests,
   compareSemver,
   minimumVersionOf,
+  rangeAdmits,
 } from './adapterPeers';
 
 const tempRoots: string[] = [];
@@ -187,6 +188,42 @@ describe('collectOverriddenPeers', () => {
   });
 });
 
+describe('rangeAdmits', () => {
+  it('respects the caret upper bound the range minimum ignores', () => {
+    expect(rangeAdmits('^2.0.0', '2.9.9')).toBe(true);
+    expect(rangeAdmits('^2.0.0', '4.0.1')).toBe(false);
+    expect(rangeAdmits('^2.0.0', '1.9.9')).toBe(false);
+  });
+
+  it('pins the leftmost non-zero segment for 0.x carets, as npm does', () => {
+    expect(rangeAdmits('^0.5.0', '0.5.9')).toBe(true);
+    expect(rangeAdmits('^0.5.0', '0.6.0')).toBe(false);
+    expect(rangeAdmits('^0.0.3', '0.0.3')).toBe(true);
+    expect(rangeAdmits('^0.0.3', '0.0.4')).toBe(false);
+  });
+
+  it('reads tildes, inequalities, exact pins and wildcards', () => {
+    expect(rangeAdmits('~3.5.0', '3.5.9')).toBe(true);
+    expect(rangeAdmits('~3.5.0', '3.6.0')).toBe(false);
+    expect(rangeAdmits('>=2.0.0', '4.0.1')).toBe(true);
+    expect(rangeAdmits('<3.0.0', '4.0.1')).toBe(false);
+    expect(rangeAdmits('3.5.0', '3.5.0')).toBe(true);
+    expect(rangeAdmits('3.5.0', '3.5.1')).toBe(false);
+    expect(rangeAdmits('*', '4.0.1')).toBe(true);
+  });
+
+  it('admits a version matching any alternative of a union', () => {
+    expect(rangeAdmits('^18.0.0 || ^19.0.0', '19.2.0')).toBe(true);
+    expect(rangeAdmits('^18.0.0 || ^19.0.0', '20.0.0')).toBe(false);
+  });
+
+  it('returns null for range syntax it does not model, so nothing is guessed at', () => {
+    expect(rangeAdmits('workspace:^', '4.0.1')).toBeNull();
+    expect(rangeAdmits('>=2.0.0 <5.0.0', '4.0.1')).toBeNull();
+    expect(rangeAdmits('^2.0.0 || workspace:*', '4.0.1')).toBeNull();
+  });
+});
+
 describe('checkAdapterPeers', () => {
   describe('dependencies hoisted to the repository root', () => {
     it('passes when every installed peer meets the declared minimum', () => {
@@ -235,7 +272,7 @@ describe('checkAdapterPeers', () => {
       expect(checkAdapterPeers(projectRoot).ok).toBe(false);
     });
 
-    it('accepts a peer newer than the range, mirroring validatePeerVersions', () => {
+    it('does not fail on a peer newer than the range, mirroring validatePeerVersions', () => {
       const projectRoot = createProjectRoot();
       installAdapter(projectRoot, '', 'adapter-evm', { '@openzeppelin/ui-utils': '^2.0.0' });
       installPeer(projectRoot, '', 'ui-utils', '4.0.0');
@@ -243,7 +280,13 @@ describe('checkAdapterPeers', () => {
       const result = checkAdapterPeers(projectRoot);
 
       expect(result.ok).toBe(true);
-      expect(result.pairs[0]).toMatchObject({ minimum: '2.0.0', installed: '4.0.0' });
+      expect(result.pairs[0]).toMatchObject({
+        minimum: '2.0.0',
+        installed: '4.0.0',
+        satisfied: true,
+      });
+      // Not fatal, but not silent either -- see the outdated declared ranges block.
+      expect(result.issues.map((issue) => issue.code)).toEqual(['outdated-range']);
     });
 
     it('ignores non-@openzeppelin/ui-* peers', () => {
@@ -374,6 +417,95 @@ describe('checkAdapterPeers', () => {
 
       expect(result.ok).toBe(false);
       expect(result.issues[0].code).toBe('no-peers-resolved');
+    });
+  });
+
+  describe('outdated declared ranges', () => {
+    /**
+     * The openzeppelin-adapters shape as of this change: every adapter declared
+     * ui-components/react/utils on the v2 line against an installed v3/v4 kit. The
+     * adapters' own runtime check passed, so nothing anywhere reported it, and it
+     * survived two majors.
+     */
+    function createOutdatedRangeProject(): string {
+      const projectRoot = createProjectRoot();
+      installAdapter(projectRoot, '', 'adapter-evm', {
+        '@openzeppelin/ui-components': '^2.0.0',
+        '@openzeppelin/ui-types': '^3.5.0',
+      });
+      installPeer(projectRoot, '', 'ui-components', '3.9.0');
+      installPeer(projectRoot, '', 'ui-types', '3.5.2');
+      return projectRoot;
+    }
+
+    it('warns without failing when the declared range excludes the installed version', () => {
+      const result = checkAdapterPeers(createOutdatedRangeProject());
+
+      expect(result.ok).toBe(true);
+      expect(result.issues).toEqual([
+        {
+          severity: 'warning',
+          code: 'outdated-range',
+          message:
+            '@openzeppelin/adapter-evm declares @openzeppelin/ui-components ^2.0.0, which does not admit the installed 3.9.0. ' +
+            "The adapter's own runtime check passes, but a package manager reads the range and refuses the install.",
+        },
+      ]);
+    });
+
+    it('records the declared range alongside the minimum it admits', () => {
+      const result = checkAdapterPeers(createOutdatedRangeProject());
+
+      expect(result.pairs).toEqual([
+        expect.objectContaining({
+          peer: '@openzeppelin/ui-components',
+          range: '^2.0.0',
+          minimum: '2.0.0',
+          installed: '3.9.0',
+          satisfied: true,
+          rangeSatisfied: false,
+        }),
+        expect.objectContaining({
+          peer: '@openzeppelin/ui-types',
+          range: '^3.5.0',
+          installed: '3.5.2',
+          satisfied: true,
+          rangeSatisfied: true,
+        }),
+      ]);
+    });
+
+    it('names the bump that fixes each outdated range', () => {
+      const guidance = checkAdapterPeers(createOutdatedRangeProject()).remediation.join('\n');
+
+      expect(guidance).toContain('@openzeppelin/ui-components ^2.0.0 -> ^3.9.0');
+      expect(guidance).not.toContain('@openzeppelin/ui-types');
+    });
+
+    it('reports a stale peer once, as the error it is, rather than also as drift', () => {
+      const projectRoot = createProjectRoot();
+      installAdapter(projectRoot, '', 'adapter-evm', { '@openzeppelin/ui-types': '^3.5.0' });
+      installPeer(projectRoot, '', 'ui-types', '3.3.0');
+
+      const result = checkAdapterPeers(projectRoot);
+
+      expect(result.ok).toBe(false);
+      expect(result.issues.map((issue) => issue.code)).toEqual(['stale-peer']);
+      expect(result.pairs[0]).toMatchObject({ satisfied: false, rangeSatisfied: false });
+    });
+
+    it('stays quiet on a range whose syntax it cannot model', () => {
+      const projectRoot = createProjectRoot();
+      installAdapter(projectRoot, '', 'adapter-evm', {
+        '@openzeppelin/ui-utils': '>=2.0.0 <5.0.0',
+      });
+      installPeer(projectRoot, '', 'ui-utils', '4.0.1');
+
+      const result = checkAdapterPeers(projectRoot);
+
+      expect(result.ok).toBe(true);
+      expect(result.issues).toEqual([]);
+      expect(result.pairs[0]).toMatchObject({ rangeSatisfied: null });
     });
   });
 
