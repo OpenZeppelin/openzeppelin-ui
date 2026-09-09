@@ -102,12 +102,15 @@ export function printAdapterPeerResult(result: AdapterPeerResult): void {
         `Adapter peer check passed for ${result.projectRoot} (${result.pairs.length} adapter/peer ${pairLabel})`
       )
     );
-    return;
+  } else {
+    writeStdout(pc.red(`Adapter peer check failed for ${result.projectRoot}`));
   }
 
-  writeStdout(pc.red(`Adapter peer check failed for ${result.projectRoot}`));
+  // Printed on both paths: a run with only warnings still passes, and printing nothing
+  // there is how an outdated declared range stays unnoticed.
   for (const issue of result.issues) {
-    writeStdout(pc.red(`  [${issue.severity}] ${issue.message}`));
+    const color = issue.severity === 'error' ? pc.red : pc.yellow;
+    writeStdout(color(`  [${issue.severity}] ${issue.code}: ${issue.message}`));
   }
 
   if (result.remediation.length > 0) {
