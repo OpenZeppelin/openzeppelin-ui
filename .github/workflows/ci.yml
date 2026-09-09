@@ -66,6 +66,11 @@ jobs:
         # no node_modules, so this fails fast before the install.
         run: node scripts/check-dependency-licenses.cjs
 
+      - name: Changeset reuse guard
+        # Also invoked directly: it reads the working tree only. Catches a released
+        # changeset that a merge put back, which would bump the same packages twice.
+        run: node scripts/check-changeset-reuse.cjs
+
       - name: Build all packages
         run: pnpm build
         env:
