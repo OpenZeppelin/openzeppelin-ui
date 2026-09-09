@@ -71,6 +71,11 @@ jobs:
         # changeset that a merge put back, which would bump the same packages twice.
         run: node scripts/check-changeset-reuse.cjs
 
+      - name: Compatibility matrix guard
+        # The README's version table is generated from the package manifests; this fails
+        # if a release moved a version without regenerating it. Working tree only.
+        run: node scripts/generate-compatibility-matrix.cjs --check
+
       - name: Build all packages
         run: pnpm build
         env:

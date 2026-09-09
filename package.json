@@ -32,11 +32,13 @@
     "fix-all": "pnpm format && pnpm lint:fix",
     "prepare": "husky",
     "changeset": "changeset",
-    "version": "changeset version",
+    "version": "changeset version && node scripts/generate-compatibility-matrix.cjs",
     "release": "pnpm build && changeset publish",
     "dev:npm": "pnpm build:cli && oz-ui-dev use remote --project \"$PWD\"",
     "check-licenses": "node scripts/check-dependency-licenses.cjs",
-    "check-changesets": "node scripts/check-changeset-reuse.cjs"
+    "check-changesets": "node scripts/check-changeset-reuse.cjs",
+    "generate:compatibility": "node scripts/generate-compatibility-matrix.cjs",
+    "check-compatibility": "node scripts/generate-compatibility-matrix.cjs --check"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",
