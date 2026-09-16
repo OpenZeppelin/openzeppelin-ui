@@ -126,6 +126,7 @@ jobs:
         uses: changesets/action@63a615b9cd06ba9a3e6d13796c7fbcb080a60a0b # v1.8.0
         with:
           publish: pnpm changeset publish --no-git-checks
+          version: pnpm run version
           # Use github-api commit mode for automatic commit signing via GitHub App
           commitMode: "github-api"
           # Use conventional commit format to satisfy commitlint
