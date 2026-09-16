@@ -10,6 +10,7 @@ export {
   type BottomSheetSide,
   type DefaultBottomSheetHeightOptions,
 } from './bottom-sheet-height';
+export * from './breadcrumb';
 export * from './button';
 export * from './calendar';
 export * from './card';

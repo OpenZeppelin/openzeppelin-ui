@@ -54,6 +54,7 @@ import {
   AlertDemo,
   ArchitectureDemo,
   BannerDemo,
+  BreadcrumbDemo,
   ButtonDemo,
   CalendarDemo,
   CardDemo,
@@ -121,6 +122,7 @@ type DemoKey =
   | 'popover'
   | 'toast'
   // Component Gallery - Layout
+  | 'breadcrumb'
   | 'sidebar-layout'
   | 'wizard'
   | 'card'
@@ -220,6 +222,7 @@ const galleryCategories: GalleryCategory[] = [
     key: 'layout',
     title: 'Layout',
     items: [
+      { key: 'breadcrumb', label: 'Breadcrumb', icon: <List className="size-4" /> },
       { key: 'sidebar-layout', label: 'Scaffold', icon: <PanelLeft className="size-4" /> },
       { key: 'wizard', label: 'Wizard', icon: <Wand2 className="size-4" /> },
       { key: 'card', label: 'Card', icon: <CreditCard className="size-4" /> },
@@ -302,6 +305,7 @@ const demoComponents: Record<
   popover: PopoverDemo,
   toast: ToastDemo,
   // Component Gallery - Layout
+  breadcrumb: BreadcrumbDemo,
   'sidebar-layout': SidebarLayoutDemo,
   wizard: WizardDemo,
   card: CardDemo,
