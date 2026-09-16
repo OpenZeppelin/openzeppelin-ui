@@ -18,6 +18,7 @@ export { PopoverDemo } from './PopoverDemo';
 export { ToastDemo } from './ToastDemo';
 
 // Layout Demos
+export { BreadcrumbDemo } from './BreadcrumbDemo';
 export { SidebarLayoutDemo } from './SidebarLayoutDemo';
 export { WizardDemo } from './WizardDemo';
 export { CardDemo } from './CardDemo';

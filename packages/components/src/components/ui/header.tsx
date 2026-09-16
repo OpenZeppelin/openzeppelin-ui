@@ -3,13 +3,20 @@ import React from 'react';
 
 export interface HeaderProps {
   title?: string;
+  /** Breadcrumb content to display in place of the title */
+  breadcrumb?: React.ReactNode;
   /** Open the mobile sidebar */
   onOpenSidebar?: () => void;
   /** Content to display on the right side of the header */
   rightContent?: React.ReactNode;
 }
 
-export const Header = ({ title, onOpenSidebar, rightContent }: HeaderProps): React.ReactElement => {
+export const Header = ({
+  title,
+  breadcrumb,
+  onOpenSidebar,
+  rightContent,
+}: HeaderProps): React.ReactElement => {
   return (
     <header className="border-b border-[#F5F5F5] bg-background">
       <div className="flex h-16 items-center px-3 sm:px-4 md:px-5 min-w-0">
@@ -22,12 +29,16 @@ export const Header = ({ title, onOpenSidebar, rightContent }: HeaderProps): Rea
         >
           <Menu className="size-5" />
         </button>
-        {/* Left side - Title (conditional) */}
-        {title && (
+        {/* Left side - Breadcrumb or title (conditional) */}
+        {(breadcrumb !== undefined || title) && (
           <div className="flex items-center min-w-0">
-            <h1 className="truncate max-w-[50vw] text-base font-semibold text-foreground">
-              {title}
-            </h1>
+            {breadcrumb !== undefined ? (
+              breadcrumb
+            ) : (
+              <h1 className="truncate max-w-[50vw] text-base font-semibold text-foreground">
+                {title}
+              </h1>
+            )}
           </div>
         )}
 
