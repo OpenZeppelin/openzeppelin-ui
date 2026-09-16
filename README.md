@@ -54,14 +54,14 @@ pnpm add @openzeppelin/ui-storage
 These packages are released together from a single commit and are meant to be installed as
 one set. Install them at these versions:
 
-| Package                                                | Version | Requires from this set                              |
-| ------------------------------------------------------ | ------- | --------------------------------------------------- |
-| [`@openzeppelin/ui-types`](./packages/types)           | `3.5.2` | —                                                   |
-| [`@openzeppelin/ui-utils`](./packages/utils)           | `4.0.1` | `ui-types`                                          |
-| [`@openzeppelin/ui-components`](./packages/components) | `3.9.0` | `ui-types`, `ui-utils`                              |
-| [`@openzeppelin/ui-storage`](./packages/storage)       | `1.2.5` | `ui-types`, `ui-utils`                              |
-| [`@openzeppelin/ui-react`](./packages/react)           | `3.3.2` | `ui-components`, `ui-types`, `ui-utils`             |
-| [`@openzeppelin/ui-renderer`](./packages/renderer)     | `3.4.2` | `ui-components`, `ui-react`, `ui-types`, `ui-utils` |
+| Package                                                | Version  | Requires from this set                              |
+| ------------------------------------------------------ | -------- | --------------------------------------------------- |
+| [`@openzeppelin/ui-types`](./packages/types)           | `3.5.2`  | —                                                   |
+| [`@openzeppelin/ui-utils`](./packages/utils)           | `4.0.1`  | `ui-types`                                          |
+| [`@openzeppelin/ui-components`](./packages/components) | `3.10.0` | `ui-types`, `ui-utils`                              |
+| [`@openzeppelin/ui-storage`](./packages/storage)       | `1.2.5`  | `ui-types`, `ui-utils`                              |
+| [`@openzeppelin/ui-react`](./packages/react)           | `3.3.2`  | `ui-components`, `ui-types`, `ui-utils`             |
+| [`@openzeppelin/ui-renderer`](./packages/renderer)     | `3.4.2`  | `ui-components`, `ui-react`, `ui-types`, `ui-utils` |
 
 Each is optional on its own — install only what you use — but whichever you install must
 come from this table, not from a mix of it and an older release.
@@ -85,7 +85,7 @@ and TS2345 on structurally identical types.
 None of this has to be taken on trust — the edges are in the published manifests:
 
 ```bash
-npm view @openzeppelin/ui-components@3.9.0 dependencies --json | grep '@openzeppelin'
+npm view @openzeppelin/ui-components@3.10.0 dependencies --json | grep '@openzeppelin'
 ```
 
 ### Read the major numbers as independent
