@@ -1,5 +1,13 @@
 # @openzeppelin/ui-components
 
+## 3.10.0
+
+### Minor Changes
+
+- [#233](https://github.com/OpenZeppelin/openzeppelin-ui/pull/233) [`7208cb6`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/7208cb602c4e3f3069387e7b67d3cbeb93c0baba) Thanks [@pasevin](https://github.com/pasevin)! - Add a router-agnostic `Breadcrumb` navigation primitive with accessible linked ancestors and current-page semantics.
+
+  Allow `Header` to render breadcrumb content in place of its existing title while preserving the title API.
+
 ## 3.9.0
 
 ### Minor Changes
