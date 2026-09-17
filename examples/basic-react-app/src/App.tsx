@@ -27,6 +27,7 @@ import {
   Network,
   PanelLeft,
   PanelTop,
+  Tag,
   TextCursorInput,
   Type,
   Wallet,
@@ -53,6 +54,7 @@ import {
   AddressListFieldDemo,
   AlertDemo,
   ArchitectureDemo,
+  BadgeDemo,
   BannerDemo,
   BreadcrumbDemo,
   ButtonDemo,
@@ -132,6 +134,7 @@ type DemoKey =
   | 'dropdown-menu'
   // Component Gallery - Data Display
   | 'address-display'
+  | 'badge'
   | 'empty-state'
   | 'banner'
   | 'external-link'
@@ -237,6 +240,7 @@ const galleryCategories: GalleryCategory[] = [
     title: 'Data Display',
     items: [
       { key: 'address-display', label: 'AddressDisplay', icon: <Hash className="size-4" /> },
+      { key: 'badge', label: 'Badge', icon: <Tag className="size-4" /> },
       { key: 'empty-state', label: 'EmptyState', icon: <LayoutGrid className="size-4" /> },
       { key: 'banner', label: 'Banner', icon: <PanelTop className="size-4" /> },
       {
@@ -315,6 +319,7 @@ const demoComponents: Record<
   'dropdown-menu': DropdownMenuDemo,
   // Component Gallery - Data Display
   'address-display': AddressDisplayDemo,
+  badge: BadgeDemo,
   'empty-state': EmptyStateDemo,
   banner: BannerDemo,
   'external-link': ExternalLinkDemo,
