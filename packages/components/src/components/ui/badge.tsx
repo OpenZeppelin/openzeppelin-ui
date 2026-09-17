@@ -9,6 +9,7 @@ export interface BadgeProps {
   readonly label: string;
   readonly variant?: BadgeVariant;
   readonly tone?: BadgeTone;
+  readonly icon?: React.ReactNode;
   readonly 'aria-label'?: string;
   readonly className?: string;
 }
@@ -37,19 +38,28 @@ export function Badge({
   label,
   variant = 'filled',
   tone = 'neutral',
+  icon,
   'aria-label': ariaLabel,
   className,
 }: BadgeProps): React.ReactElement {
+  const hasIcon = icon != null && icon !== false;
+
   return (
     <span
       aria-label={ariaLabel}
       className={cn(
         'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+        hasIcon && 'gap-1',
         variant === 'outline' && 'border',
         toneClasses[variant][tone],
         className
       )}
     >
+      {hasIcon && (
+        <span aria-hidden="true" className="inline-flex shrink-0 items-center [&>svg]:size-3">
+          {icon}
+        </span>
+      )}
       {label}
     </span>
   );

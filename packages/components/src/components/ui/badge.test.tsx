@@ -56,4 +56,29 @@ describe('Badge', () => {
 
     expect(screen.getByText('Compact status').className).toContain('uppercase');
   });
+
+  it('leaves a badge without an icon as a single text child', () => {
+    const { container } = render(<Badge label="Queued" />);
+    const badge = container.firstElementChild;
+
+    expect(badge?.childNodes).toHaveLength(1);
+    expect(badge?.childNodes[0]?.nodeType).toBe(Node.TEXT_NODE);
+    expect(badge?.textContent).toBe('Queued');
+    expect(badge?.className.includes('gap-1')).toBe(false);
+    expect(badge?.querySelector('[aria-hidden="true"]')).toBeNull();
+  });
+
+  it('renders a decorative icon before the label without changing the accessible name', () => {
+    const { container } = render(<Badge label="Completed" icon={<span>Check</span>} />);
+    const badge = container.firstElementChild as HTMLElement;
+    const icon = badge.querySelector('[aria-hidden="true"]');
+
+    expect(icon?.textContent).toBe('Check');
+    expect(icon?.nextSibling?.textContent).toBe('Completed');
+    expect(badge.className).toContain('gap-1');
+    expect(screen.queryByText('CheckCompleted')).toBeNull();
+    expect(screen.getByText('Completed')).toBeDefined();
+    expect(badge.getAttribute('aria-label')).toBeNull();
+    expect(icon?.getAttribute('aria-hidden')).toBe('true');
+  });
 });
