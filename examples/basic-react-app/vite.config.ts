@@ -1,10 +1,10 @@
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import { defineOpenZeppelinAdapterViteConfig } from '@openzeppelin/adapters-vite';
 import type { UserConfig } from 'vite';
+
+import { defineOpenZeppelinAdapterViteConfig } from '@openzeppelin/adapters-vite';
 
 // eventemitter3@5 is a dual package whose ESM entry (index.mjs) default-imports
 // its own CJS build. Under Vite's dev optimizer the two halves get inconsistent
@@ -42,9 +42,7 @@ const viteConfig: Promise<UserConfig> = defineOpenZeppelinAdapterViteConfig({
         // (proprietary, Non-Commercial Use only) and needs the same treatment:
         // @wagmi/connectors re-exports an unreachable metaMask module that
         // dynamically imports it.
-        '@metamask/sdk': fileURLToPath(
-          new URL('./src/shims/metamask-removed.ts', import.meta.url)
-        ),
+        '@metamask/sdk': fileURLToPath(new URL('./src/shims/metamask-removed.ts', import.meta.url)),
       },
     },
     optimizeDeps: {

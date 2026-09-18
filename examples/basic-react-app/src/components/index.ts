@@ -31,6 +31,7 @@ export { DropdownMenuDemo } from './DropdownMenuDemo';
 export { AddressDisplayDemo } from './AddressDisplayDemo';
 export { AddressListFieldDemo } from './AddressListFieldDemo';
 export { BadgeDemo } from './BadgeDemo';
+export { DataTableDemo } from './DataTableDemo';
 export { NetworkDemo } from './NetworkDemo';
 export { EmptyStateDemo } from './EmptyStateDemo';
 export { BannerDemo } from './BannerDemo';
