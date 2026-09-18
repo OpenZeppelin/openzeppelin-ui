@@ -19,9 +19,6 @@
   height as `--bottom-sheet-inset` on `<html>` (plus `data-bottom-sheet-inset`, `"resizing"` during a drag) while open,
   so the host layout can shrink instead of being covered. Exported `BottomSheetLayout`,
   `BOTTOM_SHEET_INSET_PROPERTY`, `BOTTOM_SHEET_INSET_ATTRIBUTE`.
-- An opt-in browser test script for kit contributors, `pnpm --filter
-  @openzeppelin/ui-components test:browser` (Chromium via Playwright). The default `test`
-  script is unchanged and stays in jsdom. No CI workflow runs the browser suite.
 
 ### Changed
 
