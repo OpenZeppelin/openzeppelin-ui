@@ -30,6 +30,7 @@ export { DropdownMenuDemo } from './DropdownMenuDemo';
 // Data Display Demos
 export { AddressDisplayDemo } from './AddressDisplayDemo';
 export { AddressListFieldDemo } from './AddressListFieldDemo';
+export { BadgeDemo } from './BadgeDemo';
 export { NetworkDemo } from './NetworkDemo';
 export { EmptyStateDemo } from './EmptyStateDemo';
 export { BannerDemo } from './BannerDemo';

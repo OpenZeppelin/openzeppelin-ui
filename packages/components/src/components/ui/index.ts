@@ -1,6 +1,7 @@
 export * from './accordion';
 export * from './address-display';
 export * from './alert';
+export * from './badge';
 export * from './banner';
 export * from './bottom-sheet';
 export {
