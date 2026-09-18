@@ -87,6 +87,22 @@ jobs:
       - name: Test
         run: pnpm test
 
+      # High-stakes table a11y (INV-56–INV-60) and other kit browser suites are
+      # Chromium/Playwright, not jsdom. Stay off `pnpm test` so packages without a
+      # browser config are not pulled in.
+      - name: Install Playwright Chromium
+        run: pnpm --filter @openzeppelin/ui-components exec playwright install chromium --with-deps
+
+      - name: Browser tests
+        run: pnpm --filter @openzeppelin/ui-components test:browser
+
+      # Built dist + preview: catches first-paint virtualizer attach that source-kit
+      # Chromium tests miss. Local: `pnpm --filter @openzeppelin/ui-example-basic-react-app test:browser`.
+      - name: Example DataTable Playwright smoke
+        run: |
+          pnpm --filter @openzeppelin/ui-example-basic-react-app build
+          pnpm --filter @openzeppelin/ui-example-basic-react-app test:browser
+
       - name: Test ES module imports
         run: |
           cat > test-es-modules.mjs << 'EOF'
