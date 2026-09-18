@@ -1,5 +1,11 @@
 # @openzeppelin/ui-components
 
+## 3.11.0
+
+### Minor Changes
+
+- [#237](https://github.com/OpenZeppelin/openzeppelin-ui/pull/237) [`5bf341b`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/5bf341b004522da0f9dd290a41a1df64c3d7fddf) Thanks [@pasevin](https://github.com/pasevin)! - Add a domain-neutral `Badge` with filled and outlined variants, semantic tones, an optional decorative icon, and an optional accessible-name override.
+
 ## 3.10.0
 
 ### Minor Changes
