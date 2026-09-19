@@ -8,8 +8,12 @@ import { userEvent } from 'vitest/browser';
 import { act, createRef, useState, type ReactElement } from 'react';
 
 import { DataTable } from '../data-table';
-import type { DataTableProps, DataTableSortState, DataTableVirtualizationHandle } from '../types';
-import { numberedTokenRows, tokenColumns, type TokenRow } from './sf2-fixtures';
+import type {
+  DataTableLoadStrategy,
+  DataTableSortState,
+  DataTableVirtualizationHandle,
+} from '../types';
+import { numberedTokenRows, tokenColumns } from './sf2-fixtures';
 
 function injectStickyStyles(): void {
   if (document.getElementById('sf10-sticky-styles')) {
@@ -23,7 +27,9 @@ function injectStickyStyles(): void {
     .sticky { position: sticky; }
     .top-0 { top: 0; }
     .z-20 { z-index: 20; }
-    .bg-muted { background-color: rgb(230, 232, 235); }
+    [data-slot="data-table-header-cell"].sticky {
+      background-color: color-mix(in oklab, rgb(230, 232, 235) 50%, white);
+    }
     .p-4 { padding: 16px; }
     .sr-only {
       position: absolute;
@@ -73,7 +79,7 @@ async function waitForVirtualLayout(container: HTMLElement): Promise<HTMLElement
 
 const strategyCases: {
   name: string;
-  props: Partial<Pick<DataTableProps<TokenRow>, 'pagination' | 'infiniteScroll'>>;
+  props: DataTableLoadStrategy;
 }[] = [
   { name: 'virtualized', props: {} },
   {
@@ -157,7 +163,10 @@ describe('INV-282 / INV-286 / INV-287 / SC-009: sticky geometry is real browser 
         ).toBeLessThanOrEqual(1);
         expect(getComputedStyle(cell).position).toBe('sticky');
         expect(getComputedStyle(cell).display).toBe('table-cell');
-        expect(getComputedStyle(cell).backgroundColor).toBe('rgb(230, 232, 235)');
+        expect(
+          getComputedStyle(cell).backgroundColor,
+          'INV-266: sticky cell fill stays opaque (muted/50 over card)'
+        ).not.toMatch(/transparent|^rgba?\(\s*0,\s*0,\s*0,\s*0(?:\s*,\s*0)?\s*\)$/);
       }
 
       await expect.poll(() => virtualizationRef.current).not.toBeNull();

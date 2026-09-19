@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   DATA_TABLE_HEAD_CHROME,
   DATA_TABLE_PAGINATION_CHROME,
+  DATA_TABLE_PAGINATION_NEIGHBOUR_CHROME,
   DATA_TABLE_PAGINATION_PAGES_CHROME,
   DATA_TABLE_PAGINATION_ROOT_CHROME,
   DATA_TABLE_WRAPPER_CHROME,
@@ -247,6 +248,16 @@ describe('INV-238: pager chrome tokens; nav is not sticky or card-banded', () =>
     );
     const nav = container.querySelector('[data-slot="data-table-pagination"]');
     expectTokens(nav, DATA_TABLE_PAGINATION_CHROME, 'INV-238: nav');
+    expectTokens(
+      container.querySelector('[data-slot="data-table-pagination-previous"]'),
+      DATA_TABLE_PAGINATION_NEIGHBOUR_CHROME,
+      'INV-238: previous neighbour'
+    );
+    expectTokens(
+      container.querySelector('[data-slot="data-table-pagination-next"]'),
+      DATA_TABLE_PAGINATION_NEIGHBOUR_CHROME,
+      'INV-238: next neighbour'
+    );
     expectTokens(
       container.querySelector('[data-slot="data-table-pagination-pages"]'),
       DATA_TABLE_PAGINATION_PAGES_CHROME,

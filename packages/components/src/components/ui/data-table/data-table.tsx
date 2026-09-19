@@ -6,8 +6,10 @@ import { cn, logger } from '@openzeppelin/ui-utils';
 import { Checkbox } from '../checkbox';
 import { EmptyState } from '../empty-state';
 import {
+  DATA_TABLE_FRAME_CHROME,
   DATA_TABLE_HEADER_CELL_CHROME,
   DATA_TABLE_HEADER_CELL_STICKY_CHROME,
+  DATA_TABLE_PAGINATION_INSIDE_CHROME,
   DATA_TABLE_PAGINATION_ROOT_CHROME,
 } from './chrome';
 import { DataTableScroller } from './data-table-scroller';
@@ -15,6 +17,7 @@ import {
   alignClass,
   buildPageItems,
   defaultPaginationStatus,
+  defaultSortButtonName,
   headerNamesItself,
   isNonblank,
   isTotalKnown,
@@ -38,6 +41,7 @@ import {
   DATA_TABLE_SELECT_COLUMN_ID,
   type DataTableColumn,
   type DataTableProps,
+  type DataTableSortButtonNameInfo,
   type DataTableSortDirection,
   type DataTableSortState,
 } from './types';
@@ -68,15 +72,23 @@ function sortIconFor(direction: DataTableSortDirection | undefined): ReactElemen
   return <Icon className="size-4 shrink-0" aria-hidden="true" />;
 }
 
-function siblingSortButtonName<Row>(
+function sortButtonName<Row>(
   column: DataTableColumn<Row>,
-  active: DataTableSortState | null
-): string {
-  const base = `Sort by ${resolveColumnName(column)}`;
-  if (active == null || active.columnId !== column.id) {
-    return base;
+  active: DataTableSortState | null,
+  format?: (info: DataTableSortButtonNameInfo) => string
+): { name: string; emptyOverride: boolean } {
+  const info: DataTableSortButtonNameInfo = {
+    columnName: resolveColumnName(column),
+    direction: active == null || active.columnId !== column.id ? 'none' : active.direction,
+  };
+  if (format == null) {
+    return { name: defaultSortButtonName(info.columnName, info.direction), emptyOverride: false };
   }
-  return `${base}, ${active.direction === 'asc' ? 'ascending' : 'descending'}`;
+  const override = format(info);
+  if (typeof override === 'string' && isNonblank(override)) {
+    return { name: override, emptyOverride: false };
+  }
+  return { name: defaultSortButtonName(info.columnName, info.direction), emptyOverride: true };
 }
 
 function headerAriaSort(
@@ -111,8 +123,14 @@ function headerAriaSort(
  * - `useVirtualizer` lives in `data-table-scroller.tsx`, not here (INV-132).
  *
  * Additive infinite scroll (INV-149 … INV-175):
- * - Optional `infiniteScroll`; pager-wins if `pagination` is also set (INV-112).
+ * - Optional `infiniteScroll`; typed XOR with pagination (`DataTableLoadStrategy`).
+ *   Untyped both-props still pager-wins (INV-112).
  * - Never fetches. Never writes scroll position on append. Never calls onLoadMore during render.
+ *
+ * Additive consumer composition (INV-327 … INV-368):
+ * - Optional toolbar and inside pager share one bordered frame.
+ * - The scroller remains the only overflow, sticky, and virtualization host.
+ * - Row, selection-column, and pager classes merge after kit defaults.
  *
  * A throwing `cell` or `getSortValue` propagates to the nearest app error boundary
  * (INV-51 / INV-80). Generic function component so `Row` infers from `columns` /
@@ -124,6 +142,8 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
     rows,
     getRowKey,
     selection,
+    toolbar,
+    getRowClassName,
     emptyState,
     emptyTitle,
     emptyDescription,
@@ -137,9 +157,13 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
     virtualized,
     scrollRef,
     virtualizationRef,
+    formatSortButtonName,
   } = props;
 
   const headerIsSticky = stickyHeader !== false;
+  // INV-328 / INV-363: only non-null toolbar content or inside pagination creates a frame.
+  const paginationInside = pagination?.placement === 'inside';
+  const framed = toolbar != null || paginationInside;
   const caption = props.caption;
   const captionClassName = props.captionClassName;
   const ariaLabel = props['aria-label'];
@@ -167,7 +191,6 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
 
   const pageSizeResolved = pagination != null ? resolvePageSize(pagination.pageSize) : 1;
   const serverTotalCount = pagination?.kind === 'server' ? pagination.totalCount : undefined;
-  const serverTotalOmitted = pagination?.kind === 'server' && serverTotalCount === undefined;
   const serverTotalInvalid =
     pagination?.kind === 'server' &&
     serverTotalCount !== undefined &&
@@ -193,6 +216,8 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
       : {
           id: DATA_TABLE_SELECT_COLUMN_ID,
           headerLabel: selection.columnHeaderLabel ?? 'Select',
+          headerClassName: cn('w-12', selection.columnClassName),
+          cellClassName: cn('w-12', selection.columnClassName),
           header: (
             <Checkbox
               aria-label={selection.selectAllLabel ?? 'Select all'}
@@ -223,6 +248,19 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
         };
   const paintColumns: readonly DataTableColumn<Row>[] =
     selectionColumn == null ? columns : [selectionColumn, ...columns];
+
+  const sortButtonLabels = new Map<string, string>();
+  let sortNameEmpty = false;
+  for (const column of paintColumns) {
+    if (!isColumnSortable(column)) {
+      continue;
+    }
+    const resolved = sortButtonName(column, effectiveSort, formatSortButtonName);
+    sortButtonLabels.set(column.id, resolved.name);
+    if (resolved.emptyOverride) {
+      sortNameEmpty = true;
+    }
+  }
 
   const pageCount =
     pagination != null && knownTotalCount != null
@@ -351,12 +389,8 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
 
       if (serverTotalInvalid) {
         logOnce('page:totalCount', 'DataTable: pagination.totalCount is invalid.');
-      } else if (serverTotalOmitted) {
-        logOnce(
-          'page:totalCount-omitted',
-          'DataTable: pagination.totalCount is omitted; numbered pages are hidden.'
-        );
       }
+      // INV-353: omitted server totals are a valid cursor-pagination state and stay silent.
 
       if (pagination.kind === 'client') {
         const clientPageCount = resolvePageCount(rows.length, pagination.pageSize);
@@ -393,6 +427,13 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
       );
     }
 
+    if (sortNameEmpty) {
+      logOnce(
+        'sort:empty-name',
+        'DataTable: formatSortButtonName returned an empty accessible name.'
+      );
+    }
+
     if (infiniteActive) {
       const feedHasClientSort = columns.some(
         (column) => isColumnSortable(column) && column.getSortValue != null
@@ -415,13 +456,13 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
     pageSizeResolved,
     pagination,
     serverTotalInvalid,
-    serverTotalOmitted,
     requestedSort,
     rows.length,
     selection,
     statusText,
     infiniteActive,
     infiniteIgnored,
+    sortNameEmpty,
   ]);
 
   const isEmpty = bodyRows.length === 0;
@@ -444,11 +485,13 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
       captionClassName={captionClassName}
       ariaLabel={ariaLabel}
       ariaLabelledBy={ariaLabelledBy}
-      className={className}
+      className={framed ? undefined : className}
+      chromeMode={framed ? 'plain' : 'card'}
       tableClassName={tableClassName}
       columns={paintColumns}
       bodyRows={bodyRows}
       getRowKey={getRowKey}
+      getRowClassName={getRowClassName}
       selectedKeys={selection?.selectedKeys}
       isEmpty={isEmpty}
       emptyColSpan={emptyColSpan}
@@ -502,7 +545,7 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
                     <button
                       type="button"
                       className={SORT_BUTTON_CLASS}
-                      aria-label={siblingSortButtonName(column, effectiveSort)}
+                      aria-label={sortButtonLabels.get(column.id)}
                       onClick={() => {
                         activateSort(column.id);
                       }}
@@ -516,7 +559,7 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
                       <button
                         type="button"
                         className={SORT_BUTTON_CLASS}
-                        aria-label={siblingSortButtonName(column, effectiveSort)}
+                        aria-label={sortButtonLabels.get(column.id)}
                         onClick={() => {
                           activateSort(column.id);
                         }}
@@ -536,18 +579,18 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
     />
   );
 
-  if (pagination == null) {
-    return tableShell;
-  }
-
-  return (
-    <div data-slot="data-table-root" className={DATA_TABLE_PAGINATION_ROOT_CHROME}>
-      {tableShell}
+  const paginationControls =
+    pagination == null ? null : (
       <DataTablePaginationControls
         paginationLabel={pagination.paginationLabel ?? 'Pagination'}
         previousLabel={pagination.previousLabel ?? 'Previous'}
         nextLabel={pagination.nextLabel ?? 'Next'}
         statusText={statusText}
+        className={cn(
+          paginationInside && DATA_TABLE_PAGINATION_INSIDE_CHROME,
+          pagination.className
+        )}
+        hideStatus={pagination.hideStatus}
         busy={paginationBusy}
         previousDisabled={previousDisabled}
         nextDisabled={nextDisabled}
@@ -588,6 +631,26 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
           pagination.onPageChange(nextIndex);
         }}
       />
+    );
+
+  const visibleCard = framed ? (
+    <div data-slot="data-table-frame" className={cn(DATA_TABLE_FRAME_CHROME, className)}>
+      {toolbar != null ? <div data-slot="data-table-toolbar">{toolbar}</div> : null}
+      {tableShell}
+      {paginationInside ? paginationControls : null}
+    </div>
+  ) : (
+    tableShell
+  );
+
+  if (pagination == null || paginationInside) {
+    return visibleCard;
+  }
+
+  return (
+    <div data-slot="data-table-root" className={DATA_TABLE_PAGINATION_ROOT_CHROME}>
+      {visibleCard}
+      {paginationControls}
     </div>
   );
 }

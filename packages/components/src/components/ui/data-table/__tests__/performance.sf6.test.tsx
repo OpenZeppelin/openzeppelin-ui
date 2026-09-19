@@ -16,6 +16,7 @@ import {
   getTokenRowKey,
   numberedTokenRows,
   tokenColumns,
+  untypedDataTableProps,
   type TokenRow,
 } from './sf2-fixtures';
 
@@ -191,7 +192,8 @@ describe('INV-167: onLoadMore throws propagate; kit paths do not throw', () => {
     expect(() =>
       render(
         <DataTable
-          {...captionTableProps({
+          {...untypedDataTableProps({
+            ...captionTableProps(),
             pagination: {
               kind: 'client',
               pageIndex: 0,

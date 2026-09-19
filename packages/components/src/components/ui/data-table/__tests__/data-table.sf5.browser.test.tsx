@@ -23,6 +23,11 @@ function injectContractStyles(): void {
     .text-end { text-align: end; }
     .overflow-x-auto { overflow-x: auto; }
     .caption-top { caption-side: top; }
+    .inline-flex { display: inline-flex; }
+    .items-center { align-items: center; }
+    .h-9 { height: 36px; }
+    .size-4 { width: 16px; height: 16px; }
+    .gap-1 { gap: 4px; }
   `;
   document.head.appendChild(style);
 }
@@ -139,6 +144,22 @@ describe('INV-113 (browser): pager is keyboard-complete; paging does not drop ta
     const nav = container.querySelector('[data-slot="data-table-pagination"]');
     expect(scroller && getComputedStyle(scroller).overflowX).toBe('auto');
     expect(nav && getComputedStyle(nav).overflowX).not.toBe('auto');
+  });
+
+  it('keeps Previous/Next names and aligns chevron buttons with numbered pages', () => {
+    injectContractStyles();
+    render(<ClientPager rows={numberedTokenRows(25)} initialPage={1} />);
+    const previous = screen.getByRole('button', { name: 'Previous' });
+    const next = screen.getByRole('button', { name: 'Next' });
+    const currentPage = screen.getByRole('button', { name: '2' });
+    expect(previous.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
+    expect(next.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
+    expect(previous.firstElementChild?.tagName).toBe('svg');
+    expect(next.lastElementChild?.tagName).toBe('svg');
+    expect(previous.getBoundingClientRect().height).toBe(
+      currentPage.getBoundingClientRect().height
+    );
+    expect(next.getBoundingClientRect().height).toBe(currentPage.getBoundingClientRect().height);
   });
 });
 

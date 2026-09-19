@@ -7,7 +7,13 @@ import { fireEvent, render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { DataTable } from '../data-table';
-import { captionTableProps, numberedTokenRows, tokenColumns, type TokenRow } from './sf2-fixtures';
+import {
+  captionTableProps,
+  numberedTokenRows,
+  tokenColumns,
+  untypedDataTableProps,
+  type TokenRow,
+} from './sf2-fixtures';
 
 describe('INV-192 / INV-183: row controls report immutable identity transitions', () => {
   it('adds only the clicked row key and remains controlled until the parent rerenders', () => {
@@ -244,17 +250,19 @@ describe('INV-202 / INV-204: selection is orthogonal to loading intents', () => 
     const onSelectionChange = vi.fn();
     const { container, getByRole } = render(
       <DataTable
-        {...captionTableProps({
-          pagination: {
-            kind: 'server',
-            pageIndex: 0,
-            pageSize: 3,
-            totalCount: 6,
-            busy: true,
-            onPageChange,
-          },
+        {...untypedDataTableProps({
+          ...captionTableProps({
+            pagination: {
+              kind: 'server',
+              pageIndex: 0,
+              pageSize: 3,
+              totalCount: 6,
+              busy: true,
+              onPageChange,
+            },
+            selection: { selectedKeys: new Set(['a']), onSelectionChange },
+          }),
           infiniteScroll: { hasMore: true, busy: true, onLoadMore },
-          selection: { selectedKeys: new Set(['a']), onSelectionChange },
         })}
       />
     );

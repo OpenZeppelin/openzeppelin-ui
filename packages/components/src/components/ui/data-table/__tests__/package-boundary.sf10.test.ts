@@ -29,9 +29,13 @@ describe('INV-274 / INV-298: sticky chrome remains an internal implementation de
   });
 
   it('keeps the literal sticky token set owned only by chrome.ts', () => {
-    expect(source('chrome.ts').match(/sticky top-0 z-20 bg-muted/g)).toHaveLength(1);
+    expect(
+      source('chrome.ts').match(
+        /sticky top-0 z-20 bg-\[color-mix\(in_oklab,var\(--muted\)_50%,var\(--card\)\)\]/g
+      )
+    ).toHaveLength(1);
     const renderers = `${source('data-table.tsx')}\n${source('data-table-scroller.tsx')}`;
-    expect(renderers).not.toContain('sticky top-0 z-20 bg-muted');
+    expect(renderers).not.toContain('sticky top-0 z-20');
   });
 });
 

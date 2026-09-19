@@ -45,7 +45,7 @@ describe('INV-254: default status copy distinguishes unknown, known-empty, known
 });
 
 describe('INV-256: omitted vs invalid total diagnostics', () => {
-  it('logs omitted totalCount once and does not throw', async () => {
+  it('does not log omitted totalCount and does not throw (INV-353 / INV-256*)', async () => {
     const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
     expect(() => {
       render(
@@ -57,11 +57,19 @@ describe('INV-256: omitted vs invalid total diagnostics', () => {
       );
     }).not.toThrow();
     await waitFor(() => {
-      expect(errorSpy).toHaveBeenCalledWith(
-        'DataTable',
-        'DataTable: pagination.totalCount is omitted; numbered pages are hidden.'
-      );
+      expect(
+        document.querySelectorAll('[data-slot="data-table-pagination-page"]').length,
+        'INV-239: omitted total still hides numbered pages'
+      ).toBe(0);
     });
+    expect(
+      errorSpy.mock.calls.some((call) => String(call[1]).includes('omitted')),
+      'INV-353: valid cursor omit must not log at error level'
+    ).toBe(false);
+    expect(errorSpy).not.toHaveBeenCalledWith(
+      'DataTable',
+      'DataTable: pagination.totalCount is omitted; numbered pages are hidden.'
+    );
   });
 
   it('logs invalid totalCount once and not the omitted diagnostic', async () => {

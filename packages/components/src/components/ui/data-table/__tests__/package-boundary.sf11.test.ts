@@ -27,6 +27,8 @@ describe('INV-252: numbered-pager helpers and chrome stay off the public barrel'
       expect('DATA_TABLE_PAGINATION_CHROME' in barrel).toBe(false);
       expect('DATA_TABLE_PAGINATION_PAGES_CHROME' in barrel).toBe(false);
       expect('DATA_TABLE_PAGINATION_ROOT_CHROME' in barrel).toBe(false);
+      expect('DATA_TABLE_PAGINATION_NEIGHBOUR_CHROME' in barrel).toBe(false);
+      expect('DATA_TABLE_PAGINATION_NEIGHBOUR_ICON_CHROME' in barrel).toBe(false);
       expect('DataTablePageListItem' in barrel).toBe(false);
     }
     expect(Object.keys(DataTableFolder)).toEqual([

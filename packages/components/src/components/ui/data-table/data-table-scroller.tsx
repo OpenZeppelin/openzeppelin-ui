@@ -136,6 +136,7 @@ interface VirtualizedBodyRowsProps<Row> {
   bodyRows: readonly Row[];
   columns: readonly DataTableColumn<Row>[];
   getRowKey: (row: Row) => string;
+  getRowClassName: ((row: Row) => string | undefined) | undefined;
   selectedKeys: ReadonlySet<string> | undefined;
   spacerColSpan: number;
   getScrollElement: () => HTMLDivElement | null;
@@ -153,6 +154,7 @@ function VirtualizedBodyRows<Row>({
   bodyRows,
   columns,
   getRowKey,
+  getRowClassName,
   selectedKeys,
   spacerColSpan,
   getScrollElement,
@@ -287,7 +289,7 @@ function VirtualizedBodyRows<Row>({
             data-selected={isSelected ? 'true' : undefined}
             data-state={isSelected ? 'selected' : undefined}
             aria-rowindex={ariaRowIndexForBodyRow(item.index)}
-            className={DATA_TABLE_ROW_CHROME}
+            className={cn(DATA_TABLE_ROW_CHROME, getRowClassName?.(row))}
           >
             <DataTableRowCells row={row} columns={columns} />
           </tr>
@@ -305,10 +307,12 @@ export interface DataTableScrollerProps<Row> {
   ariaLabel: string | undefined;
   ariaLabelledBy: string | undefined;
   className: string | undefined;
+  chromeMode: 'card' | 'plain';
   tableClassName: string | undefined;
   columns: readonly DataTableColumn<Row>[];
   bodyRows: readonly Row[];
   getRowKey: (row: Row) => string;
+  getRowClassName: ((row: Row) => string | undefined) | undefined;
   selectedKeys: ReadonlySet<string> | undefined;
   isEmpty: boolean;
   emptyColSpan: number;
@@ -325,9 +329,10 @@ export interface DataTableScrollerProps<Row> {
 }
 
 /**
- * Internal scroll host. Owns the kit wrapper and, when virtualization is
- * active, `useVirtualizer` in a child so header chrome does not subscribe
- * to every scroll frame (INV-132). Not barrel-exported (INV-127).
+ * Internal scroll host. Paints the card only in `card` mode; framed tables use
+ * `plain` mode so this node remains the sole overflow and virtualization host.
+ * `useVirtualizer` lives in a child so header chrome does not subscribe to every
+ * scroll frame (INV-132). Not barrel-exported (INV-127).
  */
 export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): ReactElement {
   const {
@@ -337,10 +342,12 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
     ariaLabel,
     ariaLabelledBy,
     className,
+    chromeMode,
     tableClassName,
     columns,
     bodyRows,
     getRowKey,
+    getRowClassName,
     selectedKeys,
     isEmpty,
     emptyColSpan,
@@ -583,9 +590,11 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
     }
   }, [resolved.active, resolved.maxHeight, bodyRows.length]);
 
-  const wrapperClassName = resolved.active
-    ? cn(DATA_TABLE_WRAPPER_CHROME, 'relative w-full overflow-auto', className)
-    : cn(DATA_TABLE_WRAPPER_CHROME, 'relative w-full overflow-x-auto', className);
+  const wrapperClassName = cn(
+    chromeMode === 'card' && DATA_TABLE_WRAPPER_CHROME,
+    resolved.active ? 'relative w-full overflow-auto' : 'relative w-full overflow-x-auto',
+    className
+  );
 
   const wrapperStyle = resolved.active
     ? { maxHeight: `${String(resolved.maxHeight)}px` }
@@ -641,6 +650,7 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
               bodyRows={bodyRows}
               columns={columns}
               getRowKey={getRowKey}
+              getRowClassName={getRowClassName}
               selectedKeys={selectedKeys}
               spacerColSpan={emptyColSpan}
               getScrollElement={getScrollElement}
@@ -671,7 +681,7 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
                     data-selected={isSelected ? 'true' : undefined}
                     data-state={isSelected ? 'selected' : undefined}
                     aria-rowindex={infiniteHasMore ? ariaRowIndexForBodyRow(index) : undefined}
-                    className={DATA_TABLE_ROW_CHROME}
+                    className={cn(DATA_TABLE_ROW_CHROME, getRowClassName?.(row))}
                   >
                     <DataTableRowCells row={row} columns={columns} />
                   </tr>

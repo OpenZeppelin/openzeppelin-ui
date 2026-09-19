@@ -14,6 +14,7 @@ import {
   numberedTokenRows,
   TOKEN_ROWS,
   tokenColumns,
+  untypedDataTableProps,
   type TokenRow,
 } from './sf2-fixtures';
 
@@ -104,7 +105,7 @@ describe('INV-111: pagination does not add a third body state', () => {
   });
 });
 
-describe('INV-112: pagination ∩ infinite is pager-wins, not a type XOR', () => {
+describe('INV-112: typed XOR; runtime pager-wins', () => {
   it('still rejects top-level onReachEnd / hasMore / infinite aliases', () => {
     type Forbidden = Extract<keyof DataTableProps<TokenRow>, 'onReachEnd' | 'hasMore' | 'infinite'>;
     expectTypeOf<Forbidden>().toEqualTypeOf<never>();
@@ -120,8 +121,8 @@ describe('INV-112: pagination ∩ infinite is pager-wins, not a type XOR', () =>
     const onPageChange = vi.fn();
     const { container } = render(
       <DataTable
-        {...captionTableProps({
-          rows: numberedTokenRows(25),
+        {...untypedDataTableProps({
+          ...captionTableProps({ rows: numberedTokenRows(25) }),
           pagination: {
             kind: 'client',
             pageIndex: 0,

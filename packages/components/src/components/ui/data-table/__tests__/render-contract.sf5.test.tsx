@@ -89,6 +89,12 @@ describe('INV-95: pager is a named nav of status then pages (Previous, numbers, 
     expect(pageChildren[pageChildren.length - 1]?.getAttribute('type')).toBe('button');
     expect(pageChildren[0]?.textContent).toBe('Previous');
     expect(pageChildren[pageChildren.length - 1]?.textContent).toBe('Next');
+    const previousIcon = pageChildren[0]?.querySelector('svg');
+    const nextIcon = pageChildren[pageChildren.length - 1]?.querySelector('svg');
+    expect(previousIcon?.getAttribute('aria-hidden')).toBe('true');
+    expect(nextIcon?.getAttribute('aria-hidden')).toBe('true');
+    expect(pageChildren[0]?.firstElementChild).toBe(previousIcon);
+    expect(pageChildren[pageChildren.length - 1]?.lastElementChild).toBe(nextIcon);
     expect(container.querySelectorAll('[role="grid"]').length).toBe(0);
   });
 

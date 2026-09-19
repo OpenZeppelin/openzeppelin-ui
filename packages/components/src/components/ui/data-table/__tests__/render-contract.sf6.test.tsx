@@ -14,6 +14,7 @@ import {
   numberedTokenRows,
   TOKEN_ROWS,
   tokenColumns,
+  untypedDataTableProps,
   type TokenRow,
 } from './sf2-fixtures';
 
@@ -39,8 +40,8 @@ describe('INV-149: omitting infinite is today’s table; both props ignore infin
     const onLoadMore = vi.fn();
     const { container } = render(
       <DataTable
-        {...captionTableProps({
-          rows: numberedTokenRows(25),
+        {...untypedDataTableProps({
+          ...captionTableProps({ rows: numberedTokenRows(25) }),
           pagination: {
             kind: 'client',
             pageIndex: 0,
@@ -267,8 +268,8 @@ describe('INV-153: infinite aria-busy lives on the scroll wrapper, never on a ro
   it('ignores infiniteScroll.busy under pager-wins and follows pagination.busy on nav', () => {
     const { container } = render(
       <DataTable
-        {...captionTableProps({
-          rows: numberedTokenRows(12),
+        {...untypedDataTableProps({
+          ...captionTableProps({ rows: numberedTokenRows(12) }),
           pagination: {
             kind: 'client',
             pageIndex: 0,

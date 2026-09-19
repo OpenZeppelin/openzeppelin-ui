@@ -11,7 +11,7 @@ import { createRef, StrictMode } from 'react';
 import { Checkbox } from '../../checkbox';
 import { OverflowMenu } from '../../overflow-menu';
 import { DataTable } from '../data-table';
-import type { DataTableVirtualizationHandle } from '../types';
+import type { DataTableLoadStrategy, DataTableVirtualizationHandle } from '../types';
 import { numberedTokenRows, tokenColumns, type TokenRow } from './sf2-fixtures';
 
 function injectContractStyles(): void {
@@ -145,9 +145,18 @@ describe('INV-130 / INV-134 (browser): focused row controls do not break later w
           rows={rows}
           getRowKey={(row) => row.id}
           virtualized
-          infiniteScroll={
-            infinite ? { hasMore: true, busy: true, onLoadMore: () => undefined } : undefined
-          }
+          // Boolean ternary widens `infiniteScroll` to `T | undefined`, which is not a
+          // legal XOR arm (INV-306). Cast the spread to DataTableLoadStrategy — do not
+          // widen DataTable's public props.
+          {...((infinite
+            ? {
+                infiniteScroll: {
+                  hasMore: true as const,
+                  busy: true as const,
+                  onLoadMore: () => undefined,
+                },
+              }
+            : {}) as DataTableLoadStrategy)}
         />
       </StrictMode>
     );

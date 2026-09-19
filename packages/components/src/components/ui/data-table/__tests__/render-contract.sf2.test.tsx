@@ -279,7 +279,12 @@ describe('INV-36: table internals keep table display; only wrapper overflows', (
       `${SLOT.table}, ${SLOT.caption}, ${SLOT.head}, ${SLOT.body}, ${SLOT.row}, ${SLOT.headerCell}, ${SLOT.cell}`
     );
     const forbidden = /^(block|flex|grid|contents|absolute|fixed|relative|translate-|transform)/;
-    const stickyTokens = new Set(['sticky', 'top-0', 'z-20', 'bg-muted']);
+    const stickyTokens = new Set([
+      'sticky',
+      'top-0',
+      'z-20',
+      'bg-[color-mix(in_oklab,var(--muted)_50%,var(--card))]',
+    ]);
     for (const el of internals) {
       expect(el.hasAttribute('style'), 'INV-36: no inline style on table internals').toBe(false);
       for (const token of el.className.split(/\s+/)) {

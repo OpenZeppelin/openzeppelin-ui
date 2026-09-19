@@ -133,9 +133,21 @@ export type DataTableName =
 
 /**
  * Sort direction for the active column. Cleared sort is `null` state, not a
- * third direction member (INV-69).
+ * third direction member (INV-69). `'none'` is formatter-only
+ * (`DataTableSortButtonNameInfo`), never this alias (INV-310).
  */
 export type DataTableSortDirection = 'asc' | 'desc';
+
+/**
+ * Inputs for the sort-control accessible name. `columnName` is
+ * `resolveColumnName` (string `header`, else `headerLabel`, else `id`).
+ * `direction` is `'none'` when this column is not the active sort
+ * (unsorted), otherwise `'asc'` | `'desc'`.
+ */
+export interface DataTableSortButtonNameInfo {
+  readonly columnName: string;
+  readonly direction: DataTableSortDirection | 'none';
+}
 
 /**
  * The table’s current sort. `columnId` is a `DataTableColumn.id`.
@@ -171,6 +183,9 @@ export interface DataTablePaginationStatusInfo {
   /** `true` iff numbered controls may be derived from `pageCount`. INV-239 */
   readonly totalKnown: boolean;
 }
+
+/** Where the pager sits relative to the bordered table frame. */
+export type DataTablePaginationPlacement = 'outside' | 'inside';
 
 type DataTablePaginationChrome = {
   /**
@@ -209,6 +224,15 @@ type DataTablePaginationChrome = {
 
   /** Override the visible + live status string. Default: see `defaultPaginationStatus`. */
   readonly formatStatus?: (info: DataTablePaginationStatusInfo) => string;
+
+  /** Pager location. Omitted defaults to `'outside'` for backwards compatibility. */
+  readonly placement?: DataTablePaginationPlacement;
+
+  /** Classes merged onto the pagination `<nav>`. */
+  readonly className?: string;
+
+  /** Visually hide the status while preserving its polite live region. */
+  readonly hideStatus?: boolean;
 };
 
 /**
@@ -246,7 +270,8 @@ export type DataTablePagination = DataTableClientPagination | DataTableServerPag
 /**
  * Opt-in append-intent. Always controlled — the kit holds no feed, cursor, or
  * query cache. Omitted → today’s table. Orthogonal to `virtualized`.
- * Not combinable with `pagination` in v1 (pager wins at runtime). INV-154
+ * Typed callers cannot combine this with `pagination` (`DataTableLoadStrategy`).
+ * Runtime pager-wins remains the untyped escape hatch (INV-112 / INV-154).
  */
 export interface DataTableInfiniteScroll {
   /**
@@ -270,6 +295,31 @@ export interface DataTableInfiniteScroll {
   readonly busy?: boolean;
 }
 
+/**
+ * Pagination vs infinite scroll for typed callers. Exactly one arm, or neither.
+ * Each arm marks the other prop `?: undefined` (same shape as `DataTableName`).
+ *
+ * - Neither: today’s unpaged, non-append table.
+ * - `pagination` present: infinite must be absent; client/server kind unchanged.
+ * - `infiniteScroll` present: pagination must be absent.
+ *
+ * Both present is a type error. Untyped callers who still pass both take the
+ * existing pager-wins runtime path (`infiniteIgnored` + `infinite:pager-wins`).
+ */
+export type DataTableLoadStrategy =
+  | {
+      readonly pagination?: undefined;
+      readonly infiniteScroll?: undefined;
+    }
+  | {
+      readonly pagination: DataTablePagination;
+      readonly infiniteScroll?: undefined;
+    }
+  | {
+      readonly infiniteScroll: DataTableInfiniteScroll;
+      readonly pagination?: undefined;
+    };
+
 /** Stable identity of the kit-injected row-selection column (INV-182). */
 export const DATA_TABLE_SELECT_COLUMN_ID = '__data-table-select';
 
@@ -292,6 +342,9 @@ export interface DataTableSelection<Row> {
 
   /** Accessible name for the injected column. Default: `'Select'`. */
   readonly columnHeaderLabel?: string;
+
+  /** Classes merged onto the injected header and body cells after the kit default `w-12`. */
+  readonly columnClassName?: string;
 }
 
 /** Kit default estimate: SF-9 `p-4` composed rows are approximately 64px. INV-140 */
@@ -350,14 +403,15 @@ export interface DataTableVirtualization {
  * and a page window when `pagination.kind === 'client'`.
  * `Row` is unconstrained (INV-8, INV-41).
  *
- * INV-39 / INV-66 / INV-99 / INV-124 / INV-154: `sort`, `defaultSort`,
+ * INV-39 / INV-66 / INV-99 / INV-124 / INV-154 / INV-305: `sort`, `defaultSort`,
  * `onSortChange`, `pagination`, `infiniteScroll`, `stickyHeader`, `virtualized`,
- * `scrollRef`, `virtualizationRef`, and `selection` are legal. Pagination ∩ infinite
- * is pager-wins (INV-112), not a type XOR. Top-level `page` / `pageSize` /
+ * `scrollRef`, `virtualizationRef`, `selection`, and `formatSortButtonName` are
+ * legal. Typed XOR via `DataTableLoadStrategy`; runtime pager-wins (INV-112)
+ * unchanged for untyped both-props. Top-level `page` / `pageSize` /
  * `onPageChange`, plus `isLoading`, top-level selection aliases, `ref` on `DataTable`
  * itself, `onSort`, `multiSort`, `compare`, `rowHeight`, remain excess-property errors.
  */
-export type DataTableProps<Row> = DataTableName & {
+type DataTablePropsBase<Row> = {
   /** SF-1 column declarations. Keyed by `column.id` (INV-22). */
   readonly columns: readonly DataTableColumn<Row>[];
 
@@ -380,6 +434,15 @@ export type DataTableProps<Row> = DataTableName & {
 
   /** Optional kit-owned checkbox chrome backed by app-controlled identities (INV-176). */
   readonly selection?: DataTableSelection<Row>;
+
+  /**
+   * Opaque integrator content hosted inside the bordered frame above the table.
+   * The kit does not inspect or own this content.
+   */
+  readonly toolbar?: ReactNode;
+
+  /** Classes merged onto each painted data row after the kit row chrome. */
+  readonly getRowClassName?: (row: Row) => string | undefined;
 
   /**
    * Full replacement for the empty-row content (e.g. Role Manager’s “Add account”
@@ -417,19 +480,11 @@ export type DataTableProps<Row> = DataTableName & {
   readonly onSortChange?: (next: DataTableSortState | null) => void;
 
   /**
-   * When omitted, every element of `displayRows` is mounted (SF-2/SF-3).
-   * When set, a pager appears (status + Previous / optional page numbers / Next);
-   * `kind` chooses slice vs pass-through. Always controlled — the kit never
-   * stores `pageIndex` (INV-99). Numbered buttons exist only when the total is known.
+   * Table-wide override for each sortable header button’s `aria-label`.
+   * Omitted → `defaultSortButtonName` (today’s English `Sort by {name}` /
+   * `Sort by {name}, ascending|descending`). Does not set `aria-sort`.
    */
-  readonly pagination?: DataTablePagination;
-
-  /**
-   * When omitted, no end detection and no unknown-total ARIA.
-   * When set and `pagination` is omitted, append-intent is active.
-   * When set **and** `pagination` is set, infinite is ignored (pager-wins, INV-112 / INV-149).
-   */
-  readonly infiniteScroll?: DataTableInfiniteScroll;
+  readonly formatSortButtonName?: (info: DataTableSortButtonNameInfo) => string;
 
   /**
    * Freeze header cells inside the table scroll wrapper when it has vertical overflow.
@@ -456,3 +511,5 @@ export type DataTableProps<Row> = DataTableName & {
   /** Imperative `scrollToRowKey`. Null when virtualization is inactive. INV-128 */
   readonly virtualizationRef?: Ref<DataTableVirtualizationHandle | null>;
 };
+
+export type DataTableProps<Row> = DataTableName & DataTableLoadStrategy & DataTablePropsBase<Row>;

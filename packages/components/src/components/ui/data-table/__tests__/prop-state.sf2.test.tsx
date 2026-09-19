@@ -153,13 +153,19 @@ describe('INV-39 (restated): closed prop surface admits nested selection only', 
       emptyDescription: 'Empty',
       className: 'wrap',
       tableClassName: 'tbl',
-      selection: { selectedKeys, onSelectionChange },
+      selection: { selectedKeys, onSelectionChange, columnClassName: 'w-12' },
+      formatSortButtonName: ({ columnName, direction }) => `${columnName}:${direction}`,
+      toolbar: 'filters',
+      getRowClassName: () => 'hover:bg-muted/30',
     } satisfies DataTableProps<TokenRow>;
     expect(full.emptyTitle).toBe('None');
     expect(full.selection.selectedKeys).toBe(selectedKeys);
     expectTypeOf<
-      Extract<keyof DataTableProps<TokenRow>, 'selection'>
-    >().toEqualTypeOf<'selection'>();
+      Extract<
+        keyof DataTableProps<TokenRow>,
+        'formatSortButtonName' | 'toolbar' | 'getRowClassName'
+      >
+    >().toEqualTypeOf<'formatSortButtonName' | 'toolbar' | 'getRowClassName'>();
   });
 
   it('keeps top-level selection aliases and unrelated state keys out of DataTableProps', () => {

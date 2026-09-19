@@ -3,6 +3,7 @@ import type {
   DataTableColumn,
   DataTablePagination,
   DataTablePaginationStatusInfo,
+  DataTableSortDirection,
 } from './types';
 
 /**
@@ -252,4 +253,18 @@ export function defaultPaginationStatus(info: DataTablePaginationStatusInfo): st
     return 'No rows';
   }
   return `Showing ${String(info.from)}–${String(info.to)} of ${String(info.totalCount)}`;
+}
+
+/**
+ * Kit English sort-control accessible name (INV-304). Not barrel-exported (INV-52 / INV-311).
+ */
+export function defaultSortButtonName(
+  columnName: string,
+  direction: DataTableSortDirection | 'none'
+): string {
+  const base = `Sort by ${columnName}`;
+  if (direction === 'none') {
+    return base;
+  }
+  return `${base}, ${direction === 'asc' ? 'ascending' : 'descending'}`;
 }

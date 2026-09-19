@@ -14,7 +14,12 @@ import {
 import { DataTable } from '../data-table';
 import { captionTableProps, numberedTokenRows, tokenColumns } from './sf2-fixtures';
 
-const STICKY_TOKENS = ['sticky', 'top-0', 'z-20', 'bg-muted'] as const;
+const STICKY_TOKENS = [
+  'sticky',
+  'top-0',
+  'z-20',
+  'bg-[color-mix(in_oklab,var(--muted)_50%,var(--card))]',
+] as const;
 
 function classTokens(element: Element | null): Set<string> {
   return new Set((element?.getAttribute('class') ?? '').split(/\s+/).filter(Boolean));
@@ -32,11 +37,14 @@ function expectStickyHeaderCell(element: Element): void {
 
 describe('INV-266 / INV-267 / INV-298: sticky chrome is closed and separate', () => {
   it('pins the sticky and SF-9 base constants without overflow ownership', () => {
-    expect(DATA_TABLE_HEADER_CELL_STICKY_CHROME).toBe('sticky top-0 z-20 bg-muted');
+    expect(DATA_TABLE_HEADER_CELL_STICKY_CHROME).toBe(
+      'sticky top-0 z-20 bg-[color-mix(in_oklab,var(--muted)_50%,var(--card))]'
+    );
     expect(DATA_TABLE_HEADER_CELL_CHROME).toBe(
       'p-4 font-medium text-muted-foreground align-middle'
     );
     expect(DATA_TABLE_HEADER_CELL_STICKY_CHROME).not.toContain('bg-muted/50');
+    expect(DATA_TABLE_HEADER_CELL_STICKY_CHROME).not.toMatch(/(^|\s)bg-muted(\s|$)/);
     expect(DATA_TABLE_HEADER_CELL_STICKY_CHROME).not.toContain('overflow-hidden');
   });
 });

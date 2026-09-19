@@ -3,9 +3,11 @@ import type { ReactNode, Ref } from 'react';
 import type {
   DataTableColumn,
   DataTableInfiniteScroll,
+  DataTableLoadStrategy,
   DataTablePagination,
   DataTableProps,
   DataTableSelection,
+  DataTableSortButtonNameInfo,
   DataTableSortState,
   DataTableVirtualization,
   DataTableVirtualizationHandle,
@@ -80,16 +82,37 @@ type CaptionTableOverrides = {
   sort?: DataTableSortState | null;
   defaultSort?: DataTableSortState | null;
   onSortChange?: (next: DataTableSortState | null) => void;
-  pagination?: DataTablePagination;
-  infiniteScroll?: DataTableInfiniteScroll;
   virtualized?: boolean | DataTableVirtualization;
   scrollRef?: Ref<HTMLDivElement | null>;
   virtualizationRef?: Ref<DataTableVirtualizationHandle | null>;
   selection?: DataTableSelection<TokenRow>;
+  formatSortButtonName?: (info: DataTableSortButtonNameInfo) => string;
+  stickyHeader?: boolean;
+  toolbar?: ReactNode;
+  getRowClassName?: (row: TokenRow) => string | undefined;
+} & DataTableLoadStrategy;
+
+/**
+ * INV-307 hatch: both load strategies may be defined here so runtime pager-wins
+ * tests can mount without widening `DataTable(props: DataTableProps)`.
+ */
+export type DualLoadTableProps<Row> = Omit<DataTableProps<Row>, 'pagination' | 'infiniteScroll'> & {
+  readonly pagination?: DataTablePagination;
+  readonly infiniteScroll?: DataTableInfiniteScroll;
 };
 
-/** Caption-branch `DataTableProps` with optional overrides. */
+/**
+ * Assert dual load-strategy props onto `DataTableProps` for INV-112 runtime tests.
+ * Typed `DataTable` stays XOR; this hatch is tests-only (INV-307).
+ */
+export function untypedDataTableProps<Row>(props: DualLoadTableProps<Row>): DataTableProps<Row> {
+  return props as DataTableProps<Row>;
+}
+
+/** Caption-branch `DataTableProps` with optional overrides. Load extras are XOR (INV-307). */
 export function captionTableProps(extra?: CaptionTableOverrides): DataTableProps<TokenRow> {
+  // Union extras cannot be proven after spreads; the parameter stays XOR so
+  // both-defined literals fail at the call site. Dual-prop tests use untypedDataTableProps.
   return {
     caption: extra?.caption ?? 'Tokenization requests',
     captionClassName: extra?.captionClassName,
@@ -112,5 +135,11 @@ export function captionTableProps(extra?: CaptionTableOverrides): DataTableProps
       ? { virtualizationRef: extra.virtualizationRef }
       : {}),
     ...(extra && 'selection' in extra ? { selection: extra.selection } : {}),
-  };
+    ...(extra && 'formatSortButtonName' in extra
+      ? { formatSortButtonName: extra.formatSortButtonName }
+      : {}),
+    ...(extra && 'stickyHeader' in extra ? { stickyHeader: extra.stickyHeader } : {}),
+    ...(extra && 'toolbar' in extra ? { toolbar: extra.toolbar } : {}),
+    ...(extra && 'getRowClassName' in extra ? { getRowClassName: extra.getRowClassName } : {}),
+  } as DataTableProps<TokenRow>;
 }

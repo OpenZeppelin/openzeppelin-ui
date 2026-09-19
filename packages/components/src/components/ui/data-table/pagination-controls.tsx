@@ -1,7 +1,16 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLayoutEffect, useRef, type ReactElement } from 'react';
 
+import { cn } from '@openzeppelin/ui-utils';
+
 import { Button } from '../button';
-import { DATA_TABLE_PAGINATION_CHROME, DATA_TABLE_PAGINATION_PAGES_CHROME } from './chrome';
+import {
+  DATA_TABLE_PAGINATION_CHROME,
+  DATA_TABLE_PAGINATION_HIDDEN_STATUS_CHROME,
+  DATA_TABLE_PAGINATION_NEIGHBOUR_CHROME,
+  DATA_TABLE_PAGINATION_NEIGHBOUR_ICON_CHROME,
+  DATA_TABLE_PAGINATION_PAGES_CHROME,
+} from './chrome';
 import type { DataTablePageListItem } from './helpers';
 
 export interface DataTablePaginationControlsProps {
@@ -9,6 +18,8 @@ export interface DataTablePaginationControlsProps {
   readonly previousLabel: string;
   readonly nextLabel: string;
   readonly statusText: string;
+  readonly className?: string;
+  readonly hideStatus?: boolean;
   readonly busy: boolean;
   readonly previousDisabled: boolean;
   readonly nextDisabled: boolean;
@@ -27,6 +38,8 @@ export function DataTablePaginationControls({
   previousLabel,
   nextLabel,
   statusText,
+  className,
+  hideStatus = false,
   busy,
   previousDisabled,
   nextDisabled,
@@ -119,7 +132,11 @@ export function DataTablePaginationControls({
       data-slot="data-table-pagination"
       aria-label={paginationLabel}
       aria-busy={busy ? true : undefined}
-      className={DATA_TABLE_PAGINATION_CHROME}
+      className={cn(
+        DATA_TABLE_PAGINATION_CHROME,
+        hideStatus && DATA_TABLE_PAGINATION_HIDDEN_STATUS_CHROME,
+        className
+      )}
     >
       <p
         ref={statusRef}
@@ -127,7 +144,7 @@ export function DataTablePaginationControls({
         tabIndex={-1}
         aria-live="polite"
         aria-atomic="true"
-        className="m-0 text-sm text-muted-foreground"
+        className={cn('m-0 text-sm text-muted-foreground', hideStatus && 'sr-only')}
       >
         {statusText}
       </p>
@@ -137,6 +154,7 @@ export function DataTablePaginationControls({
           type="button"
           variant="outline"
           size="sm"
+          className={DATA_TABLE_PAGINATION_NEIGHBOUR_CHROME}
           data-slot="data-table-pagination-previous"
           disabled={previousDisabled}
           onClick={() => {
@@ -146,6 +164,7 @@ export function DataTablePaginationControls({
             onPrevious();
           }}
         >
+          <ChevronLeft aria-hidden="true" className={DATA_TABLE_PAGINATION_NEIGHBOUR_ICON_CHROME} />
           {previousLabel}
         </Button>
         {pageItems.map((item) => {
@@ -189,6 +208,7 @@ export function DataTablePaginationControls({
           type="button"
           variant="outline"
           size="sm"
+          className={DATA_TABLE_PAGINATION_NEIGHBOUR_CHROME}
           data-slot="data-table-pagination-next"
           disabled={nextDisabled}
           onClick={() => {
@@ -199,6 +219,10 @@ export function DataTablePaginationControls({
           }}
         >
           {nextLabel}
+          <ChevronRight
+            aria-hidden="true"
+            className={DATA_TABLE_PAGINATION_NEIGHBOUR_ICON_CHROME}
+          />
         </Button>
       </div>
     </nav>

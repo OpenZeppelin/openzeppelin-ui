@@ -17,6 +17,7 @@ import {
   getTokenRowKey,
   numberedTokenRows,
   tokenColumns,
+  untypedDataTableProps,
   type TokenRow,
 } from './sf2-fixtures';
 
@@ -127,13 +128,15 @@ describe('INV-155: client sort of the growing buffer is skipped while infinite i
     ];
     const { container } = render(
       <DataTable
-        caption="Paged"
-        columns={tokenColumns()}
-        rows={shuffled}
-        getRowKey={getTokenRowKey}
-        defaultSort={{ columnId: 'amount', direction: 'asc' }}
-        pagination={{ kind: 'client', pageIndex: 0, pageSize: 1, onPageChange: vi.fn() }}
-        infiniteScroll={{ hasMore: true, onLoadMore: vi.fn() }}
+        {...untypedDataTableProps({
+          caption: 'Paged',
+          columns: tokenColumns(),
+          rows: shuffled,
+          getRowKey: getTokenRowKey,
+          defaultSort: { columnId: 'amount', direction: 'asc' },
+          pagination: { kind: 'client', pageIndex: 0, pageSize: 1, onPageChange: vi.fn() },
+          infiniteScroll: { hasMore: true, onLoadMore: vi.fn() },
+        })}
       />
     );
     expect(bodyLabels(container)).toEqual(['Alpha']);
@@ -208,40 +211,24 @@ describe('INV-157: onLoadMore identity churn does not reset the generation guard
 describe('INV-158: integrator mistakes fail closed with a diagnostic, never throw', () => {
   it('logs pager-wins once in dev and does not throw', async () => {
     const errorSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
-    const { rerender } = render(
-      <DataTable
-        {...captionTableProps({
-          rows: numberedTokenRows(12),
-          pagination: {
-            kind: 'client',
-            pageIndex: 0,
-            pageSize: 10,
-            onPageChange: vi.fn(),
-          },
-          infiniteScroll: { hasMore: true, onLoadMore: vi.fn() },
-        })}
-      />
-    );
+    const dual = untypedDataTableProps({
+      ...captionTableProps({ rows: numberedTokenRows(12) }),
+      pagination: {
+        kind: 'client',
+        pageIndex: 0,
+        pageSize: 10,
+        onPageChange: vi.fn(),
+      },
+      infiniteScroll: { hasMore: true, onLoadMore: vi.fn() },
+    });
+    const { rerender } = render(<DataTable {...dual} />);
     await waitFor(() => {
       const messages = errorSpy.mock.calls.map((call) => String(call[1]));
       expect(
         messages.filter((m) => m.includes('pagination and infiniteScroll cannot be combined'))
       ).toHaveLength(1);
     });
-    rerender(
-      <DataTable
-        {...captionTableProps({
-          rows: numberedTokenRows(12),
-          pagination: {
-            kind: 'client',
-            pageIndex: 0,
-            pageSize: 10,
-            onPageChange: vi.fn(),
-          },
-          infiniteScroll: { hasMore: true, onLoadMore: vi.fn() },
-        })}
-      />
-    );
+    rerender(<DataTable {...dual} />);
     await waitFor(() => {
       const messages = errorSpy.mock.calls.map((call) => String(call[1]));
       expect(
