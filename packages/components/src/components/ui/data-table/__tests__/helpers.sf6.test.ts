@@ -108,11 +108,11 @@ describe('INV-160: short-page ε and scrollport root choice', () => {
     expect(DATA_TABLE_SHORT_PAGE_EPSILON_PX).toBe(1);
   });
 
-  it('treats equal heights and a 1px remainder as a short page', () => {
+  it('treats positive equal heights and a 1px remainder as a short page', () => {
     expect(isShortPage(384, 384)).toBe(true);
     expect(isShortPage(385, 384)).toBe(true);
     expect(isShortPage(386, 384)).toBe(false);
-    expect(isShortPage(0, 0)).toBe(true);
+    expect(isShortPage(0, 0), 'jsdom zero layout is not a bounded short page').toBe(false);
   });
 
   it('uses the wrapper as IO root only when it is a vertical scrollport', () => {

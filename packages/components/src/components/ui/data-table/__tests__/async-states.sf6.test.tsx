@@ -58,6 +58,7 @@ describe('INV-169: failed append is retry-by-intent; columns stay mounted', () =
         columns={tokenColumns()}
         rows={TOKEN_ROWS}
         getRowKey={getTokenRowKey}
+        virtualized
         infiniteScroll={{ hasMore: true, busy: false, onLoadMore }}
       />
     );
@@ -75,6 +76,7 @@ describe('INV-169: failed append is retry-by-intent; columns stay mounted', () =
         columns={tokenColumns()}
         rows={TOKEN_ROWS}
         getRowKey={getTokenRowKey}
+        virtualized
         infiniteScroll={{ hasMore: true, busy: true, onLoadMore }}
       />
     );
@@ -84,6 +86,7 @@ describe('INV-169: failed append is retry-by-intent; columns stay mounted', () =
         columns={tokenColumns()}
         rows={TOKEN_ROWS}
         getRowKey={getTokenRowKey}
+        virtualized
         infiniteScroll={{ hasMore: true, busy: false, onLoadMore }}
       />
     );
@@ -111,6 +114,7 @@ describe('INV-170 / SC-006: zero kit-level fetch', () => {
       <DataTable
         {...captionTableProps({
           rows: numberedTokenRows(3),
+          virtualized: true,
           infiniteScroll: { hasMore: true, onLoadMore },
         })}
       />

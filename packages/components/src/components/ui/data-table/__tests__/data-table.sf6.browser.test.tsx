@@ -67,6 +67,16 @@ function ScrollAppendFeed(): ReactElement {
   );
 }
 
+async function afterBrowserLayout(): Promise<void> {
+  await new Promise<void>((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        resolve();
+      });
+    });
+  });
+}
+
 describe('INV-160 (browser): Strict Mode keeps initial end detection live', () => {
   it('requests a short first page once after effect replay', async () => {
     injectContractStyles();
@@ -112,6 +122,51 @@ describe('INV-160 (browser): Strict Mode keeps initial end detection live', () =
         )
       )
       .toBe(true);
+  });
+
+  it('leaves an unbounded feed to its off-screen viewport sentinel', async () => {
+    injectContractStyles();
+    let calls = 0;
+    const infiniteScroll = {
+      hasMore: true,
+      onLoadMore: () => {
+        calls += 1;
+      },
+    };
+    const { container, rerender } = render(
+      <DataTable
+        caption="Unbounded feed"
+        columns={tokenColumns()}
+        rows={numberedTokenRows(50)}
+        getRowKey={(row) => row.id}
+        infiniteScroll={infiniteScroll}
+      />
+    );
+    const wrapper = container.querySelector('[data-slot="data-table"]') as HTMLElement;
+    const sentinel = container.querySelector(
+      '[data-slot="data-table-infinite-sentinel"]'
+    ) as HTMLElement;
+    expect(wrapper.scrollHeight).toBe(wrapper.clientHeight);
+    expect(sentinel.getBoundingClientRect().top).toBeGreaterThan(window.innerHeight);
+    await afterBrowserLayout();
+    expect(calls).toBe(0);
+
+    rerender(
+      <DataTable
+        caption="Unbounded feed"
+        columns={tokenColumns()}
+        rows={numberedTokenRows(60)}
+        getRowKey={(row) => row.id}
+        infiniteScroll={infiniteScroll}
+      />
+    );
+    expect(
+      (
+        container.querySelector('[data-slot="data-table-infinite-sentinel"]') as HTMLElement
+      ).getBoundingClientRect().top
+    ).toBeGreaterThan(window.innerHeight);
+    await afterBrowserLayout();
+    expect(calls).toBe(0);
   });
 });
 

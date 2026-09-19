@@ -178,6 +178,7 @@ describe('INV-167: onLoadMore throws propagate; kit paths do not throw', () => {
         <DataTable
           {...captionTableProps({
             rows: numberedTokenRows(2),
+            virtualized: true,
             infiniteScroll: { hasMore: true, onLoadMore },
           })}
         />

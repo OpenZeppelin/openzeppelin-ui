@@ -67,6 +67,7 @@ describe('INV-160: at most one fire per (hasMore, length) generation', () => {
       <DataTable
         {...captionTableProps({
           rows: numberedTokenRows(3),
+          virtualized: true,
           infiniteScroll: { hasMore: true, onLoadMore },
         })}
       />
@@ -90,6 +91,7 @@ describe('INV-160: at most one fire per (hasMore, length) generation', () => {
         <DataTable
           {...captionTableProps({
             rows: numberedTokenRows(3),
+            virtualized: true,
             infiniteScroll: { hasMore: true, onLoadMore },
           })}
         />
@@ -106,6 +108,7 @@ describe('INV-160: at most one fire per (hasMore, length) generation', () => {
       <DataTable
         {...captionTableProps({
           rows: numberedTokenRows(3),
+          virtualized: true,
           infiniteScroll: { hasMore: true, onLoadMore },
         })}
       />
@@ -117,6 +120,7 @@ describe('INV-160: at most one fire per (hasMore, length) generation', () => {
       <DataTable
         {...captionTableProps({
           rows: numberedTokenRows(4),
+          virtualized: true,
           infiniteScroll: { hasMore: true, onLoadMore },
         })}
       />
@@ -134,6 +138,7 @@ describe('INV-161: busy suppresses re-entry; busy-clear refills only while still
       <DataTable
         {...captionTableProps({
           rows: numberedTokenRows(3),
+          virtualized: true,
           infiniteScroll: { hasMore: true, busy: true, onLoadMore },
         })}
       />
@@ -143,6 +148,7 @@ describe('INV-161: busy suppresses re-entry; busy-clear refills only while still
       <DataTable
         {...captionTableProps({
           rows: numberedTokenRows(3),
+          virtualized: true,
           infiniteScroll: { hasMore: true, busy: false, onLoadMore },
         })}
       />

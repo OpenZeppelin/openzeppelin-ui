@@ -148,5 +148,5 @@ export function isVerticalScrollport(scrollHeight: number, clientHeight: number)
 
 /** INV-160 (3): after paint, the wrapper does not overflow vertically. */
 export function isShortPage(scrollHeight: number, clientHeight: number): boolean {
-  return scrollHeight <= clientHeight + DATA_TABLE_SHORT_PAGE_EPSILON_PX;
+  return clientHeight > 0 && scrollHeight <= clientHeight + DATA_TABLE_SHORT_PAGE_EPSILON_PX;
 }

@@ -448,9 +448,13 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
     bindSentinelRef.current(node);
   }, []);
 
-  const isStillAtEnd = (): boolean => {
+  const isStillAtEnd = useCallback((): boolean => {
     const wrapper = wrapperRef.current;
-    if (wrapper != null && isShortPage(wrapper.scrollHeight, wrapper.clientHeight)) {
+    if (
+      wrapper != null &&
+      resolved.active &&
+      isShortPage(wrapper.scrollHeight, wrapper.clientHeight)
+    ) {
       return true;
     }
     const sentinel = sentinelRef.current;
@@ -466,7 +470,7 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
       sentinelRect.bottom > 0 &&
       sentinelRect.top < (typeof window === 'undefined' ? 0 : window.innerHeight)
     );
-  };
+  }, [resolved.active]);
 
   useEffect(() => {
     return () => {
@@ -497,7 +501,7 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
         tryRequestMore();
       }
     }
-  }, [infiniteBusy, infiniteHasMore, bodyRows.length, tryRequestMore]);
+  }, [infiniteBusy, infiniteHasMore, bodyRows.length, isStillAtEnd, tryRequestMore]);
 
   useLayoutEffect(() => {
     if (!infiniteHasMore || infiniteBusy) {
@@ -507,7 +511,7 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
     if (wrapper == null) {
       return;
     }
-    if (isShortPage(wrapper.scrollHeight, wrapper.clientHeight)) {
+    if (resolved.active && isShortPage(wrapper.scrollHeight, wrapper.clientHeight)) {
       tryRequestMore();
     }
   }, [infiniteHasMore, infiniteBusy, bodyRows.length, resolved.active, tryRequestMore]);

@@ -182,6 +182,7 @@ describe('INV-157: onLoadMore identity churn does not reset the generation guard
       <DataTable
         {...captionTableProps({
           rows: numberedTokenRows(3),
+          virtualized: true,
           infiniteScroll: { hasMore: true, onLoadMore: first },
         })}
       />
@@ -194,6 +195,7 @@ describe('INV-157: onLoadMore identity churn does not reset the generation guard
       <DataTable
         {...captionTableProps({
           rows: numberedTokenRows(3),
+          virtualized: true,
           infiniteScroll: { hasMore: true, onLoadMore: second },
         })}
       />
