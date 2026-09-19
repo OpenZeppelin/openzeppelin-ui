@@ -54,6 +54,11 @@ export function DataTablePaginationControls({
   const nextRef = useRef<HTMLButtonElement>(null);
   const statusRef = useRef<HTMLParagraphElement>(null);
   const navHadFocusRef = useRef(false);
+  const pageItemsKey = pageItems
+    .map((item) =>
+      item.kind === 'page' ? `page:${String(item.pageIndex)}` : `ellipsis:${item.key}`
+    )
+    .join('|');
 
   // INV-249: Tab / .focus() must arm rescue without waiting for a pager commit.
   // INV-109: leaving the nav for a real target (row control) must disarm so a
@@ -92,8 +97,8 @@ export function DataTablePaginationControls({
   }, []);
 
   // INV-249 / INV-106 / INV-109: rescue only after a pager commit, only inside this nav.
-  // Do not depend on `pageItems` identity — `buildPageItems` allocates a new array
-  // whenever DataTable renders (sort / selection / parent update).
+  // The stable key observes real list changes without reacting to `pageItems`
+  // identity churn from sort, selection, or parent updates.
   useLayoutEffect(() => {
     const nav = navRef.current;
     const previousButton = previousRef.current;
@@ -124,7 +129,7 @@ export function DataTablePaginationControls({
     }
 
     navHadFocusRef.current = nav.contains(document.activeElement);
-  }, [previousDisabled, nextDisabled, busy, currentPageIndex]);
+  }, [previousDisabled, nextDisabled, busy, currentPageIndex, pageItemsKey]);
 
   return (
     <nav

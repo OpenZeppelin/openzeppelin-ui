@@ -271,6 +271,30 @@ describe('INV-249 / INV-261: focus rescue stays in the nav (jsdom disable path)'
     expect(document.activeElement).not.toBe(document.body);
   });
 
+  it('keeps focus in the nav when the focused last-page button disappears after rows shrink', () => {
+    const renderTable = (rowCount: number): ReactElement => (
+      <DataTable
+        caption="T"
+        columns={tokenColumns()}
+        rows={numberedTokenRows(rowCount)}
+        getRowKey={getTokenRowKey}
+        pagination={{ kind: 'client', pageIndex: 0, pageSize: 10, onPageChange: vi.fn() }}
+      />
+    );
+    const { container, rerender } = render(renderTable(200));
+    const lastPage = container.querySelector(
+      '[data-slot="data-table-pagination-page"][data-page-index="19"]'
+    ) as HTMLButtonElement;
+    lastPage.focus();
+    expect(document.activeElement).toBe(lastPage);
+
+    rerender(renderTable(100));
+
+    const nav = container.querySelector('[data-slot="data-table-pagination"]');
+    expect(nav?.contains(document.activeElement), 'INV-249: focus must stay in the nav').toBe(true);
+    expect(document.activeElement).not.toBe(document.body);
+  });
+
   it('does not steal focus back to the pager after using it then clicking a row control', () => {
     function Harness(): ReactElement {
       const [pageIndex, setPageIndex] = useState(0);
