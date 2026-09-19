@@ -6,7 +6,7 @@ one component, four runtime constants, and the types below. Helpers (`applyClien
 key, `applicableRowKeys` / other `selection.ts` functions), the internal scroller / pager,
 and **`chrome.ts` class tokens** are **not** barrel-exported. There is no `./data-table`
 subpath. Restyle with `className` / `tableClassName` / `captionClassName` / column class
-props.
+props / `getRowClassName` / `pagination.className` / `selection.columnClassName`.
 
 ```ts
 import {
@@ -21,13 +21,16 @@ import type {
   DataTableClientPagination,
   DataTableColumn,
   DataTableInfiniteScroll,
+  DataTableLoadStrategy,
   DataTableName,
   DataTablePagination,
+  DataTablePaginationPlacement,
   DataTablePaginationStatusInfo,
   DataTableProps,
   DataTableScrollToAlign,
   DataTableSelection,
   DataTableServerPagination,
+  DataTableSortButtonNameInfo,
   DataTableSortDirection,
   DataTableSortState,
   DataTableSortValue,
@@ -43,8 +46,11 @@ import type {
 - [`DataTableAlign`](#datatablealign) — `'start' | 'end'`
 - [`DataTableSortValue`](#datatablesortvalue) — what `getSortValue` may return
 - [`DataTableSortDirection`](#datatablesortdirection) / [`DataTableSortState`](#datatablesortstate)
-- [`DataTablePagination`](#datatablepagination) and related types
+- [`DataTablePagination`](#datatablepagination) and related types (`placement`, `className`, `hideStatus`)
+- [`DataTablePaginationPlacement`](#datatablepaginationplacement) — `'outside' | 'inside'`
 - [`DataTableInfiniteScroll`](#datatableinfinitescroll)
+- [`DataTableLoadStrategy`](#datatableloadstrategy) — exactly-one-of pagination vs infinite
+- [`DataTableSortButtonNameInfo`](#datatablesortbuttonnameinfo) / `formatSortButtonName`
 - [`DataTableVirtualization`](#datatablevirtualization) and handle / constants
 - [`DataTableSelection<Row>`](#datatableselectionrow) and [`DATA_TABLE_SELECT_COLUMN_ID`](#data_table_select_column_id)
 - [Rendered DOM contract](#rendered-dom-contract)
@@ -68,10 +74,11 @@ function DataTable<Row>(props: DataTableProps<Row>): ReactElement;
 A presentational, accessible data table. Renders `columns` against derived **body rows**
 as a native `<table>` with a required accessible name, `<th scope="col">` headers, one
 logical alignment per column, integrator-composed cells, optional sort chrome, optional
-pagination chrome (Previous / Next, numbered buttons when the total is known), optional
-append-intent (`infiniteScroll`), optional row windowing, optional kit-owned checkboxes
-(`selection`), a sticky header unless opted out, and a single full-width empty row when
-there are no body rows and empty chrome is shown.
+pagination chrome (Previous / Next, numbered buttons when the total is known; default
+**outside** the card, or `'inside'` as a frame footer), optional append-intent
+(`infiniteScroll`), optional row windowing, optional kit-owned checkboxes (`selection`),
+an optional `toolbar` slot inside the bordered frame, a sticky header unless opted out,
+and a single full-width empty row when there are no body rows and empty chrome is shown.
 
 It is a plain generic function component. `Row` is inferred from `columns` (declare them
 with `satisfies readonly DataTableColumn<Row>[]`) and `rows` must be the same type. It is
@@ -80,8 +87,9 @@ not wrapped in `memo` and does not forward a `ref`.
 Behaviour you can rely on:
 
 - **Never throws for kit-owned paths.** Bad declarations render and log in development.
-  A throwing `cell`, `getSortValue`, `estimateSize` function, `onSelectionChange`, or
-  `getCheckboxLabel` propagates to your nearest error boundary.
+  A throwing `cell`, `getSortValue`, `estimateSize` function, `onSelectionChange`,
+  `getCheckboxLabel`, `getRowClassName`, or `formatSortButtonName` propagates to your
+  nearest error boundary.
 - **Never fetches.** Page, sort, `onLoadMore`, and `onSelectionChange` callbacks are
   intents. `pagination.busy` and `infiniteScroll.busy` do not clear rows or the selected
   Set.
@@ -114,60 +122,68 @@ Behaviour you can rely on:
 ## `DataTableProps<Row>`
 
 ```ts
-type DataTableProps<Row> = DataTableName & {
-  readonly columns: readonly DataTableColumn<Row>[];
-  readonly rows: readonly Row[];
-  readonly getRowKey: (row: Row) => string;
-  readonly selection?: DataTableSelection<Row>;
-  readonly emptyState?: ReactNode;
-  readonly emptyTitle?: string;
-  readonly emptyDescription?: string;
-  readonly className?: string;
-  readonly tableClassName?: string;
-  readonly sort?: DataTableSortState | null;
-  readonly defaultSort?: DataTableSortState | null;
-  readonly onSortChange?: (next: DataTableSortState | null) => void;
-  readonly pagination?: DataTablePagination;
-  readonly infiniteScroll?: DataTableInfiniteScroll;
-  readonly stickyHeader?: boolean;
-  readonly virtualized?: boolean | DataTableVirtualization;
-  readonly scrollRef?: Ref<HTMLDivElement | null>;
-  readonly virtualizationRef?: Ref<DataTableVirtualizationHandle | null>;
-};
+type DataTableProps<Row> = DataTableName &
+  DataTableLoadStrategy & {
+    readonly columns: readonly DataTableColumn<Row>[];
+    readonly rows: readonly Row[];
+    readonly getRowKey: (row: Row) => string;
+    readonly selection?: DataTableSelection<Row>;
+    readonly toolbar?: ReactNode;
+    readonly getRowClassName?: (row: Row) => string | undefined;
+    readonly emptyState?: ReactNode;
+    readonly emptyTitle?: string;
+    readonly emptyDescription?: string;
+    readonly className?: string;
+    readonly tableClassName?: string;
+    readonly sort?: DataTableSortState | null;
+    readonly defaultSort?: DataTableSortState | null;
+    readonly onSortChange?: (next: DataTableSortState | null) => void;
+    readonly formatSortButtonName?: (info: DataTableSortButtonNameInfo) => string;
+    readonly stickyHeader?: boolean;
+    readonly virtualized?: boolean | DataTableVirtualization;
+    readonly scrollRef?: Ref<HTMLDivElement | null>;
+    readonly virtualizationRef?: Ref<DataTableVirtualizationHandle | null>;
+  };
 ```
 
 ### Fields
 
-| Field               | Type                                         | Required | Description                                                                                                                                                                                                                                  |
-| ------------------- | -------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `columns`           | `readonly DataTableColumn<Row>[]`            | yes      | Column declarations. Header and body cells are keyed by `column.id`.                                                                                                                                                                         |
-| `rows`              | `readonly Row[]`                             | yes      | Rows the app holds. Client sort/page derive from this array; server pagination treats it as **already the current page**. `[]` means "no rows", never "loading". Empty chrome keys off derived `bodyRows`.                                   |
-| `getRowKey`         | `(row: Row) => string`                       | yes      | Stable React key per row. Required; no index fallback. Must be unique within the mounted set. Virtualization item keys **and** `selection.selectedKeys` use this value.                                                                      |
-| `selection`         | `DataTableSelection<Row>`                    | no       | Opt-in kit checkbox column. Omitted → today’s table. Always controlled. See [`DataTableSelection`](#datatableselectionrow).                                                                                                                  |
-| `emptyState`        | `ReactNode`                                  | no       | Full replacement for the empty-row content. When set, `emptyTitle` / `emptyDescription` are ignored.                                                                                                                                         |
-| `emptyTitle`        | `string`                                     | no       | Title for the default kit `EmptyState`. Default `'Nothing to show'`.                                                                                                                                                                         |
-| `emptyDescription`  | `string`                                     | no       | Description for the default kit `EmptyState`. Default `'There are no rows to display.'`.                                                                                                                                                     |
-| `className`         | `string`                                     | no       | Classes merged onto `div[data-slot="data-table"]`. The kit already paints `rounded-xl border bg-card`. Extra overflow / radius overrides win via `cn`. **Not** the first-frame height source when virtualized — use `virtualized.maxHeight`. |
-| `tableClassName`    | `string`                                     | no       | Classes merged onto `<table>` (`table-fixed`). Not a density API.                                                                                                                                                                            |
-| `sort`              | `DataTableSortState \| null`                 | no       | Controlled sort. **Presence of the key** (including `null`) means the app owns state. Omit the prop for uncontrolled kit state. `undefined` is treated as omitted.                                                                           |
-| `defaultSort`       | `DataTableSortState \| null`                 | no       | Initial sort when `sort` is omitted. Ignored when `sort` is passed.                                                                                                                                                                          |
-| `onSortChange`      | `(next: DataTableSortState \| null) => void` | no       | Fired after each sort activation with the next state (`null` on clear). Same event in controlled and uncontrolled mode. Not a fetch hook; you may refetch from it.                                                                           |
-| `pagination`        | `DataTablePagination`                        | no       | When omitted, every `displayRows` element is a candidate to mount. When set, status + Previous / optional numbered pages / Next appear. Always controlled.                                                                                   |
-| `infiniteScroll`    | `DataTableInfiniteScroll`                    | no       | When omitted, no end detection and no unknown-total ARIA. When set **without** `pagination`, append-intent is active. When set **with** `pagination`, ignored (pager-wins).                                                                  |
-| `stickyHeader`      | `boolean`                                    | no       | Freeze header cells inside the kit scroll wrapper. **Default on:** omit or `true`. Pass `false` to restore a scrolling header. No-op when the wrapper is not a vertical scrollport. Does not pin body columns.                               |
-| `virtualized`       | `boolean \| DataTableVirtualization`         | no       | Omitted / `false` → P1 path. `true` or `{}` → kit defaults. Object fields override individually. Does not change `DataTableColumn`. Does not auto-enable.                                                                                    |
-| `scrollRef`         | `Ref<HTMLDivElement \| null>`                | no       | The kit scroll wrapper (`data-slot="data-table"`), the same node the virtualizer uses. Never the pagination root. `DataTable` itself is not `forwardRef`.                                                                                    |
-| `virtualizationRef` | `Ref<DataTableVirtualizationHandle \| null>` | no       | `{ scrollToRowKey }` while virtualization is **active**; `null` when inactive (including empty).                                                                                                                                             |
-| _name_              | `DataTableName`                              | yes      | Exactly one of `caption` (+ optional `captionClassName`), `aria-label`, or `aria-labelledby`.                                                                                                                                                |
+| Field                  | Type                                            | Required | Description                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------------- | ----------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `columns`              | `readonly DataTableColumn<Row>[]`               | yes      | Column declarations. Header and body cells are keyed by `column.id`.                                                                                                                                                                                                                                                                                         |
+| `rows`                 | `readonly Row[]`                                | yes      | Rows the app holds. Client sort/page derive from this array; server pagination treats it as **already the current page**. `[]` means "no rows", never "loading". Empty chrome keys off derived `bodyRows`.                                                                                                                                                   |
+| `getRowKey`            | `(row: Row) => string`                          | yes      | Stable React key per row. Required; no index fallback. Must be unique within the mounted set. Virtualization item keys **and** `selection.selectedKeys` use this value.                                                                                                                                                                                      |
+| `selection`            | `DataTableSelection<Row>`                       | no       | Opt-in kit checkbox column. Omitted → today’s table. Always controlled. See [`DataTableSelection`](#datatableselectionrow).                                                                                                                                                                                                                                  |
+| `toolbar`              | `ReactNode`                                     | no       | Opaque app chrome hosted **inside** the bordered frame, above the table and **outside** `<table>`. Non-null (including `<> </>`) creates `data-slot="data-table-frame"`. `undefined` / `null` omit the slot. The kit does not inspect this node.                                                                                                             |
+| `getRowClassName`      | `(row: Row) => string \| undefined`             | no       | Merged onto each painted **data** row after kit row chrome. Not called for spacers, the empty row, or the infinite sentinel. Returning `undefined` is a no-op.                                                                                                                                                                                               |
+| `emptyState`           | `ReactNode`                                     | no       | Full replacement for the empty-row content. When set, `emptyTitle` / `emptyDescription` are ignored.                                                                                                                                                                                                                                                         |
+| `emptyTitle`           | `string`                                        | no       | Title for the default kit `EmptyState`. Default `'Nothing to show'`.                                                                                                                                                                                                                                                                                         |
+| `emptyDescription`     | `string`                                        | no       | Description for the default kit `EmptyState`. Default `'There are no rows to display.'`.                                                                                                                                                                                                                                                                     |
+| `className`            | `string`                                        | no       | Classes merged onto the **visible card**: `data-slot="data-table-frame"` when a toolbar or in-frame pager is present, otherwise `data-slot="data-table"`. The unframed kit already paints `rounded-xl border bg-card`. Extra overflow / radius overrides win via `cn`. **Not** the first-frame height source when virtualized — use `virtualized.maxHeight`. |
+| `tableClassName`       | `string`                                        | no       | Classes merged onto `<table>` (`table-fixed`). Not a density API.                                                                                                                                                                                                                                                                                            |
+| `sort`                 | `DataTableSortState \| null`                    | no       | Controlled sort. **Presence of the key** (including `null`) means the app owns state. Omit the prop for uncontrolled kit state. `undefined` is treated as omitted.                                                                                                                                                                                           |
+| `defaultSort`          | `DataTableSortState \| null`                    | no       | Initial sort when `sort` is omitted. Ignored when `sort` is passed.                                                                                                                                                                                                                                                                                          |
+| `onSortChange`         | `(next: DataTableSortState \| null) => void`    | no       | Fired after each sort activation with the next state (`null` on clear). Same event in controlled and uncontrolled mode. Not a fetch hook; you may refetch from it.                                                                                                                                                                                           |
+| `formatSortButtonName` | `(info: DataTableSortButtonNameInfo) => string` | no       | Table-wide override for every sortable header button’s `aria-label`. Omitted → English `Sort by {name}` / `Sort by {name}, ascending\|descending`. Fail-closed: blank or non-string return uses that default and logs `sort:empty-name` once. Does not set `aria-sort`.                                                                                      |
+| `pagination`           | `DataTablePagination`                           | no       | When omitted, every `displayRows` element is a candidate to mount. When set (and `infiniteScroll` is absent), status + Previous / optional numbered pages / Next appear. Always controlled. Typed XOR: see [`DataTableLoadStrategy`](#datatableloadstrategy).                                                                                                |
+| `infiniteScroll`       | `DataTableInfiniteScroll`                       | no       | When omitted, no end detection and no unknown-total ARIA. When set (and `pagination` is absent), append-intent is active. Typed XOR with `pagination`. Untyped both-props still pager-wins.                                                                                                                                                                  |
+| `stickyHeader`         | `boolean`                                       | no       | Freeze header cells inside the kit scroll wrapper. **Default on:** omit or `true`. Pass `false` to restore a scrolling header. No-op when the wrapper is not a vertical scrollport. Does not pin body columns.                                                                                                                                               |
+| `virtualized`          | `boolean \| DataTableVirtualization`            | no       | Omitted / `false` → P1 path. `true` or `{}` → kit defaults. Object fields override individually. Does not change `DataTableColumn`. Does not auto-enable.                                                                                                                                                                                                    |
+| `scrollRef`            | `Ref<HTMLDivElement \| null>`                   | no       | The kit scroll wrapper (`data-slot="data-table"`), the same node the virtualizer uses. Never the frame or the pagination root. `DataTable` itself is not `forwardRef`.                                                                                                                                                                                       |
+| `virtualizationRef`    | `Ref<DataTableVirtualizationHandle \| null>`    | no       | `{ scrollToRowKey }` while virtualization is **active**; `null` when inactive (including empty).                                                                                                                                                                                                                                                             |
+| _name_                 | `DataTableName`                                 | yes      | Exactly one of `caption` (+ optional `captionClassName`), `aria-label`, or `aria-labelledby`.                                                                                                                                                                                                                                                                |
 
 There is no `isLoading`, `error`, top-level `page` / `pageSize` / `onPageChange`,
 `onReachEnd` / `hasMore` / `infinite` (use `infiniteScroll`), `onRowClick`,
-`rowClassName`, `rowHeight`, `multiSort`, `compare`, `onSort` (the callback is
-`onSortChange`), top-level `selectedIds` / `onSelectionChange` (nest them under
-`selection`; the callback is required **inside** that object), `density`, `variant`,
-`chrome`, `rangeExtractor`, `measureElement`, `followOnAppend`, `siblingCount`, or
-`ref` on `DataTable`. `stickyHeader` is a **table-level** prop, not a field of
-`DataTableVirtualization`. Passing the absent names is a compile error.
+`rowClassName` (the hook is `getRowClassName`), `rowHeight`, `multiSort`, `compare`,
+`onSort` (the callback is `onSortChange`), top-level `selectedIds` / `onSelectionChange`
+(nest them under `selection`; the callback is required **inside** that object),
+`density`, `variant`, `chrome` / `chromeMode`, `rangeExtractor`, `measureElement`,
+`followOnAppend`, `siblingCount`, or `ref` on `DataTable`. `stickyHeader` is a
+**table-level** prop, not a field of `DataTableVirtualization`. `pagination.placement`
+lives on the pagination object, not as a top-level alias. Passing the absent names is a
+compile error. Typed callers cannot pass both `pagination` and `infiniteScroll` (same XOR
+shape as `DataTableName`).
 
 ---
 
@@ -298,7 +314,9 @@ string`) and do not throw. A `ReactNode` is not a sort value.
 type DataTableSortDirection = 'asc' | 'desc';
 ```
 
-Cleared sort is `null` **state**, not a third direction member.
+Cleared sort is `null` **state**, not a third direction member. `'none'` exists only on
+[`DataTableSortButtonNameInfo.direction`](#datatablesortbuttonnameinfo) (this column is
+not the active sort). Do not put `'none'` on `DataTableSortState`.
 
 ---
 
@@ -322,6 +340,27 @@ rows as unsorted (no `aria-sort`) and logs once in development.
 
 ---
 
+## `DataTableSortButtonNameInfo`
+
+```ts
+interface DataTableSortButtonNameInfo {
+  readonly columnName: string;
+  readonly direction: DataTableSortDirection | 'none';
+}
+```
+
+Argument to `formatSortButtonName`. `columnName` is the resolved column name (string
+`header`, else non-blank `headerLabel`, else `id`). `direction` is `'none'` when this
+column is not the active sort, otherwise `'asc'` or `'desc'`.
+
+The formatter runs once per **sortable** column per render (string headers and node
+headers). It does not change `aria-sort`. Returning `''`, whitespace, or a non-string
+falls back to the English default and logs
+`DataTable: formatSortButtonName returned an empty accessible name.` once
+(`sort:empty-name`). The helper that builds the English default is **not** exported.
+
+---
+
 ## `DataTablePagination`
 
 ```ts
@@ -333,16 +372,19 @@ type DataTablePagination = DataTableClientPagination | DataTableServerPagination
 
 Shared chrome (both kinds):
 
-| Field             | Type                                              | Required | Description                                                                                                                                           |
-| ----------------- | ------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pageIndex`       | `number`                                          | yes      | 0-based. Always controlled. Display copy is 1-based.                                                                                                  |
-| `pageSize`        | `number`                                          | yes      | Rows per page. Non-finite or `<= 0` is treated as `1` (dev diagnostic).                                                                               |
-| `onPageChange`    | `(pageIndex: number) => void`                     | yes      | Intent only. Fired from Previous, Next, or a page-number control. Never called for an out-of-range target, the already-current page, or while `busy`. |
-| `busy`            | `boolean`                                         | no       | Disables Previous, Next, and every page-number button; sets `aria-busy` on the `<nav>`. Does not clear `rows`.                                        |
-| `paginationLabel` | `string`                                          | no       | Accessible name of the `<nav>`. Default `'Pagination'`.                                                                                               |
-| `previousLabel`   | `string`                                          | no       | Default `'Previous'`.                                                                                                                                 |
-| `nextLabel`       | `string`                                          | no       | Default `'Next'`.                                                                                                                                     |
-| `formatStatus`    | `(info: DataTablePaginationStatusInfo) => string` | no       | Override the visible + live status string. Empty return logs in development.                                                                          |
+| Field             | Type                                              | Required | Description                                                                                                                                                                                                                              |
+| ----------------- | ------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pageIndex`       | `number`                                          | yes      | 0-based. Always controlled. Display copy is 1-based.                                                                                                                                                                                     |
+| `pageSize`        | `number`                                          | yes      | Rows per page. Non-finite or `<= 0` is treated as `1` (dev diagnostic).                                                                                                                                                                  |
+| `onPageChange`    | `(pageIndex: number) => void`                     | yes      | Intent only. Fired from Previous, Next, or a page-number control. Never called for an out-of-range target, the already-current page, or while `busy`.                                                                                    |
+| `busy`            | `boolean`                                         | no       | Disables Previous, Next, and every page-number button; sets `aria-busy` on the `<nav>`. Does not clear `rows`.                                                                                                                           |
+| `paginationLabel` | `string`                                          | no       | Accessible name of the `<nav>`. Default `'Pagination'`.                                                                                                                                                                                  |
+| `previousLabel`   | `string`                                          | no       | Visible Previous control text (and accessible name). Default `'Previous'`. Decorative `ChevronLeft` is `aria-hidden`.                                                                                                                    |
+| `nextLabel`       | `string`                                          | no       | Visible Next control text (and accessible name). Default `'Next'`. Decorative `ChevronRight` is `aria-hidden`.                                                                                                                           |
+| `formatStatus`    | `(info: DataTablePaginationStatusInfo) => string` | no       | Override the visible + live status string. Empty return logs in development.                                                                                                                                                             |
+| `placement`       | `DataTablePaginationPlacement`                    | no       | Where the pager sits. Omitted / `'outside'` → sibling under `data-table-root`, outside the bordered card (today’s layout). `'inside'` → last child of `data-table-frame` (`border-t px-4 py-3`). Creates a frame even without `toolbar`. |
+| `className`       | `string`                                          | no       | Merged onto the pagination `<nav>` after kit pager chrome (and after `justify-end` when `hideStatus`).                                                                                                                                   |
+| `hideStatus`      | `boolean`                                         | no       | Visually hide the status (`sr-only`) while keeping the polite live region mounted (`tabIndex={-1}`). Default `false`. Also aligns visible controls to the end.                                                                           |
 
 ```ts
 type DataTableClientPagination /* chrome */ = { readonly kind: 'client' };
@@ -361,9 +403,10 @@ type DataTableServerPagination /* chrome */ = {
 - **`kind: 'server'`** — `rows` is already the current page. The kit does not slice and
   **does not client-reorder** that page. `totalCount` is optional. Finite `>= 0` is a
   known total (including `0` = empty dataset). Omit it, or pass a non-finite / negative
-  value, when the query cannot supply a total: numbered buttons are suppressed, status
-  uses the unknown path (`Page N`), and development logs once (`omitted` vs `invalid`).
-  Extra rows beyond `pageSize` still render (dev log); missing rows are not invented.
+  value, when the query cannot supply a total: numbered buttons are suppressed and status
+  uses the unknown path (`Page N`). **Omitted is silent** (a valid cursor API). Invalid
+  values still log once in development. Extra rows beyond `pageSize` still render (dev
+  log); missing rows are not invented.
 - **`hasNextPage`** — server-only. Consulted **only** when the total is unknown. Omit →
   Next stays enabled (except `busy` / unusable `pageIndex`) so a cursor API can page
   until you pass `false`. Ignored when the total is known (a known last page still
@@ -421,6 +464,18 @@ Default status copy (not a public function): `` `Page ${pageIndex + 1}` `` when
 
 ---
 
+## `DataTablePaginationPlacement`
+
+```ts
+type DataTablePaginationPlacement = 'outside' | 'inside';
+```
+
+Default when `pagination.placement` is omitted: `'outside'`. `'inside'` is not representable
+without a `pagination` object (the field lives on that object). Exported (`export type`
+only).
+
+---
+
 ## `DataTableInfiniteScroll`
 
 ```ts
@@ -442,10 +497,14 @@ Always-controlled append-intent. The kit holds no feed, cursor, or query cache.
 Deliberately absent: `totalCount`, `error`, `loadingLabel`, `rootMargin`, pixel
 threshold, `enabled`, prepend / `followOutput`, `onLoadMore({ loadedCount })`.
 
-**Pager-wins.** If `pagination` and `infiniteScroll` are both set, infinite is inert: no
+**Typed XOR.** [`DataTableLoadStrategy`](#datatableloadstrategy) makes `pagination` and
+`infiniteScroll` exactly-one-of (or neither) for typed callers. Both present is a type
+error.
+
+**Untyped pager-wins.** If an untyped caller still passes both, infinite is inert: no
 sentinel, no `-1`, no `onLoadMore`, no infinite `aria-busy`. Development logs once:
 `DataTable: pagination and infiniteScroll cannot be combined; infiniteScroll is ignored.`
-The type still allows both keys so object spreads type-check; runtime does not throw.
+Runtime does not throw. Spreads that widen to `any` can still hit this path.
 
 **End detection** fires when infinite is active, `hasMore` is true, `busy` is false, this
 `(hasMore, bodyRows.length)` generation has not already fired, and any of:
@@ -463,6 +522,38 @@ not reset the guard. `IntersectionObserver` disconnects on unmount.
 In jsdom, a busy-clear on a still-short page can observe **two** `onLoadMore` calls for
 the same length (generation reset plus the layout check). Treat `onLoadMore` as
 idempotent; that is not a network storm.
+
+---
+
+## `DataTableLoadStrategy`
+
+```ts
+type DataTableLoadStrategy =
+  | {
+      readonly pagination?: undefined;
+      readonly infiniteScroll?: undefined;
+    }
+  | {
+      readonly pagination: DataTablePagination;
+      readonly infiniteScroll?: undefined;
+    }
+  | {
+      readonly infiniteScroll: DataTableInfiniteScroll;
+      readonly pagination?: undefined;
+    };
+```
+
+Same exactly-one-of shape as [`DataTableName`](#datatablename). Exported (`export type`
+only).
+
+| Arm              | Meaning                                                   |
+| ---------------- | --------------------------------------------------------- |
+| Neither          | Today’s unpaged, non-append table.                        |
+| `pagination`     | Infinite must be absent. Client/server kind is unchanged. |
+| `infiniteScroll` | Pagination must be absent.                                |
+
+Both present is a compile error. The runtime pager-wins path remains only for untyped
+callers (see [`DataTableInfiniteScroll`](#datatableinfinitescroll)).
 
 ---
 
@@ -526,6 +617,7 @@ interface DataTableSelection<Row> {
   readonly selectAllLabel?: string;
   readonly getCheckboxLabel?: (row: Row) => string;
   readonly columnHeaderLabel?: string;
+  readonly columnClassName?: string;
 }
 ```
 
@@ -533,13 +625,14 @@ Opt-in, always-controlled row selection. The kit holds no selected Set. Keys are
 **only** `getRowKey(row)` taken from the row object at `bodyRows[index]` (the virtualizer
 index is used solely to look that object up).
 
-| Field               | Type                                  | Required | Description                                                                                                |
-| ------------------- | ------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------- |
-| `selectedKeys`      | `ReadonlySet<string>`                 | yes      | App-owned identities. Lookups are `.has(getRowKey(row))`.                                                  |
-| `onSelectionChange` | `(next: ReadonlySet<string>) => void` | yes      | Next set after a row toggle or header action. Always a **new** `Set`. Not a fetch hook.                    |
-| `selectAllLabel`    | `string`                              | no       | Accessible name of the **header control**. Default `'Select all'`.                                         |
-| `getCheckboxLabel`  | `(row: Row) => string`                | no       | Accessible name of each **row** checkbox. Default `Select ${getRowKey(row)}`.                              |
-| `columnHeaderLabel` | `string`                              | no       | Accessible **column** name (`aria-label` on the `th`). Visible header is the checkbox. Default `'Select'`. |
+| Field               | Type                                  | Required | Description                                                                                                      |
+| ------------------- | ------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| `selectedKeys`      | `ReadonlySet<string>`                 | yes      | App-owned identities. Lookups are `.has(getRowKey(row))`.                                                        |
+| `onSelectionChange` | `(next: ReadonlySet<string>) => void` | yes      | Next set after a row toggle or header action. Always a **new** `Set`. Not a fetch hook.                          |
+| `selectAllLabel`    | `string`                              | no       | Accessible name of the **header control**. Default `'Select all'`.                                               |
+| `getCheckboxLabel`  | `(row: Row) => string`                | no       | Accessible name of each **row** checkbox. Default `Select ${getRowKey(row)}`.                                    |
+| `columnHeaderLabel` | `string`                              | no       | Accessible **column** name (`aria-label` on the `th`). Visible header is the checkbox. Default `'Select'`.       |
+| `columnClassName`   | `string`                              | no       | Merged onto the injected header and body cells **after** the kit default `w-12`. Layout only — not a resize API. |
 
 There is no `mode`, `isRowSelectable`, include/exclude union, `defaultSelectedKeys`, or
 `keepNonExistentRowsSelected` flag (keep-non-existent is the default). English defaults
@@ -605,9 +698,9 @@ const bodyRows =
 ```
 
 Sort, then page, then window. `infiniteActive` means `infiniteScroll` is set and
-`pagination` is omitted. Combinations: virtualized + large client page; virtualized +
-server page; virtualized + infinite. Pagination + infinite is **not** a combination —
-pager-wins.
+pagination is not active (typed: omitted; untyped both-props: pager-wins so infinite is
+inert). Combinations: virtualized + large client page; virtualized + server page;
+virtualized + infinite. Pagination + infinite is **not** a combination.
 
 ---
 
@@ -617,13 +710,17 @@ Target parts by `data-slot`. Kit default chrome (Role Manager family) is a **clo
 class list on those slots: wrapper `rounded-xl border border-border bg-card`; caption
 `sr-only`; `thead` `bg-muted/50 border-b`; header cells `p-4 font-medium
 text-muted-foreground align-middle` plus, when sticky is on (the default),
-`sticky top-0 z-20 bg-muted`; data cells `p-4 align-middle`; data rows `border-b
+`sticky top-0 z-20 bg-[color-mix(in_oklab,var(--muted)_50%,var(--card))]`; data cells `p-4 align-middle`; data rows `border-b
 last:border-b-0 transition-colors hover:bg-accent/50` and a reserved
 `data-[state=selected]:bg-accent/30` fill token. Other skeleton classes (`relative`,
 `w-full`, `caption-top`, `text-sm`) are guidance. Alignment remains `text-start` /
-`text-end`. The kit never adds `overflow-hidden` on the wrapper. `stickyHeader={false}`
-emits **zero** sticky / inset / z tokens on header cells. Those sticky tokens are
-internal (`chrome.ts`); they are not barrel-exported.
+`text-end`. The scroll wrapper (`data-slot="data-table"`) never gets `overflow-hidden`.
+When `toolbar` is non-null or `pagination.placement === 'inside'`, a
+`data-slot="data-table-frame"` node owns the bordered card and **does** use
+`overflow-hidden`; the scroller inside it is overflow-only (no `rounded-xl` / border).
+`stickyHeader={false}` emits **zero** sticky / inset / z tokens on header cells. Those
+sticky tokens are internal (`chrome.ts`); they are not barrel-exported. Frame tokens
+(`DATA_TABLE_FRAME_CHROME`) are also not exported.
 
 The scroll wrapper also sets `data-sticky-header="true"|"false"` (already-resolved:
 omit/`true` → `"true"`). Header measurement for virtualization (`paddingStart`) is
@@ -631,12 +728,14 @@ independent of that flag.
 
 When `selection` is set, header and body cell counts are `columns.length + 1`. Empty /
 spacer / sentinel `colSpan` is `Math.max(paintColumns.length, 1)`. The injected column
-is first (`data-column-id="__data-table-select"`). Integrator `columns` are not spliced.
+is first (`data-column-id="__data-table-select"`). Injected cells merge kit `w-12` then
+`selection.columnClassName`. Integrator `columns` are not spliced.
 
 Selected **data** rows (`data-slot="data-table-row"`) get `data-selected="true"` and
 `data-state="selected"` iff `selectedKeys.has(getRowKey(row))`. Unselected data rows omit
 both attributes (not `data-selected="false"`). Spacers, sentinel, and empty chrome never
-receive them. There is no `aria-selected` on `<tr>` and no `role="grid"`.
+receive them or `getRowClassName`. There is no `aria-selected` on `<tr>` and no
+`role="grid"`.
 
 ### Unvirtualized, no pagination (P1)
 
@@ -689,17 +788,50 @@ receive them. There is no `aria-selected` on `<tr>` and no `role="grid"`.
 </div>
 ```
 
+### Toolbar or in-frame pager (framed)
+
+Present when `toolbar != null` **or** `pagination.placement === 'inside'`. `className`
+lands on the frame. `scrollRef` still points at `data-slot="data-table"`.
+
+```html
+<div
+  data-slot="data-table-frame"
+  class="{className} border-border bg-card overflow-hidden rounded-xl border"
+>
+  <div data-slot="data-table-toolbar">{toolbar}</div>
+  <!-- toolbar node omitted when toolbar is null/undefined -->
+  <div data-slot="data-table" data-sticky-header="true" class="relative w-full overflow-x-auto">
+    <!-- table as in P1; no rounded-xl / border on this node -->
+  </div>
+  <!-- placement 'inside': nav is last child of the frame, not a tfoot -->
+  <nav
+    data-slot="data-table-pagination"
+    class="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3"
+  >
+    …
+  </nav>
+</div>
+```
+
+Unpaged framed tables have no nav. Toolbar is not sticky and is not inside `<table>`.
+
 ### Pagination on
+
+**Default `placement: 'outside'`** (including omitted): `data-table-root` wraps the
+visible card (unframed scroller, or frame) and the pager as siblings.
 
 ```html
 <div data-slot="data-table-root" class="flex flex-col gap-3">
-  <!-- the wrapper + table above -->
+  <!-- the wrapper + table above, or data-table-frame when framed -->
   <nav data-slot="data-table-pagination" aria-label="Pagination" aria-busy="true">
     <p data-slot="data-table-pagination-status" tabindex="-1" aria-live="polite" aria-atomic="true">
       Showing 1–10 of 47
     </p>
     <div data-slot="data-table-pagination-pages">
-      <button type="button" data-slot="data-table-pagination-previous">Previous</button>
+      <button type="button" data-slot="data-table-pagination-previous">
+        <!-- decorative ChevronLeft, aria-hidden -->
+        Previous
+      </button>
       <button
         type="button"
         data-slot="data-table-pagination-page"
@@ -710,7 +842,10 @@ receive them. There is no `aria-selected` on `<tr>` and no `role="grid"`.
       </button>
       <span data-slot="data-table-pagination-ellipsis" aria-hidden="true">…</span>
       <button type="button" data-slot="data-table-pagination-page" data-page-index="19">20</button>
-      <button type="button" data-slot="data-table-pagination-next">Next</button>
+      <button type="button" data-slot="data-table-pagination-next">
+        Next
+        <!-- decorative ChevronRight, aria-hidden -->
+      </button>
     </div>
   </nav>
 </div>
@@ -718,8 +853,12 @@ receive them. There is no `aria-selected` on `<tr>` and no `role="grid"`.
 
 DOM order is status, then the pages group. `aria-busy` is set only when `busy` is true.
 When the total is unknown, omit every `data-table-pagination-page` and ellipsis; keep
-Previous, Next, and status (`Page N`). When `pagination` is omitted, **do not** wrap:
-`data-slot="data-table"` remains the outermost kit node.
+Previous, Next, and status (`Page N`). `hideStatus` adds `sr-only` on the status node
+and `justify-end` on the nav; it does **not** unmount the live region.
+
+When `pagination` is omitted **and** there is no toolbar, **do not** wrap:
+`data-slot="data-table"` remains the outermost kit node. When `placement` is `'inside'`,
+**do not** emit `data-table-root` — the nav lives in the frame.
 
 ### Virtualization active (`bodyRows.length > 0` and `virtualized` opted in)
 
@@ -797,7 +936,8 @@ Rules:
 6. **Keys.** Rows by `getRowKey(row)`, never the virtual index. Cells by `column.id`
    (select cells use `DATA_TABLE_SELECT_COLUMN_ID`). Selection lookups use the same key.
 7. **The scroll parent is always `data-slot="data-table"`**, even inside
-   `data-table-root`.
+   `data-table-root` or `data-table-frame`. Toolbar and in-frame pager are siblings of
+   that node, never virtualized rows.
 
 ---
 
@@ -811,8 +951,11 @@ The table names each column by the first of these that applies:
    the string header path already named it.
 3. `id`. Set as `aria-label` on the `<th>`.
 
-A sibling sort button (node headers) is named `Sort by {column name}` or
-`Sort by {column name}, ascending|descending` while that column is active.
+Every sortable header button (string headers and sibling buttons on node headers) is
+named by `formatSortButtonName` when you pass it, otherwise
+`Sort by {column name}` or `Sort by {column name}, ascending|descending` while that
+column is active (`none` / `asc` / `desc`). Blank formatter output is fail-closed to
+that English default.
 
 `headerLabel` names the **column**. Interactive nodes inside `header` or `cell` still
 need their own names.
@@ -859,19 +1002,20 @@ instance. Production builds log nothing. The table always renders; kit paths nev
 | `aria-labelledby` id missing from the document                           | `DataTable: aria-labelledby="<id>" does not match any element in the document.`                                        |
 | Invalid `pagination.pageSize`                                            | `DataTable: pagination.pageSize is invalid; using 1.`                                                                  |
 | Invalid server `totalCount`                                              | `DataTable: pagination.totalCount is invalid.`                                                                         |
-| Server `totalCount` omitted                                              | `DataTable: pagination.totalCount is omitted; numbered pages are hidden.`                                              |
 | Client `pageIndex` out of range                                          | `DataTable: pagination.pageIndex {n} is out of range for pageCount {n}.`                                               |
 | Server `rows.length` > resolved `pageSize`                               | `DataTable: server pagination received {n} rows for pageSize {n}.`                                                     |
 | `formatStatus` returned `''`                                             | `DataTable: pagination.formatStatus returned an empty string.`                                                         |
 | Invalid `virtualized.maxHeight`                                          | `DataTable: virtualized.maxHeight is invalid; using 384.`                                                              |
 | Active virtualization, wrapper `clientHeight === 0`                      | `DataTable: virtualized scroll parent has no height; set virtualized.maxHeight.`                                       |
-| `pagination` and `infiniteScroll` both set                               | `DataTable: pagination and infiniteScroll cannot be combined; infiniteScroll is ignored.`                              |
+| `pagination` and `infiniteScroll` both set (untyped)                     | `DataTable: pagination and infiniteScroll cannot be combined; infiniteScroll is ignored.`                              |
 | Infinite active and a column is `sortable` with `getSortValue`           | `DataTable: client sort is inert while infiniteScroll is active; row order stays as given.`                            |
+| `formatSortButtonName` returned blank / non-string                       | `DataTable: formatSortButtonName returned an empty accessible name.`                                                   |
 | Integrator `column.id` is `__data-table-select` while `selection` is set | `DataTable: column id "__data-table-select" is reserved while selection is enabled.`                                   |
 
 Not diagnosed: duplicate `getRowKey` (React's own warning), a throwing `cell` /
-`getSortValue` / `onSelectionChange` / `getCheckboxLabel` (propagates). The
-`aria-labelledby` check runs once after mount.
+`getSortValue` / `onSelectionChange` / `getCheckboxLabel` / `getRowClassName`
+(propagates), and an **omitted** server `totalCount` (valid unknown-total / cursor
+state). The `aria-labelledby` check runs once after mount.
 
 ---
 

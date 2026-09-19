@@ -2,9 +2,11 @@
 
 Patterns cover what the audited consumers do: a Role Manager–shaped mixed-content table
 (dense columns, outline action button, hidden or heading-backed name), kit-owned row
-selection, loading and error handling around the table, replacing a hand-written table,
-client and server sort, numbered pagination (including unknown totals), sticky headers,
-virtualization, and infinite scroll (including with virtualization). Common mistakes follow.
+selection, composing app chrome inside the kit frame (filter row in `toolbar`, pager
+inside, narrow selection column), loading and error handling around the table, replacing
+a hand-written table, client and server sort, localized sort-control names, numbered
+pagination (including unknown totals), sticky headers, virtualization, and infinite
+scroll (including with virtualization). Common mistakes follow.
 
 Every snippet type-checks against the current package. The row types are illustrative;
 substitute your own.
@@ -25,10 +27,12 @@ utilities are styled.
 
 You do not wrap the table in `Card` or pass `className="rounded-lg border"`. The kit
 already paints a rounded bordered card, muted header band, `p-4` cells, and data-row
-hover. Pagination chrome stays a sibling under `data-table-root`, outside that card.
-Virtualized and infinite instances use the same defaults; spacer and sentinel rows are
-unpainted. Search / filter bars belong **above** the table in your page, never inside
-`data-slot="data-table"`.
+hover. Pagination chrome stays a sibling under `data-table-root`, outside that card,
+unless you pass `pagination.placement: 'inside'`. Virtualized and infinite instances use
+the same defaults; spacer and sentinel rows are unpainted. Search / filter bars belong in
+your app: either above the table on the page, or as `toolbar` so they sit **inside the
+frame** and **outside** `data-slot="data-table"` (never in `<caption>`, a header row, or
+the scrollport).
 
 Header cells stick inside that card while the wrapper scrolls vertically (virtualized
 `maxHeight`, a tall page in that well, or your own class that actually overflows). They
@@ -195,7 +199,7 @@ export interface AccountRow {
   role: string;
 }
 
-const accountColumns = [
+export const accountColumns = [
   {
     id: 'address',
     header: 'Account',
@@ -269,7 +273,9 @@ What to notice:
   keys that are not in the current `rows` (other pages). Do not clone
   `selectedKeys.size === accounts.length` as “all selected.”
 - **Clicks on Edit Roles / copy do not toggle the row.** There is no `onRowClick`.
-- **Bulk toolbars stay in the app.** The table only paints and reports the Set.
+- **Bulk action bars stay in the app.** The table only paints and reports the Set. Filter
+  chrome can still be hosted in `toolbar` (Pattern 2b) without the kit owning filter
+  state.
 - **Custom `Checkbox` columns remain an escape hatch** when you omit `selection` (do not
   use `id: '__data-table-select'`). That is not the Role Manager path.
 
@@ -297,6 +303,122 @@ selected when you open page 2. Newly appended infinite-scroll rows start uncheck
 unless their key was already in the Set. Sorting does not move selection to a visual
 slot. A virtualized 10k-row table’s header still selects all 10k loaded keys, not the
 ~20 mounted checkboxes.
+
+## Pattern 2b: Compose app chrome inside the frame
+
+Role Manager Authorized Accounts: one card wrapping a filter row, the table, and the
+pager. The kit does not own search or role filters — pass your existing bar as
+`toolbar`. `placement: 'inside'` puts the pager in that same frame. The injected select
+column is already `w-12`; `columnClassName` is how you override it.
+
+```tsx
+import { useId, useState } from 'react';
+
+import { DataTable, Input } from '@openzeppelin/ui-components';
+
+import { accountColumns, type AccountRow } from './AccountsSection';
+
+interface AccountsFilterBarProps {
+  query: string;
+  onQueryChange: (next: string) => void;
+}
+
+function AccountsFilterBar({ query, onQueryChange }: AccountsFilterBarProps) {
+  return (
+    <div className="flex flex-wrap items-center gap-3 p-4">
+      <label htmlFor="authorized-accounts-filter" className="text-sm font-medium">
+        Filter accounts
+      </label>
+      <Input
+        id="authorized-accounts-filter"
+        className="max-w-sm"
+        value={query}
+        placeholder="Address or role"
+        onChange={(event) => {
+          onQueryChange(event.target.value);
+        }}
+      />
+    </div>
+  );
+}
+
+interface AuthorizedAccountsTableProps {
+  pageRows: readonly AccountRow[];
+  pageIndex: number;
+  pageSize: number;
+  totalCount: number;
+  selectedKeys: ReadonlySet<string>;
+  onSelectionChange: (next: ReadonlySet<string>) => void;
+  onPageChange: (pageIndex: number) => void;
+}
+
+export function AuthorizedAccountsTable({
+  pageRows,
+  pageIndex,
+  pageSize,
+  totalCount,
+  selectedKeys,
+  onSelectionChange,
+  onPageChange,
+}: AuthorizedAccountsTableProps) {
+  const headingId = useId();
+  const [query, setQuery] = useState('');
+
+  return (
+    <section>
+      <h2 id={headingId}>Authorized accounts</h2>
+      <DataTable
+        aria-labelledby={headingId}
+        columns={accountColumns}
+        rows={pageRows}
+        getRowKey={(row) => row.id}
+        toolbar={
+          <AccountsFilterBar
+            query={query}
+            onQueryChange={(next) => {
+              setQuery(next);
+              onPageChange(0);
+            }}
+          />
+        }
+        selection={{
+          selectedKeys,
+          onSelectionChange,
+          selectAllLabel: 'Select all accounts',
+          getCheckboxLabel: (row) => `Select account ${row.address}`,
+          columnClassName: 'w-12',
+        }}
+        pagination={{
+          kind: 'server',
+          pageIndex,
+          pageSize,
+          totalCount,
+          onPageChange,
+          placement: 'inside',
+          paginationLabel: 'Authorized accounts pagination',
+        }}
+      />
+    </section>
+  );
+}
+```
+
+What to notice:
+
+- **`toolbar` is opaque.** The kit does not search `rows`. Reset `pageIndex` in the app
+  when the filter changes.
+- **`placement: 'inside'` omits `data-table-root`.** The nav is the last child of
+  `data-table-frame` (`border-t px-4 py-3`), never a `<tfoot>` and never a virtualized
+  row.
+- **`columnClassName: 'w-12'` is redundant with the kit default.** Pass `'w-10'` (or
+  similar) only when you need a different width. The kit does not auto-set
+  `tableClassName="table-fixed"`.
+- **Cursor / controls-only pager:** omit `totalCount`, pass `hasNextPage`, and set
+  `hideStatus: true` so Previous/Next sit at the end while `Page N` stays a polite live
+  region. Kit already applies `justify-end` when status is hidden.
+- **Lighter row hover** (Role Identifiers): `getRowClassName={() => 'hover:bg-muted/30'}`
+  merges after kit row chrome so `hover:bg-accent/50` can lose. Omit SF-13 props on a
+  nested compact table (`className="rounded-none border-0"`) so it stays unframed.
 
 ## Pattern 3: Loading and errors around the table
 
@@ -564,6 +686,45 @@ What to notice:
   loads; keep `pageRows` as the last good page until it arrives. Numbered buttons appear
   because `totalCount` is known.
 
+## Pattern 5b: Localize sort-control names
+
+`formatSortButtonName` is table-wide. It receives `DataTableSortButtonNameInfo`
+(`columnName` from string `header` / `headerLabel` / `id`; `direction` `'none'` |
+`'asc'` | `'desc'`). Omit it for English `Sort by Amount` / `Sort by Amount, ascending`.
+A blank or non-string return is fail-closed: the English default is used and development
+logs `sort:empty-name` once. The English builder is not exported.
+
+```tsx
+import { DataTable, type DataTableSortButtonNameInfo } from '@openzeppelin/ui-components';
+
+import { holderColumns, type HolderRow } from './HoldersTable';
+
+function formatSortButtonName({ columnName, direction }: DataTableSortButtonNameInfo): string {
+  if (direction === 'none') {
+    return `Ordenar por ${columnName}`;
+  }
+  if (direction === 'asc') {
+    return `Ordenar por ${columnName}, ascendente`;
+  }
+  return `Ordenar por ${columnName}, descendente`;
+}
+
+export function HoldersSortedEs({ holders }: { holders: readonly HolderRow[] }) {
+  return (
+    <DataTable
+      caption="Titulares"
+      columns={holderColumns}
+      rows={holders}
+      getRowKey={(row) => row.address}
+      formatSortButtonName={formatSortButtonName}
+    />
+  );
+}
+```
+
+This names the **sort button**, not `aria-sort`. Pair it with `pagination.formatStatus`
+and `previousLabel` / `nextLabel` when the rest of the pager must match the locale.
+
 ## Pattern 6: Client-held pagination
 
 ```tsx
@@ -790,7 +951,9 @@ sentinel stays. The next time the user is at the end, `onLoadMore` can fire agai
 There is no `infiniteScroll.error` slot; put retry chrome outside the table.
 
 **Do not also pass `pagination`.** Jump-to-page and append-forever are different
-products. If both props are set, the pager (Previous / numbers / Next) still works and infinite is ignored.
+products. Typed `DataTableProps` (`DataTableLoadStrategy`) rejects both. If an untyped
+caller still passes both, the pager (Previous / numbers / Next) still works and infinite
+is ignored.
 
 ## Common Mistakes
 
@@ -819,8 +982,14 @@ products. If both props are set, the pager (Previous / numbers / Next) still wor
   `data-slot="data-table"`. Unbounded P1 tables are a no-op.
 - **Passing `siblingCount` or importing `buildPageItems`.** Window math is internal.
 - **Inventing numbered pages when `totalCount` is omitted.** The kit hides numbers.
-  Use `hasNextPage`; do not pass `totalCount: 0` to mean “unknown.”
-- **Putting numbers in `<tfoot>`.** The pager is a sibling of the overflow wrapper.
+  Use `hasNextPage`; do not pass `totalCount: 0` to mean “unknown.” Omitting the field is
+  not a development error; invalid (`NaN` / negative) values still log.
+- **Putting numbers in `<tfoot>`.** The pager is a sibling of the overflow wrapper
+  (outside the card by default, or last child of `data-table-frame` when `'inside'`).
+- **Putting filters in `<caption>`, a header `<tr>`, or `data-slot="data-table"`.** Use
+  `toolbar`.
+- **Expecting `rowClassName` or a `rowVariant` enum.** The hook is `getRowClassName`.
+- **Expecting `chromeMode` or importing `DATA_TABLE_FRAME_CHROME`.** Internal.
 - **Passing top-level `selectedIds` / `onSelectionChange`.** Type error / no-op. Nest
   `selectedKeys` and `onSelectionChange` under `selection`.
 - **`selectedKeys` in the `columns` `useMemo` deps.** Kit selection does not need it;
@@ -835,8 +1004,9 @@ products. If both props are set, the pager (Previous / numbers / Next) still wor
 - **Using `id: '__data-table-select'` on an integrator column** while kit selection is
   on. Reserved; the kit column still leads and development logs.
 - **Wrapping `DataTable` in kit `Card` (or `className="rounded-lg border"`) as the
-  frame.** The kit already paints the card. `overflow-hidden` on that wrapper kills
-  virtualized scroll.
+  frame.** The kit already paints the card. `overflow-hidden` on the **scroller** kills
+  virtualized scroll; the kit frame may clip with `overflow-hidden` so the toolbar and
+  in-frame pager share one radius.
 - **Leaving a visible caption as the card title.** Default is `sr-only`. Show it with
   `not-sr-only`, or name the table with `aria-labelledby`.
 - **Importing `DATA_TABLE_*_CHROME` or `./chrome`.** Not a public export.
@@ -857,8 +1027,10 @@ products. If both props are set, the pager (Previous / numbers / Next) still wor
 - **Reading `aria-rowcount` as dataset size.** Finite virtualized tables use
   `1 +` this instance's `bodyRows`. Open feeds use `-1`. Totals belong in the pager
   status, not on the table and not as `infiniteScroll.totalCount`.
-- **Combining `pagination` and `infiniteScroll`.** The pager wins; your `onLoadMore`
-  never runs. Pick one.
+- **Combining `pagination` and `infiniteScroll`.** Typed callers cannot. Untyped both
+  still pager-win; your `onLoadMore` never runs. Pick one.
+- **Returning `''` from `formatSortButtonName`.** Fail-closed to English `Sort by {name}`
+  plus one `sort:empty-name` diagnostic. Return a real localized string.
 - **A visible "Load more" you put in `tbody`.** Steals focus. Hidden sentinel + wrapper
   `aria-busy` is the kit signal; compose a spinner outside the table.
 - **Expecting the kit to fetch or to pass a cursor into `onLoadMore`.** The callback is

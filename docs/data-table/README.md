@@ -3,8 +3,10 @@
 > Declare a table's columns as data, pass the rows you already hold, and get a real HTML
 > table: a required accessible name, headers tied to cells, a sticky header by default,
 > logical alignment, composed cells, client or server-intent sorting, optional pagination
-> with numbered page controls, optional infinite scroll, optional row virtualization,
-> optional identity-keyed row selection, and an empty state that never unmounts the table.
+> with numbered page controls (outside the card by default, or inside as a frame footer),
+> an optional `toolbar` slot inside the kit-owned frame, optional infinite scroll,
+> optional row virtualization, optional identity-keyed row selection (injected select
+> column defaults to `w-12`), and an empty state that never unmounts the table.
 
 ## Overview
 
@@ -13,8 +15,10 @@
 row, and exactly one accessible name. It renders a native `<table>`. It never fetches.
 Sorting, pagination, infinite scroll, virtualization, and row selection are **optional,
 additive props on this same component** — not a second table, not a mode enum, and not a
-subpath import. Pagination and infinite scroll are not a merged window: if you pass both,
-the pager wins and `infiniteScroll` is ignored. Selection is off unless you pass
+subpath import. Pagination and infinite scroll are **exactly-one-of at the type level**
+(`DataTableLoadStrategy`, exported): omit both, pass `pagination`, or pass
+`infiniteScroll`. Typed callers cannot combine them. Untyped both-props still take the
+runtime pager-wins path (`infiniteScroll` ignored). Selection is off unless you pass
 `selection`; existing tables do not grow a checkbox column. Header cells stay in view
 inside the table scroll wrapper unless you pass `stickyHeader={false}`.
 
@@ -22,8 +26,9 @@ The table is for anyone in an app built on `@openzeppelin/ui-components` who is 
 hand-write `<th>`/`<td>` for one more screen. The same column array works for a ten-row
 form table and for a 10,000-row virtualized list. Default chrome matches Role Manager
 Accounts / Role Changes: a rounded bordered card, muted header band, hairline row
-dividers, `p-4` cells, and row hover. Search bars, filters, and page titles stay in your
-app.
+dividers, `p-4` cells, and row hover. Page titles stay in your app. Search and filter
+chrome also stay app-owned — pass them as `toolbar` to host them **inside** the kit
+card, above the header and outside `<table>`.
 
 The single most important integration point is still the column's `cell` function,
 `(row) => ReactNode`. That is where `Badge`, `AddressDisplay`, `Button`, `OverflowMenu`,
@@ -185,10 +190,14 @@ error and renders an unnamed table.
 **Default chrome is Role Manager family, not a density prop.** The kit paints a
 `rounded-xl` bordered `bg-card` wrapper, a muted `thead` band, `p-4` header and body
 cells, hairline dividers and hover on **data** rows only (not spacers, the sentinel, or
-the empty row). Pagination sits **outside** that card. There is no `density` / `variant` /
-`chrome` prop and no kit `Card` wrapper — nesting `Card` adds flex padding and fights the
-scroll ancestor. Override with `className` / `tableClassName` / `captionClassName` /
-column class props. Do not import internal `chrome.ts` tokens; they are not on the barrel.
+the empty row). Pagination sits **outside** that card unless you pass
+`pagination.placement: 'inside'`. A non-null `toolbar` (or an inside pager) moves the
+border onto `data-slot="data-table-frame"` so filters and the in-frame pager share one
+card with the table. There is no `density` / `variant` / `chrome` prop and no kit `Card`
+wrapper — nesting `Card` adds flex padding and fights the scroll ancestor. Override with
+`className` / `tableClassName` / `captionClassName` / column class props /
+`getRowClassName` / `pagination.className` / `selection.columnClassName`. Do not import
+internal `chrome.ts` tokens; they are not on the barrel.
 
 **Headers are associated by `scope="col"`.** Every `<th>` carries `scope="col"`. A
 string `header` names its column directly. A node `header` is named through `aria-label`
@@ -228,21 +237,26 @@ clear. One column at a time. Uncontrolled by default (`defaultSort`); pass `sort
 
 **Pagination is always controlled.** Pass `pagination={{ kind: 'client', pageIndex,
 pageSize, onPageChange }}` to slice an in-memory list, or `kind: 'server'` when `rows` is
-already the current page. The kit never stores `pageIndex` and never fetches. The pager
-sits **outside** the scroll wrapper so overflow cannot clip it. It always has Previous,
-Next, and a live status. When the dataset size is known (client kind, or server with a
-finite `totalCount >= 0`), it also paints numbered page buttons: a compact list when
-there are few pages, otherwise first / last / current ± one neighbour with ellipsis
-gaps. The current number has `aria-current="page"`. Clicking it does not fire
-`onPageChange`. Omit server `totalCount` (or pass a non-finite / negative value) when
-the query cannot supply a total: **no numbered buttons**, status is `Page N`, and Next
-is gated by optional `hasNextPage` (omit → Next stays enabled except busy or an unusable
-index). The kit never invents a last page. Use pagination when the user must jump to a
-stable page.
+already the current page. The kit never stores `pageIndex` and never fetches. By default
+the pager sits **outside** the scroll wrapper so overflow cannot clip it
+(`placement: 'outside'`). Pass `placement: 'inside'` to put it in the same bordered frame
+as the table (and `toolbar`, if any). It always has Previous, Next, and a live status.
+`hideStatus` hides that status visually (`sr-only`) without unmounting it.
+`pagination.className` merges onto the `<nav>`. When the dataset size is known (client
+kind, or server with a finite `totalCount >= 0`), it also paints numbered page buttons: a
+compact list when there are few pages, otherwise first / last / current ± one neighbour
+with ellipsis gaps. The current number has `aria-current="page"`. Clicking it does not
+fire `onPageChange`. Omit server `totalCount` (or pass a non-finite / negative value)
+when the query cannot supply a total: **no numbered buttons**, status is `Page N`, and
+Next is gated by optional `hasNextPage` (omit → Next stays enabled except busy or an
+unusable index). Omitting `totalCount` does **not** log. The kit never invents a last
+page. Use pagination when the user must jump to a stable page.
 
 **Sticky header is on by default.** Every `th[data-slot="data-table-header-cell"]`
-(including the selection select-all) gets kit tokens `sticky top-0 z-20 bg-muted` so the
-header stays visible while the **wrapper** is a vertical scrollport. Pass
+(including the selection select-all) gets kit tokens
+`sticky top-0 z-20 bg-[color-mix(in_oklab,var(--muted)_50%,var(--card))]` so the
+header stays visible while the **wrapper** is a vertical scrollport (opaque fill
+matches thead `bg-muted/50` over the card). Pass
 `stickyHeader={false}` to restore a header that scrolls away. Do not put `stickyHeader`
 on `virtualized={{ … }}` — that object has no such field. Unbounded P1 tables
 (`overflow-x-auto` only, content not taller than the wrapper) do not pin the header to
@@ -253,8 +267,9 @@ P1 just to make sticky visible. A visible `caption` (`not-sr-only`) stays in flo
 **Infinite scroll is always controlled append-intent.** Pass
 `infiniteScroll={{ hasMore, onLoadMore, busy }}`. The kit never fetches and never
 stores a cursor — `onLoadMore` is `() => void` so your app already knows the next
-token. Orthogonal to `virtualized`. Do not pass `pagination` and `infiniteScroll`
-together: the pager wins, infinite is inert, and development logs once. While
+token. Orthogonal to `virtualized`. Typed `DataTableProps` cannot take `pagination`
+and `infiniteScroll` together. An untyped caller who still passes both gets pager-wins
+(infinite inert, one `infinite:pager-wins` diagnostic). While
 `hasMore` is true, `aria-rowcount` is `-1` (unknown total) even on a small
 unvirtualized table. There is no kit "Load more" button: a hidden sentinel plus
 wrapper `aria-busy` is the loading signal. Put a visible spinner **outside** the
@@ -270,11 +285,12 @@ When virtualization is off, the wrapper is still `overflow-x-auto` only, as in t
 small-table path. Empty + `virtualized` is a no-op: same empty chrome as a small table, no
 `aria-rowcount`, no spacers.
 
-**Two class props, two elements — plus an optional root.** `className` lands on
-`div[data-slot="data-table"]`, the scroll parent (already the card). `tableClassName`
-lands on `<table>`. When `pagination` is set, those two sit inside
-`div[data-slot="data-table-root"]` with the pager as a sibling. Style parts by
-`data-slot`. Demo `className="rounded-lg border"` is redundant.
+**Two class props, two elements — plus an optional frame and root.** `className` lands
+on the visible card: `div[data-slot="data-table-frame"]` when framed, otherwise
+`div[data-slot="data-table"]`. `tableClassName` lands on `<table>`. When `pagination`
+uses `'outside'` (the default), those sit inside `div[data-slot="data-table-root"]` with
+the pager as a sibling. `'inside'` omits the root and puts the pager in the frame. Style
+parts by `data-slot`. Demo `className="rounded-lg border"` is redundant.
 
 **Kit-owned selection is opt-in and always controlled.** Pass `selection={{ selectedKeys,
 onSelectionChange }}`. The app owns a `ReadonlySet<string>` of `getRowKey(row)` values;
@@ -284,10 +300,13 @@ index. Header select-all is tri-state over the **unique keys of current `bodyRow
 virtualized rows that are not mounted). Mixed means some of those applicable keys are
 selected, not `selectedKeys.size === rows.length`. A mixed header click **clears this
 window** and keeps off-window keys. Do not put `selectedKeys` in the `columns` `useMemo`
-deps: the kit injects the checkbox column so your column array can stay stable. Clicks on
+deps: the kit injects the checkbox column so your column array can stay stable. The injected
+column is `w-12` by default; override with `selection.columnClassName`. Clicks on
 Address copy or Edit Roles do not toggle selection. Checkboxes carry accessibility state;
-rows get `data-selected` / `data-state="selected"` for chrome, not `aria-selected`. The
-kit `Checkbox` paints a **minus** (not a check) when `checked="indeterminate"`.
+rows get `data-selected` / `data-state="selected"` for chrome, not `aria-selected`. Pass
+`getRowClassName` to merge extra classes on painted data rows after kit hover/selected
+tokens. The kit `Checkbox` paints a **minus** (not a check) when
+`checked="indeterminate"`.
 
 ## Sorting
 
@@ -310,13 +329,15 @@ contract (including spacers and the pager), and development diagnostics.
 ## Integration Guide
 
 See [integration-guide.md](./integration-guide.md) for mixed-content tables, Role Manager
-chrome and action columns, kit-owned row selection, loading chrome, hand-written table
-migration, client/server sort, numbered pagination (known and unknown totals), sticky
-headers, virtualization, and infinite scroll (alone and with virtualization).
+chrome and action columns, kit-owned row selection, composing app chrome inside the
+frame (`toolbar`, in-frame pager, narrow select column), loading chrome, hand-written
+table migration, client/server sort, numbered pagination (known and unknown totals),
+sticky headers, virtualization, and infinite scroll (alone and with virtualization).
 
 ## Safety
 
-- **Main entry.** `DataTable`, its types, `DATA_TABLE_SELECT_COLUMN_ID`, and the three
+- **Main entry.** `DataTable`, its types (including `DataTableLoadStrategy` and
+  `DataTablePaginationPlacement`), `DATA_TABLE_SELECT_COLUMN_ID`, and the three
   virtualization default constants ship on `@openzeppelin/ui-components`. There is no
   `./data-table` subpath. Internal `chrome.ts` tokens and `selection.ts` helpers are
   **not** exported. Types are `export type`; a value import of `DataTableColumn` is a
@@ -325,8 +346,9 @@ headers, virtualization, and infinite scroll (alone and with virtualization).
   wrapper and `virtualizationRef` for `scrollToRowKey`.
 - **Do not nest the table in kit `Card` as the default frame.** Radius and border already
   live on the overflow wrapper. A `Card` ancestor adds flex layout and content padding.
-  If you must nest, use `p-0` and do not add a second `overflow-hidden` (it tailwind-merges
-  over `overflow-auto` and kills virtualized scroll).
+  If you must nest, use `p-0` and do not add a second `overflow-hidden` on the **scroller**
+  (it tailwind-merges over `overflow-auto` and kills virtualized scroll). The kit frame
+  may itself use `overflow-hidden`; that is the card clip, not the scrollport.
 - **The name is required, and blank names are silent in production.** Fix the development
   log; production emits nothing.
 - **`getRowKey` must be unique and stable.** Never derive it from the array index.
@@ -366,9 +388,12 @@ headers, virtualization, and infinite scroll (alone and with virtualization).
   `infiniteScroll.totalCount` (that field does not exist).
 - **Keep table internals as table internals.** Do not set `display`, extra `position:
 sticky` / `absolute`, or `transform` on `table`, `thead`, `tbody`, `tr`, `th`, or `td`.
-  The kit already freezes **header cells** (`sticky top-0 z-20 bg-muted`) inside the
+  The kit already freezes **header cells**
+  (`sticky top-0 z-20` plus an opaque `color-mix` of `--muted` 50% over `--card`)
+  inside the
   wrapper unless `stickyHeader={false}`. The muted band stays on `thead`
-  (`bg-muted/50`); opaque fill is on the `th` so virtualized rows do not show through.
+  (`bg-muted/50`); the `th` fill matches that band so virtualized rows do not show
+  through.
   Sticky does not pin body columns. Spacer height lives on a hidden spacer `<td>` only.
   Clip and scroll on the wrapper. Unbounded tables are a sticky no-op for vertical
   pinning to the page.
@@ -378,11 +403,17 @@ sticky` / `absolute`, or `transform` on `table`, `thead`, `tbody`, `tr`, `th`, o
   focused key, that row's data stays under the cursor. Do not prepend in v1. Make
   `onLoadMore` safe to call twice in a row (a still-short page after `busy` clears can
   fire again so the viewport can fill).
-- **Do not combine `pagination` and `infiniteScroll`.** Types allow both (spreads); at
-  runtime the pager wins. Pick one strategy per instance.
+- **Do not combine `pagination` and `infiniteScroll`.** The type is exactly-one-of
+  (`DataTableLoadStrategy`). Untyped both-props still pager-win. Pick one strategy per
+  instance.
+- **Localize sort control names with `formatSortButtonName`.** It receives
+  `{ columnName, direction: 'asc' | 'desc' | 'none' }`. Omit it for English
+  `Sort by {name}`. Blank returns fall back to that default (fail-closed) and log
+  `sort:empty-name` once in development.
 - **Do not invent a last page when `totalCount` is missing.** Numbered buttons are
   hidden; use `hasNextPage={false}` to disable Next on a cursor API. `hasNextPage` is
-  ignored when the total is known. There is no public `siblingCount`.
+  ignored when the total is known. There is no public `siblingCount`. Omitting
+  `totalCount` is not a development error.
 - **`EmptyState` renders an `<h3>`.** Keep `emptyTitle` to status copy.
 - **Not in `@openzeppelin/ui-types`.**
 
