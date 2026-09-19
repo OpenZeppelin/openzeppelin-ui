@@ -77,6 +77,37 @@ const [height, setHeight] = useState(() => defaultBottomSheetHeight(window.inner
 
 All four state props are required (controlled-only), and exactly one of `aria-label` / `aria-labelledby`. The sheet clamps `height` to `[160px, viewport]` and reports the clamped value through `onHeightChange`; store what it reports. Full docs: [`docs/bottom-sheet/`](../../docs/bottom-sheet/README.md).
 
+### Data table (main entry)
+
+`DataTable<Row>` renders columns declared as data plus the rows your app already holds as a native, accessible `<table>`: a required accessible name (`caption`, `aria-label`, or `aria-labelledby`), `<th scope="col">` headers that stay sticky inside the table scroll wrapper by default (`stickyHeader={false}` to opt out), logical `'start' | 'end'` alignment per column, cells composed from kit pieces such as `Badge`, `AddressDisplay`, or `Button`, and a kit `EmptyState` when there are no body rows. Default chrome matches Role Manager tables (rounded bordered card, muted header band, compact cells, row hover). A `caption` is visually hidden by default. It never fetches. Optional additive props on the same component cover sorting (`sortable` / `getSortValue`, `sort` / `onSortChange`, table-wide `formatSortButtonName` for the sort-control accessible name), controlled pagination (`kind: 'client' | 'server'`, numbered page buttons when the total is known, `hasNextPage` when it is not, `placement: 'inside'` to put the pager in the card), an optional `toolbar` slot inside the kit frame, `getRowClassName`, controlled infinite scroll (`infiniteScroll`), opt-in row virtualization (`virtualized`, default `estimateSize` 64), and kit-owned row selection (`selection.selectedKeys` / `onSelectionChange`, keyed by `getRowKey`, injected column default `w-12`). Pagination and infinite scroll are exactly-one-of at the type level (`DataTableLoadStrategy`); untyped both-props still pager-win. Virtualization is a regular main-entry dependency (`@tanstack/react-virtual`), not a subpath.
+
+```tsx
+import { DataTable, type DataTableColumn } from '@openzeppelin/ui-components';
+
+interface BalanceRow {
+  symbol: string;
+  balance: bigint;
+}
+
+const columns = [
+  { id: 'symbol', header: 'Token', cell: (row) => row.symbol },
+  { id: 'balance', header: 'Balance', align: 'end', cell: (row) => row.balance.toString() },
+] satisfies readonly DataTableColumn<BalanceRow>[];
+
+export function BalancesTable({ rows }: { rows: readonly BalanceRow[] }) {
+  return (
+    <DataTable
+      caption="Token balances"
+      columns={columns}
+      rows={rows}
+      getRowKey={(row) => row.symbol}
+    />
+  );
+}
+```
+
+Exactly one accessible name is required at the type level, and `getRowKey` is required (no index keys). Pinning and resizing are not column fields. Sticky does not pin body columns and is a no-op on unbounded tables. Omit `selection` to keep today’s column count; pass it for a leading checkbox column that survives sort, page, virtualization, and append. Full docs: [`docs/data-table/`](../../docs/data-table/README.md).
+
 ## Overview
 
 This package provides a comprehensive set of shared React UI components. It serves as the central library for all common UI elements, including basic primitives, form field components, and their associated utilities.
@@ -93,7 +124,7 @@ All components are built with React, TypeScript, and styled with Tailwind CSS, f
 - `Card` (and its parts) - Container components
 - `Dialog` (and its parts) - Modal dialogs
 - `Alert` (and its parts) - Alert messages
-- `Checkbox`, `RadioGroup` - Selection inputs
+- `Checkbox`, `RadioGroup` - Selection inputs (`Checkbox` paints a minus glyph when `checked="indeterminate"`, not a check)
 - `Select` (and its parts) - Dropdown selects
 - `Progress` - Progress indicators
 - `Tabs` - Tab navigation
@@ -224,8 +255,14 @@ If you need to configure Tailwind manually, import the shared styles and registe
 # Build the package
 pnpm build
 
-# Run tests
+# Run tests (jsdom)
 pnpm test
+
+# Chromium suite (Playwright). GitHub CI runs this after jsdom.
+pnpm test:browser
+
+# Typecheck DataTable tests (`@ts-expect-error` two-way arms)
+pnpm typecheck:data-table-tests
 
 # Lint
 pnpm lint

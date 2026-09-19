@@ -27,6 +27,7 @@ import {
   Network,
   PanelLeft,
   PanelTop,
+  Table2,
   Tag,
   TextCursorInput,
   Type,
@@ -62,6 +63,7 @@ import {
   CardDemo,
   CheckboxDemo,
   ContractInteractionsDemo,
+  DataTableDemo,
   DateRangePickerDemo,
   DialogDemo,
   DropdownMenuDemo,
@@ -135,6 +137,7 @@ type DemoKey =
   // Component Gallery - Data Display
   | 'address-display'
   | 'badge'
+  | 'data-table'
   | 'empty-state'
   | 'banner'
   | 'external-link'
@@ -241,6 +244,7 @@ const galleryCategories: GalleryCategory[] = [
     items: [
       { key: 'address-display', label: 'AddressDisplay', icon: <Hash className="size-4" /> },
       { key: 'badge', label: 'Badge', icon: <Tag className="size-4" /> },
+      { key: 'data-table', label: 'DataTable', icon: <Table2 className="size-4" /> },
       { key: 'empty-state', label: 'EmptyState', icon: <LayoutGrid className="size-4" /> },
       { key: 'banner', label: 'Banner', icon: <PanelTop className="size-4" /> },
       {
@@ -320,6 +324,7 @@ const demoComponents: Record<
   // Component Gallery - Data Display
   'address-display': AddressDisplayDemo,
   badge: BadgeDemo,
+  'data-table': DataTableDemo,
   'empty-state': EmptyStateDemo,
   banner: BannerDemo,
   'external-link': ExternalLinkDemo,

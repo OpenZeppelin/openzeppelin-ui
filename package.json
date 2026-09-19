@@ -22,6 +22,7 @@
     "clean": "pnpm -r clean",
     "build": "pnpm -r build",
     "test": "node --test .pnpmfile.test.cjs && pnpm -r test",
+    "test:browser": "pnpm --filter @openzeppelin/ui-components test:browser && pnpm --filter @openzeppelin/ui-example-basic-react-app test:browser",
     "test:watch": "pnpm -r test:watch",
     "test:coverage": "pnpm -r test:coverage",
     "lint": "pnpm -r lint",

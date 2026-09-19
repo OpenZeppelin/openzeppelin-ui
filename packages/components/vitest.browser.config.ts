@@ -7,8 +7,8 @@ import { defineConfig } from 'vitest/config';
 const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
 
 /**
- * Opt-in browser suite. Not used by `pnpm test`.
- * Run with `pnpm test:browser`. Not wired into CI.
+ * Browser suite (Chromium / Playwright). Not used by `pnpm test` (jsdom).
+ * Local: `pnpm test:browser`. CI: `.github/workflows/ci.yml` after jsdom tests.
  */
 export default defineConfig({
   plugins: [react()],
