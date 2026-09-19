@@ -14,10 +14,18 @@ describe('INV-231: demo proves the Role Manager-shaped default contract', () => 
       'INV-231: standard, selectable, virtualized, paginated, and infinite tables'
     ).toHaveLength(5);
     for (const wrap of wraps) {
-      expect(wrap.className).toContain('rounded-xl');
-      expect(wrap.className).toContain('border');
-      expect(wrap.className).toContain('bg-card');
+      const frame = wrap.closest('[data-slot="data-table-frame"]');
+      const card = frame ?? wrap;
+      expect(card.className).toContain('rounded-xl');
+      expect(card.className).toContain('border');
+      expect(card.className).toContain('bg-card');
       expect(wrap.querySelector(SLOT.caption)?.className).toContain('sr-only');
+      if (frame != null) {
+        expect(
+          wrap.className.includes('rounded-xl'),
+          'INV-328: framed scroller must not also paint the card'
+        ).toBe(false);
+      }
     }
   });
 
@@ -42,10 +50,13 @@ describe('INV-231: demo proves the Role Manager-shaped default contract', () => 
     expect(primaryAction?.getAttribute('data-slot')).toBe('button');
   });
 
-  it('keeps application search and filter chrome outside the kit table demo', () => {
+  it('hosts demo search in the selectable toolbar, not inside other scrollers', () => {
     const { container } = renderDemo();
+    const toolbar = container.querySelector('[data-slot="data-table-toolbar"]');
+    expect(toolbar?.querySelector('#data-table-account-search')).not.toBeNull();
+    expect(toolbar?.closest('[data-slot="data-table-frame"]')).not.toBeNull();
     for (const wrap of container.querySelectorAll(SLOT.wrap)) {
-      expect(wrap.querySelector('input[type="search"]')).toBeNull();
+      expect(wrap.querySelector('input')).toBeNull();
       expect(wrap.querySelector('[data-slot="select-trigger"]')).toBeNull();
     }
   });

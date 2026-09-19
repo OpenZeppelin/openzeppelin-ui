@@ -31,7 +31,7 @@ describe('SF-8 demo: app-owned row selection', () => {
     const selectAll = getByRole('checkbox', { name: 'Select all accounts' });
 
     fireEvent.click(selectAll);
-    expect(getByText('4 of 4 accounts selected')).toBeTruthy();
+    expect(getByText('2 of 4 accounts selected')).toBeTruthy();
     expect(selectAll.getAttribute('data-state')).toBe('checked');
 
     fireEvent.click(selectAll);

@@ -5,6 +5,7 @@ import {
   Badge,
   Button,
   DataTable,
+  Input,
   type BadgeTone,
   type DataTableColumn,
 } from '@openzeppelin/ui-components';
@@ -256,6 +257,19 @@ const CATALOG_COLUMNS_SORTABLE = catalogColumns(true);
 
 function SelectableAccountsTable(): ReactElement {
   const [selectedKeys, setSelectedKeys] = useState<ReadonlySet<string>>(() => new Set());
+  const [query, setQuery] = useState('');
+  const [pageIndex, setPageIndex] = useState(0);
+  const visibleRows = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (normalizedQuery === '') {
+      return SAMPLE_ROWS;
+    }
+    return SAMPLE_ROWS.filter(
+      (row) =>
+        row.token.toLowerCase().includes(normalizedQuery) ||
+        row.holder.toLowerCase().includes(normalizedQuery)
+    );
+  }, [query]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -273,14 +287,43 @@ function SelectableAccountsTable(): ReactElement {
       <DataTable
         caption="Accounts (selectable)"
         columns={COLUMNS}
-        rows={SAMPLE_ROWS}
+        rows={visibleRows}
         getRowKey={(row) => row.id}
+        toolbar={
+          <div className="flex flex-wrap items-center gap-3 p-4">
+            <label htmlFor="data-table-account-search" className="text-sm font-medium">
+              Filter accounts
+            </label>
+            <Input
+              id="data-table-account-search"
+              className="max-w-sm"
+              value={query}
+              placeholder="Token or holder address"
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setPageIndex(0);
+              }}
+            />
+          </div>
+        }
         selection={{
           selectedKeys,
           onSelectionChange: setSelectedKeys,
           selectAllLabel: 'Select all accounts',
           getCheckboxLabel: (row) => `Select ${row.token} account`,
           columnHeaderLabel: 'Select accounts',
+          columnClassName: 'w-12',
+        }}
+        getRowClassName={(row) => (row.status === 'revoked' ? 'hover:bg-muted/30' : undefined)}
+        pagination={{
+          kind: 'client',
+          pageIndex,
+          pageSize: 2,
+          onPageChange: setPageIndex,
+          placement: 'inside',
+          hideStatus: true,
+          className: 'bg-muted/20',
+          paginationLabel: 'Accounts pagination',
         }}
       />
     </div>
@@ -368,7 +411,7 @@ function InfiniteCatalogTable(): ReactElement {
 /**
  * Example-app consumption of kit DataTable: column-as-data, composed cells,
  * end-aligned amounts, client sort, and a live empty-state path, plus controlled
- * selection, virtualized, paginated, and infinite-scroll variants.
+ * selection, in-frame consumer chrome, virtualized, paginated, and infinite-scroll variants.
  */
 export function DataTableDemo(): ReactElement {
   const [rows, setRows] = useState<readonly TokenHoldingsRow[]>(SAMPLE_ROWS);
@@ -376,7 +419,7 @@ export function DataTableDemo(): ReactElement {
   return (
     <DemoSection
       title="DataTable"
-      description="A presentational table declared from column definitions. Import it from the kit barrel — mixed cell composition, end-aligned numerics, client-side sorting, controlled row selection, and an empty state when the row source is empty. The same page also shows virtualized, paginated, and infinite-scroll variants. The table does not fetch."
+      description="A presentational table declared from column definitions. Import it from the kit barrel — mixed cell composition, end-aligned numerics, client-side sorting, controlled row selection, in-frame consumer chrome, and an empty state when the row source is empty. The same page also shows virtualized, paginated, and infinite-scroll variants. The table does not fetch."
       codeExample={USAGE_EXAMPLE}
     >
       <div className="flex flex-wrap items-center gap-3">
