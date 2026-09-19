@@ -125,15 +125,13 @@ jobs:
         id: changesets
         uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
         with:
-          publish: pnpm changeset publish --no-git-checks
-          version: pnpm run version
-          # Use github-api commit mode for automatic commit signing via GitHub App
-          commitMode: "github-api"
-          # Use conventional commit format to satisfy commitlint
-          commit: "chore(release): version packages"
-          title: "chore(release): version packages"
+          github-token: ${{ steps.gh-app-token.outputs.token }}
+          publish-script: pnpm changeset publish
+          version-script: pnpm run version
+          # v2 default is GitHub API push (signed, attributed to the token owner).
+          commit-message: "chore(release): version packages"
+          pr-title: "chore(release): version packages"
         env:
-          GITHUB_TOKEN: ${{ steps.gh-app-token.outputs.token }}
           NPM_CONFIG_PROVENANCE: true
           TARBALL: ${{ needs.provenance.outputs.package-name }}
           NPM_CONFIG_ACCESS: public
