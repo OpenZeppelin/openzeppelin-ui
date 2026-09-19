@@ -58,7 +58,7 @@ one set. Install them at these versions:
 | ------------------------------------------------------ | -------- | --------------------------------------------------- |
 | [`@openzeppelin/ui-types`](./packages/types)           | `3.5.2`  | —                                                   |
 | [`@openzeppelin/ui-utils`](./packages/utils)           | `4.0.1`  | `ui-types`                                          |
-| [`@openzeppelin/ui-components`](./packages/components) | `3.11.0` | `ui-types`, `ui-utils`                              |
+| [`@openzeppelin/ui-components`](./packages/components) | `3.12.0` | `ui-types`, `ui-utils`                              |
 | [`@openzeppelin/ui-storage`](./packages/storage)       | `1.2.5`  | `ui-types`, `ui-utils`                              |
 | [`@openzeppelin/ui-react`](./packages/react)           | `3.3.2`  | `ui-components`, `ui-types`, `ui-utils`             |
 | [`@openzeppelin/ui-renderer`](./packages/renderer)     | `3.4.2`  | `ui-components`, `ui-react`, `ui-types`, `ui-utils` |
@@ -85,7 +85,7 @@ and TS2345 on structurally identical types.
 None of this has to be taken on trust — the edges are in the published manifests:
 
 ```bash
-npm view @openzeppelin/ui-components@3.11.0 dependencies --json | grep '@openzeppelin'
+npm view @openzeppelin/ui-components@3.12.0 dependencies --json | grep '@openzeppelin'
 ```
 
 ### Read the major numbers as independent
