@@ -108,6 +108,29 @@ export function BalancesTable({ rows }: { rows: readonly BalanceRow[] }) {
 
 Exactly one accessible name is required at the type level, and `getRowKey` is required (no index keys). Pinning and resizing are not column fields. Sticky does not pin body columns and is a no-op on unbounded tables. Omit `selection` to keep today’s column count; pass it for a leading checkbox column that survives sort, page, virtualization, and append. Full docs: [`docs/data-table/`](../../docs/data-table/README.md).
 
+### Badge (main entry)
+
+`Badge` is a compact, domain-neutral status or category chip on the main entry (`label` is required; there is no children API). Default `variant` is `'filled'` (tinted) and default `tone` is `'neutral'`. `'outline'` is unchanged. `'solid'` is an opaque pill using kit token pairs (`bg-success` / `text-success-foreground`, and the same pattern for info, warning, danger; solid+neutral is `bg-foreground` / `text-background`). The host is a `<span>` unless `onActivate` is passed, in which case it is `<button type="button">`. The component always `forwardRef`s the host and spreads extra span-safe props so `TooltipTrigger asChild` can wrap it. Decorative `icon` stays `aria-hidden`; pass non-empty `iconLabel` for visually hidden text beside the graphic. Do not pass `onClick` as a Badge prop — activation is `onActivate` (Radix may still merge `onClick` onto the rendered host).
+
+```tsx
+import { Badge, Tooltip, TooltipContent, TooltipTrigger } from '@openzeppelin/ui-components';
+
+<Badge label="Completed" variant="solid" tone="success" />
+
+<Badge label="Owner" variant="outline" onActivate={() => openRole()} />
+
+<Tooltip>
+  <TooltipTrigger asChild>
+    <Badge label="Feature" tone="info" />
+  </TooltipTrigger>
+  <TooltipContent>Details</TooltipContent>
+</Tooltip>
+
+<Badge label="Owner" variant="outline" icon={<Crown />} iconLabel="Owner role" />
+```
+
+Solid fills consume `--success-foreground` / `--warning-foreground` / `--info-foreground` from `@openzeppelin/ui-styles` (danger reuses `--destructive-foreground`).
+
 ## Overview
 
 This package provides a comprehensive set of shared React UI components. It serves as the central library for all common UI elements, including basic primitives, form field components, and their associated utilities.
@@ -119,6 +142,7 @@ All components are built with React, TypeScript, and styled with Tailwind CSS, f
 ### Basic UI Primitives
 
 - `Button`, `LoadingButton` - Action buttons with variants
+- `Badge` - Compact status/category chip (`filled` / `outline` / `solid`, semantic tones, optional `onActivate` / `icon` / `iconLabel`)
 - `Input`, `Textarea` - Text input components
 - `Label` - Form labels
 - `Card` (and its parts) - Container components
