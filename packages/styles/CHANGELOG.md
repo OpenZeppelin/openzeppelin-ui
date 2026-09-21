@@ -1,5 +1,11 @@
 # @openzeppelin/ui-styles
 
+## 1.2.0
+
+### Minor Changes
+
+- [#242](https://github.com/OpenZeppelin/openzeppelin-ui/pull/242) [`a55b8dc`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/a55b8dcde30a9e02b5da5368925b34cc0da81612) Thanks [@pasevin](https://github.com/pasevin)! - Add `--success-foreground`, `--warning-foreground`, and `--info-foreground` so semantic fills have theme-aware contrast pairs (matching `--destructive-foreground`). Declared in `:root` and `.dark`, exposed in `@theme` / `@theme inline` as `--color-success-foreground`, `--color-warning-foreground`, and `--color-info-foreground` for Tailwind (`text-success-foreground`, `text-warning-foreground`, `text-info-foreground`). Fill tokens `--success` / `--warning` / `--info` are unchanged.
+
 ## 1.1.1
 
 ### Patch Changes

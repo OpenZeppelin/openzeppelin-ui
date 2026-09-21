@@ -1,5 +1,11 @@
 # @openzeppelin/ui-components
 
+## 3.13.0
+
+### Minor Changes
+
+- [#242](https://github.com/OpenZeppelin/openzeppelin-ui/pull/242) [`a55b8dc`](https://github.com/OpenZeppelin/openzeppelin-ui/commit/a55b8dcde30a9e02b5da5368925b34cc0da81612) Thanks [@pasevin](https://github.com/pasevin)! - Extend `Badge` with additive composition for Role Manager–parity chips: `variant="solid"` (opaque semantic fills on the existing `BadgeTone` set), `onActivate` (renders a native `<button type="button">`; omitted host stays a non-interactive `<span>`), `forwardRef` plus rest-prop spreading so overlay triggers can wrap the chip with `asChild`, and optional `iconLabel` (visually hidden name; the graphic stays `aria-hidden`). Filled and outline stay the tinted/outlined defaults. There is no `Badge asChild`, polymorphic `as`, children label, or size prop.
+
 ## 3.12.0
 
 ### Minor Changes
