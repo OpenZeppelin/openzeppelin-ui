@@ -25,8 +25,11 @@
   --color-destructive: oklch(0.577 0.245 27.325);
   --color-destructive-foreground: oklch(0.985 0 0);
   --color-success: oklch(0.5 0.2 150); /* Green */
+  --color-success-foreground: oklch(0.985 0 0);
   --color-warning: oklch(0.8 0.17 80); /* Yellow/Orange */
+  --color-warning-foreground: oklch(0.145 0 0);
   --color-info: oklch(0.5 0.2 200); /* Blue */
+  --color-info-foreground: oklch(0.985 0 0);
 
   /* Selection colors — semantic alias of --color-primary for surfaces that indicate
      a user-selected state (cards, steps, rows, etc.). Kept as a distinct token so call
@@ -142,8 +145,11 @@
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
   --success: oklch(0.5 0.2 150); /* Green */
+  --success-foreground: oklch(0.985 0 0);
   --warning: oklch(0.8 0.17 80); /* Yellow/Orange */
+  --warning-foreground: oklch(0.145 0 0);
   --info: oklch(0.5 0.2 200); /* Blue */
+  --info-foreground: oklch(0.985 0 0);
 
   /* Selection colors — semantic alias of --primary (see @theme block for rationale) */
   --selected: var(--primary);
@@ -208,8 +214,11 @@
   --destructive: oklch(0.396 0.141 25.723);
   --destructive-foreground: oklch(0.985 0 0);
   --success: oklch(0.396 0.12 150); /* Darker green */
+  --success-foreground: oklch(0.985 0 0);
   --warning: oklch(0.5 0.17 80); /* Darker yellow/orange */
+  --warning-foreground: oklch(0.985 0 0);
   --info: oklch(0.396 0.18 225); /* Darker blue */
+  --info-foreground: oklch(0.985 0 0);
 
   /* Selection colors — semantic alias of --primary (see light theme for rationale) */
   --selected: var(--primary);
@@ -257,8 +266,11 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --color-selected: var(--selected);
   --color-selected-foreground: var(--selected-foreground);
   --color-border: var(--border);
