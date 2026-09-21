@@ -24,23 +24,162 @@ Consumer CLI for scaffolding, migrating, and managing OpenZeppelin UI applicatio
 The `oz-ui` binary is organized by **command group** (e.g. `oz-ui <group> …`). This README documents the groups that are available today; **additional groups will be added here** as they ship.
 
 
-| Group     | Description                                                                         |
-| --------- | ----------------------------------------------------------------------------------- |
-| `migrate` | Move an existing React app onto the OpenZeppelin UI Kit (manifest-driven workflow). |
+| Group     | Description                                                                             |
+| --------- | --------------------------------------------------------------------------------------- |
+| `add`     | Add OpenZeppelin UI capabilities, such as wallet wiring, to an existing project.         |
+| `create`  | Scaffold a Vite + React + TypeScript app with selectable OpenZeppelin UI wiring.        |
+| `migrate` | Move an existing React app onto the OpenZeppelin UI Kit (manifest-driven workflow).     |
 
+
+### `create`
+
+`oz-ui create` generates a Vite + React + TypeScript app with OpenZeppelin UI styles and optional runtime, wallet, routing, sidebar, and wizard wiring. Human mode uses a guided prompt flow; agents and CI should pass flags plus `--yes --json`.
+
+The create internals use normalized layout/content recipes so feature combinations such as `--preset wizard --with sidebar` keep the wizard as the primary content while changing only the surrounding shell. See the [create recipes architecture](./docs/CREATE_RECIPES.md).
+
+All `oz-ui create`  subcommands support `--json` and return machine-readable payloads with an `action` field plus command-specific data. Invoke each row as `oz-ui create <subcommand>` (or `npx` / `pnpm exec` as needed). The bare command (no subcommand) scaffolds a project; `init` only installs the AI skill.
+
+
+| Subcommand       | Description                                                                                                                                                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[project-name]` | Default action (no subcommand). Scaffold a new Vite + React + TypeScript app with OpenZeppelin UI wiring. Human mode runs an interactive prompt flow; agents and CI should pass `--yes --json`.                  |
+| `init`           | Install the `scaffold-dapp` AI skill into a workspace so an assistant can orchestrate `oz-ui create` from natural-language intent. Does **not** generate project files. Requires `--agent-profile` on first run. |
+
+
+#### `create [project-name]`
+
+Generates a runnable app under `<project-name>/` with the selected preset, wallet, and feature toggles.
+
+
+| Preset      | Description                                                                                                       |
+| ----------- | ----------------------------------------------------------------------------------------------------------------- |
+| `minimal`   | Vite + React + TypeScript, Tailwind v4, OZ styles/components, small landing page, no wallet/runtime/router.       |
+| `dapp`      | Default. Adds `RuntimeProvider`, `WalletStateProvider`, EVM runtime, custom wallet UI, app config, and status UI. |
+| `app-shell` | Adds React Router, sidebar/header/footer shell, and placeholder routes. Sidebar implies router.                   |
+| `wizard`    | Adds a generic multi-step wizard shell for guided workflows.                                                      |
+
+
+
+| Option                 | Description                                                                                   |
+| ---------------------- | --------------------------------------------------------------------------------------------- |
+| `--preset <name>`      | `minimal`, `dapp`, `app-shell`, or `wizard`. Defaults to `dapp`.                              |
+| `--wallet <kit>`       | `custom`, `rainbowkit`, or `none`. Defaults to `custom` except for `minimal`.                 |
+| `--ecosystem <name>`   | Target ecosystem. V1 supports `evm`.                                                          |
+| `--routing <mode>`     | `none` or `react-router`. `app-shell` / `sidebar` scaffolds require `react-router`.           |
+| `--with <features>`    | Comma-separated features to include, such as `router,sidebar,theme,toasts,status-panel`.      |
+| `--without <features>` | Comma-separated features to exclude, such as `wallet` or `toasts`. Contradictions are errors. |
+| `--skip-install`       | Generate files without running the package manager install command.                           |
+| `--force`              | Overwrite generated files in a non-empty target directory.                                    |
+| `--yes`                | Use resolved defaults and skip interactive prompts.                                           |
+| `--json`               | Emit a machine-readable payload with `action: "create"`.                                      |
+
+
+Examples:
+
+```bash
+oz-ui create my-app
+oz-ui create my-app --preset minimal
+oz-ui create my-app --preset app-shell
+oz-ui create my-app --wallet rainbowkit
+oz-ui create my-app --preset dapp --ecosystem evm --wallet custom --json --yes --skip-install
+```
+
+Generated apps keep OpenZeppelin-specific integration code in `src/oz/` so it is easy to inspect and extend:
+
+- `src/oz/OzProviders.tsx` wires `RuntimeProvider` and `WalletStateProvider`
+- `src/oz/runtime.ts` owns adapter/runtime and network resolution
+- `src/oz/config.ts` initializes `appConfigService`
+- `public/app.config.json` stores runtime service defaults
+
+#### `create init`
+
+Installs the `scaffold-dapp` skill template into the selected agent profile destinations and records the selection in `.oz-ui-create.json` so follow-up runs can reuse it. Run it from a *parent* directory like `~/projects` — the skill is most useful before a new project exists.
+
+
+| Option                   | Description                                                                                                                                                             |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--target <path>`        | Workspace directory where skill assets and `.oz-ui-create.json` are written. Defaults to the current directory.                                                         |
+| `--agent-profile <list>` | Comma-separated list: `standard`, `claude`, `legacy-cursor`, `all`, or `none`. Required on first run; on subsequent runs you can omit it to reuse the stored selection. |
+| `--json`                 | Emit a machine-readable payload with `action: "create-init"`.                                                                                                           |
+
+
+Examples:
+
+```bash
+# Install for Claude Code and the shared .agents directory
+oz-ui create init --agent-profile claude,standard
+
+# Install for legacy Cursor (.cursor/skills) only
+oz-ui create init --agent-profile legacy-cursor
+
+# Re-run after editing the skill template; reuses the stored selection
+oz-ui create init
+```
+
+#### Create documentation
+
+- [Create generation matrix](./docs/CREATE_MATRIX.md) - User-facing matrix of presets, options, features, generated files, and combinations.
+- [Create recipes architecture](./docs/CREATE_RECIPES.md) - How `oz-ui create` resolves presets, layouts, content, and feature combinations.
+
+### `add`
+
+`oz-ui add` applies OpenZeppelin UI capabilities to an existing project. The first additive command is `wallet`, which writes the same `src/oz` runtime/provider files used by `oz-ui create` and patches the React entry file to wrap the render tree with `OzProviders`.
+
+All `oz-ui add` subcommands support `--json` and return machine-readable payloads with an `action` field plus command-specific data. Invoke each row as `oz-ui add <subcommand>` (or `npx` / `pnpm exec` as needed).
+
+
+| Subcommand | Description                                                                                                                                                  |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `wallet`   | Add EVM wallet/runtime wiring to an existing Vite + React app. Supports the `custom` kit by default and optional `rainbowkit` config via `--kit rainbowkit`. |
+
+
+#### `add wallet`
+
+Adds OpenZeppelin wallet runtime support to an existing project:
+
+- installs missing wallet dependencies unless `--skip-install` is set
+- writes `src/oz/config.ts`, `src/oz/runtime.ts`, and `src/oz/OzProviders.tsx`
+- writes `src/oz/wallet/rainbowkit.config.ts` when `--kit rainbowkit` is selected
+- creates or merges `public/app.config.json` without clobbering existing feature flags, RPC endpoints, or WalletConnect project IDs
+- patches `src/main.tsx` / `src/index.tsx` (or JSX equivalents) to initialize app config and wrap the render tree with `<OzProviders>`
+
+
+| Option                   | Description                                                                                         |
+| ------------------------ | --------------------------------------------------------------------------------------------------- |
+| `--project <path>`       | Project root directory. Defaults to the current directory.                                          |
+| `--ecosystem <ecosystem>`| Target ecosystem. V1 supports `evm`.                                                                |
+| `--kit <kit>`            | Wallet kit: `custom` or `rainbowkit`. Defaults to `custom`.                                         |
+| `--package-manager <pm>` | Package manager to use for dependency installation: `npm`, `pnpm`, or `yarn`. Auto-detected by default. |
+| `--skip-install`         | Write files and print the install command without running the package manager.                      |
+| `--force`                | Overwrite generated wallet files that already exist. Existing `app.config.json` is still merged.    |
+| `--yes`                  | Use defaults and skip interactive prompts.                                                          |
+| `--json`                 | Emit a machine-readable payload with `action: "add-wallet"`.                                        |
+
+
+Examples:
+
+```bash
+oz-ui add wallet
+oz-ui add wallet --kit rainbowkit
+oz-ui add wallet --project ./apps/web --kit custom --skip-install --json --yes
+```
+
+#### Add documentation
+
+- [Add wallet](./docs/ADD_WALLET.md) - Generated files, options, JSON payload shape, and idempotency behavior.
 
 ### `migrate`
 
 > **Experimental** — Migration features are under active development. Do not expect perfect automation on every project. The workflow uses deterministic `oz-ui migrate` commands and has been exercised on small- to medium-sized apps; it should still beat a fully manual migration. For the full disclaimer and an **LLM-assisted** flow (prompts, manifest workflow, skills), see the [LLM-led migration reference](./docs/LLM_MIGRATION_REFERENCE.md) ([on GitHub](https://github.com/OpenZeppelin/openzeppelin-ui/blob/main/packages/cli/docs/LLM_MIGRATION_REFERENCE.md)).
 
-All `oz-ui migrate `* subcommands support `--json` and return machine-readable payloads with an `action` field plus command-specific data. Invoke each row as `oz-ui migrate <subcommand>` (or `npx` / `pnpm exec` as needed).
+All `oz-ui migrate`  subcommands support `--json` and return machine-readable payloads with an `action` field plus command-specific data. Invoke each row as `oz-ui migrate <subcommand>` (or `npx` / `pnpm exec` as needed).
 
 
 | Subcommand | Description                                                                                                                                                                                                                                                                              |
 | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `init`     | Initialize migration scaffolding: OZ packages, provider templates, Tailwind, and assistant assets. Requires `--agent-profile` to choose where skills/agents are copied (for example `standard,claude` → `.agents/skills` + `.claude/skills`, with agents under `.cursor` and `.claude`). |
 | `analyze`  | Scan the project for UI components from third-party libraries (shadcn/ui, Radix, MUI, Chakra, Ant Design) and raw HTML elements, then map them to OpenZeppelin UI Kit equivalents.                                                                                                       |
-| `plan`     | Generate a step-by-step migration plan based on the analysis report. Uses the same assistant profiles as the initial `migrate init` (read from the manifest; no `--agent-profile` flag).                                                                                |
+| `plan`     | Generate a step-by-step migration plan based on the analysis report. Uses the same assistant profiles as the initial `migrate init` (read from the manifest; no `--agent-profile` flag).                                                                                                 |
 | `execute`  | Execute the next dependency-safe migration task. Deterministic setup and component tasks are applied automatically; manual-review tasks return structured instructions instead of silently editing the manifest.                                                                         |
 | `complete` | Mark a manually executed task as completed. By default this validates the task first with the same structural checks used by `migrate doctor`.                                                                                                                                           |
 | `fail`     | Mark a task as failed and record a blocker reason in the manifest so work can be resumed cleanly later.                                                                                                                                                                                  |
@@ -68,6 +207,46 @@ oz-ui migrate complete --manifest migration-manifest.json --task <task-id>
 # or, if blocked
 oz-ui migrate fail --manifest migration-manifest.json --task <task-id> --reason "<blocker>"
 ```
+
+## JSON output envelope
+
+Every `oz-ui --json` payload (success **and** error) ships with a stable envelope so agents and CI can detect drift without parsing command-specific fields:
+
+
+| Field           | Description                                                                                                      |
+| --------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `schemaVersion` | Semantic version of the JSON envelope contract. Bumped on breaking changes to the agent-facing payloads.         |
+| `cli.name`      | Always `@openzeppelin/ui-cli`.                                                                                   |
+| `cli.version`   | Version of the binary that produced the output.                                                                  |
+| `ok`            | `true` for successful runs, `false` for errors.                                                                  |
+| `action`        | Command identifier such as `create`, `create-init`, `migrate-init`, `migrate-analyze`. Absent on error payloads. |
+
+
+Example success payload (truncated):
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "cli": { "name": "@openzeppelin/ui-cli", "version": "0.1.0" },
+  "ok": true,
+  "action": "create",
+  "preset": "dapp",
+  "filesWritten": ["package.json", "src/main.tsx", "src/App.tsx"]
+}
+```
+
+Example error payload:
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "cli": { "name": "@openzeppelin/ui-cli", "version": "0.1.0" },
+  "ok": false,
+  "error": "Project name is required."
+}
+```
+
+Agent guidance: read `schemaVersion` once at startup and refuse to operate when the major version is newer than supported, mirroring the `migration-manifest.json` versioning model.
 
 ## Development
 

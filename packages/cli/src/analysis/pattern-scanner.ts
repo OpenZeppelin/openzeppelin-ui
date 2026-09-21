@@ -7,6 +7,11 @@ import {
   type PatternRuleConfidence,
   type PatternRuleKind,
 } from '../catalog';
+import {
+  createAnalysisSourceFile,
+  extractModuleImportRefs,
+  type ModuleImportRef,
+} from './import-extract';
 import type { ScannedFile } from './scanner';
 
 export interface PatternEvidence {
@@ -50,25 +55,10 @@ export interface CanonicalPatternMatch extends Omit<PatternMatch, 'pattern'> {
   pattern: string;
 }
 
-interface ExtractedImport {
-  source: string;
-  statement: string;
-  line: number;
-}
-
 interface FilePatternFacts {
   file: ScannedFile;
-  imports: ExtractedImport[];
+  imports: ModuleImportRef[];
 }
-
-const IMPORT_PATTERNS = [
-  /\bimport\s+[\s\S]*?\sfrom\s+['"]([^'"]+)['"]/g,
-  /\bexport\s+[\s\S]*?\sfrom\s+['"]([^'"]+)['"]/g,
-  /\bimport\s+['"]([^'"]+)['"]/g,
-];
-
-/** Dynamic `import('specifier')` — structural; wallet/OZ packages are often loaded lazily. */
-const DYNAMIC_IMPORT_PATTERN = /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
 
 function countLineNumber(content: string, index: number): number {
   return content.slice(0, index).split('\n').length;
@@ -78,38 +68,6 @@ function readLineAt(content: string, index: number): string {
   const lineStart = content.lastIndexOf('\n', index - 1) + 1;
   const lineEnd = content.indexOf('\n', index);
   return content.slice(lineStart, lineEnd === -1 ? undefined : lineEnd).trim();
-}
-
-function extractImports(file: ScannedFile): ExtractedImport[] {
-  const imports: ExtractedImport[] = [];
-  const seen = new Set<string>();
-
-  const pushMatch = (source: string, index: number) => {
-    if (!source) return;
-    const line = countLineNumber(file.content, index);
-    const key = `${source}\0${line}`;
-    if (seen.has(key)) return;
-    seen.add(key);
-    imports.push({
-      source,
-      statement: readLineAt(file.content, index),
-      line,
-    });
-  };
-
-  for (const pattern of IMPORT_PATTERNS) {
-    for (const match of file.content.matchAll(pattern)) {
-      if (match[1] === undefined || match.index === undefined) continue;
-      pushMatch(match[1], match.index);
-    }
-  }
-
-  for (const match of file.content.matchAll(DYNAMIC_IMPORT_PATTERN)) {
-    if (match[1] === undefined || match.index === undefined) continue;
-    pushMatch(match[1], match.index);
-  }
-
-  return imports;
 }
 
 function isImportMatcher(matcher: PatternRule['matcher']): matcher is PatternImportMatcher {
@@ -150,7 +108,7 @@ function mergeConfidence(
 function createImportObservation(
   file: ScannedFile,
   rule: PatternRule,
-  matches: ExtractedImport[]
+  matches: ModuleImportRef[]
 ): PatternObservation {
   return {
     ruleId: rule.id,
@@ -202,7 +160,7 @@ function createContentObservation(
 function createFilePatternFacts(files: ScannedFile[]): FilePatternFacts[] {
   return files.map((file) => ({
     file,
-    imports: extractImports(file),
+    imports: extractModuleImportRefs(createAnalysisSourceFile(file.relativePath, file.content)),
   }));
 }
 

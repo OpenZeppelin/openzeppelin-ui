@@ -90,6 +90,44 @@ describe('scanPatterns', () => {
     expect(patterns).toHaveLength(0);
   });
 
+  it('does not match import-like text inside comments or strings (AST, not regex)', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/notes.ts',
+        relativePath: 'src/notes.ts',
+        content: [
+          "// import { useAccount } from 'wagmi';",
+          'const docs = "import { x } from \'wagmi\'";',
+          'export const noop = () => docs;',
+        ].join('\n'),
+      },
+    ];
+
+    const patterns = scanPatterns(files);
+    expect(patterns.find((p) => p.pattern === 'wagmi')).toBeUndefined();
+  });
+
+  it('detects dynamic imports, re-exports, and side-effect imports', () => {
+    const files: ScannedFile[] = [
+      {
+        absolutePath: '/project/src/lazy.ts',
+        relativePath: 'src/lazy.ts',
+        content: "export const load = () => import('wagmi');\n",
+      },
+      {
+        absolutePath: '/project/src/reexport.ts',
+        relativePath: 'src/reexport.ts',
+        content: "export { useAccount } from 'wagmi';\n",
+      },
+    ];
+
+    const patterns = scanPatterns(files);
+    const wagmi = patterns.find((p) => p.pattern === 'wagmi');
+
+    expect(wagmi).toBeDefined();
+    expect(wagmi!.files).toEqual(['src/lazy.ts', 'src/reexport.ts']);
+  });
+
   it('returns rich observations with evidence', () => {
     const files: ScannedFile[] = [
       {
