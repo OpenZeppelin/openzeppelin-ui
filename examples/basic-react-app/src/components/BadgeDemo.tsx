@@ -1,6 +1,15 @@
 import { AlertCircle, Check, Clock, Info, TriangleAlert } from 'lucide-react';
+import { useState } from 'react';
 
-import { Badge, type BadgeTone, type BadgeVariant } from '@openzeppelin/ui-components';
+import {
+  Badge,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+  type BadgeTone,
+  type BadgeVariant,
+} from '@openzeppelin/ui-components';
 
 import { DemoSection } from './DemoSection';
 
@@ -16,12 +25,14 @@ const toneExamples = [
   readonly icon: React.ReactNode;
 }>;
 
-const variants = ['filled', 'outline'] satisfies BadgeVariant[];
+const variants = ['filled', 'outline', 'solid'] satisfies BadgeVariant[];
 
 /**
  * Demonstrates every Badge tone and variant.
  */
 export function BadgeDemo(): React.ReactElement {
+  const [activationCount, setActivationCount] = useState(0);
+
   return (
     <DemoSection
       title="Badge"
@@ -31,7 +42,10 @@ export function BadgeDemo(): React.ReactElement {
 <Badge label="Queued" />
 <Badge label="Completed" tone="success" icon={<Check />} />
 <Badge label="Needs review" tone="warning" variant="outline" />
-<Badge label="Failed" tone="danger" />
+<Badge label="Failed" tone="danger" variant="solid" />
+
+// Supplying onActivate renders a native button.
+<Badge label="View owner role" variant="outline" onActivate={openRole} />
 
 // Expand an abbreviated visible label for assistive technology.
 <Badge label="P1" tone="danger" aria-label="Priority one: immediate action" />`}
@@ -46,6 +60,33 @@ export function BadgeDemo(): React.ReactElement {
           </div>
         </div>
       ))}
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Interactive and composable</h3>
+        <p className="text-muted-foreground text-sm">
+          An activation handler renders a native button. Badges also forward overlay-trigger props
+          and refs, while an icon can have its own accessible name.
+        </p>
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border p-4">
+          <Badge
+            label={`Activated ${activationCount} ${activationCount === 1 ? 'time' : 'times'}`}
+            variant="outline"
+            icon={<Check />}
+            iconLabel="Owner role"
+            onActivate={() => setActivationCount((count) => count + 1)}
+          />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge label="Hover for details" tone="info" variant="solid" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>This non-interactive badge remains a span.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </div>
 
       <div className="space-y-4">
         <h3 className="text-lg font-medium">With icons</h3>
