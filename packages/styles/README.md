@@ -70,6 +70,15 @@ The system uses CSS variables for all theme colors and properties. These variabl
 }
 ```
 
+Semantic fills (`--success`, `--warning`, `--info`, `--destructive`) each have a foreground companion for opaque surfaces such as `Badge` `variant="solid"`:
+
+- `--success-foreground` — near-white in light and dark
+- `--warning-foreground` — near-black in light (`oklch(0.145 0 0)`), near-white in dark
+- `--info-foreground` — near-white in light and dark
+- `--destructive-foreground` — already existed; reused for solid danger
+
+`@theme inline` maps them to `--color-success-foreground`, `--color-warning-foreground`, and `--color-info-foreground` so Tailwind utilities `text-success-foreground`, `text-warning-foreground`, and `text-info-foreground` resolve. Fill tokens are unchanged.
+
 ## Usage
 
 For consumer apps that use `@openzeppelin/ui-dev-cli`, the recommended workflow is to let the CLI generate and maintain the Tailwind wiring:
