@@ -1,13 +1,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import ts from 'typescript';
 
 import { doctorTailwindProject } from '@openzeppelin/ui-tailwind-utils';
 
 import {
   expectedAgentPathsForProfiles,
   expectedSkillPathsForProfiles,
+  MIGRATE_SKILL_ID,
   type AgentAssetProfile,
 } from '../agent-assets';
+import { createAnalysisSourceFile } from '../analysis/import-extract';
 import { CLI_BRANDING, CLI_FAMILIES } from '../branding';
 import { loadCatalog, loadHtmlElementMappings } from '../catalog';
 import type { MigrationTask } from '../manifest';
@@ -291,15 +294,52 @@ function isOpenZeppelinModule(moduleSpecifier: string): boolean {
   return moduleSpecifier.startsWith(OZ_SCOPE);
 }
 
+interface JsxTagUsage {
+  /** Number of intrinsic (lowercase) JSX elements matching the html source tag (e.g. `<button>`). */
+  intrinsic: number;
+  /** Number of JSX elements using the OZ target component as a tag (e.g. `<Button>`). */
+  component: number;
+}
+
 /**
- * Returns a RegExp that matches a raw intrinsic HTML opening tag for catalog `source` (e.g. button).
- * PascalCase JSX is not matched.
+ * Returns the leading intrinsic tag for an html-elements catalog `source` when it is a plain
+ * lowercase tag (e.g. `button`). Selector-style sources such as `input[type=text]` have no
+ * single intrinsic tag we can verify structurally, so they return null.
  */
-function rawHtmlOpenTagPattern(htmlSource: string): RegExp | null {
+function intrinsicTagForHtmlSource(htmlSource: string): string | null {
   const simple = htmlSource.match(/^([a-z][a-z0-9-]*)$/);
-  if (!simple) return null;
-  const tag = simple[1].toLowerCase();
-  return new RegExp(`<${tag}(?=[\\s/>])`);
+  return simple ? simple[1].toLowerCase() : null;
+}
+
+function jsxTagIdentifier(node: ts.JsxOpeningElement | ts.JsxSelfClosingElement): string | null {
+  return ts.isIdentifier(node.tagName) ? node.tagName.text : null;
+}
+
+/**
+ * Counts JSX usages of an intrinsic tag (e.g. `button`) versus the OZ target component
+ * (e.g. `Button`) via the TypeScript AST. Unlike a text scan, this ignores `<button` inside
+ * comments or string literals and never confuses `<ButtonGroup` with `<Button`.
+ */
+function countJsxTagUsage(
+  content: string,
+  filePath: string,
+  intrinsicTag: string,
+  componentName: string
+): JsxTagUsage {
+  const sourceFile = createAnalysisSourceFile(filePath, content);
+  const usage: JsxTagUsage = { intrinsic: 0, component: 0 };
+
+  function visit(node: ts.Node): void {
+    if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
+      const tag = jsxTagIdentifier(node);
+      if (tag === intrinsicTag) usage.intrinsic += 1;
+      else if (tag === componentName) usage.component += 1;
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return usage;
 }
 
 function checkComponentReplacement(task: MigrationTask, projectRoot: string): TaskCheckResult {
@@ -399,11 +439,17 @@ function checkComponentReplacement(task: MigrationTask, projectRoot: string): Ta
   const htmlLib = loadHtmlElementMappings();
   const htmlMapping = htmlLib?.mappings[target];
   if (htmlMapping?.source) {
-    const pattern = rawHtmlOpenTagPattern(htmlMapping.source);
-    if (pattern?.test(content)) {
-      diagnostics.push(
-        `Raw HTML <${htmlMapping.source}> still present; ${target} is not migrated to the OZ component`
-      );
+    const intrinsicTag = intrinsicTagForHtmlSource(htmlMapping.source);
+    if (intrinsicTag) {
+      const usage = countJsxTagUsage(content, resolvedFile.file, intrinsicTag, target);
+      // A leftover raw `<button>` only signals an incomplete migration when the OZ component
+      // is not adopted in the file. Once `<Button>` is in use, a remaining intrinsic tag (e.g. a
+      // dialog close button produced by an `asChild` conversion) is intentional, not a regression.
+      if (usage.intrinsic > 0 && usage.component === 0) {
+        diagnostics.push(
+          `Raw HTML <${intrinsicTag}> still present; ${target} is not migrated to the OZ component`
+        );
+      }
     }
   }
 
@@ -707,7 +753,10 @@ export function checkTask(
       return checkProfileAwareArtifacts(task, projectRoot, agentExpected, 'agent file');
     }
     case 'copy-skill': {
-      const skillExpected = expectedSkillPathsForProfiles(effectiveCopyProfiles(checkOptions));
+      const skillExpected = expectedSkillPathsForProfiles(
+        effectiveCopyProfiles(checkOptions),
+        MIGRATE_SKILL_ID
+      );
       return checkProfileAwareArtifacts(task, projectRoot, skillExpected, 'skill file');
     }
     case 'remove-stale-deps':

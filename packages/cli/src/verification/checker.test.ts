@@ -411,4 +411,78 @@ describe('checkTask', () => {
       expect(result.warnings?.join('\n')).toMatch(/separate wrapper/);
     });
   });
+
+  describe('component-replacement raw-HTML check', () => {
+    function buttonTask(): MigrationTask {
+      return {
+        id: 'component-replacement-Button-src-App.tsx',
+        phase: 'ui-components',
+        type: 'component-replacement',
+        status: 'pending',
+        description: 'Replace Button with OZ Button in src/App.tsx',
+        file: 'src/App.tsx',
+        files: ['src/App.tsx'],
+        sourceComponent: 'Button',
+        targetComponent: 'Button',
+      };
+    }
+
+    it('passes when OZ Button is adopted even if an unrelated raw <button> remains', () => {
+      const dir = createTempDir();
+      writeFile(
+        path.join(dir, 'src', 'App.tsx'),
+        [
+          "import { Button } from '@openzeppelin/ui-components';",
+          'export function App() {',
+          '  return (',
+          '    <div>',
+          '      <Button size="sm">Save</Button>',
+          '      <button onClick={() => setOpen(false)}>Close</button>',
+          '    </div>',
+          '  );',
+          '}',
+        ].join('\n')
+      );
+
+      const result = checkTask(buttonTask(), dir);
+      expect(result.passed).toBe(true);
+      expect(result.diagnostics.join('\n')).not.toMatch(/Raw HTML/);
+    });
+
+    it('fails when only a raw <button> exists and the OZ component is not used', () => {
+      const dir = createTempDir();
+      writeFile(
+        path.join(dir, 'src', 'App.tsx'),
+        [
+          "import { Button } from '@openzeppelin/ui-components';",
+          'export function App() {',
+          '  return <button type="button">Save</button>;',
+          '}',
+        ].join('\n')
+      );
+
+      const result = checkTask(buttonTask(), dir);
+      expect(result.passed).toBe(false);
+      expect(result.diagnostics.join('\n')).toMatch(/Raw HTML <button> still present/);
+    });
+
+    it('ignores the word button inside strings and comments', () => {
+      const dir = createTempDir();
+      writeFile(
+        path.join(dir, 'src', 'App.tsx'),
+        [
+          "import { Button } from '@openzeppelin/ui-components';",
+          'export function App() {',
+          '  // legacy markup used <button> before migration',
+          '  const hint = "<button> is no longer used";',
+          '  return <Button>{hint}</Button>;',
+          '}',
+        ].join('\n')
+      );
+
+      const result = checkTask(buttonTask(), dir);
+      expect(result.passed).toBe(true);
+      expect(result.diagnostics.join('\n')).not.toMatch(/Raw HTML/);
+    });
+  });
 });

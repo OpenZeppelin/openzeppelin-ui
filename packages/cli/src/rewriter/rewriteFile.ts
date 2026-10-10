@@ -1,10 +1,19 @@
 /**
  * Deterministic code rewriter for the migrate-to-oz-uikit system.
  *
- * Handles the 80% case: import swaps and prop renames.
- * Complex scenarios (layout restructuring, logic migration) are deferred
- * to AI-assisted editing via the orchestration skill.
+ * Handles the 80% case: import swaps, JSX tag renames, prop renames, and the
+ * radix namespace-member transforms. Complex scenarios (layout restructuring,
+ * logic migration) are deferred to AI-assisted editing via the orchestration
+ * skill.
+ *
+ * Rewrites are AST-based (TypeScript compiler API): the source is tokenized and
+ * edited via offset splices instead of regex/brace-counting. This avoids the
+ * corruption the earlier string-based implementation produced on JSX containing
+ * parentheses, aliased/multiline imports, nested compound tags, and members
+ * whose names are prefixes of one another.
  */
+
+import ts from 'typescript';
 
 import { loadSourceLibraries } from '../catalog/index.js';
 import type { MigrationTask } from '../manifest/schema.js';
@@ -19,26 +28,22 @@ export interface RewriteContext {
 const OZ_NS_UNWRAP = '__OZ_NS_UNWRAP__';
 const OZ_NS_OMIT = '__OZ_NS_OMIT__';
 const OZ_NS_CLOSE_AS_CHILD = '__OZ_NS_CLOSE_AS_CHILD__';
+const DEFAULT_TARGET_PACKAGE = '@openzeppelin/ui-components';
 
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+interface TextEdit {
+  start: number;
+  end: number;
+  replacement: string;
 }
 
-function extractUseStateSetter(content: string): string {
-  const m = content.match(/\[\s*\w+\s*,\s*(\w+)\s*\]\s*=\s*useState\s*\(/);
-  return m?.[1] ?? 'setOpen';
-}
+// ---------------------------------------------------------------------------
+// Catalog lookups (unchanged data contract with the planner)
+// ---------------------------------------------------------------------------
 
-function specifierBaseName(spec: string): string {
-  return spec.includes(' as ') ? spec.split(' as ')[0].trim() : spec.trim();
-}
-
-/** True when the catalog maps this export name to a different compound family root (e.g. TabsContent → Tabs). JSX tags keep the export name after migration. */
+/** True when the catalog maps this export to a different compound family root (e.g. TabsContent → Tabs); JSX tags keep the export name after migration. */
 function isCompoundFamilyExport(componentName: string): boolean {
-  const libraries = loadSourceLibraries();
-  for (const lib of Object.values(libraries)) {
-    const entry = lib.mappings[componentName] as { source?: string } | undefined;
-    const root = entry?.source;
+  for (const lib of Object.values(loadSourceLibraries())) {
+    const root = (lib.mappings[componentName] as { source?: string } | undefined)?.source;
     if (root && root !== componentName) return true;
   }
   return false;
@@ -46,8 +51,7 @@ function isCompoundFamilyExport(componentName: string): boolean {
 
 /** Catalog `source` root for a component (e.g. CardHeader → Card). Used to group compound imports. */
 function catalogSourceRootForComponent(componentName: string): string | null {
-  const libraries = loadSourceLibraries();
-  for (const lib of Object.values(libraries)) {
+  for (const lib of Object.values(loadSourceLibraries())) {
     const entry = lib.mappings[componentName] as { source?: string } | undefined;
     if (entry?.source) return entry.source;
   }
@@ -62,14 +66,11 @@ function importSpecifiersBelongToSourceFamily(
   if (!bases.includes(sourceComponent)) return false;
   const familyRoot = catalogSourceRootForComponent(sourceComponent);
   if (!familyRoot) return false;
-  const libraries = loadSourceLibraries();
-  for (const lib of Object.values(libraries)) {
-    const pathMatch = lib.importPatterns.some((p) => importPath.includes(p));
-    if (!pathMatch) continue;
-    const allOk = bases.every((base) => {
-      const entry = lib.mappings[base] as { source?: string } | undefined;
-      return entry?.source === familyRoot;
-    });
+  for (const lib of Object.values(loadSourceLibraries())) {
+    if (!lib.importPatterns.some((p) => importPath.includes(p))) continue;
+    const allOk = bases.every(
+      (base) => (lib.mappings[base] as { source?: string } | undefined)?.source === familyRoot
+    );
     if (allOk) return true;
   }
   return false;
@@ -79,57 +80,112 @@ function findNamespaceMemberToTarget(
   sourceComponent: string,
   importPath: string
 ): Record<string, string> | null {
-  const libraries = loadSourceLibraries();
-  for (const lib of Object.values(libraries)) {
-    const matched = lib.importPatterns.some((p) => importPath.includes(p));
-    if (!matched) continue;
-    const entry = lib.mappings[sourceComponent] as
-      | { namespaceMemberToTarget?: Record<string, string> }
-      | undefined;
-    const map = entry?.namespaceMemberToTarget;
+  for (const lib of Object.values(loadSourceLibraries())) {
+    if (!lib.importPatterns.some((p) => importPath.includes(p))) continue;
+    const map = (
+      lib.mappings[sourceComponent] as
+        | { namespaceMemberToTarget?: Record<string, string> }
+        | undefined
+    )?.namespaceMemberToTarget;
     if (map && Object.keys(map).length > 0) return map;
   }
   return null;
 }
 
 function collectOzComponentNames(memberMap: Record<string, string>): string[] {
-  const names: string[] = [];
-  for (const v of Object.values(memberMap)) {
-    if (v.startsWith('__OZ_NS_')) continue;
-    names.push(v);
-  }
-  return names;
+  return Object.values(memberMap).filter((v) => !v.startsWith('__OZ_NS_'));
 }
 
 function collectCatalogImportPathSubstrings(): string[] {
-  const substrings: string[] = [];
-  for (const lib of Object.values(loadSourceLibraries())) {
-    substrings.push(...lib.importPatterns);
-  }
-  return substrings;
+  return Object.values(loadSourceLibraries()).flatMap((lib) => lib.importPatterns);
 }
 
-/** Start index of the first import line whose module path matches a catalog legacy pattern (not OZ). */
-function firstLegacyCatalogImportLineStart(content: string): number | null {
-  const patterns = collectCatalogImportPathSubstrings();
-  let idx = 0;
-  for (const line of content.split('\n')) {
-    const importIdx = line.search(/^\s*import\b/);
-    if (importIdx >= 0) {
-      const fromMatch = line.match(/from\s*['"]([^'"]+)['"]/);
-      const modPath = fromMatch?.[1];
-      if (
-        modPath &&
-        !modPath.includes('@openzeppelin') &&
-        patterns.some((p) => modPath.includes(p))
-      ) {
-        return idx + importIdx;
-      }
-    }
-    idx += line.length + 1;
+// ---------------------------------------------------------------------------
+// AST utilities
+// ---------------------------------------------------------------------------
+
+function parseTsx(source: string): ts.SourceFile {
+  return ts.createSourceFile(
+    'rewrite.tsx',
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX
+  );
+}
+
+function visit(node: ts.Node, cb: (node: ts.Node) => void): void {
+  cb(node);
+  ts.forEachChild(node, (child) => visit(child, cb));
+}
+
+/** Applies non-overlapping edits right-to-left so earlier offsets stay valid. */
+function applyEdits(source: string, edits: TextEdit[]): string {
+  const ordered = [...edits].sort((a, b) => b.start - a.start);
+  let result = source;
+  for (const edit of ordered) {
+    result = result.slice(0, edit.start) + edit.replacement + result.slice(edit.end);
+  }
+  return result;
+}
+
+function collapseBlankLines(source: string): string {
+  return source.replace(/^\s*\n{2,}/gm, '\n');
+}
+
+function lineStartOffset(source: string, pos: number): number {
+  let start = pos;
+  while (start > 0 && source[start - 1] !== '\n') start--;
+  return start;
+}
+
+/** Removes a node, taking the whole physical line with it when the node is the only non-whitespace on that line. */
+function removeNodeEdit(source: string, start: number, end: number): TextEdit {
+  const lineStart = lineStartOffset(source, start);
+  const beforeBlank = source.slice(lineStart, start).trim() === '';
+  let lineEnd = end;
+  while (lineEnd < source.length && source[lineEnd] !== '\n') lineEnd++;
+  const afterBlank = source.slice(end, lineEnd).trim() === '';
+  if (beforeBlank && afterBlank) {
+    const consumeNewline = lineEnd < source.length ? lineEnd + 1 : lineEnd;
+    return { start: lineStart, end: consumeNewline, replacement: '' };
+  }
+  return { start, end, replacement: '' };
+}
+
+function lastImportEnd(sourceFile: ts.SourceFile): number {
+  let end = -1;
+  for (const statement of sourceFile.statements) {
+    if (ts.isImportDeclaration(statement)) end = statement.getEnd();
+  }
+  return end;
+}
+
+function importModulePath(node: ts.ImportDeclaration): string | null {
+  return ts.isStringLiteral(node.moduleSpecifier) ? node.moduleSpecifier.text : null;
+}
+
+/** Imported (non-aliased) base name of a specifier: `Foo as Bar` → `Foo`. */
+function specifierBase(element: ts.ImportSpecifier): string {
+  return (element.propertyName ?? element.name).text;
+}
+
+/** `Source.Member` tag → member name, or null when the tag is not a namespace member of `source`. */
+function namespaceMemberName(tagName: ts.JsxTagNameExpression, source: string): string | null {
+  if (
+    ts.isPropertyAccessExpression(tagName) &&
+    ts.isIdentifier(tagName.expression) &&
+    tagName.expression.text === source &&
+    ts.isIdentifier(tagName.name)
+  ) {
+    return tagName.name.text;
   }
   return null;
 }
+
+// ---------------------------------------------------------------------------
+// OZ named-import construction / merge
+// ---------------------------------------------------------------------------
 
 function formatOzNamedImportStatement(
   targetPackage: string,
@@ -143,6 +199,22 @@ function formatOzNamedImportStatement(
   return `import {\n${body}\n} from '${targetPackage}';`;
 }
 
+function firstLegacyCatalogImport(sourceFile: ts.SourceFile): ts.ImportDeclaration | null {
+  const patterns = collectCatalogImportPathSubstrings();
+  for (const statement of sourceFile.statements) {
+    if (!ts.isImportDeclaration(statement)) continue;
+    const modPath = importModulePath(statement);
+    if (
+      modPath &&
+      !modPath.includes('@openzeppelin') &&
+      patterns.some((p) => modPath.includes(p))
+    ) {
+      return statement;
+    }
+  }
+  return null;
+}
+
 function mergeOzNamedImports(
   content: string,
   targetPackage: string,
@@ -152,37 +224,326 @@ function mergeOzNamedImports(
   const unique = [...new Set(names)].sort((a, b) => a.localeCompare(b));
   if (unique.length === 0) return content;
 
-  const multiline = preferMultiline && unique.length >= 5;
+  const sourceFile = parseTsx(content);
 
-  const ozImportRegex = new RegExp(
-    `import\\s*\\{([^}]*)\\}\\s*from\\s*['"]${escapeRegex(targetPackage)}['"]`
-  );
-  const ozMatch = content.match(ozImportRegex);
+  for (const statement of sourceFile.statements) {
+    if (!ts.isImportDeclaration(statement)) continue;
+    if (importModulePath(statement) !== targetPackage) continue;
+    const named = statement.importClause?.namedBindings;
+    if (!named || !ts.isNamedImports(named)) continue;
 
-  if (ozMatch) {
-    const existing = ozMatch[1]
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const existing = named.elements.map((el) => el.getText(sourceFile));
     const merged = [...new Set([...existing, ...unique])].sort((a, b) => a.localeCompare(b));
-    const stmt = formatOzNamedImportStatement(targetPackage, merged, multiline);
-    return content.replace(ozMatch[0], stmt);
+    const multiline = preferMultiline && merged.length >= 5;
+    return applyEdits(content, [
+      {
+        start: statement.getStart(sourceFile),
+        end: statement.getEnd(),
+        replacement: formatOzNamedImportStatement(targetPackage, merged, multiline),
+      },
+    ]);
   }
 
+  const multiline = preferMultiline && unique.length >= 5;
   const newLine = `${formatOzNamedImportStatement(targetPackage, unique, multiline)}\n`;
-  const beforeLegacy = firstLegacyCatalogImportLineStart(content);
-  if (beforeLegacy !== null) {
-    return content.slice(0, beforeLegacy) + newLine + content.slice(beforeLegacy);
+
+  const legacy = firstLegacyCatalogImport(sourceFile);
+  if (legacy) {
+    const insertAt = lineStartOffset(content, legacy.getStart(sourceFile));
+    return content.slice(0, insertAt) + newLine + content.slice(insertAt);
   }
 
-  const lastImportIdx = content.lastIndexOf('import ');
-  if (lastImportIdx >= 0) {
-    const lineEnd = content.indexOf('\n', lastImportIdx);
-    const insertAt = lineEnd >= 0 ? lineEnd + 1 : content.length;
+  const lastEnd = lastImportEnd(sourceFile);
+  if (lastEnd >= 0) {
+    const insertAt = content[lastEnd] === '\n' ? lastEnd + 1 : lastEnd;
     return content.slice(0, insertAt) + newLine + content.slice(insertAt);
   }
 
   return newLine + content;
+}
+
+// ---------------------------------------------------------------------------
+// Named-import migration (+ JSX tag rename)
+// ---------------------------------------------------------------------------
+
+interface NamedImportRewrite {
+  content: string;
+  found: boolean;
+}
+
+/**
+ * Swaps legacy named imports of `source` to the OZ package. Whole import groups
+ * that belong to one compound family are collapsed into the OZ import; mixed
+ * imports keep their unrelated specifiers. Returns `found: false` (a no-op) when
+ * no legacy import references the source — so an absent component is never given
+ * a spurious OZ import.
+ */
+function rewriteNamedImports(
+  content: string,
+  source: string,
+  target: string,
+  targetPackage: string
+): NamedImportRewrite {
+  const sourceFile = parseTsx(content);
+  const edits: TextEdit[] = [];
+  const ozSymbols = new Set<string>();
+  let found = false;
+
+  for (const statement of sourceFile.statements) {
+    if (!ts.isImportDeclaration(statement)) continue;
+    const importPath = importModulePath(statement);
+    if (!importPath || importPath.includes('@openzeppelin/')) continue;
+    const named = statement.importClause?.namedBindings;
+    if (!named || !ts.isNamedImports(named)) continue;
+
+    const bases = named.elements.map(specifierBase);
+    if (!bases.includes(source)) continue;
+    found = true;
+
+    if (importSpecifiersBelongToSourceFamily(importPath, bases, source)) {
+      edits.push(removeNodeEdit(content, statement.getStart(sourceFile), statement.getEnd()));
+      for (const base of bases) ozSymbols.add(base);
+      continue;
+    }
+
+    const remaining = named.elements.filter((el) => specifierBase(el) !== source);
+    if (remaining.length === 0) {
+      edits.push(removeNodeEdit(content, statement.getStart(sourceFile), statement.getEnd()));
+    } else {
+      edits.push({
+        start: named.getStart(sourceFile),
+        end: named.getEnd(),
+        replacement: `{ ${remaining.map((el) => el.getText(sourceFile)).join(', ')} }`,
+      });
+    }
+    ozSymbols.add(target);
+  }
+
+  if (!found) return { content, found: false };
+
+  ozSymbols.add(target);
+  let updated = applyEdits(content, edits);
+  updated = mergeOzNamedImports(
+    updated,
+    targetPackage,
+    [...ozSymbols],
+    isCompoundFamilyExport(source)
+  );
+  return { content: collapseBlankLines(updated), found: true };
+}
+
+function rewriteJsxTags(content: string, source: string, target: string): string {
+  if (source === target) return content;
+  const sourceFile = parseTsx(content);
+  const edits: TextEdit[] = [];
+
+  visit(sourceFile, (node) => {
+    let tagName: ts.JsxTagNameExpression | null = null;
+    if (ts.isJsxOpeningElement(node) || ts.isJsxClosingElement(node)) tagName = node.tagName;
+    else if (ts.isJsxSelfClosingElement(node)) tagName = node.tagName;
+    if (tagName && ts.isIdentifier(tagName) && tagName.text === source) {
+      edits.push({
+        start: tagName.getStart(sourceFile),
+        end: tagName.getEnd(),
+        replacement: target,
+      });
+    }
+  });
+
+  return applyEdits(content, edits);
+}
+
+function applyPropMappings(
+  content: string,
+  targetComponent: string,
+  propMappings: Record<string, string>
+): string {
+  const sourceFile = parseTsx(content);
+  const edits: TextEdit[] = [];
+
+  visit(sourceFile, (node) => {
+    const tagName = ts.isJsxOpeningElement(node)
+      ? node.tagName
+      : ts.isJsxSelfClosingElement(node)
+        ? node.tagName
+        : null;
+    const attributes = ts.isJsxOpeningElement(node)
+      ? node.attributes
+      : ts.isJsxSelfClosingElement(node)
+        ? node.attributes
+        : null;
+    if (!tagName || !attributes) return;
+    if (!ts.isIdentifier(tagName) || tagName.text !== targetComponent) return;
+
+    for (const attr of attributes.properties) {
+      if (!ts.isJsxAttribute(attr) || !ts.isIdentifier(attr.name)) continue;
+      const mapped = propMappings[attr.name.text];
+      if (mapped && mapped !== attr.name.text) {
+        edits.push({
+          start: attr.name.getStart(sourceFile),
+          end: attr.name.getEnd(),
+          replacement: mapped,
+        });
+      }
+    }
+  });
+
+  return applyEdits(content, edits);
+}
+
+// ---------------------------------------------------------------------------
+// Namespace-import migration (radix `import * as X`)
+// ---------------------------------------------------------------------------
+
+function extractUseStateSetter(content: string): string {
+  return content.match(/\[\s*\w+\s*,\s*(\w+)\s*\]\s*=\s*useState\s*\(/)?.[1] ?? 'setOpen';
+}
+
+function firstJsxChildElement(
+  node: ts.JsxElement
+): ts.JsxElement | ts.JsxSelfClosingElement | null {
+  for (const child of node.children) {
+    if (ts.isJsxElement(child) || ts.isJsxSelfClosingElement(child)) return child;
+  }
+  return null;
+}
+
+function hasOnClickAttribute(element: ts.JsxElement | ts.JsxSelfClosingElement): boolean {
+  const attributes = ts.isJsxElement(element)
+    ? element.openingElement.attributes
+    : element.attributes;
+  return attributes.properties.some(
+    (attr) => ts.isJsxAttribute(attr) && ts.isIdentifier(attr.name) && attr.name.text === 'onClick'
+  );
+}
+
+/** Converts `<Source.Close asChild>{child}</Source.Close>` into the child with an onClick that closes the dialog. */
+function passCloseAsChild(content: string, source: string, members: Set<string>): string {
+  if (members.size === 0) return content;
+  const sourceFile = parseTsx(content);
+  const setter = extractUseStateSetter(content);
+  const edits: TextEdit[] = [];
+
+  visit(sourceFile, (node) => {
+    if (!ts.isJsxElement(node)) return;
+    const member = namespaceMemberName(node.openingElement.tagName, source);
+    if (!member || !members.has(member)) return;
+
+    const innerStart = node.openingElement.getEnd();
+    const innerEnd = node.closingElement.getStart(sourceFile);
+    let inner = content.slice(innerStart, innerEnd);
+
+    const child = firstJsxChildElement(node);
+    if (child && !hasOnClickAttribute(child)) {
+      const attributes = ts.isJsxElement(child)
+        ? child.openingElement.attributes
+        : child.attributes;
+      const insertPos = attributes.getEnd() - innerStart;
+      inner =
+        inner.slice(0, insertPos) + ` onClick={() => ${setter}(false)}` + inner.slice(insertPos);
+    }
+
+    edits.push({ start: node.getStart(sourceFile), end: node.getEnd(), replacement: inner.trim() });
+  });
+
+  return applyEdits(content, edits);
+}
+
+function passOmit(content: string, source: string, members: Set<string>): string {
+  if (members.size === 0) return content;
+  const sourceFile = parseTsx(content);
+  const edits: TextEdit[] = [];
+
+  visit(sourceFile, (node) => {
+    const tagName = ts.isJsxSelfClosingElement(node)
+      ? node.tagName
+      : ts.isJsxElement(node)
+        ? node.openingElement.tagName
+        : null;
+    if (!tagName) return;
+    const member = namespaceMemberName(tagName, source);
+    if (member && members.has(member)) {
+      edits.push(removeNodeEdit(content, node.getStart(sourceFile), node.getEnd()));
+    }
+  });
+
+  return collapseBlankLines(applyEdits(content, edits));
+}
+
+function passUnwrap(content: string, source: string, members: Set<string>): string {
+  if (members.size === 0) return content;
+  const sourceFile = parseTsx(content);
+  const edits: TextEdit[] = [];
+
+  visit(sourceFile, (node) => {
+    if (!ts.isJsxElement(node)) return;
+    const member = namespaceMemberName(node.openingElement.tagName, source);
+    if (!member || !members.has(member)) return;
+    const innerStart = node.openingElement.getEnd();
+    const innerEnd = node.closingElement.getStart(sourceFile);
+    edits.push({
+      start: node.getStart(sourceFile),
+      end: node.getEnd(),
+      replacement: content.slice(innerStart, innerEnd).trim(),
+    });
+  });
+
+  return applyEdits(content, edits);
+}
+
+function passRenameMembers(
+  content: string,
+  source: string,
+  renames: Record<string, string>
+): string {
+  if (Object.keys(renames).length === 0) return content;
+  const sourceFile = parseTsx(content);
+  const edits: TextEdit[] = [];
+
+  const rename = (tagName: ts.JsxTagNameExpression): void => {
+    const member = namespaceMemberName(tagName, source);
+    if (member && renames[member]) {
+      edits.push({
+        start: tagName.getStart(sourceFile),
+        end: tagName.getEnd(),
+        replacement: renames[member],
+      });
+    }
+  };
+
+  visit(sourceFile, (node) => {
+    if (ts.isJsxElement(node)) {
+      rename(node.openingElement.tagName);
+      rename(node.closingElement.tagName);
+    } else if (ts.isJsxSelfClosingElement(node)) {
+      rename(node.tagName);
+    }
+  });
+
+  return applyEdits(content, edits);
+}
+
+function removeNamespaceImport(content: string, source: string): string {
+  const sourceFile = parseTsx(content);
+  const edits: TextEdit[] = [];
+
+  for (const statement of sourceFile.statements) {
+    if (!ts.isImportDeclaration(statement)) continue;
+    const named = statement.importClause?.namedBindings;
+    if (named && ts.isNamespaceImport(named) && named.name.text === source) {
+      edits.push(removeNodeEdit(content, statement.getStart(sourceFile), statement.getEnd()));
+    }
+  }
+
+  return collapseBlankLines(applyEdits(content, edits));
+}
+
+function membersForTarget(memberMap: Record<string, string>, sentinel: string): Set<string> {
+  return new Set(
+    Object.entries(memberMap)
+      .filter(([, target]) => target === sentinel)
+      .map(([member]) => member)
+  );
 }
 
 function rewriteNamespaceImportBody(
@@ -191,67 +552,18 @@ function rewriteNamespaceImportBody(
   memberMap: Record<string, string>,
   targetPackage: string
 ): string {
-  let result = content;
-  const setter = extractUseStateSetter(content);
+  let result = passCloseAsChild(content, source, membersForTarget(memberMap, OZ_NS_CLOSE_AS_CHILD));
+  result = passOmit(result, source, membersForTarget(memberMap, OZ_NS_OMIT));
+  result = passUnwrap(result, source, membersForTarget(memberMap, OZ_NS_UNWRAP));
 
-  for (const [member, target] of Object.entries(memberMap)) {
-    if (target !== OZ_NS_CLOSE_AS_CHILD) continue;
-    const closeAsChildRe = new RegExp(
-      `<${escapeRegex(source)}\\.${escapeRegex(member)}\\s+asChild>\\s*([\\s\\S]*?)\\s*</${escapeRegex(source)}\\.${escapeRegex(member)}>`,
-      'g'
-    );
-    result = result.replace(closeAsChildRe, (_, inner: string) => {
-      const trimmed = inner.trim();
-      return trimmed.replace(
-        /^[ \t]*<([A-Za-z][\w.]*)([^>]*?)(\/?>)/,
-        (full, tag: string, attrs: string, self: string) => {
-          if (attrs.includes('onClick')) return full;
-          if (self === '/>') return `<${tag}${attrs} onClick={() => ${setter}(false)} />`;
-          return `<${tag}${attrs} onClick={() => ${setter}(false)}>`;
-        }
-      );
-    });
-  }
-
-  for (const [member, target] of Object.entries(memberMap)) {
-    if (target !== OZ_NS_OMIT) continue;
-    const omitRe = new RegExp(
-      `\\s*<${escapeRegex(source)}\\.${escapeRegex(member)}[^>]*/>\\s*`,
-      'g'
-    );
-    result = result.replace(omitRe, '\n');
-  }
-
-  for (const [member, target] of Object.entries(memberMap)) {
-    if (target !== OZ_NS_UNWRAP) continue;
-    const unwrapRe = new RegExp(
-      `<${escapeRegex(source)}\\.${escapeRegex(member)}\\s*>\\s*([\\s\\S]*?)\\s*</${escapeRegex(source)}\\.${escapeRegex(member)}>`,
-      'g'
-    );
-    result = result.replace(unwrapRe, '$1');
-  }
-
-  const renameMembers = Object.entries(memberMap)
-    .filter(([, target]) => !target.startsWith('__OZ_NS_'))
-    .sort((a, b) => b[0].length - a[0].length);
-
-  for (const [member, target] of renameMembers) {
-    const openRe = new RegExp(`<${escapeRegex(source)}\\.${escapeRegex(member)}(\\s|>)`, 'g');
-    result = result.replace(openRe, `<${target}$1`);
-    const closeReTag = new RegExp(`</${escapeRegex(source)}\\.${escapeRegex(member)}>`, 'g');
-    result = result.replace(closeReTag, `</${target}>`);
-  }
-
-  const nsImportLine = new RegExp(
-    `^import\\s+\\*\\s+as\\s+${escapeRegex(source)}\\s+from\\s+['"][^'"]+['"];?\\s*\\n?`,
-    'm'
+  const renames = Object.fromEntries(
+    Object.entries(memberMap).filter(([, target]) => !target.startsWith('__OZ_NS_'))
   );
-  result = result.replace(nsImportLine, '');
-
+  result = passRenameMembers(result, source, renames);
+  result = removeNamespaceImport(result, source);
   result = mergeOzNamedImports(result, targetPackage, collectOzComponentNames(memberMap), false);
-  result = result.replace(/^\s*\n{2,}/gm, '\n');
 
-  return result;
+  return collapseBlankLines(result);
 }
 
 function tryRewriteNamespaceImport(
@@ -262,95 +574,27 @@ function tryRewriteNamespaceImport(
   const source = task.sourceComponent;
   if (!source) return null;
 
-  const nsMatch = content.match(
-    new RegExp(`import\\s+\\*\\s+as\\s+${escapeRegex(source)}\\s+from\\s+['"]([^'"]+)['"]`)
-  );
-  if (!nsMatch) return null;
+  const sourceFile = parseTsx(content);
+  let importPath: string | null = null;
+  for (const statement of sourceFile.statements) {
+    if (!ts.isImportDeclaration(statement)) continue;
+    const named = statement.importClause?.namedBindings;
+    if (named && ts.isNamespaceImport(named) && named.name.text === source) {
+      importPath = importModulePath(statement);
+      break;
+    }
+  }
+  if (importPath === null) return null;
 
-  const importPath = nsMatch[1];
   const memberMap = findNamespaceMemberToTarget(source, importPath);
   if (!memberMap) return null;
 
   return rewriteNamespaceImportBody(content, source, memberMap, targetPackage);
 }
 
-function rewriteImports(
-  content: string,
-  sourceComponent: string,
-  targetComponent: string,
-  targetPackage: string
-): string {
-  let result = content;
-  const preferMultilineOzImport = isCompoundFamilyExport(sourceComponent);
-
-  const importRegex = new RegExp(
-    `import\\s*\\{([^}]*\\b${escapeRegex(sourceComponent)}\\b[^}]*)\\}\\s*from\\s*['"]([^'"]+)['"]\\s*;?`,
-    'g'
-  );
-
-  const matches = [...result.matchAll(importRegex)];
-  const ozSymbols = new Set<string>([targetComponent]);
-
-  for (const match of matches) {
-    const fullImport = match[0];
-    const importList = match[1];
-    const importPath = match[2];
-
-    if (fullImport.includes('@openzeppelin/')) continue;
-
-    const specifiers = importList
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const bases = specifiers.map(specifierBaseName);
-
-    if (importSpecifiersBelongToSourceFamily(importPath, bases, sourceComponent)) {
-      result = result.replace(fullImport, '');
-      for (const b of bases) ozSymbols.add(b);
-      continue;
-    }
-
-    const remaining = specifiers.filter((s) => specifierBaseName(s) !== sourceComponent);
-
-    if (remaining.length > 0) {
-      const newImport = fullImport.replace(importList, ` ${remaining.join(', ')} `);
-      result = result.replace(fullImport, newImport);
-    } else {
-      result = result.replace(fullImport, '');
-    }
-  }
-
-  result = mergeOzNamedImports(result, targetPackage, [...ozSymbols], preferMultilineOzImport);
-  result = result.replace(/^\s*\n{2,}/gm, '\n');
-
-  return result;
-}
-
-function rewriteJsx(content: string, sourceComponent: string, targetComponent: string): string {
-  if (sourceComponent === targetComponent) return content;
-
-  const tagRegex = new RegExp(`(<\\/?)${escapeRegex(sourceComponent)}(\\s|>|\\/)`, 'g');
-
-  return content.replace(tagRegex, `$1${targetComponent}$2`);
-}
-
-function applyPropMappings(
-  content: string,
-  targetComponent: string,
-  propMappings: Record<string, string>
-): string {
-  let result = content;
-
-  for (const [oldProp, newProp] of Object.entries(propMappings)) {
-    const propRegex = new RegExp(
-      `(<${escapeRegex(targetComponent)}[^>]*?)\\b${escapeRegex(oldProp)}(\\s*=)`,
-      'g'
-    );
-    result = result.replace(propRegex, `$1${newProp}$2`);
-  }
-
-  return result;
-}
+// ---------------------------------------------------------------------------
+// Public entry point
+// ---------------------------------------------------------------------------
 
 /** @description Rewrites file content for a migration task: imports, JSX tags, and optional prop mappings. */
 export function rewriteFile(
@@ -360,27 +604,34 @@ export function rewriteFile(
 ): string {
   const source = task.sourceComponent;
   const target = task.targetComponent;
-
   if (!source || !target) return content;
 
-  const targetPackage = context.targetPackage ?? '@openzeppelin/ui-components';
+  const targetPackage = context.targetPackage ?? DEFAULT_TARGET_PACKAGE;
+  const hasPropMappings = Boolean(
+    context.propMappings && Object.keys(context.propMappings).length > 0
+  );
 
   const namespaceResult = tryRewriteNamespaceImport(task, content, targetPackage);
   if (namespaceResult !== null) {
-    let result = namespaceResult;
-    if (context.propMappings && Object.keys(context.propMappings).length > 0) {
-      result = applyPropMappings(result, target, context.propMappings);
-    }
-    return result;
+    return hasPropMappings
+      ? applyPropMappings(namespaceResult, target, context.propMappings!)
+      : namespaceResult;
   }
 
-  let result = rewriteImports(content, source, target, targetPackage);
+  const { content: afterImports, found } = rewriteNamedImports(
+    content,
+    source,
+    target,
+    targetPackage
+  );
+  if (!found) return content;
+
+  let result = afterImports;
   if (!isCompoundFamilyExport(source)) {
-    result = rewriteJsx(result, source, target);
+    result = rewriteJsxTags(result, source, target);
   }
-
-  if (context.propMappings && Object.keys(context.propMappings).length > 0) {
-    result = applyPropMappings(result, target, context.propMappings);
+  if (hasPropMappings) {
+    result = applyPropMappings(result, target, context.propMappings!);
   }
 
   return result;
