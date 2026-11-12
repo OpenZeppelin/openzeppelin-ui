@@ -324,7 +324,7 @@ export function SearchableSelectCore<T>({
               'flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors',
               state.selected
                 ? 'border-selected bg-selected text-selected-foreground'
-                : 'border-input bg-background [.dark_&]:border-muted-foreground'
+                : 'border-muted-foreground bg-background'
             )}
           >
             {state.selected && <Check className="h-3 w-3" />}
