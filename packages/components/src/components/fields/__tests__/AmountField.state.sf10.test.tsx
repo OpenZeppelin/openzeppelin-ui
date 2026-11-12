@@ -4,6 +4,7 @@
  * three value states. Each `describe` starts with the INV id it verifies.
  */
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { parseUnits as ethersParseUnits } from 'ethers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Profiler } from 'react';
 
@@ -437,6 +438,9 @@ describe('INV-17: a passing value converts to exactly the amount on screen (real
         expect(input().value).toBe(text);
         expect(submitted).toBe(text.replace(/,/g, ''));
         expect(viemParseUnits(String(submitted), decimals)).toBe(
+          refParseUnits(String(submitted), decimals)
+        );
+        expect(ethersParseUnits(String(submitted), decimals)).toBe(
           refParseUnits(String(submitted), decimals)
         );
       }

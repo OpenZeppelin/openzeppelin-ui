@@ -128,6 +128,7 @@
     "@vitejs/plugin-react": "^4.7.0",
     "@vitest/browser-playwright": "4.1.11",
     "axe-core": "^4.13.0",
+    "ethers": "^6.17.0",
     "jsdom": "^26.1.0",
     "playwright": "1.62.1",
     "react": "^19.2.7",

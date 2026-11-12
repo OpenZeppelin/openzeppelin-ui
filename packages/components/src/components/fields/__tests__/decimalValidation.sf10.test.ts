@@ -3,6 +3,7 @@
  * verifies, so a failure names the property that broke. Property tests are seeded
  * (mulberry32); the seed is in each test title.
  */
+import { parseUnits as ethersParseUnits } from 'ethers';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -222,6 +223,29 @@ describe('INV-11: the accepted languages are exactly as specified', () => {
       expect(PLAIN.test(t), t).toBe(viemAccepts && !digitless.has(t));
     }
   });
+
+  it('seed 1112: differential vs ethers v6 grammar, PLAIN = ethers-accepted exactly', () => {
+    // ethers rejects the digitless texts itself, so no carve-out here. Decimals 80 (its
+    // maximum) and a "too many decimals" throw still count as grammar-accepted.
+    for (const t of corpus(1112, 20_000)) {
+      let ethersAccepts = true;
+      try {
+        ethersParseUnits(t, 80);
+      } catch (e) {
+        ethersAccepts =
+          (e as { shortMessage?: string }).shortMessage === 'too many decimals for format';
+      }
+      expect(PLAIN.test(t), t).toBe(ethersAccepts);
+    }
+  });
+
+  it.each(['', '-', '.', '-.', '+1', '1e3', '1,000', ' 1', '0x10', '١'])(
+    'failure case: ethers rejects %j and so does PLAIN',
+    (t) => {
+      expect(() => ethersParseUnits(t, 18)).toThrow();
+      expect(PLAIN.test(t)).toBe(false);
+    }
+  );
 });
 
 describe('INV-12: validateExactAmount is total, ordered, true or a non-empty message', () => {
@@ -657,6 +681,10 @@ describe('INV-17: a value that passes validation converts to exactly the amount 
       expect(viemParseUnits(value, decimals), `${value} @${decimals}`).toBe(
         refParseUnits(value, decimals)
       );
+      // 5b: ethers v6 accepts the same value without throwing and agrees too.
+      expect(ethersParseUnits(value, decimals), `ethers ${value} @${decimals}`).toBe(
+        refParseUnits(value, decimals)
+      );
     }
     expect(passed).toBeGreaterThan(1_500);
   });
@@ -667,6 +695,34 @@ describe('INV-17: a value that passes validation converts to exactly the amount 
     expect(validateExactAmount('0.1234567890123456789', opts({ decimals: 18 }))).toBe(
       'Use at most 18 decimal places'
     );
+  });
+
+  it('failure case: ethers throws where viem rounds, and validation blocks the value before either', () => {
+    expect(() => ethersParseUnits('0.1234567890123456789', 18)).toThrow(
+      /too many decimals for format/
+    );
+    expect(() => ethersParseUnits('1.5', 0)).toThrow(/too many decimals for format/);
+    expect(viemParseUnits('1.5', 0)).toBe(2n);
+    expect(validateExactAmount('1.5', opts({ decimals: 0 }))).toBe('Use at most 0 decimal places');
+  });
+
+  it('seed 1718: 2,000 over-limit texts: viem rounds, ethers throws, validation rejects', () => {
+    const rng = createRng(1718);
+    for (let i = 0; i < 2_000; i += 1) {
+      const decimals = randInt(rng, 0, 30);
+      const int = `${rng() < 0.25 ? '-' : ''}${randInt(rng, 0, 1e9)}`;
+      const fraction = `${'0123456789'.repeat(4).slice(0, decimals)}${randInt(rng, 0, 99_999)}`;
+      // The trailing digit is never 0, so the value has more than `decimals` significant places.
+      const value = `${int}.${fraction}${randInt(rng, 1, 9)}`;
+      expect(fractionDigits(value)).toBeGreaterThan(decimals);
+      expect(() => ethersParseUnits(value, decimals), `ethers ${value} @${decimals}`).toThrow(
+        /too many decimals for format/
+      );
+      expect(typeof viemParseUnits(value, decimals)).toBe('bigint');
+      expect(validateExactAmount(value, opts({ decimals })), value).toBe(
+        `Use at most ${decimals} decimal places`
+      );
+    }
   });
 });
 
