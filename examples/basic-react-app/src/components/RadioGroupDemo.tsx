@@ -12,6 +12,7 @@ export function RadioGroupDemo(): React.ReactElement {
   const [priority, setPriority] = useState('normal');
   const [network, setNetwork] = useState('');
   const [productType, setProductType] = useState('spot');
+  const [mode, setMode] = useState('automatic');
 
   return (
     <DemoSection
@@ -247,6 +248,27 @@ export function RadioGroupDemo(): React.ReactElement {
           Selected:{' '}
           <span className="text-foreground font-medium" data-testid="radio-card-readout">
             {productType}
+          </span>
+        </p>
+      </div>
+
+      {/* Segmented Variant */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Segmented Variant</h3>
+        <RadioGroup
+          variant="segmented"
+          value={mode}
+          onValueChange={setMode}
+          aria-label="Mode"
+          className="max-w-xs"
+        >
+          <RadioGroupItem value="automatic">Automatic</RadioGroupItem>
+          <RadioGroupItem value="manual">Manual</RadioGroupItem>
+        </RadioGroup>
+        <p className="text-muted-foreground text-sm">
+          Mode:{' '}
+          <span className="text-foreground font-medium" data-testid="radio-segmented-readout">
+            {mode}
           </span>
         </p>
       </div>

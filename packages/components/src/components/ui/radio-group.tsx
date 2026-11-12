@@ -4,8 +4,11 @@ import * as React from 'react';
 
 import { cn } from '@openzeppelin/ui-utils';
 
-/** Presentation of a RadioGroup's items. `default` is the classic circle; `card` is a selectable card. */
-export type RadioGroupVariant = 'default' | 'card';
+/**
+ * Presentation of a RadioGroup's items. `default` is the classic circle; `card` is a selectable
+ * card; `segmented` is a single-row segmented control meant for two or three short options.
+ */
+export type RadioGroupVariant = 'default' | 'card' | 'segmented';
 
 const RadioGroupVariantContext = React.createContext<RadioGroupVariant>('default');
 
@@ -20,8 +23,14 @@ const RadioGroup = React.forwardRef<HTMLDivElement, RadioGroupProps>(
     return (
       <RadioGroupVariantContext.Provider value={variant}>
         <RadioGroupPrimitive.Root
-          className={cn('flex flex-col space-y-2', className)}
+          className={cn(
+            variant === 'segmented'
+              ? 'bg-muted inline-flex w-full flex-row items-stretch gap-1 rounded-lg p-1'
+              : 'flex flex-col space-y-2',
+            className
+          )}
           data-slot="radiogroup"
+          data-variant={variant === 'default' ? undefined : variant}
           {...props}
           ref={ref}
         />
@@ -33,7 +42,7 @@ RadioGroup.displayName = RadioGroupPrimitive.Root.displayName;
 
 export interface RadioGroupItemProps
   extends Omit<React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>, 'title'> {
-  /** Card variant only: the card's title. It is the item's accessible name. */
+  /** Card variant: the card's title and accessible name. Segmented variant: label fallback when no children. */
   title?: React.ReactNode;
   /** Card variant only: supporting text under the title. It is the item's accessible description. */
   description?: React.ReactNode;
@@ -43,6 +52,24 @@ const RadioGroupItem = React.forwardRef<HTMLButtonElement, RadioGroupItemProps>(
   ({ className, title, description, children, ...props }, ref) => {
     const variant = React.useContext(RadioGroupVariantContext);
     const baseId = React.useId();
+
+    if (variant === 'segmented') {
+      // The label lives inside the button, so it is the accessible name without extra aria wiring.
+      // Segments never wrap: each takes an equal share and truncates its label (overflow rule).
+      return (
+        <RadioGroupPrimitive.Item
+          ref={ref}
+          data-variant="segmented"
+          className={cn(
+            'text-muted-foreground hover:text-foreground focus-visible:ring-ring data-[state=checked]:bg-background data-[state=checked]:text-foreground min-w-0 flex-1 truncate rounded-md px-3 py-1.5 text-center text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:shadow-sm',
+            className
+          )}
+          {...props}
+        >
+          {children ?? title}
+        </RadioGroupPrimitive.Item>
+      );
+    }
 
     if (variant === 'card') {
       const titleId = `${baseId}-title`;
