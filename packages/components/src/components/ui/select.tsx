@@ -10,6 +10,13 @@ const SelectGroup = SelectPrimitive.Group;
 
 const SelectValue = SelectPrimitive.Value;
 
+/**
+ * Read-only look: set `data-readonly` on the trigger (`<SelectTrigger data-readonly />`). The look
+ * applies only to a trigger that isn't `disabled`, so a disabled trigger still looks disabled.
+ * `data-readonly` changes only the look: for read-only behaviour, control the Root's `open` (refuse
+ * `true`) and `value`, and ignore `onValueChange`, as `SelectField` does with
+ * `readOnlyMode="readonly"`.
+ */
 const SelectTrigger = React.forwardRef<
   HTMLButtonElement,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
@@ -19,6 +26,8 @@ const SelectTrigger = React.forwardRef<
     data-slot="select-trigger"
     className={cn(
       'border-input bg-background placeholder:text-muted-foreground flex h-10 w-full items-center justify-between rounded-md border px-3 py-2 text-sm focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+      // SF-20 INV-4 / INV-5: the read-only look (SF-19's tokens), only on `[data-readonly]:not(:disabled)`.
+      'data-readonly:not-disabled:bg-muted data-readonly:not-disabled:text-foreground data-readonly:not-disabled:opacity-100 data-readonly:not-disabled:cursor-default',
       className
     )}
     {...props}

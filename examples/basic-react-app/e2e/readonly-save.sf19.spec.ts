@@ -4,8 +4,8 @@
  *
  * - INV-28 / INV-29 / INV-11 / INV-24: focus a field, Enter saves, the active element is the same
  *   node with the same selection during the save, no keyboard edit changes any value, and the
- *   payload read during the save has all five values. `disabled (today)` mode drops focus to
- *   <body> and drops the values (INV-1 / INV-10 contrast).
+ *   payload read during the save has all five values (plus SF-20's `role`). `disabled (today)`
+ *   mode drops focus to <body> and drops the values (INV-1 / INV-10 contrast).
  * - INV-3: the read-only look applies only to `[data-readonly]:read-only:not(:disabled)`; every
  *   other state of the real Input / Textarea class string computes exactly like the same class
  *   string with the four SF-19 look tokens removed (= the pre-SF-19 class), in light and dark.
@@ -145,12 +145,14 @@ test('scenario 4: readonly save keeps focus, blocks edits, and submits every val
   expect(await values(page)).toStrictEqual(idle);
 
   const payload = JSON.parse(await page.getByTestId('readonly-save-payload').innerText());
+  // SF-20 added the Role select (readOnlyMode="readonly" keeps its value in the payload too).
   expect(payload).toStrictEqual({
     name: 'Treasury',
     notes: 'Multisig for protocol fees.',
     threshold: 3,
     cap: '1.50',
     owner,
+    role: 'operator',
   });
   expect(idle.roCap).toBe('1.50');
 
@@ -182,12 +184,14 @@ test('scenario 4: readonly save keeps focus, blocks edits, and submits every val
   await expect(page.locator('#roName')).toHaveValue('Treasury!');
   await page.keyboard.press('Backspace');
 
-  // disabled (today): focus drops to <body>, values drop out except AmountField (INV-10).
+  // disabled (today): focus drops to <body>, values drop out except AmountField (INV-10) and
+  // SelectField, which ignores readOnly without the opt-in (SF-20 INV-1), so `role` stays.
   await page.getByTestId('readonly-save-mode-disabled').click();
   await startSave(page);
   expect(await page.evaluate(() => document.activeElement?.tagName)).toBe('BODY');
   const todayPayload = JSON.parse(await page.getByTestId('readonly-save-payload').innerText());
-  expect(Object.keys(todayPayload)).toStrictEqual(['cap']);
+  expect(Object.keys(todayPayload)).toStrictEqual(['cap', 'role']);
+  expect(todayPayload.role).toBe('operator');
   await setTheme(page, 'light');
   await shot(demo, 'demo-disabled-saving.light.png');
   await setTheme(page, 'dark');

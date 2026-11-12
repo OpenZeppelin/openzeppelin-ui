@@ -6,6 +6,7 @@ import {
   AmountField,
   Button,
   NumberField,
+  SelectField,
   TextAreaField,
   TextField,
   type ReadOnlyMode,
@@ -19,7 +20,14 @@ interface ReadOnlySaveValues {
   threshold: number | string;
   cap: string | null;
   owner: string;
+  role: string;
 }
+
+const ROLE_OPTIONS = [
+  { value: 'admin', label: 'Admin' },
+  { value: 'operator', label: 'Operator' },
+  { value: 'viewer', label: 'Viewer' },
+];
 
 const MODES: ReadonlyArray<{ value: ReadOnlyMode; label: string }> = [
   { value: 'readonly', label: 'readonly' },
@@ -32,8 +40,9 @@ const MODES: ReadonlyArray<{ value: ReadOnlyMode; label: string }> = [
  * "Simulate save" (or Enter in a single-line field) flips the form read-only, then reads the
  * payload through `handleSubmit` while the fields are read-only, the way an app's save does.
  * The save stays on until "Finish save" so scripted checks and screenshots don't race a timer.
- * The mode switch shows today's `disabled` behaviour next to it: focus leaves the field and
- * the read-only values drop out of the payload.
+ * The mode switch shows today's `disabled` behaviour next to it: focus leaves the text-like
+ * fields and their read-only values drop out of the payload. SelectField ignores `readOnly` in
+ * that mode, as it always has, so it stays editable and its value stays in the payload.
  *
  * The `data-testid`s are stable hooks for the SF-19 running-app check.
  */
@@ -54,6 +63,7 @@ export function ReadOnlySaveDemo(): React.ReactElement {
       threshold: 3,
       cap: '1.50',
       owner: ownerAddress,
+      role: 'operator',
     },
   });
 
@@ -150,6 +160,7 @@ export function ReadOnlySaveDemo(): React.ReactElement {
             suggestions={[{ label: 'Sample wallet', value: ownerAddress }]}
             {...common}
           />
+          <SelectField id="roRole" name="role" label="Role" options={ROLE_OPTIONS} {...common} />
         </div>
         <TextAreaField id="roNotes" name="notes" label="Notes" rows={2} {...common} />
 

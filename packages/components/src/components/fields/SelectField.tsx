@@ -4,10 +4,11 @@ import { Controller, FieldValues } from 'react-hook-form';
 import { cn } from '@openzeppelin/ui-utils';
 
 import { FieldLabelRow } from './utils/FieldLabelRow';
+import { getReadOnlyState } from './utils/readOnlyState';
 
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { BaseFieldProps, LabelEndProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import { ErrorMessage, getAccessibilityProps } from './utils';
 
 /**
@@ -35,7 +36,8 @@ export interface SelectOption {
  */
 export interface SelectFieldProps<TFieldValues extends FieldValues = FieldValues>
   extends BaseFieldProps<TFieldValues>,
-    LabelEndProps {
+    LabelEndProps,
+    ReadOnlyModeProps {
   /**
    * Available options for selection
    */
@@ -69,6 +71,11 @@ export interface SelectFieldProps<TFieldValues extends FieldValues = FieldValues
  * - Customizable validation through adapter integration
  * - Automatic error handling and reporting
  * - Full accessibility support with ARIA attributes
+ *
+ * Read-only: `readOnly` is ignored unless `readOnlyMode="readonly"` is set, as it was before
+ * `readOnlyMode` existed. With both, the trigger stays focusable and in the tab order, the list
+ * never opens, no user act changes the value, the value stays in `handleSubmit` data, and the
+ * trigger is reported read-only (`aria-readonly` plus a visually hidden "Read-only" description).
  */
 export function SelectField<TFieldValues extends FieldValues = FieldValues>({
   id,
@@ -83,10 +90,33 @@ export function SelectField<TFieldValues extends FieldValues = FieldValues>({
   options = [],
   validateSelect,
   defaultValue,
+  readOnly,
+  readOnlyMode,
 }: SelectFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
+  const readOnlyDescriptionId = `${id}-readonly`;
+
+  // SF-20 INV-7 / INV-1: without the explicit opt-in, `readOnly` is ignored exactly as before
+  // (`getReadOnlyState` gets `undefined`), so the Controller sees `disabled: undefined`. With the opt-in,
+  // `controllerDisabled` is `false`, so the value stays in `handleSubmit` data (INV-8).
+  const isReadOnlyModeOptIn = readOnlyMode === 'readonly';
+  const ro = getReadOnlyState(isReadOnlyModeOptIn ? readOnly : undefined, readOnlyMode);
+  const isRO = ro.isFocusableReadOnly;
+
+  // SF-20 INV-10: the field owns the list's open state in every mode. Switching Radix between
+  // controlled and uncontrolled `open` on each save would log a warning, so it is always controlled.
+  const [open, setOpen] = React.useState(false);
+  // INV-16: a list open when read-only turns on closes, and stays closed when it turns off again.
+  // Render-time reset of this component's own state (not inside the Controller render prop).
+  if (isRO && open) setOpen(false);
+  const handleOpenChange = (next: boolean): void => {
+    // INV-12: every Radix open path (pointer, touch, pen, label click, Enter, Space, arrows)
+    // ends here; refuse it while read-only. Closing is always applied.
+    if (next && isRO) return;
+    setOpen(next);
+  };
 
   // Determine width values
   const widthPercentage = width === 'full' ? '100%' : width === 'half' ? '50%' : '33.333%';
@@ -105,6 +135,7 @@ export function SelectField<TFieldValues extends FieldValues = FieldValues>({
       <Controller
         control={control}
         name={name}
+        disabled={ro.controllerDisabled}
         defaultValue={defaultValue as unknown as undefined}
         rules={{
           validate: (value) => {
@@ -127,30 +158,56 @@ export function SelectField<TFieldValues extends FieldValues = FieldValues>({
         render={({ field, fieldState: { error } }) => {
           const hasError = !!error;
 
+          const describedBy = getAccessibilityProps({
+            id,
+            hasError,
+            hasHelperText: !!helperText,
+          })['aria-describedby'];
+
           // Get accessibility attributes
           const accessibilityAttrs = {
             'aria-invalid': hasError,
             'aria-required': isRequired,
-            'aria-describedby': getAccessibilityProps({
-              id,
-              hasError,
-              hasHelperText: !!helperText,
-            })['aria-describedby'],
+            // SF-20 INV-3: the read-only id goes last, after the error and helper ids, and only
+            // while its element is rendered. Default mode passes the same value as before.
+            'aria-describedby': isRO
+              ? [describedBy, readOnlyDescriptionId].filter(Boolean).join(' ')
+              : describedBy,
           };
 
           // Ensure we properly handle the onValueChange event
           const handleValueChange = (newValue: string): void => {
+            // SF-20 INV-13: closed-trigger typeahead and a `change` on Radix's hidden native
+            // <select> both commit through here without opening the list. Drop them while read-only.
+            if (isRO) return;
             field.onChange(newValue);
           };
+
+          // SF-20 INV-6: with an `undefined` value Radix keeps its own uncontrolled value, which a
+          // read-only typeahead would change on screen even though `handleValueChange` drops it.
+          // Under the opt-in the Root is always controlled ('' shows the placeholder, like
+          // `undefined`), so the shown text is always the form value. Default mode passes
+          // `field.value` as before.
+          const rootValue = isReadOnlyModeOptIn ? (field.value ?? '') : field.value;
 
           return (
             <>
               <Select
                 defaultValue={field.value}
                 onValueChange={handleValueChange}
-                value={field.value}
+                value={rootValue}
+                open={open && !isRO}
+                onOpenChange={handleOpenChange}
               >
-                <SelectTrigger id={id} ref={field.ref} {...accessibilityAttrs}>
+                <SelectTrigger
+                  id={id}
+                  ref={field.ref}
+                  {...accessibilityAttrs}
+                  // SF-20 INV-2 / INV-28: reported read-only, never disabled. `data-readonly` keys
+                  // the read-only look on SelectTrigger.
+                  aria-readonly={isRO || undefined}
+                  data-readonly={isRO ? '' : undefined}
+                >
                   <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
                 <SelectContent
@@ -177,6 +234,14 @@ export function SelectField<TFieldValues extends FieldValues = FieldValues>({
                   )}
                 </SelectContent>
               </Select>
+
+              {/* SF-20 INV-3: Chromium exposes read-only on no combobox, so say it in the
+                  description. Out of flow (sr-only), so the switch causes no layout shift. */}
+              {isRO && (
+                <span id={readOnlyDescriptionId} className="sr-only">
+                  Read-only
+                </span>
+              )}
 
               {/* Display helper text */}
               {helperText && (
