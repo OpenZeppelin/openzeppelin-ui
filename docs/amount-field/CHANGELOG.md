@@ -5,7 +5,18 @@ The release notes come from `.changeset/amount-field-exact-entry.md` (minor bump
 changeset from docs.
 
 The default-mode formatting fix below has its own patch changeset,
-`.changeset/amount-field-exact-default-formatting.md`.
+`.changeset/amount-field-exact-default-formatting.md`, and so does the `readOnly` fix,
+`.changeset/amount-textarea-field-default-read-only.md`.
+
+## Unreleased (patch): `readOnly` disables the field
+
+### Changed
+
+- With `readOnly` and the default `readOnlyMode="disabled"`, `AmountField` is now
+  disabled, like the other text fields: it can't be focused or typed into, and its value
+  is left out of the `handleSubmit` data. Before, `AmountField` ignored `readOnly`, so the
+  field stayed editable and its value was submitted. Use `readOnlyMode="readonly"` for a
+  focusable read-only amount that keeps its value.
 
 ## Unreleased (patch): exact formatting in default mode
 

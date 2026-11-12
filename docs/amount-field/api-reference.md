@@ -49,7 +49,7 @@ Both modes take these. They come from `BaseFieldProps`, `ReadOnlyModeProps` and
 | `decimals`       | `number`                      | `2`          | Default mode: places the value is formatted to on blur, exactly. Exact mode: the most fraction digits allowed (see [Decimals](#decimals)).          |
 | `symbol`         | `string`                      | `''`         | Shown inside the input. Not part of the value.                                                                                                      |
 | `symbolPosition` | `'prefix' \| 'suffix'`        | `'suffix'`   |                                                                                                                                                     |
-| `readOnly`       | `boolean`                     | `false`      | Ignored by `AmountField` unless `readOnlyMode="readonly"` is also set.                                                                              |
+| `readOnly`       | `boolean`                     | `false`      | Disables the field (not focusable, value left out of `handleSubmit` data) unless `readOnlyMode="readonly"` is also set.                             |
 | `readOnlyMode`   | `'disabled' \| 'readonly'`    | `'disabled'` | With `readOnly`, `'readonly'` keeps the input focusable, ignores edits and Escape, and keeps the value in `handleSubmit` data. Works in both modes. |
 | `labelEnd`       | `ReactNode`                   | —            | Content at the end of the label row (an "Optional" chip, a small action). Shown only when there is a `label`.                                       |
 

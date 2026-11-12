@@ -163,8 +163,9 @@ const [saving, setSaving] = useState(false);
 />;
 ```
 
-`AmountField` ignores `readOnly` on its own (with the default `readOnlyMode="disabled"`),
-as it always has.
+With `readOnly` alone (the default `readOnlyMode="disabled"`), `AmountField` is disabled,
+like the other text fields: it can't be focused, and its value is left out of the
+`handleSubmit` data.
 
 ## Pattern 4: Moving an existing default-mode field to exact mode
 
