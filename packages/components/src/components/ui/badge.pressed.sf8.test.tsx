@@ -88,10 +88,17 @@ describe('SF-8 SC-1 pressed on the interactive badge', () => {
     }
   );
 
-  it('solid: pressed adds a foreground ring and keeps the strong fill', () => {
+  it('solid: pressed adds an inset foreground ring and keeps the strong fill', () => {
     render(<Badge label="Open" variant="solid" pressed onActivate={() => undefined} />);
     const classes = tokens(screen.getByRole('button'));
-    expect(classes).toEqual(expect.arrayContaining(['ring-2', 'ring-foreground', 'bg-foreground']));
+    expect(classes).toEqual(
+      expect.arrayContaining(['inset-ring-2', 'inset-ring-foreground', 'bg-foreground'])
+    );
+    // The outer ring utilities stay for focus only, so pressed never looks like focus.
+    expect(classes.filter((c) => /^ring-(\d|foreground|inset)/.test(c))).toEqual([]);
+    expect(classes).toEqual(
+      expect.arrayContaining(['focus-visible:ring-2', 'focus-visible:ring-offset-2'])
+    );
   });
 
   it.each(tones)('%s: pressed look overrides every tone in filled', (tone) => {
@@ -108,6 +115,7 @@ describe('SF-8 SC-1 pressed on the interactive badge', () => {
     const classes = tokens(screen.getByRole('button'));
     expect(classes).not.toContain('bg-primary');
     expect(classes).not.toContain('ring-foreground');
+    expect(classes).not.toContain('inset-ring-foreground');
   });
 
   it('boundary: consumer className still applies on a pressed badge', () => {
@@ -129,6 +137,7 @@ describe('SF-8 SC-2 non-interactive badge ignores pressed', () => {
     const classes = tokens(screen.getByText('Status'));
     expect(classes).not.toContain('bg-primary');
     expect(classes).not.toContain('ring-foreground');
+    expect(classes).not.toContain('inset-ring-foreground');
   });
 
   it('boundary: span with pressed renders the same class list as without', () => {

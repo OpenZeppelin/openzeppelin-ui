@@ -11,7 +11,11 @@ describe('Spinner (SF-9)', () => {
   describe('S1: accessibility exposure per prop', () => {
     it('exposes a named status when label is set', () => {
       render(<Spinner label="Loading data" />);
-      expect(screen.getByRole('status', { name: 'Loading data' })).toBeTruthy();
+      const status = screen.getByRole('status', { name: 'Loading data' });
+      // The status carries the label as text content too; the svg inside is hidden.
+      expect(status.tagName.toLowerCase()).toBe('span');
+      expect(status.textContent).toBe('Loading data');
+      expect(status.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
     });
 
     it('is decorative (aria-hidden, no status) when label is omitted', () => {

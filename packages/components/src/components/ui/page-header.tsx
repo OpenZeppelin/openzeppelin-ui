@@ -28,6 +28,9 @@ const isPresent = (node: React.ReactNode): boolean =>
 /**
  * Header for the top of a content page: a title heading, an optional description
  * and an optional actions area. Distinct from the app bar (`Header`) and card headers.
+ *
+ * Renders a `<header>`. Place it inside `<main>` (or another sectioning element): a
+ * `<header>` outside them is a second banner landmark next to the app bar.
  */
 export const PageHeader = React.forwardRef<HTMLElement, PageHeaderProps>(
   ({ title, titleLevel = 1, description, actions, className, ...props }, ref) => {

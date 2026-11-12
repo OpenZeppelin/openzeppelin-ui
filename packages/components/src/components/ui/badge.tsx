@@ -97,7 +97,9 @@ export const Badge = React.forwardRef<BadgeElement, BadgeProps>(function Badge(
     isInteractive && (variant === 'solid' ? 'hover:brightness-95' : 'hover:bg-accent/50'),
     isPressed &&
       (variant === 'solid'
-        ? 'ring-2 ring-foreground ring-offset-2 ring-offset-background'
+        ? // An inset ring (its own shadow layer), so pressed never takes the outer focus ring's
+          // shape and a pressed, focused chip shows both.
+          'inset-ring-2 inset-ring-foreground'
         : 'bg-primary text-primary-foreground border-primary hover:bg-primary/90'),
     className
   );
