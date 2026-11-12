@@ -1,7 +1,7 @@
 import { Check, Send, Wallet } from 'lucide-react';
 import { useState } from 'react';
 
-import { LoadingButton } from '@openzeppelin/ui-components';
+import { LoadingButton, Spinner } from '@openzeppelin/ui-components';
 
 import { DemoSection } from './DemoSection';
 
@@ -74,6 +74,19 @@ const handleSubmit = async () => {
               'Click to Load'
             )}
           </LoadingButton>
+        </div>
+      </div>
+
+      {/* Standalone Spinner */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Standalone Spinner</h3>
+        <p className="text-muted-foreground text-sm">
+          The same spinner the button uses, exported for reuse. Pass <code>label</code> to expose it
+          as a status; omit it for a decorative spinner.
+        </p>
+        <div className="flex flex-wrap items-center gap-4">
+          <Spinner label="Loading data" data-testid="spinner-labelled" />
+          <Spinner className="h-8 w-8" data-testid="spinner-decorative" />
         </div>
       </div>
 
