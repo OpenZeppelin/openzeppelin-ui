@@ -5,8 +5,9 @@
  *   selector that matches an element with class `dark` and everything inside it, and nothing else
  *   (not a sibling, an ancestor, or a portal under `body`).
  * - INV-2: that selector adds no specificity over the plain utility (`:where`, not `:is`).
- * - INV-7: SF-34's four scoped `[.dark_&]` workarounds stay, so dark contrast on card radios and the
- *   multi-select doesn't depend on which `ui-styles` version a consumer installs.
+ * - INV-7: dark contrast on card radios and the multi-select doesn't depend on which `ui-styles`
+ *   version a consumer installs (SF-34's scoped workarounds; since SF-11, plain classes for the
+ *   borders and the scoped active-option ring).
  * - INV-10 / R2: the error banner's settings button carries no `dark:` class, and the banner icon's
  *   dark colour is set from the Alert, where it can beat the Alert's own `[&>svg]` colour.
  * - INV-5: `ui-components` takes no dependency or peer dependency on `ui-styles`.
@@ -170,18 +171,26 @@ describe('SF-10 dark variant: compiled selector (INV-1, INV-2)', () => {
 });
 
 describe('SF-10 release decoupling (INV-5, INV-7)', () => {
-  it('INV-7: SF-34 keeps its four scoped [.dark_&] workaround groups byte-for-byte', () => {
+  // Updated by 006 SF-11 (Design D-3): SF-34's three scoped border workarounds became a plain
+  // `border-muted-foreground`, which depends on no variant and no ui-styles version at all, so the
+  // intent of this guard holds more strongly. The active-option ring is still scoped, byte-for-byte.
+  it('INV-7: SF-34 dark contrast on card radios and the multi-select needs no dark: variant', () => {
     const radio = readFileSync(resolve(pkgRoot, 'src/components/ui/radio-group.tsx'), 'utf8');
     const core = readFileSync(
       resolve(pkgRoot, 'src/components/ui/searchable-multi-select/searchable-select-core.tsx'),
       'utf8'
     );
-    expect(radio).toContain('[.dark_&]:data-[state=unchecked]:border-muted-foreground');
-    expect(radio).toContain('border border-input [.dark_&]:border-muted-foreground');
+    // Card unchecked border and card dot ring: plain class, no scoped or dark: border class.
+    expect(radio).toContain("'border-muted-foreground bg-background hover:bg-accent");
+    expect(radio).toContain('rounded-full border border-muted-foreground">');
+    expect(radio).not.toMatch(/\[\.dark_&\]:[\w[\]=-]*:?border-/);
+    // Unselected option checkbox border: plain class.
+    expect(core).toContain(": 'border-muted-foreground bg-background'");
+    expect(core).not.toMatch(/\[\.dark_&\]:[\w[\]=-]*:?border-/);
+    // Active-option ring: unchanged since SF-34.
     expect(core).toContain(
       '[.dark_&]:data-[active]:ring-1 [.dark_&]:data-[active]:ring-inset [.dark_&]:data-[active]:ring-muted-foreground'
     );
-    expect(core).toContain('border-input bg-background [.dark_&]:border-muted-foreground');
   });
 
   it('INV-5: ui-components has no dependency of any kind on ui-styles', () => {
