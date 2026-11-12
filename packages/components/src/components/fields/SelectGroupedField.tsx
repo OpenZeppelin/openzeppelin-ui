@@ -177,7 +177,12 @@ export function SelectGroupedField<TFieldValues extends FieldValues = FieldValue
                 onValueChange={handleValueChange}
                 value={rootValue}
               >
-                <SelectTrigger id={id} {...accessibilityAttrs}>
+                <SelectTrigger
+                  id={id}
+                  // The form ref lands on the trigger, so focus-on-first-error and `setFocus` work.
+                  ref={field.ref}
+                  {...accessibilityAttrs}
+                >
                   <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
                 <SelectContent
