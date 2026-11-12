@@ -12,8 +12,10 @@ import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
+  runCustomCheck,
   validateField,
 } from './utils';
 
@@ -57,7 +59,7 @@ export function UrlField<TFieldValues extends FieldValues = FieldValues>({
           validate: (value) => {
             // Check required field explicitly first
             if (value === undefined || value === null || value === '') {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
 
             // Perform standard validations (min, max, pattern, etc.) if they exist
@@ -71,8 +73,7 @@ export function UrlField<TFieldValues extends FieldValues = FieldValues>({
               return getInvalidUrlMessage();
             }
 
-            // If all checks pass
-            return true;
+            return runCustomCheck(value, validation);
           },
         }}
         disabled={ro.controllerDisabled}

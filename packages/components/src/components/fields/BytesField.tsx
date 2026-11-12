@@ -12,8 +12,10 @@ import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
+  runCustomCheck,
 } from './utils';
 
 /**
@@ -151,11 +153,12 @@ export function BytesField<TFieldValues extends FieldValues = FieldValues>({
           validate: (value) => {
             // Handle required validation explicitly
             if (value === undefined || value === null || value === '') {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
 
             // Run bytes-specific validation using validator.js
-            return validateBytesField(value);
+            const bytesResult = validateBytesField(value);
+            return bytesResult === true ? runCustomCheck(value, validation) : bytesResult;
           },
         }}
         render={({ field, fieldState: { error, isTouched } }) => {

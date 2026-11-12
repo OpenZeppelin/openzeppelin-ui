@@ -10,11 +10,14 @@ import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getActiveMessages,
+  getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
   INTEGER_HTML_PATTERN,
   INTEGER_INPUT_PATTERN,
   INTEGER_PATTERN,
+  runCustomCheck,
   validateField,
 } from './utils';
 
@@ -78,10 +81,17 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
     pattern: validation?.pattern || INTEGER_PATTERN,
   };
 
-  // Validation function for big integer strings
-  const validateBigIntValue = (value: string): string | true => {
-    // Run standard validation with integer pattern (includes pattern validation)
-    const standardValidation = validateField(value, enhancedValidation);
+  // Validation function for big integer strings. `storedValue` is what the form
+  // holds, passed to the custom check unchanged (INV-12).
+  const validateBigIntValue = (value: string, storedValue: unknown): string | true => {
+    // Run standard validation with integer pattern (includes pattern validation).
+    // Messages come from the consumer's own rules, so the injected integer
+    // pattern keeps its wording unless the consumer set `pattern` (INV-13).
+    const standardValidation = validateField(
+      value,
+      enhancedValidation,
+      getActiveMessages(validation)
+    );
     if (standardValidation !== true) return standardValidation as string;
 
     // Run custom validator if provided
@@ -92,7 +102,7 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
       }
     }
 
-    return true;
+    return runCustomCheck(storedValue, validation);
   };
 
   return (
@@ -114,7 +124,7 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
           validate: (value) => {
             // Skip validation if empty and check required separately
             if (value === undefined || value === null || value === '') {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
 
             // Handle incomplete inputs
@@ -124,15 +134,15 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
 
             // For string values, validate as big integer
             if (typeof value === 'string') {
-              return validateBigIntValue(value);
+              return validateBigIntValue(value, value);
             }
 
             // Convert numbers to strings (in case value is accidentally a number)
             if (typeof value === 'number') {
-              return validateBigIntValue(value.toString());
+              return validateBigIntValue(value.toString(), value);
             }
 
-            return true;
+            return runCustomCheck(value, validation);
           },
         }}
         disabled={ro.controllerDisabled}

@@ -6,7 +6,7 @@ import { FieldLabelRow } from './utils/FieldLabelRow';
 import { Label } from '../ui/label';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { BaseFieldProps, LabelEndProps } from './BaseField';
-import { ErrorMessage, getAccessibilityProps } from './utils';
+import { ErrorMessage, getAccessibilityProps, getRequiredMessage, runCustomCheck } from './utils';
 
 /**
  * Option item for radio fields
@@ -119,7 +119,7 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
           validate: (value) => {
             // Handle required validation explicitly
             if (value === undefined || value === null || value === '') {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
 
             // Run custom validation if provided
@@ -130,7 +130,7 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
               }
             }
 
-            return true;
+            return runCustomCheck(value, validation);
           },
         }}
         render={({ field, fieldState: { error } }) => {

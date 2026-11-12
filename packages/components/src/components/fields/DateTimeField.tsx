@@ -10,8 +10,10 @@ import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
+  runCustomCheck,
   validateField,
 } from './utils';
 
@@ -78,7 +80,9 @@ export function DateTimeField<TFieldValues extends FieldValues = FieldValues>({
   // Validate ISO 8601 string or empty according to validation rules
   const validateDateValue = (value: string): string | true => {
     const validationResult = validateField(value, validation);
-    return validationResult === true ? true : (validationResult as string);
+    return validationResult === true
+      ? runCustomCheck(value, validation)
+      : (validationResult as string);
   };
 
   return (
@@ -99,12 +103,12 @@ export function DateTimeField<TFieldValues extends FieldValues = FieldValues>({
         rules={{
           validate: (value) => {
             if (value === undefined || value === null || value === '') {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
             if (typeof value === 'string') {
               return validateDateValue(value);
             }
-            return true;
+            return runCustomCheck(value, validation);
           },
         }}
         disabled={ro.controllerDisabled}

@@ -1,0 +1,4840 @@
+{
+  "TextField": {
+    "verdicts": {
+      "none": {
+        "\"hello\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:42": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"UPPER\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"150\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "empty": {
+        "\"hello\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:42": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"UPPER\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"150\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "required": {
+        "\"hello\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "num:42": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"UPPER\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"150\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "rules": {
+        "\"hello\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "num:42": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"a\"": {
+          "verdict": "Minimum length is 2 characters",
+          "shown": "Minimum length is 2 characters"
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": "Maximum length is 12 characters",
+          "shown": "Maximum length is 12 characters"
+        },
+        "\"UPPER\"": {
+          "verdict": "Value does not match the required pattern",
+          "shown": "Value does not match the required pattern"
+        },
+        "\"5\"": {
+          "verdict": "Minimum length is 2 characters",
+          "shown": "Minimum length is 2 characters"
+        },
+        "\"150\"": {
+          "verdict": "Maximum value is 100",
+          "shown": "Maximum value is 100"
+        },
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "optionalRules": {
+        "\"hello\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:42": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"a\"": {
+          "verdict": "Minimum length is 2 characters",
+          "shown": "Minimum length is 2 characters"
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": "Maximum length is 12 characters",
+          "shown": "Maximum length is 12 characters"
+        },
+        "\"UPPER\"": {
+          "verdict": "Value does not match the required pattern",
+          "shown": "Value does not match the required pattern"
+        },
+        "\"5\"": {
+          "verdict": "Minimum length is 2 characters",
+          "shown": "Minimum length is 2 characters"
+        },
+        "\"150\"": {
+          "verdict": "Maximum value is 100",
+          "shown": "Maximum value is 100"
+        },
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": true,
+        "submitValid": 1
+      },
+      "{\"readOnly\":true,\"readOnlyMode\":\"readonly\"}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      }
+    }
+  },
+  "TextAreaField": {
+    "verdicts": {
+      "none": {
+        "\"some notes\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"UPPER\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"150\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "empty": {
+        "\"some notes\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"UPPER\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"150\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "required": {
+        "\"some notes\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"UPPER\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"150\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "rules": {
+        "\"some notes\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"UPPER\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"150\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "optionalRules": {
+        "\"some notes\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"UPPER\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"150\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": true,
+        "submitValid": 1
+      },
+      "{\"readOnly\":true,\"readOnlyMode\":\"readonly\"}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      }
+    }
+  },
+  "PasswordField": {
+    "verdicts": {
+      "none": {
+        "\"secret\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:42": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"UPPER\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"150\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "empty": {
+        "\"secret\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:42": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"UPPER\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"150\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "required": {
+        "\"secret\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "num:42": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"UPPER\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"150\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "rules": {
+        "\"secret\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "num:42": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"a\"": {
+          "verdict": "Minimum length is 2 characters",
+          "shown": "Minimum length is 2 characters"
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": "Maximum length is 12 characters",
+          "shown": "Maximum length is 12 characters"
+        },
+        "\"UPPER\"": {
+          "verdict": "Value does not match the required pattern",
+          "shown": "Value does not match the required pattern"
+        },
+        "\"5\"": {
+          "verdict": "Minimum length is 2 characters",
+          "shown": "Minimum length is 2 characters"
+        },
+        "\"150\"": {
+          "verdict": "Maximum value is 100",
+          "shown": "Maximum value is 100"
+        },
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "optionalRules": {
+        "\"secret\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:42": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"a\"": {
+          "verdict": "Minimum length is 2 characters",
+          "shown": "Minimum length is 2 characters"
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": "Maximum length is 12 characters",
+          "shown": "Maximum length is 12 characters"
+        },
+        "\"UPPER\"": {
+          "verdict": "Value does not match the required pattern",
+          "shown": "Value does not match the required pattern"
+        },
+        "\"5\"": {
+          "verdict": "Minimum length is 2 characters",
+          "shown": "Minimum length is 2 characters"
+        },
+        "\"150\"": {
+          "verdict": "Maximum value is 100",
+          "shown": "Maximum value is 100"
+        },
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": true,
+        "submitValid": 1
+      },
+      "{\"readOnly\":true,\"readOnlyMode\":\"readonly\"}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      }
+    }
+  },
+  "DateTimeField": {
+    "verdicts": {
+      "none": {
+        "\"2026-01-01T10:00\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:42": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"2026-13-99\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"5\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "empty": {
+        "\"2026-01-01T10:00\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:42": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"2026-13-99\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"5\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "required": {
+        "\"2026-01-01T10:00\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "num:42": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"2026-13-99\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"5\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "rules": {
+        "\"2026-01-01T10:00\"": {
+          "verdict": "Maximum length is 12 characters",
+          "shown": "Maximum length is 12 characters"
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "num:42": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"2026-13-99\"": {
+          "verdict": "Value must be a valid integer (no decimals)",
+          "shown": "Value must be a valid integer (no decimals)"
+        },
+        "\"5\"": {
+          "verdict": "Minimum length is 2 characters",
+          "shown": "Minimum length is 2 characters"
+        }
+      },
+      "optionalRules": {
+        "\"2026-01-01T10:00\"": {
+          "verdict": "Maximum length is 12 characters",
+          "shown": "Maximum length is 12 characters"
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:42": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"2026-13-99\"": {
+          "verdict": "Value must be a valid integer (no decimals)",
+          "shown": "Value must be a valid integer (no decimals)"
+        },
+        "\"5\"": {
+          "verdict": "Minimum length is 2 characters",
+          "shown": "Minimum length is 2 characters"
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": true,
+        "submitValid": 1
+      },
+      "{\"readOnly\":true,\"readOnlyMode\":\"readonly\"}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      }
+    }
+  },
+  "UrlField": {
+    "verdicts": {
+      "none": {
+        "\"https://example.com\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"not a url\"": {
+          "verdict": "Please enter a valid URL (e.g., https://example.com)",
+          "shown": "Please enter a valid URL (e.g., https://example.com)"
+        },
+        "\"ftp://x.y\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"example.com\"": {
+          "verdict": "Please enter a valid URL (e.g., https://example.com)",
+          "shown": "Please enter a valid URL (e.g., https://example.com)"
+        }
+      },
+      "empty": {
+        "\"https://example.com\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"not a url\"": {
+          "verdict": "Please enter a valid URL (e.g., https://example.com)",
+          "shown": "Please enter a valid URL (e.g., https://example.com)"
+        },
+        "\"ftp://x.y\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"example.com\"": {
+          "verdict": "Please enter a valid URL (e.g., https://example.com)",
+          "shown": "Please enter a valid URL (e.g., https://example.com)"
+        }
+      },
+      "required": {
+        "\"https://example.com\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"not a url\"": {
+          "verdict": "Please enter a valid URL (e.g., https://example.com)",
+          "shown": "Please enter a valid URL (e.g., https://example.com)"
+        },
+        "\"ftp://x.y\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"example.com\"": {
+          "verdict": "Please enter a valid URL (e.g., https://example.com)",
+          "shown": "Please enter a valid URL (e.g., https://example.com)"
+        }
+      },
+      "rules": {
+        "\"https://example.com\"": {
+          "verdict": "Maximum length is 12 characters",
+          "shown": "Maximum length is 12 characters"
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"not a url\"": {
+          "verdict": "Value does not match the required pattern",
+          "shown": "Value does not match the required pattern"
+        },
+        "\"ftp://x.y\"": {
+          "verdict": "Value does not match the required pattern",
+          "shown": "Value does not match the required pattern"
+        },
+        "\"example.com\"": {
+          "verdict": "Please enter a valid URL (e.g., https://example.com)",
+          "shown": "Please enter a valid URL (e.g., https://example.com)"
+        }
+      },
+      "optionalRules": {
+        "\"https://example.com\"": {
+          "verdict": "Maximum length is 12 characters",
+          "shown": "Maximum length is 12 characters"
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"not a url\"": {
+          "verdict": "Value does not match the required pattern",
+          "shown": "Value does not match the required pattern"
+        },
+        "\"ftp://x.y\"": {
+          "verdict": "Value does not match the required pattern",
+          "shown": "Value does not match the required pattern"
+        },
+        "\"example.com\"": {
+          "verdict": "Please enter a valid URL (e.g., https://example.com)",
+          "shown": "Please enter a valid URL (e.g., https://example.com)"
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": true,
+        "submitValid": 1
+      },
+      "{\"readOnly\":true,\"readOnlyMode\":\"readonly\"}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      }
+    }
+  },
+  "AddressField": {
+    "verdicts": {
+      "none": {
+        "\"0x1234567890abcdef1234567890abcdef12345678\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0xnope\"": {
+          "verdict": "Invalid address format for the selected chain",
+          "shown": "Invalid address format for the selected chain"
+        },
+        "\"abc\"": {
+          "verdict": "Invalid address format for the selected chain",
+          "shown": "Invalid address format for the selected chain"
+        }
+      },
+      "empty": {
+        "\"0x1234567890abcdef1234567890abcdef12345678\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0xnope\"": {
+          "verdict": "Invalid address format for the selected chain",
+          "shown": "Invalid address format for the selected chain"
+        },
+        "\"abc\"": {
+          "verdict": "Invalid address format for the selected chain",
+          "shown": "Invalid address format for the selected chain"
+        }
+      },
+      "required": {
+        "\"0x1234567890abcdef1234567890abcdef12345678\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"0xnope\"": {
+          "verdict": "Invalid address format for the selected chain",
+          "shown": "Invalid address format for the selected chain"
+        },
+        "\"abc\"": {
+          "verdict": "Invalid address format for the selected chain",
+          "shown": "Invalid address format for the selected chain"
+        }
+      },
+      "rules": {
+        "\"0x1234567890abcdef1234567890abcdef12345678\"": {
+          "verdict": "Maximum length is 12 characters",
+          "shown": "Maximum length is 12 characters"
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"0xnope\"": {
+          "verdict": "Invalid address format for the selected chain",
+          "shown": "Invalid address format for the selected chain"
+        },
+        "\"abc\"": {
+          "verdict": "Invalid address format for the selected chain",
+          "shown": "Invalid address format for the selected chain"
+        }
+      },
+      "optionalRules": {
+        "\"0x1234567890abcdef1234567890abcdef12345678\"": {
+          "verdict": "Maximum length is 12 characters",
+          "shown": "Maximum length is 12 characters"
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0xnope\"": {
+          "verdict": "Invalid address format for the selected chain",
+          "shown": "Invalid address format for the selected chain"
+        },
+        "\"abc\"": {
+          "verdict": "Invalid address format for the selected chain",
+          "shown": "Invalid address format for the selected chain"
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": true,
+        "submitValid": 1
+      },
+      "{\"readOnly\":true,\"readOnlyMode\":\"readonly\"}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      }
+    }
+  },
+  "BigIntField": {
+    "verdicts": {
+      "none": {
+        "\"123\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:5": {
+          "verdict": true,
+          "shown": null
+        },
+        "5n": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.5\"": {
+          "verdict": "Value must be a valid integer (no decimals)",
+          "shown": "Value must be a valid integer (no decimals)"
+        },
+        "\"-\"": {
+          "verdict": "Please enter a complete number",
+          "shown": "Please enter a complete number"
+        },
+        "\"-7\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"abc\"": {
+          "verdict": "Value does not match the required pattern",
+          "shown": "Value does not match the required pattern"
+        }
+      },
+      "empty": {
+        "\"123\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:5": {
+          "verdict": true,
+          "shown": null
+        },
+        "5n": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.5\"": {
+          "verdict": "Value must be a valid integer (no decimals)",
+          "shown": "Value must be a valid integer (no decimals)"
+        },
+        "\"-\"": {
+          "verdict": "Please enter a complete number",
+          "shown": "Please enter a complete number"
+        },
+        "\"-7\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"abc\"": {
+          "verdict": "Value does not match the required pattern",
+          "shown": "Value does not match the required pattern"
+        }
+      },
+      "required": {
+        "\"123\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "num:5": {
+          "verdict": true,
+          "shown": null
+        },
+        "5n": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.5\"": {
+          "verdict": "Value must be a valid integer (no decimals)",
+          "shown": "Value must be a valid integer (no decimals)"
+        },
+        "\"-\"": {
+          "verdict": "Please enter a complete number",
+          "shown": "Please enter a complete number"
+        },
+        "\"-7\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"abc\"": {
+          "verdict": "Value does not match the required pattern",
+          "shown": "Value does not match the required pattern"
+        }
+      },
+      "rules": {
+        "\"123\"": {
+          "verdict": "Maximum value is 100",
+          "shown": "Maximum value is 100"
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "num:5": {
+          "verdict": "Minimum length is 2 characters",
+          "shown": "Minimum length is 2 characters"
+        },
+        "5n": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"-\"": {
+          "verdict": "Please enter a complete number",
+          "shown": "Please enter a complete number"
+        },
+        "\"-7\"": {
+          "verdict": "Value does not match the required pattern",
+          "shown": "Value does not match the required pattern"
+        },
+        "\"0\"": {
+          "verdict": "Minimum length is 2 characters",
+          "shown": "Minimum length is 2 characters"
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"abc\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "optionalRules": {
+        "\"123\"": {
+          "verdict": "Maximum value is 100",
+          "shown": "Maximum value is 100"
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:5": {
+          "verdict": "Minimum length is 2 characters",
+          "shown": "Minimum length is 2 characters"
+        },
+        "5n": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"-\"": {
+          "verdict": "Please enter a complete number",
+          "shown": "Please enter a complete number"
+        },
+        "\"-7\"": {
+          "verdict": "Value does not match the required pattern",
+          "shown": "Value does not match the required pattern"
+        },
+        "\"0\"": {
+          "verdict": "Minimum length is 2 characters",
+          "shown": "Minimum length is 2 characters"
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"abc\"": {
+          "verdict": true,
+          "shown": null
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": true,
+        "submitValid": 1
+      },
+      "{\"readOnly\":true,\"readOnlyMode\":\"readonly\"}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      }
+    }
+  },
+  "NumberField": {
+    "verdicts": {
+      "none": {
+        "\"12.50\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:7": {
+          "verdict": true,
+          "shown": null
+        },
+        "true": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"-\"": {
+          "verdict": "Please enter a complete number",
+          "shown": "Please enter a complete number"
+        },
+        "\"1.\"": {
+          "verdict": "Please enter a complete decimal number",
+          "shown": "Please enter a complete decimal number"
+        },
+        "\"abc\"": {
+          "verdict": "Invalid number",
+          "shown": "Invalid number"
+        },
+        "\"0\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"150\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:2.5": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "empty": {
+        "\"12.50\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:7": {
+          "verdict": true,
+          "shown": null
+        },
+        "true": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"-\"": {
+          "verdict": "Please enter a complete number",
+          "shown": "Please enter a complete number"
+        },
+        "\"1.\"": {
+          "verdict": "Please enter a complete decimal number",
+          "shown": "Please enter a complete decimal number"
+        },
+        "\"abc\"": {
+          "verdict": "Invalid number",
+          "shown": "Invalid number"
+        },
+        "\"0\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"150\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:2.5": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "required": {
+        "\"12.50\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "num:7": {
+          "verdict": true,
+          "shown": null
+        },
+        "true": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"-\"": {
+          "verdict": "Please enter a complete number",
+          "shown": "Please enter a complete number"
+        },
+        "\"1.\"": {
+          "verdict": "Please enter a complete decimal number",
+          "shown": "Please enter a complete decimal number"
+        },
+        "\"abc\"": {
+          "verdict": "Invalid number",
+          "shown": "Invalid number"
+        },
+        "\"0\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"150\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:2.5": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "rules": {
+        "\"12.50\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "num:7": {
+          "verdict": true,
+          "shown": null
+        },
+        "true": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"-\"": {
+          "verdict": "Please enter a complete number",
+          "shown": "Please enter a complete number"
+        },
+        "\"1.\"": {
+          "verdict": "Please enter a complete decimal number",
+          "shown": "Please enter a complete decimal number"
+        },
+        "\"abc\"": {
+          "verdict": "Invalid number",
+          "shown": "Invalid number"
+        },
+        "\"0\"": {
+          "verdict": "Minimum value is 1",
+          "shown": "Minimum value is 1"
+        },
+        "\"150\"": {
+          "verdict": "Maximum value is 100",
+          "shown": "Maximum value is 100"
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:2.5": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "optionalRules": {
+        "\"12.50\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:7": {
+          "verdict": true,
+          "shown": null
+        },
+        "true": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"-\"": {
+          "verdict": "Please enter a complete number",
+          "shown": "Please enter a complete number"
+        },
+        "\"1.\"": {
+          "verdict": "Please enter a complete decimal number",
+          "shown": "Please enter a complete decimal number"
+        },
+        "\"abc\"": {
+          "verdict": "Invalid number",
+          "shown": "Invalid number"
+        },
+        "\"0\"": {
+          "verdict": "Minimum value is 1",
+          "shown": "Minimum value is 1"
+        },
+        "\"150\"": {
+          "verdict": "Maximum value is 100",
+          "shown": "Maximum value is 100"
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:2.5": {
+          "verdict": true,
+          "shown": null
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": true,
+        "submitValid": 1
+      },
+      "{\"readOnly\":true,\"readOnlyMode\":\"readonly\"}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      }
+    }
+  },
+  "NumberField[min=5,max=50]": {
+    "verdicts": {
+      "none": {
+        "\"12.50\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"3\"": {
+          "verdict": "Minimum value is 5",
+          "shown": "Minimum value is 5"
+        },
+        "\"60\"": {
+          "verdict": "Maximum value is 50",
+          "shown": "Maximum value is 50"
+        },
+        "num:4": {
+          "verdict": "Minimum value is 5",
+          "shown": "Minimum value is 5"
+        }
+      },
+      "empty": {
+        "\"12.50\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"3\"": {
+          "verdict": "Minimum value is 5",
+          "shown": "Minimum value is 5"
+        },
+        "\"60\"": {
+          "verdict": "Maximum value is 50",
+          "shown": "Maximum value is 50"
+        },
+        "num:4": {
+          "verdict": "Minimum value is 5",
+          "shown": "Minimum value is 5"
+        }
+      },
+      "required": {
+        "\"12.50\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"3\"": {
+          "verdict": "Minimum value is 5",
+          "shown": "Minimum value is 5"
+        },
+        "\"60\"": {
+          "verdict": "Maximum value is 50",
+          "shown": "Maximum value is 50"
+        },
+        "num:4": {
+          "verdict": "Minimum value is 5",
+          "shown": "Minimum value is 5"
+        }
+      },
+      "rules": {
+        "\"12.50\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"3\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"60\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:4": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "optionalRules": {
+        "\"12.50\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"3\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"60\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:4": {
+          "verdict": true,
+          "shown": null
+        }
+      }
+    },
+    "readOnly": {}
+  },
+  "BytesField": {
+    "verdicts": {
+      "none": {
+        "\"0xabcd\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0xzz\"": {
+          "verdict": "Invalid format. Expected hex or base64 encoding",
+          "shown": "Invalid format. Expected hex or base64 encoding"
+        },
+        "\"abc\"": {
+          "verdict": "Hex string must have even number of characters",
+          "shown": "Hex string must have even number of characters"
+        },
+        "\"0xabc\"": {
+          "verdict": "Hex string must have even number of characters",
+          "shown": "Hex string must have even number of characters"
+        }
+      },
+      "empty": {
+        "\"0xabcd\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0xzz\"": {
+          "verdict": "Invalid format. Expected hex or base64 encoding",
+          "shown": "Invalid format. Expected hex or base64 encoding"
+        },
+        "\"abc\"": {
+          "verdict": "Hex string must have even number of characters",
+          "shown": "Hex string must have even number of characters"
+        },
+        "\"0xabc\"": {
+          "verdict": "Hex string must have even number of characters",
+          "shown": "Hex string must have even number of characters"
+        }
+      },
+      "required": {
+        "\"0xabcd\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"0xzz\"": {
+          "verdict": "Invalid format. Expected hex or base64 encoding",
+          "shown": "Invalid format. Expected hex or base64 encoding"
+        },
+        "\"abc\"": {
+          "verdict": "Hex string must have even number of characters",
+          "shown": "Hex string must have even number of characters"
+        },
+        "\"0xabc\"": {
+          "verdict": "Hex string must have even number of characters",
+          "shown": "Hex string must have even number of characters"
+        }
+      },
+      "rules": {
+        "\"0xabcd\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"0xzz\"": {
+          "verdict": "Invalid format. Expected hex or base64 encoding",
+          "shown": "Invalid format. Expected hex or base64 encoding"
+        },
+        "\"abc\"": {
+          "verdict": "Hex string must have even number of characters",
+          "shown": "Hex string must have even number of characters"
+        },
+        "\"0xabc\"": {
+          "verdict": "Hex string must have even number of characters",
+          "shown": "Hex string must have even number of characters"
+        }
+      },
+      "optionalRules": {
+        "\"0xabcd\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0xzz\"": {
+          "verdict": "Invalid format. Expected hex or base64 encoding",
+          "shown": "Invalid format. Expected hex or base64 encoding"
+        },
+        "\"abc\"": {
+          "verdict": "Hex string must have even number of characters",
+          "shown": "Hex string must have even number of characters"
+        },
+        "\"0xabc\"": {
+          "verdict": "Hex string must have even number of characters",
+          "shown": "Hex string must have even number of characters"
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": true,
+        "submitValid": 1
+      },
+      "{\"readOnly\":true,\"readOnlyMode\":\"readonly\"}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      }
+    }
+  },
+  "SelectField": {
+    "verdicts": {
+      "none": {
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "empty": {
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "required": {
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "rules": {
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "optionalRules": {
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      },
+      "{\"readOnly\":true,\"readOnlyMode\":\"readonly\"}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      }
+    }
+  },
+  "SelectGroupedField": {
+    "verdicts": {
+      "none": {
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "empty": {
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "required": {
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "rules": {
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "optionalRules": {
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      }
+    }
+  },
+  "RadioField": {
+    "verdicts": {
+      "none": {
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "empty": {
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "required": {
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "rules": {
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "optionalRules": {
+        "\"a\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      }
+    }
+  },
+  "EnumField(no variants)": {
+    "verdicts": {
+      "none": {
+        "\"{\\\"tag\\\":\\\"A\\\"}\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "{\"tag\":\"A\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}",
+          "shown": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}"
+        },
+        "\"nope\"": {
+          "verdict": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}",
+          "shown": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}"
+        },
+        "\"{\\\"x\\\":1}\"": {
+          "verdict": "JSON must have a \"tag\" property specifying the enum variant",
+          "shown": "JSON must have a \"tag\" property specifying the enum variant"
+        },
+        "{\"x\":1}": {
+          "verdict": "Enum value must have a \"tag\" property specifying the variant",
+          "shown": "Enum value must have a \"tag\" property specifying the variant"
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}",
+          "shown": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}"
+        }
+      },
+      "empty": {
+        "\"{\\\"tag\\\":\\\"A\\\"}\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "{\"tag\":\"A\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}",
+          "shown": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}"
+        },
+        "\"nope\"": {
+          "verdict": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}",
+          "shown": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}"
+        },
+        "\"{\\\"x\\\":1}\"": {
+          "verdict": "JSON must have a \"tag\" property specifying the enum variant",
+          "shown": "JSON must have a \"tag\" property specifying the enum variant"
+        },
+        "{\"x\":1}": {
+          "verdict": "Enum value must have a \"tag\" property specifying the variant",
+          "shown": "Enum value must have a \"tag\" property specifying the variant"
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}",
+          "shown": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}"
+        }
+      },
+      "required": {
+        "\"{\\\"tag\\\":\\\"A\\\"}\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "{\"tag\":\"A\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"nope\"": {
+          "verdict": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}",
+          "shown": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}"
+        },
+        "\"{\\\"x\\\":1}\"": {
+          "verdict": "JSON must have a \"tag\" property specifying the enum variant",
+          "shown": "JSON must have a \"tag\" property specifying the enum variant"
+        },
+        "{\"x\":1}": {
+          "verdict": "Enum value must have a \"tag\" property specifying the variant",
+          "shown": "Enum value must have a \"tag\" property specifying the variant"
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}",
+          "shown": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}"
+        }
+      },
+      "rules": {
+        "\"{\\\"tag\\\":\\\"A\\\"}\"": {
+          "verdict": "Value does not match the required pattern",
+          "shown": "Value does not match the required pattern"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "{\"tag\":\"A\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"nope\"": {
+          "verdict": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}",
+          "shown": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}"
+        },
+        "\"{\\\"x\\\":1}\"": {
+          "verdict": "Value must be a valid integer (no decimals)",
+          "shown": "Value must be a valid integer (no decimals)"
+        },
+        "{\"x\":1}": {
+          "verdict": "Enum value must have a \"tag\" property specifying the variant",
+          "shown": "Enum value must have a \"tag\" property specifying the variant"
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": "Maximum length is 12 characters",
+          "shown": "Maximum length is 12 characters"
+        }
+      },
+      "optionalRules": {
+        "\"{\\\"tag\\\":\\\"A\\\"}\"": {
+          "verdict": "Value does not match the required pattern",
+          "shown": "Value does not match the required pattern"
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "{\"tag\":\"A\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}",
+          "shown": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}"
+        },
+        "\"nope\"": {
+          "verdict": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}",
+          "shown": "Invalid JSON format. Please enter valid JSON like {\"tag\":\"VariantName\"}"
+        },
+        "\"{\\\"x\\\":1}\"": {
+          "verdict": "Value must be a valid integer (no decimals)",
+          "shown": "Value must be a valid integer (no decimals)"
+        },
+        "{\"x\":1}": {
+          "verdict": "Enum value must have a \"tag\" property specifying the variant",
+          "shown": "Enum value must have a \"tag\" property specifying the variant"
+        },
+        "\"toolongvalue12345\"": {
+          "verdict": "Maximum length is 12 characters",
+          "shown": "Maximum length is 12 characters"
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": true,
+        "submitValid": 1
+      }
+    }
+  },
+  "EnumField(variants)": {
+    "verdicts": {
+      "none": {
+        "{\"tag\":\"A\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "{\"tag\":\"\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "{\"tag\":\"B\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "{\"tag\":\"13\"}": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "{\"tag\":\"14\"}": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "empty": {
+        "{\"tag\":\"A\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "{\"tag\":\"\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "{\"tag\":\"B\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "{\"tag\":\"13\"}": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "{\"tag\":\"14\"}": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "required": {
+        "{\"tag\":\"A\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "{\"tag\":\"\"}": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "{\"tag\":\"B\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "{\"tag\":\"13\"}": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "{\"tag\":\"14\"}": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "rules": {
+        "{\"tag\":\"A\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "{\"tag\":\"\"}": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "{\"tag\":\"B\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "{\"tag\":\"13\"}": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "{\"tag\":\"14\"}": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "optionalRules": {
+        "{\"tag\":\"A\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "{\"tag\":\"\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "{\"tag\":\"B\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "{\"tag\":\"13\"}": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "{\"tag\":\"14\"}": {
+          "verdict": true,
+          "shown": null
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": true,
+        "submitValid": 1
+      }
+    }
+  },
+  "BooleanField": {
+    "verdicts": {
+      "none": {
+        "true": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"yes\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "false": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        }
+      },
+      "empty": {
+        "true": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"yes\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "false": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        }
+      },
+      "required": {
+        "true": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"yes\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "false": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        }
+      },
+      "rules": {
+        "true": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"yes\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "false": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        }
+      },
+      "optionalRules": {
+        "true": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"yes\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "false": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": true,
+        "submitValid": 1
+      }
+    }
+  },
+  "AmountField": {
+    "verdicts": {
+      "none": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"abc\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:2.5": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"-1\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1e3\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "empty": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"abc\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:2.5": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"-1\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1e3\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "required": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"abc\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "num:2.5": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"-1\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1e3\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "rules": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"abc\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "num:2.5": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"-1\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1e3\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "optionalRules": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"abc\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "num:2.5": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"-1\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1e3\"": {
+          "verdict": true,
+          "shown": null
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      },
+      "{\"readOnly\":true,\"readOnlyMode\":\"readonly\"}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      }
+    }
+  },
+  "AmountField[min=1,max=10]": {
+    "verdicts": {
+      "none": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0.5\"": {
+          "verdict": "Value must be at least 1",
+          "shown": "Value must be at least 1"
+        },
+        "\"11\"": {
+          "verdict": "Value must be at most 10",
+          "shown": "Value must be at most 10"
+        }
+      },
+      "empty": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0.5\"": {
+          "verdict": "Value must be at least 1",
+          "shown": "Value must be at least 1"
+        },
+        "\"11\"": {
+          "verdict": "Value must be at most 10",
+          "shown": "Value must be at most 10"
+        }
+      },
+      "required": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"0.5\"": {
+          "verdict": "Value must be at least 1",
+          "shown": "Value must be at least 1"
+        },
+        "\"11\"": {
+          "verdict": "Value must be at most 10",
+          "shown": "Value must be at most 10"
+        }
+      },
+      "rules": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"0.5\"": {
+          "verdict": "Value must be at least 1",
+          "shown": "Value must be at least 1"
+        },
+        "\"11\"": {
+          "verdict": "Value must be at most 10",
+          "shown": "Value must be at most 10"
+        }
+      },
+      "optionalRules": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0.5\"": {
+          "verdict": "Value must be at least 1",
+          "shown": "Value must be at least 1"
+        },
+        "\"11\"": {
+          "verdict": "Value must be at most 10",
+          "shown": "Value must be at most 10"
+        }
+      }
+    },
+    "readOnly": {}
+  },
+  "AmountFieldExact": {
+    "verdicts": {
+      "none": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"   \"": {
+          "verdict": "Enter digits, an optional leading - and one . for decimals",
+          "shown": "Enter digits, an optional leading - and one . for decimals"
+        },
+        "num:2.5": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.2.3\"": {
+          "verdict": "Only one decimal point is allowed",
+          "shown": "Only one decimal point is allowed"
+        },
+        "\"1.1234567\"": {
+          "verdict": "Use at most 6 decimal places",
+          "shown": "Use at most 6 decimal places"
+        },
+        "\"abc\"": {
+          "verdict": "Enter digits, an optional leading - and one . for decimals",
+          "shown": "Enter digits, an optional leading - and one . for decimals"
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": "Enter a valid amount",
+          "shown": "Enter a valid amount"
+        },
+        "\"-1\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0.1\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "empty": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"   \"": {
+          "verdict": "Enter digits, an optional leading - and one . for decimals",
+          "shown": "Enter digits, an optional leading - and one . for decimals"
+        },
+        "num:2.5": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.2.3\"": {
+          "verdict": "Only one decimal point is allowed",
+          "shown": "Only one decimal point is allowed"
+        },
+        "\"1.1234567\"": {
+          "verdict": "Use at most 6 decimal places",
+          "shown": "Use at most 6 decimal places"
+        },
+        "\"abc\"": {
+          "verdict": "Enter digits, an optional leading - and one . for decimals",
+          "shown": "Enter digits, an optional leading - and one . for decimals"
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": "Enter a valid amount",
+          "shown": "Enter a valid amount"
+        },
+        "\"-1\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0.1\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "required": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"   \"": {
+          "verdict": "Enter digits, an optional leading - and one . for decimals",
+          "shown": "Enter digits, an optional leading - and one . for decimals"
+        },
+        "num:2.5": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.2.3\"": {
+          "verdict": "Only one decimal point is allowed",
+          "shown": "Only one decimal point is allowed"
+        },
+        "\"1.1234567\"": {
+          "verdict": "Use at most 6 decimal places",
+          "shown": "Use at most 6 decimal places"
+        },
+        "\"abc\"": {
+          "verdict": "Enter digits, an optional leading - and one . for decimals",
+          "shown": "Enter digits, an optional leading - and one . for decimals"
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": "Enter a valid amount",
+          "shown": "Enter a valid amount"
+        },
+        "\"-1\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0.1\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "rules": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"   \"": {
+          "verdict": "Enter digits, an optional leading - and one . for decimals",
+          "shown": "Enter digits, an optional leading - and one . for decimals"
+        },
+        "num:2.5": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.2.3\"": {
+          "verdict": "Only one decimal point is allowed",
+          "shown": "Only one decimal point is allowed"
+        },
+        "\"1.1234567\"": {
+          "verdict": "Use at most 6 decimal places",
+          "shown": "Use at most 6 decimal places"
+        },
+        "\"abc\"": {
+          "verdict": "Enter digits, an optional leading - and one . for decimals",
+          "shown": "Enter digits, an optional leading - and one . for decimals"
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": "Enter a valid amount",
+          "shown": "Enter a valid amount"
+        },
+        "\"-1\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0.1\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "optionalRules": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"   \"": {
+          "verdict": "Enter digits, an optional leading - and one . for decimals",
+          "shown": "Enter digits, an optional leading - and one . for decimals"
+        },
+        "num:2.5": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"1.2.3\"": {
+          "verdict": "Only one decimal point is allowed",
+          "shown": "Only one decimal point is allowed"
+        },
+        "\"1.1234567\"": {
+          "verdict": "Use at most 6 decimal places",
+          "shown": "Use at most 6 decimal places"
+        },
+        "\"abc\"": {
+          "verdict": "Enter digits, an optional leading - and one . for decimals",
+          "shown": "Enter digits, an optional leading - and one . for decimals"
+        },
+        "\"13\"": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "\"14\"": {
+          "verdict": "Enter a valid amount",
+          "shown": "Enter a valid amount"
+        },
+        "\"-1\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0.1\"": {
+          "verdict": true,
+          "shown": null
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      },
+      "{\"readOnly\":true,\"readOnlyMode\":\"readonly\"}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      }
+    }
+  },
+  "AmountFieldExact[min=1,max=10]": {
+    "verdicts": {
+      "none": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0.5\"": {
+          "verdict": "Value must be at least 1",
+          "shown": "Value must be at least 1"
+        },
+        "\"11\"": {
+          "verdict": "Value must be at most 10",
+          "shown": "Value must be at most 10"
+        },
+        "\"1.234\"": {
+          "verdict": "Use at most 2 decimal places",
+          "shown": "Use at most 2 decimal places"
+        }
+      },
+      "empty": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0.5\"": {
+          "verdict": "Value must be at least 1",
+          "shown": "Value must be at least 1"
+        },
+        "\"11\"": {
+          "verdict": "Value must be at most 10",
+          "shown": "Value must be at most 10"
+        },
+        "\"1.234\"": {
+          "verdict": "Use at most 2 decimal places",
+          "shown": "Use at most 2 decimal places"
+        }
+      },
+      "required": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"0.5\"": {
+          "verdict": "Value must be at least 1",
+          "shown": "Value must be at least 1"
+        },
+        "\"11\"": {
+          "verdict": "Value must be at most 10",
+          "shown": "Value must be at most 10"
+        },
+        "\"1.234\"": {
+          "verdict": "Use at most 2 decimal places",
+          "shown": "Use at most 2 decimal places"
+        }
+      },
+      "rules": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"0.5\"": {
+          "verdict": "Value must be at least 1",
+          "shown": "Value must be at least 1"
+        },
+        "\"11\"": {
+          "verdict": "Value must be at most 10",
+          "shown": "Value must be at most 10"
+        },
+        "\"1.234\"": {
+          "verdict": "Use at most 2 decimal places",
+          "shown": "Use at most 2 decimal places"
+        }
+      },
+      "optionalRules": {
+        "\"1.5\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"0.5\"": {
+          "verdict": "Value must be at least 1",
+          "shown": "Value must be at least 1"
+        },
+        "\"11\"": {
+          "verdict": "Value must be at most 10",
+          "shown": "Value must be at most 10"
+        },
+        "\"1.234\"": {
+          "verdict": "Use at most 2 decimal places",
+          "shown": "Use at most 2 decimal places"
+        }
+      }
+    },
+    "readOnly": {}
+  },
+  "SearchableMultiSelectField": {
+    "verdicts": {
+      "none": {
+        "[\"ca\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "[\"ca\",\"fr\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[\"de\"]": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "[\"it\"]": {
+          "verdict": "Invalid selection",
+          "shown": "Invalid selection"
+        }
+      },
+      "empty": {
+        "[\"ca\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "[\"ca\",\"fr\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[\"de\"]": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "[\"it\"]": {
+          "verdict": "Invalid selection",
+          "shown": "Invalid selection"
+        }
+      },
+      "required": {
+        "[\"ca\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "[\"ca\",\"fr\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[\"de\"]": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "[\"it\"]": {
+          "verdict": "Invalid selection",
+          "shown": "Invalid selection"
+        }
+      },
+      "rules": {
+        "[\"ca\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "[\"ca\",\"fr\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[\"de\"]": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "[\"it\"]": {
+          "verdict": "Invalid selection",
+          "shown": "Invalid selection"
+        }
+      },
+      "optionalRules": {
+        "[\"ca\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "[\"ca\",\"fr\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[\"de\"]": {
+          "verdict": "Prop says no",
+          "shown": "Prop says no"
+        },
+        "[\"it\"]": {
+          "verdict": "Invalid selection",
+          "shown": "Invalid selection"
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      }
+    }
+  },
+  "ObjectField": {
+    "verdicts": {
+      "none": {
+        "{\"a\":\"1\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": true,
+          "shown": null
+        },
+        "{}": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "empty": {
+        "{\"a\":\"1\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": true,
+          "shown": null
+        },
+        "{}": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "required": {
+        "{\"a\":\"1\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "[]": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "{}": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "rules": {
+        "{\"a\":\"1\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "[]": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "{}": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "optionalRules": {
+        "{\"a\":\"1\"}": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": true,
+          "shown": null
+        },
+        "{}": {
+          "verdict": true,
+          "shown": null
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 0
+      }
+    }
+  },
+  "ArrayField": {
+    "verdicts": {
+      "none": {
+        "[\"x\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "[\"x\",\"y\",\"z\"]": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "empty": {
+        "[\"x\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "[\"x\",\"y\",\"z\"]": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "required": {
+        "[\"x\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "At least one item is required",
+          "shown": "This field is invalid"
+        },
+        "undefined": {
+          "verdict": "At least one item is required",
+          "shown": "This field is invalid"
+        },
+        "[\"x\",\"y\",\"z\"]": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "rules": {
+        "[\"x\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "At least one item is required",
+          "shown": "This field is invalid"
+        },
+        "undefined": {
+          "verdict": "At least one item is required",
+          "shown": "This field is invalid"
+        },
+        "[\"x\",\"y\",\"z\"]": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "optionalRules": {
+        "[\"x\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "[\"x\",\"y\",\"z\"]": {
+          "verdict": true,
+          "shown": null
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": "At least one item is required",
+        "submitValid": 0
+      }
+    }
+  },
+  "ArrayField[minItems=2,maxItems=3]": {
+    "verdicts": {
+      "none": {
+        "[\"x\",\"y\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "Minimum 2 items required",
+          "shown": "This field is invalid"
+        },
+        "[\"x\"]": {
+          "verdict": "Minimum 2 items required",
+          "shown": "This field is invalid"
+        },
+        "[\"a\",\"b\",\"c\",\"d\"]": {
+          "verdict": "Maximum 3 items allowed",
+          "shown": "This field is invalid"
+        }
+      },
+      "empty": {
+        "[\"x\",\"y\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "Minimum 2 items required",
+          "shown": "This field is invalid"
+        },
+        "[\"x\"]": {
+          "verdict": "Minimum 2 items required",
+          "shown": "This field is invalid"
+        },
+        "[\"a\",\"b\",\"c\",\"d\"]": {
+          "verdict": "Maximum 3 items allowed",
+          "shown": "This field is invalid"
+        }
+      },
+      "required": {
+        "[\"x\",\"y\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "At least one item is required",
+          "shown": "This field is invalid"
+        },
+        "[\"x\"]": {
+          "verdict": "Minimum 2 items required",
+          "shown": "This field is invalid"
+        },
+        "[\"a\",\"b\",\"c\",\"d\"]": {
+          "verdict": "Maximum 3 items allowed",
+          "shown": "This field is invalid"
+        }
+      },
+      "rules": {
+        "[\"x\",\"y\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "At least one item is required",
+          "shown": "This field is invalid"
+        },
+        "[\"x\"]": {
+          "verdict": "Minimum 2 items required",
+          "shown": "This field is invalid"
+        },
+        "[\"a\",\"b\",\"c\",\"d\"]": {
+          "verdict": "Maximum 3 items allowed",
+          "shown": "This field is invalid"
+        }
+      },
+      "optionalRules": {
+        "[\"x\",\"y\"]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "Minimum 2 items required",
+          "shown": "This field is invalid"
+        },
+        "[\"x\"]": {
+          "verdict": "Minimum 2 items required",
+          "shown": "This field is invalid"
+        },
+        "[\"a\",\"b\",\"c\",\"d\"]": {
+          "verdict": "Maximum 3 items allowed",
+          "shown": "This field is invalid"
+        }
+      }
+    },
+    "readOnly": {}
+  },
+  "ArrayObjectField": {
+    "verdicts": {
+      "none": {
+        "[{\"a\":\"1\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "[{\"a\":\"1\"},{\"a\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "empty": {
+        "[{\"a\":\"1\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "[{\"a\":\"1\"},{\"a\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "required": {
+        "[{\"a\":\"1\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "At least one item is required",
+          "shown": "This field is invalid"
+        },
+        "undefined": {
+          "verdict": "At least one item is required",
+          "shown": "This field is invalid"
+        },
+        "[{\"a\":\"1\"},{\"a\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "rules": {
+        "[{\"a\":\"1\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "At least one item is required",
+          "shown": "This field is invalid"
+        },
+        "undefined": {
+          "verdict": "At least one item is required",
+          "shown": "This field is invalid"
+        },
+        "[{\"a\":\"1\"},{\"a\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "optionalRules": {
+        "[{\"a\":\"1\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "[{\"a\":\"1\"},{\"a\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": "At least one item is required",
+        "submitValid": 0
+      }
+    }
+  },
+  "ArrayObjectField[minItems=2]": {
+    "verdicts": {
+      "none": {
+        "[{\"a\":\"1\"},{\"a\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "Minimum 2 items required",
+          "shown": "This field is invalid"
+        },
+        "[{\"a\":\"1\"}]": {
+          "verdict": "Minimum 2 items required",
+          "shown": "This field is invalid"
+        },
+        "[{\"a\":\"1\"},{\"a\":\"2\"},{\"a\":\"3\"}]": {
+          "verdict": "Maximum 2 items allowed",
+          "shown": "This field is invalid"
+        }
+      },
+      "empty": {
+        "[{\"a\":\"1\"},{\"a\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "Minimum 2 items required",
+          "shown": "This field is invalid"
+        },
+        "[{\"a\":\"1\"}]": {
+          "verdict": "Minimum 2 items required",
+          "shown": "This field is invalid"
+        },
+        "[{\"a\":\"1\"},{\"a\":\"2\"},{\"a\":\"3\"}]": {
+          "verdict": "Maximum 2 items allowed",
+          "shown": "This field is invalid"
+        }
+      },
+      "required": {
+        "[{\"a\":\"1\"},{\"a\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "At least one item is required",
+          "shown": "This field is invalid"
+        },
+        "[{\"a\":\"1\"}]": {
+          "verdict": "Minimum 2 items required",
+          "shown": "This field is invalid"
+        },
+        "[{\"a\":\"1\"},{\"a\":\"2\"},{\"a\":\"3\"}]": {
+          "verdict": "Maximum 2 items allowed",
+          "shown": "This field is invalid"
+        }
+      },
+      "rules": {
+        "[{\"a\":\"1\"},{\"a\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "At least one item is required",
+          "shown": "This field is invalid"
+        },
+        "[{\"a\":\"1\"}]": {
+          "verdict": "Minimum 2 items required",
+          "shown": "This field is invalid"
+        },
+        "[{\"a\":\"1\"},{\"a\":\"2\"},{\"a\":\"3\"}]": {
+          "verdict": "Maximum 2 items allowed",
+          "shown": "This field is invalid"
+        }
+      },
+      "optionalRules": {
+        "[{\"a\":\"1\"},{\"a\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "Minimum 2 items required",
+          "shown": "This field is invalid"
+        },
+        "[{\"a\":\"1\"}]": {
+          "verdict": "Minimum 2 items required",
+          "shown": "This field is invalid"
+        },
+        "[{\"a\":\"1\"},{\"a\":\"2\"},{\"a\":\"3\"}]": {
+          "verdict": "Maximum 2 items allowed",
+          "shown": "This field is invalid"
+        }
+      }
+    },
+    "readOnly": {}
+  },
+  "MapField": {
+    "verdicts": {
+      "none": {
+        "[{\"key\":\"k\",\"value\":\"v\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[{\"key\":\"\",\"value\":\"\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "[{\"key\":\"k\",\"value\":\"v\"},{\"key\":\"k\",\"value\":\"w\"}]": {
+          "verdict": "Duplicate keys are not allowed",
+          "shown": "Duplicate keys are not allowed"
+        },
+        "[{\"key\":\"k\",\"value\":\"\"}]": {
+          "verdict": "All key-value pairs must be completed",
+          "shown": "All key-value pairs must be completed"
+        },
+        "[{\"key\":\"a\",\"value\":\"1\"},{\"key\":\"b\",\"value\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "empty": {
+        "[{\"key\":\"k\",\"value\":\"v\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[{\"key\":\"\",\"value\":\"\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "[{\"key\":\"k\",\"value\":\"v\"},{\"key\":\"k\",\"value\":\"w\"}]": {
+          "verdict": "Duplicate keys are not allowed",
+          "shown": "Duplicate keys are not allowed"
+        },
+        "[{\"key\":\"k\",\"value\":\"\"}]": {
+          "verdict": "All key-value pairs must be completed",
+          "shown": "All key-value pairs must be completed"
+        },
+        "[{\"key\":\"a\",\"value\":\"1\"},{\"key\":\"b\",\"value\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "required": {
+        "[{\"key\":\"k\",\"value\":\"v\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "[{\"key\":\"\",\"value\":\"\"}]": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "[{\"key\":\"k\",\"value\":\"v\"},{\"key\":\"k\",\"value\":\"w\"}]": {
+          "verdict": "Duplicate keys are not allowed",
+          "shown": "Duplicate keys are not allowed"
+        },
+        "[{\"key\":\"k\",\"value\":\"\"}]": {
+          "verdict": "All key-value pairs must be completed",
+          "shown": "All key-value pairs must be completed"
+        },
+        "[{\"key\":\"a\",\"value\":\"1\"},{\"key\":\"b\",\"value\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "rules": {
+        "[{\"key\":\"k\",\"value\":\"v\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "[{\"key\":\"\",\"value\":\"\"}]": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "[{\"key\":\"k\",\"value\":\"v\"},{\"key\":\"k\",\"value\":\"w\"}]": {
+          "verdict": "Duplicate keys are not allowed",
+          "shown": "Duplicate keys are not allowed"
+        },
+        "[{\"key\":\"k\",\"value\":\"\"}]": {
+          "verdict": "All key-value pairs must be completed",
+          "shown": "All key-value pairs must be completed"
+        },
+        "[{\"key\":\"a\",\"value\":\"1\"},{\"key\":\"b\",\"value\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "optionalRules": {
+        "[{\"key\":\"k\",\"value\":\"v\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[{\"key\":\"\",\"value\":\"\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "[{\"key\":\"k\",\"value\":\"v\"},{\"key\":\"k\",\"value\":\"w\"}]": {
+          "verdict": "Duplicate keys are not allowed",
+          "shown": "Duplicate keys are not allowed"
+        },
+        "[{\"key\":\"k\",\"value\":\"\"}]": {
+          "verdict": "All key-value pairs must be completed",
+          "shown": "All key-value pairs must be completed"
+        },
+        "[{\"key\":\"a\",\"value\":\"1\"},{\"key\":\"b\",\"value\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": "This field is required",
+        "submitValid": 1
+      }
+    }
+  },
+  "MapField[minItems=2]": {
+    "verdicts": {
+      "none": {
+        "[{\"key\":\"a\",\"value\":\"1\"},{\"key\":\"b\",\"value\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "At least 2 items required",
+          "shown": "At least 2 items required"
+        },
+        "[{\"key\":\"k\",\"value\":\"v\"}]": {
+          "verdict": "At least 2 items required",
+          "shown": "At least 2 items required"
+        }
+      },
+      "empty": {
+        "[{\"key\":\"a\",\"value\":\"1\"},{\"key\":\"b\",\"value\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "At least 2 items required",
+          "shown": "At least 2 items required"
+        },
+        "[{\"key\":\"k\",\"value\":\"v\"}]": {
+          "verdict": "At least 2 items required",
+          "shown": "At least 2 items required"
+        }
+      },
+      "required": {
+        "[{\"key\":\"a\",\"value\":\"1\"},{\"key\":\"b\",\"value\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "[{\"key\":\"k\",\"value\":\"v\"}]": {
+          "verdict": "At least 2 items required",
+          "shown": "At least 2 items required"
+        }
+      },
+      "rules": {
+        "[{\"key\":\"a\",\"value\":\"1\"},{\"key\":\"b\",\"value\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "[{\"key\":\"k\",\"value\":\"v\"}]": {
+          "verdict": "At least 2 items required",
+          "shown": "At least 2 items required"
+        }
+      },
+      "optionalRules": {
+        "[{\"key\":\"a\",\"value\":\"1\"},{\"key\":\"b\",\"value\":\"2\"}]": {
+          "verdict": true,
+          "shown": null
+        },
+        "[]": {
+          "verdict": "At least 2 items required",
+          "shown": "At least 2 items required"
+        },
+        "[{\"key\":\"k\",\"value\":\"v\"}]": {
+          "verdict": "At least 2 items required",
+          "shown": "At least 2 items required"
+        }
+      }
+    },
+    "readOnly": {}
+  },
+  "FileUploadField": {
+    "verdicts": {
+      "none": {
+        "\"data:text/plain;base64,aGk=\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"x\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "empty": {
+        "\"data:text/plain;base64,aGk=\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"x\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "required": {
+        "\"data:text/plain;base64,aGk=\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"x\"": {
+          "verdict": true,
+          "shown": null
+        }
+      },
+      "rules": {
+        "\"data:text/plain;base64,aGk=\"": {
+          "verdict": "Maximum length is 12 characters",
+          "shown": "Maximum length is 12 characters"
+        },
+        "\"\"": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "null": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "undefined": {
+          "verdict": "This field is required",
+          "shown": "This field is required"
+        },
+        "\"x\"": {
+          "verdict": "Minimum length is 2 characters",
+          "shown": "Minimum length is 2 characters"
+        }
+      },
+      "optionalRules": {
+        "\"data:text/plain;base64,aGk=\"": {
+          "verdict": "Maximum length is 12 characters",
+          "shown": "Maximum length is 12 characters"
+        },
+        "\"\"": {
+          "verdict": true,
+          "shown": null
+        },
+        "null": {
+          "verdict": true,
+          "shown": null
+        },
+        "undefined": {
+          "verdict": true,
+          "shown": null
+        },
+        "\"x\"": {
+          "verdict": "Minimum length is 2 characters",
+          "shown": "Minimum length is 2 characters"
+        }
+      }
+    },
+    "readOnly": {
+      "{\"readOnly\":true}": {
+        "requiredEmpty": true,
+        "submitValid": 1
+      }
+    }
+  }
+}

@@ -36,6 +36,7 @@ import { LabelEndDemo } from './LabelEndDemo';
 import { RadioFieldCardDemo } from './RadioFieldCardDemo';
 import { ReadOnlySaveDemo } from './ReadOnlySaveDemo';
 import { SearchableMultiSelectFieldDemo } from './SearchableMultiSelectFieldDemo';
+import { ValidationMessagesDemo } from './ValidationMessagesDemo';
 
 // Form data interface with all field types
 interface FormFieldsData {
@@ -507,6 +508,7 @@ const form = useForm({ defaultValues: { ... } });
       <AmountExactEntryDemo />
       <RadioFieldCardDemo />
       <SearchableMultiSelectFieldDemo />
+      <ValidationMessagesDemo />
       <ReadOnlySaveDemo />
       <LabelEndDemo />
     </DemoSection>

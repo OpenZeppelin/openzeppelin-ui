@@ -11,9 +11,8 @@ import {
   type SearchableMultiSelectProps,
 } from '../ui/searchable-multi-select';
 import { BaseFieldProps, LabelEndProps } from './BaseField';
-import { ErrorMessage, getAccessibilityProps } from './utils';
+import { ErrorMessage, getAccessibilityProps, getRequiredMessage, runCustomCheck } from './utils';
 
-const REQUIRED_MESSAGE = 'This field is required';
 const INVALID_SELECTION_MESSAGE = 'Invalid selection';
 
 // INV-9, INV-22: one frozen empty list, so a non-array form value always maps to the same
@@ -133,12 +132,18 @@ export function SearchableMultiSelectField<TItem, TFieldValues extends FieldValu
           validate: (value) => {
             const ids = toIds(value);
             // INV-10: empty, nullish and non-array values all fail required.
-            if (ids.length === 0) return isRequired ? REQUIRED_MESSAGE : true;
-            if (!validateSelection) return true;
-            // INV-11: checks the array that will be submitted; never an empty message (A3).
-            const result = validateSelection(ids);
-            if (result === true) return true;
-            return typeof result === 'string' && result !== '' ? result : INVALID_SELECTION_MESSAGE;
+            if (ids.length === 0) return isRequired ? getRequiredMessage(validation) : true;
+            if (validateSelection) {
+              // INV-11: checks the array that will be submitted; never an empty message (A3).
+              const result = validateSelection(ids);
+              if (result !== true) {
+                return typeof result === 'string' && result !== ''
+                  ? result
+                  : INVALID_SELECTION_MESSAGE;
+              }
+            }
+            // A non-empty selection is the stored array itself, passed unchanged.
+            return runCustomCheck(value, validation);
           },
         }}
         render={({ field, fieldState: { error } }) => {

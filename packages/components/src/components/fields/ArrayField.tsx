@@ -7,7 +7,7 @@ import type { FormFieldType } from '@openzeppelin/ui-types';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { BaseFieldProps } from './BaseField';
-import { ErrorMessage, getAccessibilityProps } from './utils';
+import { ErrorMessage, getAccessibilityProps, getRequiredMessage, runCustomCheck } from './utils';
 
 /**
  * ArrayField component properties
@@ -251,12 +251,12 @@ export function ArrayField<TFieldValues extends FieldValues = FieldValues>({
       control={control || formContext?.control}
       name={name}
       rules={{
-        // TODO: Consider if custom validation functions passed via `validation.validate` prop
-        // should also be callable here, in addition to these built-in length checks.
         validate: (value) => {
+          const isEmpty = !Array.isArray(value) || value.length === 0;
+
           // Validate array constraints
-          if (validation?.required && (!Array.isArray(value) || value.length === 0)) {
-            return 'At least one item is required';
+          if (validation?.required && isEmpty) {
+            return getRequiredMessage(validation, 'At least one item is required');
           }
 
           if (minItems && Array.isArray(value) && value.length < minItems) {
@@ -267,7 +267,9 @@ export function ArrayField<TFieldValues extends FieldValues = FieldValues>({
             return `Maximum ${maxItems} item${maxItems > 1 ? 's' : ''} allowed`;
           }
 
-          return true;
+          // An empty optional value passes; the custom check never sees one (INV-9).
+          if (isEmpty) return true;
+          return runCustomCheck(value, validation);
         },
       }}
       render={({ fieldState: { error } }) => {
@@ -379,7 +381,12 @@ export function ArrayField<TFieldValues extends FieldValues = FieldValues>({
             )}
 
             {/* Error message */}
-            <ErrorMessage error={error} id={errorId} />
+            {/* RHF keeps a field array's own rule error at `error.root`. */}
+            <ErrorMessage
+              error={error}
+              id={errorId}
+              message={error?.root?.message ?? error?.message}
+            />
           </div>
         );
       }}

@@ -1,7 +1,11 @@
 import React from 'react';
 import { Controller, FieldValues } from 'react-hook-form';
 
-import { validateExactAmount } from './utils/decimalValidation';
+import {
+  AMOUNT_REQUIRED_MESSAGE,
+  isEmptyAmountValue,
+  validateExactAmount,
+} from './utils/decimalValidation';
 import { FieldLabelRow } from './utils/FieldLabelRow';
 import { getReadOnlyState } from './utils/readOnlyState';
 
@@ -12,9 +16,11 @@ import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
   handleNumericKeys,
+  runCustomCheck,
 } from './utils';
 
 /**
@@ -226,22 +232,29 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
           // The rules are re-registered on every render, so a runtime mode flip
           // validates with the mode now rendered (INV-24).
           validate: exactProps
-            ? (value) =>
-                validateExactAmount(value, {
+            ? (value) => {
+                const result = validateExactAmount(value, {
                   required: isRequired,
                   allowGrouping,
                   decimals,
                   min: exactProps.min,
                   max: exactProps.max,
                   validateAmount: exactProps.validateAmount,
-                })
+                  requiredMessage: getRequiredMessage(validation, AMOUNT_REQUIRED_MESSAGE),
+                });
+                // validateExactAmount also passes an empty optional value; the
+                // custom check must never see one (INV-9). It gets the stored
+                // exact string, never a float (INV-12).
+                if (result !== true || isEmptyAmountValue(value)) return result;
+                return runCustomCheck(value, validation);
+              }
             : (value) => {
                 // Convert to number for validation
                 const numValue = typeof value === 'string' ? parseFloat(value) : value;
 
                 // Handle required validation explicitly
                 if (value === undefined || value === null || value === '' || isNaN(numValue)) {
-                  return validation?.required ? 'This field is required' : true;
+                  return validation?.required ? getRequiredMessage(validation) : true;
                 }
 
                 // Validate min/max constraints
@@ -261,7 +274,7 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
                   }
                 }
 
-                return true;
+                return runCustomCheck(value, validation);
               },
         }}
         disabled={ro.controllerDisabled}

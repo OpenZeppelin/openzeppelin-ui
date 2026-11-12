@@ -7,8 +7,10 @@ import { BaseFieldProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getRequiredMessage,
   getValidationStateClasses,
   handleToggleKeys,
+  runCustomCheck,
   validateField,
 } from './utils';
 
@@ -70,7 +72,7 @@ export function BooleanField<TFieldValues extends FieldValues = FieldValues>({
       }
     }
 
-    return true;
+    return runCustomCheck(value, validation);
   };
 
   return (
@@ -85,7 +87,7 @@ export function BooleanField<TFieldValues extends FieldValues = FieldValues>({
           validate: (value) => {
             // Handle required validation specifically
             if (value === undefined || value === null) {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
 
             // For boolean values
@@ -96,7 +98,7 @@ export function BooleanField<TFieldValues extends FieldValues = FieldValues>({
               return validateBooleanValue(value);
             }
 
-            return true;
+            return runCustomCheck(value, validation);
           },
         }}
         disabled={readOnly}

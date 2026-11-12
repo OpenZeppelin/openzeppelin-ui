@@ -10,8 +10,10 @@ import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
+  runCustomCheck,
   validateField,
 } from './utils';
 
@@ -78,7 +80,9 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
   // Function for validating text values
   const validateTextValue = (value: string): string | true => {
     const validationResult = validateField(value, validation);
-    return validationResult === true ? true : (validationResult as string);
+    return validationResult === true
+      ? runCustomCheck(value, validation)
+      : (validationResult as string);
   };
 
   return (
@@ -100,7 +104,7 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
           validate: (value) => {
             // Handle required validation explicitly
             if (value === undefined || value === null || value === '') {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
 
             // Validate text values
@@ -108,7 +112,7 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
               return validateTextValue(value);
             }
 
-            return true;
+            return runCustomCheck(value, validation);
           },
         }}
         disabled={ro.controllerDisabled}

@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from '../ui/select';
 import { BaseFieldProps, LabelEndProps } from './BaseField';
-import { ErrorMessage, getAccessibilityProps } from './utils';
+import { ErrorMessage, getAccessibilityProps, getRequiredMessage, runCustomCheck } from './utils';
 
 /**
  * Option item for select fields with visual indicators
@@ -132,7 +132,7 @@ export function SelectGroupedField<TFieldValues extends FieldValues = FieldValue
           validate: (value) => {
             // Handle required validation explicitly
             if (value === undefined || value === null || value === '') {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
 
             // Run custom validation if provided
@@ -143,7 +143,7 @@ export function SelectGroupedField<TFieldValues extends FieldValues = FieldValue
               }
             }
 
-            return true;
+            return runCustomCheck(value, validation);
           },
         }}
         render={({ field, fieldState: { error } }) => {

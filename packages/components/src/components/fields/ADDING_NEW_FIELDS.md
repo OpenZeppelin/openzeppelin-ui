@@ -67,6 +67,7 @@ import { FieldValues, Controller, FieldPath } from 'react-hook-form';
 import { BaseFieldProps } from './BaseField';
 import { YourComponent } from '../ui/your-component';
 import { Label } from '../ui/label';
+import { getRequiredMessage, runCustomCheck } from './utils';
 import { cn } from '@openzeppelin/ui-utils';
 
 /**
@@ -120,7 +121,7 @@ export function YourNewField<TFieldValues extends FieldValues = FieldValues>({
           validate: (value) => {
             // Handle required validation explicitly
             if (value === undefined || value === null || value === '') {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
 
             // Run custom validation if provided
@@ -131,7 +132,8 @@ export function YourNewField<TFieldValues extends FieldValues = FieldValues>({
               }
             }
 
-            return true;
+            // The consumer's `validation.validate` runs last, on non-empty values only
+            return runCustomCheck(value, validation);
           },
         }}
         render={({ field, fieldState: { error } }) => {
@@ -176,6 +178,8 @@ export function YourNewField<TFieldValues extends FieldValues = FieldValues>({
 // Set displayName manually for better debugging
 YourNewField.displayName = 'YourNewField';
 ```
+
+`getRequiredMessage` and `runCustomCheck` come from `./utils`. They let your field honour `validation.messages` and `validation.validate` the same way the kit's fields do. Use `getRequiredMessage(validation)` wherever the field reports an empty required value; pass a second argument if your field has its own default wording. Send every non-empty value that passes your field's own checks through `runCustomCheck(value, validation)`, and never call it for an empty value, so an optional field stays optional. If your field calls `validateField`, it already applies the other custom messages.
 
 ## Step 4: Export Your Field Component
 

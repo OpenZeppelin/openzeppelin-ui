@@ -32,8 +32,10 @@ import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
+  runCustomCheck,
   validateField,
 } from './utils';
 
@@ -291,7 +293,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
 
     // Check required field explicitly first
     if (value === undefined || value === null || value === '') {
-      return validationRef.current?.required ? 'This field is required' : true;
+      return validationRef.current?.required ? getRequiredMessage(validationRef.current) : true;
     }
 
     // Perform standard validations (min, max, pattern, etc.) if they exist
@@ -308,8 +310,8 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
       }
     }
 
-    // If all checks pass
-    return true;
+    // The custom check gets the typed text, never a resolved address (INV-12).
+    return runCustomCheck(value, validationRef.current);
   }, []);
 
   const { field, fieldState } = useController({

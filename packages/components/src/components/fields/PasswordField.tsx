@@ -12,8 +12,10 @@ import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
+  runCustomCheck,
   validateField,
 } from './utils';
 
@@ -78,7 +80,9 @@ export function PasswordField<TFieldValues extends FieldValues = FieldValues>({
   // Function for validating password values
   const validatePasswordValue = (value: string): string | true => {
     const validationResult = validateField(value, validation);
-    return validationResult === true ? true : (validationResult as string);
+    return validationResult === true
+      ? runCustomCheck(value, validation)
+      : (validationResult as string);
   };
 
   // Toggle password visibility
@@ -105,7 +109,7 @@ export function PasswordField<TFieldValues extends FieldValues = FieldValues>({
           validate: (value) => {
             // Handle required validation explicitly
             if (value === undefined || value === null || value === '') {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
 
             // Validate password values
@@ -113,7 +117,7 @@ export function PasswordField<TFieldValues extends FieldValues = FieldValues>({
               return validatePasswordValue(value);
             }
 
-            return true;
+            return runCustomCheck(value, validation);
           },
         }}
         disabled={ro.controllerDisabled}

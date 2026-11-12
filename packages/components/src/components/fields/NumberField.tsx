@@ -10,8 +10,11 @@ import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getActiveMessages,
+  getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
+  runCustomCheck,
   validateField,
 } from './utils';
 
@@ -98,10 +101,16 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
     COMPLETE_NUMBER: /^-?\d+\.?\d*$/,
   };
 
-  // Common validation for numeric values
-  const validateNumericValue = (value: number): string | true => {
-    // Run standard validation
-    const standardValidation = validateField(value, mergedValidation);
+  // Common validation for numeric values. `storedValue` is what the form holds,
+  // passed to the custom check unchanged rather than the parsed number (INV-12).
+  const validateNumericValue = (value: number, storedValue: unknown): string | true => {
+    // Run standard validation. Messages come from the consumer's own rules, so a
+    // bound taken from the `min`/`max` props keeps its wording (INV-13).
+    const standardValidation = validateField(
+      value,
+      mergedValidation,
+      getActiveMessages(validation)
+    );
     if (standardValidation !== true) return standardValidation as string;
 
     // Run custom validator if provided
@@ -112,7 +121,7 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
       }
     }
 
-    return true;
+    return runCustomCheck(storedValue, validation);
   };
 
   return (
@@ -134,7 +143,7 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
           validate: (value) => {
             // Skip validation if empty and check required separately
             if (value === undefined || value === null || value === '') {
-              return mergedValidation?.required ? 'This field is required' : true;
+              return mergedValidation?.required ? getRequiredMessage(validation) : true;
             }
 
             // Handle incomplete number inputs
@@ -154,15 +163,15 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
               if (isNaN(parsedNum)) {
                 return 'Invalid number'; // Explicitly return error for NaN
               }
-              return validateNumericValue(parsedNum);
+              return validateNumericValue(parsedNum, value);
             }
 
             // For already numeric values
             if (typeof value === 'number') {
-              return validateNumericValue(value);
+              return validateNumericValue(value, value);
             }
 
-            return true;
+            return runCustomCheck(value, validation);
           },
         }}
         disabled={ro.controllerDisabled}

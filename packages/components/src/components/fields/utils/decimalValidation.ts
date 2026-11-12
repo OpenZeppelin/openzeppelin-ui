@@ -226,6 +226,8 @@ export interface ExactAmountValidationOptions {
   readonly min?: number | string;
   readonly max?: number | string;
   readonly validateAmount?: (value: string) => boolean | string;
+  /** Text for an empty required value. Defaults to `AMOUNT_REQUIRED_MESSAGE`. */
+  readonly requiredMessage?: string;
 }
 
 /** A bound as a plain decimal string, or `null` when it cannot be used. */
@@ -246,7 +248,9 @@ export function validateExactAmount(
 ): true | string {
   // 1. Empty.
   const coerced = coerceAmountValue(value);
-  if (coerced.kind === 'empty') return opts.required ? AMOUNT_REQUIRED_MESSAGE : true;
+  if (coerced.kind === 'empty') {
+    return opts.required ? (opts.requiredMessage ?? AMOUNT_REQUIRED_MESSAGE) : true;
+  }
 
   // 2. Value type (INV-16): unknown types never pass and never read as empty.
   if (coerced.kind === 'unsupported') return AMOUNT_GENERIC_MESSAGE;

@@ -3,9 +3,81 @@
  */
 import { FieldError } from 'react-hook-form';
 
-import { FieldValidation, MapEntry } from '@openzeppelin/ui-types';
+import { FieldValidation, FieldValidationMessages, MapEntry } from '@openzeppelin/ui-types';
+import { logger } from '@openzeppelin/ui-utils';
 
 import { INTEGER_PATTERN } from './integerValidation';
+
+/** Default text for a required field left empty. */
+export const REQUIRED_MESSAGE = 'This field is required';
+
+/**
+ * Shown when a custom check (`FieldValidation.validate`) fails without a usable
+ * message or throws. Same text `getErrorMessage` falls back to.
+ */
+export const CUSTOM_CHECK_FALLBACK_MESSAGE = 'This field is invalid';
+
+const MESSAGE_KEYS = ['required', 'min', 'max', 'minLength', 'maxLength', 'pattern'] as const;
+
+/**
+ * The custom messages that can apply: those whose rule is set on `validation`
+ * (`required` truthy, every other rule not `undefined`) and whose text is a
+ * non-empty string. Anything else in `messages`, including a non-object loaded
+ * from a stored config, is ignored. Returns a new object, `{}` when nothing applies.
+ */
+export function getActiveMessages(validation?: FieldValidation): FieldValidationMessages {
+  const active: FieldValidationMessages = {};
+  const messages: unknown = validation?.messages;
+  if (!validation || typeof messages !== 'object' || messages === null || Array.isArray(messages)) {
+    return active;
+  }
+  const source = messages as Record<string, unknown>;
+  for (const key of MESSAGE_KEYS) {
+    const ruleSet =
+      key === 'required' ? Boolean(validation.required) : validation[key] !== undefined;
+    const text = source[key];
+    if (ruleSet && typeof text === 'string' && text !== '') active[key] = text;
+  }
+  return active;
+}
+
+/**
+ * The text a field shows when its required rule fails: the custom
+ * `messages.required` when active, otherwise `fieldDefault` (the field's own
+ * wording, `REQUIRED_MESSAGE` unless the field has its own).
+ */
+export function getRequiredMessage(
+  validation: FieldValidation | undefined,
+  fieldDefault: string = REQUIRED_MESSAGE
+): string {
+  return getActiveMessages(validation).required ?? fieldDefault;
+}
+
+/**
+ * Runs the custom check `validation.validate` on a non-empty value. Fields call
+ * it last, after required, their built-in rules and their own validator passed.
+ *
+ * Returns `true` when there is no check or it returns exactly `true`, and the
+ * returned string when it is non-empty. Any other result fails closed with
+ * `CUSTOM_CHECK_FALLBACK_MESSAGE`. Never throws: a thrown error is logged
+ * (without the value, which may be a secret) and fails with the same text, so a
+ * broken check can neither let a value through nor leave a submit hanging.
+ */
+export function runCustomCheck(value: unknown, validation?: FieldValidation): true | string {
+  // A config from outside TypeScript can hold anything here.
+  const check = validation?.validate;
+  if (typeof check !== 'function') return true;
+
+  let result: unknown;
+  try {
+    result = check(value);
+  } catch (error) {
+    logger.error('FieldValidation', 'Custom validate check threw', error);
+    return CUSTOM_CHECK_FALLBACK_MESSAGE;
+  }
+  if (result === true) return true;
+  return typeof result === 'string' && result !== '' ? result : CUSTOM_CHECK_FALLBACK_MESSAGE;
+}
 
 /**
  * Determines if a field has an error
@@ -112,17 +184,27 @@ export function createValidationResult(
 
 /**
  * Generic field validation function that can be used to validate any field type
- * based on common validation criteria
+ * based on common validation criteria.
+ *
+ * Each failing rule returns its custom text from `messages` when present,
+ * otherwise its default text. `messages` defaults to the active messages of
+ * `validation`. A field that injects rules of its own into `validation` passes
+ * the active messages of the consumer's original `validation`, so an injected
+ * rule never shows a message meant for a rule the consumer didn't set.
+ *
+ * Does not run `validation.validate`; fields call `runCustomCheck` for that.
  */
-export function validateField(value: unknown, validation?: FieldValidation): string | boolean {
+export function validateField(
+  value: unknown,
+  validation?: FieldValidation,
+  messages: FieldValidationMessages = getActiveMessages(validation)
+): string | boolean {
   // Return true if no validation rules are provided
   if (!validation) return true;
 
   // Check if required but empty
   if (validation.required && (value === undefined || value === null || value === '')) {
-    return typeof validation.required === 'boolean'
-      ? 'This field is required'
-      : 'This field is required'; // Always return the standard message for required fields
+    return messages.required ?? REQUIRED_MESSAGE;
   }
 
   // Skip other validations if value is empty and not required
@@ -133,11 +215,11 @@ export function validateField(value: unknown, validation?: FieldValidation): str
   // Validate string length
   if (typeof value === 'string') {
     if (validation.minLength && value.length < validation.minLength) {
-      return `Minimum length is ${validation.minLength} characters`;
+      return messages.minLength ?? `Minimum length is ${validation.minLength} characters`;
     }
 
     if (validation.maxLength && value.length > validation.maxLength) {
-      return `Maximum length is ${validation.maxLength} characters`;
+      return messages.maxLength ?? `Maximum length is ${validation.maxLength} characters`;
     }
 
     // Validate pattern
@@ -148,6 +230,7 @@ export function validateField(value: unknown, validation?: FieldValidation): str
           : validation.pattern;
 
       if (!pattern.test(value)) {
+        if (messages.pattern) return messages.pattern;
         // Provide more specific error message for integer validation
         if (!INTEGER_PATTERN.test(value) && /\d/.test(value)) {
           return 'Value must be a valid integer (no decimals)';
@@ -162,11 +245,11 @@ export function validateField(value: unknown, validation?: FieldValidation): str
     const numValue = typeof value === 'number' ? value : Number(value);
 
     if (validation.min !== undefined && numValue < validation.min) {
-      return `Minimum value is ${validation.min}`;
+      return messages.min ?? `Minimum value is ${validation.min}`;
     }
 
     if (validation.max !== undefined && numValue > validation.max) {
-      return `Maximum value is ${validation.max}`;
+      return messages.max ?? `Maximum value is ${validation.max}`;
     }
   }
 

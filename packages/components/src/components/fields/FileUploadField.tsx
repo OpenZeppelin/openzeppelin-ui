@@ -5,7 +5,7 @@ import { Controller, FieldValues } from 'react-hook-form';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { BaseFieldProps } from './BaseField';
-import { ErrorMessage, getAccessibilityProps, validateField } from './utils';
+import { ErrorMessage, getAccessibilityProps, runCustomCheck, validateField } from './utils';
 
 /**
  * FileUploadField component properties
@@ -217,7 +217,8 @@ export function FileUploadField<TFieldValues extends FieldValues = FieldValues>(
             return `File size must be less than ${maxSizeMB} MB`;
           }
 
-          return validateField(value, validation);
+          const standardResult = validateField(value, validation);
+          return standardResult === true ? runCustomCheck(value, validation) : standardResult;
         },
       }}
       disabled={readOnly}

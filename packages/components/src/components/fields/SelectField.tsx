@@ -9,7 +9,7 @@ import { getReadOnlyState } from './utils/readOnlyState';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
-import { ErrorMessage, getAccessibilityProps } from './utils';
+import { ErrorMessage, getAccessibilityProps, getRequiredMessage, runCustomCheck } from './utils';
 
 /**
  * Option item for select fields
@@ -141,7 +141,7 @@ export function SelectField<TFieldValues extends FieldValues = FieldValues>({
           validate: (value) => {
             // Handle required validation explicitly
             if (value === undefined || value === null || value === '') {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
 
             // Run custom validation if provided
@@ -152,7 +152,7 @@ export function SelectField<TFieldValues extends FieldValues = FieldValues>({
               }
             }
 
-            return true;
+            return runCustomCheck(value, validation);
           },
         }}
         render={({ field, fieldState: { error } }) => {
