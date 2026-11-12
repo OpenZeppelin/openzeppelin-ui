@@ -204,9 +204,7 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
-  // INV-10: AmountField has always ignored `readOnly` on its own, so only the explicit
-  // opt-in feeds it in; default mode passes `undefined` everywhere, exactly as today.
-  const ro = getReadOnlyState(readOnlyMode === 'readonly' ? readOnly : undefined, readOnlyMode);
+  const ro = getReadOnlyState(readOnly, readOnlyMode);
 
   return (
     <div
