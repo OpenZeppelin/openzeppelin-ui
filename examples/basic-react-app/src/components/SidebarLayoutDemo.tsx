@@ -137,6 +137,14 @@ function AppLayout() {
                       icon={<Users className="size-4" />}
                       isSelected={activeItem === 'users'}
                       onClick={() => setActiveItem('users')}
+                      badge="3"
+                      trailing={
+                        <span
+                          aria-hidden="true"
+                          data-testid="sidebar-badge-trailing-dot"
+                          className="bg-primary size-2 rounded-full"
+                        />
+                      }
                     >
                       Users
                     </SidebarButton>

@@ -37,7 +37,21 @@ describe('SidebarButton trailing slot (SF-13 S1)', () => {
     const badge = screen.getByText('3');
     const slot = screen.getByTestId('dot').parentElement as HTMLElement;
     expect(badge.compareDocumentPosition(slot) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(row.lastElementChild).toBe(slot);
+    // Badge and slot sit in one end group pushed right, so the badge stays at the right edge
+    // next to the slot instead of right after the label.
+    const group = row.lastElementChild as HTMLElement;
+    expect(group.contains(slot)).toBe(true);
+    expect(group.contains(badge)).toBe(true);
+    expect(group.className).toContain('ml-auto');
+    expect(slot.className).not.toContain('ml-auto');
+    expect(row.querySelectorAll('.ml-auto')).toHaveLength(1);
+  });
+
+  it('trailing without a badge keeps its own auto margin', () => {
+    render(<SidebarButton trailing={dot}>Inbox</SidebarButton>);
+    const slot = screen.getByTestId('dot').parentElement as HTMLElement;
+    expect(slot.className).toContain('ml-auto');
+    expect(screen.getByRole('button').lastElementChild).toBe(slot);
   });
 
   it('keeps the selected style, current-page marker and click behaviour unchanged', async () => {

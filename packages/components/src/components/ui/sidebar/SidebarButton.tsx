@@ -57,19 +57,31 @@ export function SidebarButton({
   // Only the selected, enabled item is the current page; omitted otherwise.
   const currentPage = isSelected && !disabled ? 'page' : undefined;
 
+  const hasTrailing = trailing != null && trailing !== false;
+  const badgeElement = badge ? (
+    <span className="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded-full font-medium">
+      {badge}
+    </span>
+  ) : null;
+
   const content = (
     <>
       <div className="flex items-center gap-2">
         {icon}
         {children}
       </div>
-      {badge && (
-        <span className="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded-full font-medium">
-          {badge}
+      {badge && hasTrailing ? (
+        // One end group: an auto margin on the trailing slot alone would take the free space
+        // and leave the badge right after the label.
+        <span className="ml-auto flex shrink-0 items-center gap-2">
+          {badgeElement}
+          <span className="flex shrink-0 items-center">{trailing}</span>
         </span>
-      )}
-      {trailing != null && trailing !== false && (
-        <span className="ml-auto flex shrink-0 items-center">{trailing}</span>
+      ) : (
+        <>
+          {badgeElement}
+          {hasTrailing && <span className="ml-auto flex shrink-0 items-center">{trailing}</span>}
+        </>
       )}
     </>
   );
