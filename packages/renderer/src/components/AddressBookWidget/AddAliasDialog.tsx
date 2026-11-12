@@ -61,7 +61,7 @@ interface ResolvingAliasAddressFieldProps extends AddressFieldProps<AddAliasForm
   /**
    * Network the dialog will save the alias under. Forward and reverse ENS use
    * this network's runtime when set, so resolution follows the dropdown without
-   * switching the wallet-global network. The SF-6 chain-scope gate must compare
+   * switching the wallet-global network. The chain-scope gate must compare
    * provenance against THIS id (not the wallet's active network), otherwise a
    * mainnet resolve can be saved as a Base-scoped book entry.
    */
@@ -69,11 +69,11 @@ interface ResolvingAliasAddressFieldProps extends AddressFieldProps<AddAliasForm
 }
 
 /**
- * ENS-capable variant of the alias address field (SF-5 over SF-3 Rev-2): the
+ * ENS-capable variant of the alias address field: the
  * base `AddressField` wired to the active runtime through the injected
  * `NameResolverContext`. A separate component so the runtime wiring hook
  * mounts only when `enableNameResolution` is on — the legacy branch stays
- * hook-free and byte-identical (INV-95 / INV-107).
+ * hook-free and byte-identical.
  *
  * Chain-scope gate uses the dialog-selected network (fallback: wallet active)
  * so the gate network matches `onSave`'s `networkId`.
@@ -161,16 +161,16 @@ export function AddAliasDialog({
       mode: 'onChange',
     });
 
-  // INV-103 / INV-112: "the user claimed the alias" is tracked from the alias
+  // "The user claimed the alias" is tracked from the alias
   // field's OWN user edits (`TextField.onUserEdit`), set synchronously inside the
   // keystroke handler — strictly before any resolution effect can flush, so a
   // settling suggestion can never clobber a just-typed alias. RHF's `dirtyFields`
   // cannot carry this: an address keystroke's form-wide dirty recompute
   // retroactively marks the seeded (value ≠ default) alias dirty even though it
-  // was written with `shouldDirty: false`, which suppressed every later re-seed
-  // (INV-102/INV-105). Sticky for the dialog session; cleared with each `reset()`.
+  // was written with `shouldDirty: false`, which suppressed every later re-seed.
+  // Sticky for the dialog session; cleared with each `reset()`.
   // Inert on the legacy path (nothing reads it when `enableNameResolution` is
-  // off — INV-107).
+  // off).
   const aliasClaimedRef = useRef(false);
   const handleAliasUserEdit = useCallback(() => {
     aliasClaimedRef.current = true;
@@ -179,19 +179,19 @@ export function AddAliasDialog({
   // Alias auto-suggestion from the resolved ENS name (wired ONLY to the ENS-aware field).
   const handleResolvedName = useCallback(
     (name: string | undefined) => {
-      // INV-103: once the user has typed in the alias, the field is theirs for the rest
+      // Once the user has typed in the alias, the field is theirs for the rest
       // of the dialog session — neither a new suggestion nor a withdrawal touches it.
       if (aliasClaimedRef.current) return;
       const next = name ?? '';
-      // INV-96 parity: with nothing to seed and nothing to withdraw, leave the
+      // With nothing to seed and nothing to withdraw, leave the
       // field alone. In particular the mount-time `undefined` emission must not
       // validate the pristine alias — the ENS branch mounts as clean as legacy
       // ("This field is required" never appears before any interaction).
       if (next === getValues('alias')) return;
-      // INV-102 (seed while unclaimed) + INV-104 (withdraw to '' on `undefined` while
-      // unclaimed — CQ3: blank while re-resolving, never show a stale name that no longer
-      // matches the address being resolved) + INV-105 (successive resolutions keep
-      // updating the unclaimed seed). INV-116: writes a value only, never focus.
+      // Seed while unclaimed, withdraw to '' on `undefined` while unclaimed (blank while
+      // re-resolving, never show a stale name that no longer matches the address being
+      // resolved), and keep updating the unclaimed seed on successive resolutions.
+      // Writes a value only, never focus.
       setValue('alias', next, { shouldDirty: false, shouldValidate: true });
     },
     [getValues, setValue]
@@ -320,7 +320,7 @@ export function AddAliasDialog({
             </div>
           )}
 
-          {/* INV-95: a single static branch over element choice only — never a
+          {/* A single static branch over element choice only — never a
               conditional hook, never both fields mounted. All props are identical across
               branches except the ENS-only `onResolvedNameChange` notification. */}
           {enableNameResolution ? (
