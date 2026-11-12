@@ -96,7 +96,16 @@ export const q = {
   search: () => must(bySlot<HTMLInputElement>('search'), 'search box'),
   listbox: () => must(bySlot<HTMLElement>('listbox'), 'listbox'),
   status: () => must(bySlot<HTMLElement>('empty'), 'status region'),
-  summary: () => bySlot<HTMLElement>('summary'),
+  /** The filled selection row (text + Clear all). The empty reserved band is `band()`. */
+  summary: () =>
+    document.querySelector<HTMLElement>(
+      '[data-slot="searchable-multi-select-summary"]:not([data-empty])'
+    ),
+  /** The empty, aria-hidden band that reserves the row's height at zero selected. */
+  band: () =>
+    document.querySelector<HTMLElement>(
+      '[data-slot="searchable-multi-select-summary"][data-empty]'
+    ),
   clear: () => bySlot<HTMLButtonElement>('clear'),
   options: () =>
     Array.from(

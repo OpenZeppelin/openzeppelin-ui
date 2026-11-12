@@ -166,7 +166,11 @@ export const q = {
   search: () => must(slot<HTMLInputElement>('network-selector-search'), 'search box'),
   listbox: () => must(slot<HTMLElement>('network-selector-listbox'), 'listbox'),
   status: () => must(slot<HTMLElement>('network-selector-empty'), 'status region'),
-  summary: () => slot<HTMLElement>('network-selector-summary'),
+  /** The filled selection row. The empty reserved band at zero selected is `band()`. */
+  summary: () =>
+    document.querySelector<HTMLElement>('[data-slot="network-selector-summary"]:not([data-empty])'),
+  band: () =>
+    document.querySelector<HTMLElement>('[data-slot="network-selector-summary"][data-empty]'),
   clear: () => slot<HTMLButtonElement>('network-selector-clear'),
   options: () =>
     Array.from(document.querySelectorAll<HTMLElement>('[data-slot="network-selector-option"]')),

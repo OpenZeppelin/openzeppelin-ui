@@ -18,9 +18,9 @@ import { cn } from '@openzeppelin/ui-utils';
 import { toggleId } from './searchable-multi-select/list-model';
 import {
   SearchableSelectCore,
-  type ListHeaderContext,
   type ListName,
   type OptionState,
+  type SelectionSummary,
   type TriggerState,
 } from './searchable-multi-select/searchable-select-core';
 
@@ -215,33 +215,15 @@ export function NetworkSelector<T>({
     [isMultiple, getNetworkIcon, getNetworkLabel, getNetworkType, getNetworkDisabledLabel]
   );
 
-  // INV-7: the selection row exists only in multi mode with a selection.
-  const renderListHeader = React.useMemo(() => {
-    if (!onSelectionChange || count === 0) return undefined;
-    return function renderSelectionRow({ focusSearch }: ListHeaderContext): React.ReactNode {
-      return (
-        <div
-          data-slot="network-selector-summary"
-          className="flex items-center justify-between border-b px-3 py-1.5"
-        >
-          <span className="text-xs font-medium text-muted-foreground">
-            {formatSelectionSummary(count, total)}
-          </span>
-          <button
-            // INV-17: never submits an enclosing form.
-            type="button"
-            data-slot="network-selector-clear"
-            className="text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
-            onClick={() => {
-              // INV-21: move focus before this button unmounts, so it never falls to <body>.
-              focusSearch();
-              onSelectionChange([]); // INV-11
-            }}
-          >
-            {clearAllLabel}
-          </button>
-        </div>
-      );
+  // INV-7: the selection row exists only in multi mode; the core shows its text and Clear all
+  // only with a selection, and keeps its height at zero.
+  const selectionSummary = React.useMemo<SelectionSummary | undefined>(() => {
+    if (!onSelectionChange) return undefined;
+    return {
+      count,
+      text: count > 0 ? formatSelectionSummary(count, total) : '',
+      clearLabel: clearAllLabel,
+      onClear: () => onSelectionChange([]), // INV-11
     };
   }, [onSelectionChange, count, total, formatSelectionSummary, clearAllLabel]);
 
@@ -326,7 +308,7 @@ export function NetworkSelector<T>({
       isSelected={isSelected}
       onActivate={onActivate}
       renderTrigger={renderTrigger}
-      renderListHeader={renderListHeader}
+      selectionSummary={selectionSummary}
       searchPlaceholder={searchPlaceholder}
       searchLabel={searchLabel}
       // INV-24 (P-1): shown and announced in every mode; no grouped-only fallback.

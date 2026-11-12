@@ -376,8 +376,12 @@ describe('INV-7: the selection row appears only in multi mode with a selection',
     if (text === null) {
       expect(q.summary()).toBeNull();
       expect(q.clear()).toBeNull();
+      // The empty band reserves the row's height without adding text.
+      expect(q.band()?.getAttribute('aria-hidden')).toBe('true');
+      expect(q.band()?.textContent).toBe('');
       return;
     }
+    expect(q.band()).toBeNull();
     expect(q.summary()?.firstElementChild?.textContent).toBe(text);
     const clear = q.clear() as HTMLButtonElement;
     expect(clear.getAttribute('type')).toBe('button');
@@ -404,6 +408,7 @@ describe('INV-7: the selection row appears only in multi mode with a selection',
     await user.click(q.trigger());
     expect(q.summary()).toBeNull();
     expect(q.clear()).toBeNull();
+    expect(q.band()).toBeNull();
   });
 
   it('a custom formatSelectionSummary renders verbatim', async () => {

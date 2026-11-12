@@ -11,7 +11,11 @@ import { cn, logger } from '@openzeppelin/ui-utils';
 
 import { Button } from '../button';
 import { toggleId } from './list-model';
-import { SearchableSelectCore, type ListName } from './searchable-select-core';
+import {
+  SearchableSelectCore,
+  type ListName,
+  type SelectionSummary,
+} from './searchable-select-core';
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
 const DIAGNOSTIC_SYSTEM = 'SearchableMultiSelect';
@@ -232,32 +236,13 @@ export function SearchableMultiSelect<T>({
     </Button>
   );
 
-  // INV-5: the summary row exists only when something is selected.
-  const renderListHeader =
-    count > 0
-      ? ({ focusSearch }: { readonly focusSearch: () => void }): React.ReactNode => (
-          <div
-            data-slot="searchable-multi-select-summary"
-            className="flex items-center justify-between border-b px-3 py-1.5"
-          >
-            <span className="text-xs font-medium text-muted-foreground">
-              {formatSelectionSummary(count, total)}
-            </span>
-            <button
-              type="button"
-              data-slot="searchable-multi-select-clear"
-              className="text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
-              onClick={() => {
-                // INV-30: move focus before this button unmounts, so it never falls to <body>.
-                focusSearch();
-                onSelectionChange([]);
-              }}
-            >
-              {clearAllLabel}
-            </button>
-          </div>
-        )
-      : undefined;
+  // INV-5: the core always renders the row; it shows text and Clear all only with a selection.
+  const selectionSummary: SelectionSummary = {
+    count,
+    text: count > 0 ? formatSelectionSummary(count, total) : '',
+    clearLabel: clearAllLabel,
+    onClear: () => onSelectionChange([]),
+  };
 
   return (
     <>
@@ -270,7 +255,7 @@ export function SearchableMultiSelect<T>({
         isSelected={isSelected}
         onActivate={handleActivate}
         renderTrigger={renderTrigger}
-        renderListHeader={renderListHeader}
+        selectionSummary={selectionSummary}
         searchPlaceholder={searchPlaceholder}
         searchLabel={searchLabel}
         emptyText={emptyText}

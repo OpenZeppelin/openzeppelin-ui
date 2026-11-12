@@ -92,12 +92,39 @@ describe('INV-2: open structure is dialog → search → summary → listbox →
     expect(trigger.getAttribute('aria-haspopup')).toBe('dialog');
   });
 
-  it('boundary: no selection → no summary row between search and listbox', async () => {
+  it("boundary: no selection → an empty, hidden band holds the row's place", async () => {
     const user = userEvent.setup();
     render(<Controlled />);
     await user.click(q.trigger());
     expect(q.summary()).toBeNull();
-    expect(follows(q.search(), q.listbox())).toBe(true);
+    const band = q.band() as HTMLElement;
+    expect(band).not.toBeNull();
+    expect(band.getAttribute('aria-hidden')).toBe('true');
+    expect(band.textContent).toBe('');
+    expect(band.querySelector('button')).toBeNull();
+    expect(follows(q.search(), band)).toBe(true);
+    expect(follows(band, q.listbox())).toBe(true);
+  });
+
+  it('the band and the filled row share one box, so the first pick and Clear all never move the list', async () => {
+    const user = userEvent.setup();
+    render(<Controlled />);
+    await user.click(q.trigger());
+    const bandClass = (q.band() as HTMLElement).className;
+    const listboxPrev = q.listbox().previousElementSibling;
+    expect(listboxPrev).toBe(q.band());
+
+    await user.click(q.option('France'));
+    expect(q.band()).toBeNull();
+    const row = q.summary() as HTMLElement;
+    expect(row.className).toBe(bandClass);
+    expect(bandClass).toContain('h-7');
+    expect(bandClass).not.toMatch(/\bpy-/);
+    expect(q.listbox().previousElementSibling).toBe(row);
+
+    await user.click(q.clear() as HTMLButtonElement);
+    expect(q.summary()).toBeNull();
+    expect((q.band() as HTMLElement).className).toBe(bandClass);
   });
 });
 

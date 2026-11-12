@@ -11,5 +11,5 @@ If your tests query the open list by role, query `listbox` and `option` instead 
 Visual and DOM changes to check if you style or test the open list:
 
 - The separators between ecosystem groups, and below the selection row, are gone. Group headers still label each group.
-- In multiple mode the selection row ("2 selected", Clear all) sits between the search box and the list and stays in place while the list scrolls; it used to scroll with the list.
+- In multiple mode the selection row ("2 selected", Clear all) sits between the search box and the list and stays in place while the list scrolls; it used to scroll with the list. With nothing selected the row is an empty band of the same height, so the first pick and Clear all don't move the list under the pointer.
 - Every element in the popover carries a `data-slot` named `network-selector-*` (`network-selector-content`, `-search`, `-listbox`, `-option`, `-empty`, `-summary`, `-clear`), next to the existing `network-selector-trigger`.

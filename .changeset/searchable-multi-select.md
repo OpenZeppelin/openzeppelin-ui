@@ -6,4 +6,5 @@ Add `SearchableMultiSelect`, a searchable multi-select for any item type. You su
 
 - Naming: `aria-labelledby` or `aria-label` names the trigger, the dialog and the listbox. The trigger reads the label followed by its own text, for example "Countries 2 selected". Without either, the trigger is named by its text and the dialog and listbox by the placeholder.
 - `aria-required`: a button cannot carry it, so the trigger gets a hidden "Required" text in its description instead.
+- Selection row: the row with the summary text and Clear all sits between the search box and the list. With nothing selected it is an empty band of the same height, so the first pick and Clear all don't move the list under the pointer.
 - `readOnly`: the trigger stays enabled and focusable, the dialog does not open (an open one closes), and the trigger gets the kit's read-only look and a hidden "Read-only" text in its description.

@@ -44,10 +44,16 @@ export interface TriggerState {
   readonly triggerAria: TriggerAria;
 }
 
-/** Passed to `renderListHeader`. */
-export interface ListHeaderContext {
-  /** Move focus back to the search box (e.g. after a header control unmounts itself). */
-  readonly focusSearch: () => void;
+/** The selection row between the search box and the listbox (multi mode). */
+export interface SelectionSummary {
+  /** Selected count. At 0 the row is an empty, aria-hidden band of the same height. */
+  readonly count: number;
+  /** Row text, e.g. "2 selected". Shown only while `count > 0`. */
+  readonly text: string;
+  /** Clear button text. */
+  readonly clearLabel: string;
+  /** Called by the clear button, after focus has moved to the search box. */
+  readonly onClear: () => void;
 }
 
 /** Accessible name for the listbox and the popover dialog (INV-17). */
@@ -82,8 +88,11 @@ export interface SearchableSelectCoreProps<T> {
    * button that opens a dialog.
    */
   readonly renderTrigger: (state: TriggerState) => React.ReactElement;
-  /** Rendered between the search box and the listbox. */
-  readonly renderListHeader?: (context: ListHeaderContext) => React.ReactNode;
+  /**
+   * The selection row, between the search box and the listbox. While it is passed the row is
+   * always rendered, so the first pick or Clear all never shifts the list under the pointer.
+   */
+  readonly selectionSummary?: SelectionSummary;
 
   readonly searchPlaceholder: string;
   readonly searchLabel: string;
@@ -115,6 +124,9 @@ function optionDomId(listboxId: string, option: ListOption<unknown>): string {
   return `${listboxId}-opt-${option.sourceIndex}`;
 }
 
+/** Fixed height (no vertical padding), so the empty and filled selection rows match exactly. */
+const SUMMARY_ROW_CLASS = 'flex h-7 items-center justify-between border-b px-3';
+
 /** IME composition Enter belongs to the IME (Dev Notes A4). 229 is the legacy "composing" keyCode. */
 const IME_COMPOSING_KEY_CODE = 229;
 
@@ -138,7 +150,7 @@ export function SearchableSelectCore<T>({
   isSelected,
   onActivate,
   renderTrigger,
-  renderListHeader,
+  selectionSummary,
   searchPlaceholder,
   searchLabel,
   emptyText,
@@ -368,7 +380,35 @@ export function SearchableSelectCore<T>({
             className="h-9 w-full border-0 bg-transparent p-0 placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
           />
         </div>
-        {renderListHeader?.({ focusSearch })}
+        {selectionSummary &&
+          (selectionSummary.count > 0 ? (
+            <div data-slot={`${slotPrefix}-summary`} className={SUMMARY_ROW_CLASS}>
+              <span className="text-xs font-medium text-muted-foreground">
+                {selectionSummary.text}
+              </span>
+              <button
+                // INV-17: never submits an enclosing form.
+                type="button"
+                data-slot={`${slotPrefix}-clear`}
+                className="text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+                onClick={() => {
+                  // INV-30: move focus before this button unmounts, so it never falls to <body>.
+                  focusSearch();
+                  selectionSummary.onClear();
+                }}
+              >
+                {selectionSummary.clearLabel}
+              </button>
+            </div>
+          ) : (
+            // Same height, no text: reserves the row so the list does not move.
+            <div
+              data-slot={`${slotPrefix}-summary`}
+              data-empty=""
+              aria-hidden="true"
+              className={SUMMARY_ROW_CLASS}
+            />
+          ))}
         <div
           id={listboxId}
           role="listbox"
