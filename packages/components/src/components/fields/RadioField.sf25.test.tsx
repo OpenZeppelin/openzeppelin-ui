@@ -13,7 +13,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
-import React from 'react';
 import { useForm, type UseFormReturn } from 'react-hook-form';
 
 import { RadioField, type RadioFieldProps, type RadioOption } from './RadioField';

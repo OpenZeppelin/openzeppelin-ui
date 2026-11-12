@@ -119,7 +119,7 @@ interface GroupedValues {
 
 /** SelectGroupedField in an RHF form; `defaultValue` undefined leaves the field empty. */
 function mountGrouped(defaultValue?: string): {
-  trigger: () => HTMLElement;
+  trigger: () => HTMLButtonElement;
   api: () => UseFormReturn<GroupedValues>;
 } {
   let form: UseFormReturn<GroupedValues> | undefined;
@@ -149,7 +149,7 @@ function mountGrouped(defaultValue?: string): {
   }
   const utils = render(<Host />);
   return {
-    trigger: () => utils.container.querySelector('#net') as HTMLElement,
+    trigger: () => utils.container.querySelector('#net') as HTMLButtonElement,
     api: () => {
       if (!form) throw new Error('form not mounted');
       return form;

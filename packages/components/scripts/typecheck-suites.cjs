@@ -6,6 +6,10 @@
  * has its own configuration. Globbing them here means a new suite is covered in CI
  * without anyone remembering to add a script. Every suite runs even after one fails, so
  * a single run names all the broken suites.
+ *
+ * `tsconfig.all-tests.json` is the catch-all: it covers every test file in `src`, so a new
+ * test is type-checked without its own configuration. Its `exclude` names the older test
+ * files that already had type errors when it was added; fix one, then drop it from the list.
  */
 const { spawnSync } = require('node:child_process');
 const { readdirSync } = require('node:fs');

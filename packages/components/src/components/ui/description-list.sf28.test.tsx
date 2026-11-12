@@ -11,7 +11,7 @@
  */
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import React, { createRef } from 'react';
+import { createRef } from 'react';
 
 import { AddressDisplay } from '../ui/address-display';
 import { DescriptionList, type DescriptionListItem } from './description-list';

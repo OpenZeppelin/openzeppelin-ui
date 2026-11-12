@@ -11,7 +11,7 @@
  */
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
-import React, { createRef } from 'react';
+import { createRef } from 'react';
 
 import * as ui from './index';
 import { Skeleton, type SkeletonShape } from './skeleton';

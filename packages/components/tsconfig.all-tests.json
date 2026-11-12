@@ -1,0 +1,40 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "types": ["vitest/globals", "node", "@vitest/browser-playwright"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@styles/*": ["../styles/*"],
+      "@openzeppelin/ui-types/*": ["../types/src/*"],
+      "dom-accessibility-api": ["../../node_modules/dom-accessibility-api/dist/index.d.ts"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "src/components/fields/name-resolution/__tests__/boundary.test.tsx",
+    "src/components/fields/name-resolution/__tests__/churnBound.test.tsx",
+    "src/components/fields/name-resolution/__tests__/nameResolverNetworkContext.test.tsx",
+    "src/components/file-tree/__tests__/types.test.ts",
+    "src/components/ui/address-display/__tests__/crossNetworkFallback.sf3.test.tsx",
+    "src/components/ui/badge.sf14.test.tsx",
+    "src/components/ui/badge.test.tsx",
+    "src/components/ui/bottom-sheet/__tests__/bottom-sheet.browser.test.tsx",
+    "src/components/ui/bottom-sheet/__tests__/lifecycle.sf2.test.tsx",
+    "src/components/ui/bottom-sheet/__tests__/prop-state.sf2.test.tsx",
+    "src/components/ui/code-view/__tests__/interaction.sf13.test.tsx",
+    "src/components/ui/code-view/__tests__/interaction.sf3.test.tsx",
+    "src/components/ui/code-view/__tests__/line-numbers.sf14.test.tsx",
+    "src/components/ui/code-view/__tests__/prop-state.sf13.test.tsx",
+    "src/components/ui/code-view/__tests__/render-contract.sf10.test.tsx",
+    "src/components/ui/code-view/__tests__/render-contract.sf13.test.tsx",
+    "src/components/ui/code-view/__tests__/render-hast.sf3.test.tsx",
+    "src/components/ui/code-view/__tests__/stability.sf10.test.tsx",
+    "src/components/ui/code-view/__tests__/stability.sf13.test.tsx"
+  ]
+}

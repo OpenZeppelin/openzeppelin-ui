@@ -82,10 +82,11 @@ describe('SidebarButton trailing slot (SF-13 S1)', () => {
   });
 
   it('clicking the slot on the anchor variant activates the link row', async () => {
-    const onClick = vi.fn((e: React.MouseEvent) => e.preventDefault());
+    // SidebarButton types onClick as () => void but the anchor passes the event through.
+    const onClick = vi.fn((e?: React.MouseEvent) => e?.preventDefault());
     const user = userEvent.setup();
     render(
-      <SidebarButton href="/inbox" trailing={dot} onClick={onClick as () => void}>
+      <SidebarButton href="/inbox" trailing={dot} onClick={onClick}>
         Inbox
       </SidebarButton>
     );
@@ -98,7 +99,7 @@ describe('SidebarButton trailing slot (SF-13 S1)', () => {
 
   it('does not steal the accessible name when the slot is an unlabelled dot', () => {
     render(<SidebarButton trailing={dot}>Inbox</SidebarButton>);
-    expect(screen.getByRole('button', { name: 'Inbox', exact: true })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Inbox' })).toBeTruthy();
   });
 
   it('adds only its own label to the name when the slot carries one', () => {

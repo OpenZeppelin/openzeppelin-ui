@@ -11,7 +11,7 @@
  */
 import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import React, { createRef } from 'react';
+import { createRef } from 'react';
 
 import * as ui from './index';
 import { Timeline, type TimelineItem, type TimelineTone } from './timeline';
@@ -86,7 +86,7 @@ describe('Timeline (SF-30)', () => {
       const { container } = render(<Timeline items={mixed} />);
       const li = container.querySelector('li') as HTMLElement;
       expect(li.querySelectorAll('[aria-hidden="true"]').length).toBeGreaterThanOrEqual(2);
-      expect(li.querySelector('.sr-only').textContent).toContain(': Completed');
+      expect(li.querySelector('.sr-only')?.textContent).toContain(': Completed');
     });
 
     it('defaults to pending when tone is omitted', () => {

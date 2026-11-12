@@ -336,10 +336,17 @@ describe('SF-36 — the internal required-message options keep their defaults', 
   });
 
   it('validateExactAmount: default text, custom requiredMessage', () => {
-    expect(validateExactAmount('', { required: true })).toBe(REQUIRED_MESSAGE);
-    expect(validateExactAmount('', { required: true, requiredMessage: 'Enter an amount' })).toBe(
-      'Enter an amount'
+    expect(validateExactAmount('', { required: true, allowGrouping: false, decimals: 18 })).toBe(
+      REQUIRED_MESSAGE
     );
+    expect(
+      validateExactAmount('', {
+        required: true,
+        allowGrouping: false,
+        decimals: 18,
+        requiredMessage: 'Enter an amount',
+      })
+    ).toBe('Enter an amount');
   });
 });
 
