@@ -88,6 +88,18 @@ export interface WizardLayoutProps {
   scrollPadding?: number;
   /** Builds each stepper step's accessible name (e.g. for localisation). See `WizardStepper`. */
   getStepLabel?: (info: WizardStepLabelInfo) => string;
+  /** Label of the Back button (paged variants only). See `WizardNavigation`. @default "Previous" */
+  previousLabel?: string;
+  /** Back can't be activated but stays focusable (paged variants only). See `WizardNavigation`. @default false */
+  previousDisabled?: boolean;
+  /**
+   * The primary (Next/Finish) is pending (paged variants only): spinner, `aria-busy`,
+   * activation ignored, focus kept. Set it synchronously, before your handler's
+   * first `await`. See `WizardNavigation`. @default false
+   */
+  primaryLoading?: boolean;
+  /** Trailing icon of the primary (paged variants only). See `WizardNavigation`. */
+  primaryIcon?: ReactNode;
   className?: string;
 }
 
@@ -113,6 +125,10 @@ function PagedLayout({
   header,
   variant,
   getStepLabel,
+  previousLabel,
+  previousDisabled,
+  primaryLoading,
+  primaryIcon,
   className,
 }: WizardLayoutProps & { variant: 'vertical' | 'horizontal' }) {
   const safeIndex = getSafeStepIndex(steps.length, currentStepIndex);
@@ -167,6 +183,10 @@ function PagedLayout({
       lastStepSecondaryLabel={lastStepSecondaryLabel}
       lastStepSecondaryDisabled={lastStepSecondaryDisabled}
       showLastStepPrimary={!hideLastStepPrimary}
+      previousLabel={previousLabel}
+      previousDisabled={previousDisabled}
+      primaryLoading={primaryLoading}
+      primaryIcon={primaryIcon}
     />
   );
 
