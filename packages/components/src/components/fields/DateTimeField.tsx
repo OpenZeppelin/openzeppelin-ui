@@ -19,6 +19,8 @@ import {
 
 /**
  * DateTimeField component properties
+ *
+ * With `readOnlyMode="readonly"`, Chromium still exposes the native date-time control to assistive tech as editable; edits and the picker are blocked (platform limitation).
  */
 export interface DateTimeFieldProps<TFieldValues extends FieldValues = FieldValues>
   extends BaseFieldProps<TFieldValues>,
