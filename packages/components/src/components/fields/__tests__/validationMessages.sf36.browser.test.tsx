@@ -68,7 +68,14 @@ async function errorState(
   const state: ErrorState = {
     focusedId: focused?.id || focused?.tagName || null,
     text: errorEl.textContent,
-    describedBy: control?.getAttribute('aria-describedby') ?? null,
+    // Hidden description texts (SearchableMultiSelectField's "Required") follow `required`,
+    // not the error, so the error wiring is compared without them.
+    describedBy:
+      control
+        ?.getAttribute('aria-describedby')
+        ?.split(/\s+/)
+        .filter((t) => !(document.getElementById(t) as HTMLElement | null)?.hidden)
+        .join(' ') ?? null,
     invalid: control?.getAttribute('aria-invalid') ?? null,
     role: errorEl.getAttribute('role'),
     violations: await axeViolations(),
