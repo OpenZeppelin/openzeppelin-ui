@@ -19,6 +19,7 @@ import {
   Layers,
   LayoutGrid,
   List,
+  ListChecks,
   ListCollapse,
   Loader,
   Loader2,
@@ -82,6 +83,7 @@ import {
   ProgressDemo,
   RadioGroupDemo,
   RendererDemo,
+  SearchableMultiSelectDemo,
   SelectDemo,
   SidebarLayoutDemo,
   SwitchDemo,
@@ -119,6 +121,7 @@ type DemoKey =
   | 'button'
   | 'input'
   | 'select'
+  | 'searchable-multi-select'
   | 'textarea'
   | 'checkbox'
   | 'switch'
@@ -213,6 +216,11 @@ const galleryCategories: GalleryCategory[] = [
       { key: 'button', label: 'Button', icon: <MousePointerClick className="size-4" /> },
       { key: 'input', label: 'Input', icon: <TextCursorInput className="size-4" /> },
       { key: 'select', label: 'Select', icon: <List className="size-4" /> },
+      {
+        key: 'searchable-multi-select',
+        label: 'SearchableMultiSelect',
+        icon: <ListChecks className="size-4" />,
+      },
       { key: 'textarea', label: 'Textarea', icon: <Type className="size-4" /> },
       { key: 'checkbox', label: 'Checkbox', icon: <CheckSquare className="size-4" /> },
       { key: 'switch', label: 'Switch', icon: <ToggleRight className="size-4" /> },
@@ -310,6 +318,7 @@ const demoComponents: Record<
   button: ButtonDemo,
   input: InputDemo,
   select: SelectDemo,
+  'searchable-multi-select': SearchableMultiSelectDemo,
   textarea: TextareaDemo,
   checkbox: CheckboxDemo,
   switch: SwitchDemo,

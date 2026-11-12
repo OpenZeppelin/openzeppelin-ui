@@ -6,6 +6,7 @@ export { EcosystemIndicator } from './EcosystemIndicator';
 export { ButtonDemo } from './ButtonDemo';
 export { InputDemo } from './InputDemo';
 export { SelectDemo } from './SelectDemo';
+export { SearchableMultiSelectDemo } from './SearchableMultiSelectDemo';
 export { TextareaDemo } from './TextareaDemo';
 export { CheckboxDemo } from './CheckboxDemo';
 export { SwitchDemo } from './SwitchDemo';

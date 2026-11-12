@@ -38,6 +38,7 @@ export * from './page-header';
 export * from './popover';
 export * from './progress';
 export * from './radio-group';
+export * from './searchable-multi-select';
 export * from './select';
 export * from './sidebar';
 export * from './spinner';
