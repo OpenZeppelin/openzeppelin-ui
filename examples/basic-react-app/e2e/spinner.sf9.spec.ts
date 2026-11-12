@@ -19,11 +19,14 @@ test('standalone Spinner renders and animates; LoadingButton demo still shows it
   await clickVisibleText(page, 'Data Display');
   await clickVisibleText(page, 'LoadingButton');
 
+  // The labelled spinner's svg is hidden; its wrapper is the named status with the label as text.
   const labelled = page.getByTestId('spinner-labelled');
   await expect(labelled).toBeVisible();
-  await expect(labelled).toHaveAttribute('role', 'status');
-  await expect(labelled).toHaveAttribute('aria-label', 'Loading data');
+  await expect(labelled).toHaveAttribute('aria-hidden', 'true');
   await expect(labelled).toHaveCSS('animation-name', 'spin');
+  const status = page.getByRole('status', { name: 'Loading data' });
+  await expect(status).toHaveText('Loading data');
+  await expect(status.getByTestId('spinner-labelled')).toHaveCount(1);
 
   const decorative = page.getByTestId('spinner-decorative');
   await expect(decorative).toBeVisible();
