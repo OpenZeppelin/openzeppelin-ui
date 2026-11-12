@@ -181,7 +181,8 @@ async function measureRadios(page: Page): Promise<Reading[]> {
 }
 
 async function measureOptions(page: Page): Promise<Reading[]> {
-  const combo = page.getByRole('combobox').first();
+  // The trigger is a button that opens a dialog; the search box inside is the combobox.
+  const combo = page.locator('[data-slot="searchable-multi-select-trigger"]').first();
   await combo.waitFor();
   await combo.click();
   const opts = page.getByRole('option');

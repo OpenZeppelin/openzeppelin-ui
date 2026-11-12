@@ -36,10 +36,13 @@ const getCountryLabel = (country: Country): string => country.name;
  * so the submitted payload shows the ids the field hands to the form, in pick order.
  *
  * `onTouched` mode on purpose: opening the picker must not flash the required error.
+ * The Read-only toggle shows `readOnlyMode="readonly"`: the trigger stays focusable, the list does
+ * not open, and the picked ids stay in the payload.
  * The `data-testid`s are stable hooks for the SF-16 browser check.
  */
 export function SearchableMultiSelectFieldDemo(): React.ReactElement {
   const [submitted, setSubmitted] = useState<SearchableMultiSelectFieldValues | null>(null);
+  const [readOnly, setReadOnly] = useState(false);
 
   const form = useForm<SearchableMultiSelectFieldValues>({
     defaultValues: { countries: [] },
@@ -56,6 +59,17 @@ export function SearchableMultiSelectFieldDemo(): React.ReactElement {
           Submit empty to see the required error, then pick two countries and submit again.
         </p>
       </div>
+
+      <Button
+        type="button"
+        size="sm"
+        variant={readOnly ? 'default' : 'outline'}
+        aria-pressed={readOnly}
+        onClick={() => setReadOnly((value) => !value)}
+        data-testid="smsf-readonly-toggle"
+      >
+        Read-only
+      </Button>
 
       <form
         onSubmit={form.handleSubmit((values) => setSubmitted(values))}
@@ -79,6 +93,8 @@ export function SearchableMultiSelectFieldDemo(): React.ReactElement {
           formatSelectedCount={(count, total) =>
             count === total ? 'All countries' : `${count} selected`
           }
+          readOnly={readOnly}
+          readOnlyMode="readonly"
         />
         <Button type="submit">Submit</Button>
       </form>
