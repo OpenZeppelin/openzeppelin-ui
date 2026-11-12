@@ -15,6 +15,7 @@
     "vitest.config.ts",
     "playwright.config.ts",
     "e2e/**/*.ts",
-    "../../vitest.shared.config.ts"
+    "../../vitest.shared.config.ts",
+    "../../packages/components/src/components/fields/__tests__/amount-exact.sf10-corpus.ts"
   ]
 }
