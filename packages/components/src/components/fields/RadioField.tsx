@@ -2,6 +2,7 @@ import React from 'react';
 import { Controller, FieldValues } from 'react-hook-form';
 
 import { Label } from '../ui/label';
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { BaseFieldProps } from './BaseField';
 import { ErrorMessage, getAccessibilityProps } from './utils';
 
@@ -20,6 +21,11 @@ export interface RadioOption {
   label: string;
 
   /**
+   * Optional supporting text shown under the label. It is the option's accessible description.
+   */
+  description?: string;
+
+  /**
    * Whether this option is disabled
    */
   disabled?: boolean;
@@ -36,9 +42,16 @@ export interface RadioFieldProps<TFieldValues extends FieldValues = FieldValues>
   options?: RadioOption[];
 
   /**
-   * Direction of radio options layout
+   * Direction of radio options layout. Ignored by the `card` variant, which always stacks.
    */
   layout?: 'horizontal' | 'vertical';
+
+  /**
+   * Option presentation. `card` renders each option as a selectable card (see RadioGroup).
+   * Validation, required state and the submitted value are the same for both variants.
+   * @default 'default'
+   */
+  variant?: 'default' | 'card';
 
   /**
    * Custom validation function for radio values
@@ -59,7 +72,8 @@ export interface RadioFieldProps<TFieldValues extends FieldValues = FieldValues>
  * The component includes:
  * - Integration with React Hook Form
  * - Customizable options list
- * - Horizontal or vertical layout options
+ * - Horizontal or vertical layout options, or a selectable-card variant
+ * - Optional per-option descriptions
  * - Customizable validation through adapter integration
  * - Automatic error handling and reporting
  * - Full accessibility support with ARIA attributes
@@ -74,6 +88,7 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
   validation,
   options = [],
   layout = 'vertical',
+  variant = 'default',
   validateRadio,
 }: RadioFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
@@ -123,6 +138,45 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
             hasHelperText: !!helperText,
           });
 
+          if (variant === 'card') {
+            return (
+              <>
+                <RadioGroup
+                  id={radioGroupId}
+                  variant="card"
+                  value={field.value ?? ''}
+                  onValueChange={field.onChange}
+                  onBlur={field.onBlur}
+                  required={isRequired}
+                  aria-invalid={hasError}
+                  aria-required={isRequired}
+                  aria-describedby={groupAccessibilityProps['aria-describedby']}
+                  aria-errormessage={groupAccessibilityProps['aria-errormessage']}
+                  className="gap-3 space-y-0"
+                >
+                  {options.map((option) => (
+                    <RadioGroupItem
+                      key={option.value}
+                      value={option.value}
+                      disabled={option.disabled}
+                      title={option.label}
+                      description={option.description}
+                      className={hasError ? 'border-destructive/50' : undefined}
+                    />
+                  ))}
+                </RadioGroup>
+
+                {helperText && (
+                  <div id={descriptionId} className="text-sm text-muted-foreground">
+                    {helperText}
+                  </div>
+                )}
+
+                <ErrorMessage error={error} id={errorId} />
+              </>
+            );
+          }
+
           return (
             <>
               <div
@@ -152,7 +206,11 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
                         checked={isSelected}
                         onChange={() => field.onChange(option.value)}
                         className="sr-only"
-                        aria-describedby={hasError ? errorId : undefined}
+                        aria-describedby={
+                          [hasError && errorId, option.description && `${optionId}-description`]
+                            .filter(Boolean)
+                            .join(' ') || undefined
+                        }
                       />
 
                       {/* Custom Radio Button */}
@@ -195,6 +253,15 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
                       >
                         {option.label}
                       </span>
+
+                      {option.description && (
+                        <span
+                          id={`${optionId}-description`}
+                          className="text-sm text-muted-foreground"
+                        >
+                          {option.description}
+                        </span>
+                      )}
 
                       {/* Focus ring */}
                       <div
