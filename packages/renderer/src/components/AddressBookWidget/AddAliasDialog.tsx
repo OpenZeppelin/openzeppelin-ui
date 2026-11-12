@@ -1,5 +1,13 @@
 import { Plus } from 'lucide-react';
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 
 import {
@@ -19,7 +27,7 @@ import {
   TextField,
   type AddressFieldProps,
 } from '@openzeppelin/ui-components';
-import { useRuntimeNameResolver, WalletStateContext } from '@openzeppelin/ui-react';
+import { RuntimeContext, useRuntimeNameResolver, WalletStateContext } from '@openzeppelin/ui-react';
 import type { AddressingCapability, NetworkConfig } from '@openzeppelin/ui-types';
 
 import { ResolvedAddressFieldPreviewWithNameResolution } from '../ResolvedAddressFieldPreviewWithNameResolution';
@@ -130,6 +138,22 @@ export function AddAliasDialog({
   const [activePlaceholder, setActivePlaceholder] = useState<string | undefined>(
     defaultPlaceholder
   );
+
+  // The scoped name resolver asks RuntimeProvider for the selected network's
+  // runtime while it renders, and a first request sets provider state — React
+  // warns about updating another component mid-render. Start that load here, in
+  // an effect, and mount the resolving field only once the request has been
+  // made; its render-time lookup is then a pure read. The layout effect and
+  // state update flush before paint, so the gap is never visible.
+  const runtimeContext = useContext(RuntimeContext);
+  const [warmedNetworkId, setWarmedNetworkId] = useState<string | null>(null);
+  useLayoutEffect(() => {
+    if (!enableNameResolution || !selectedNetwork || !runtimeContext) return;
+    runtimeContext.getRuntimeForNetwork(selectedNetwork);
+    setWarmedNetworkId(selectedNetwork.id);
+  }, [enableNameResolution, selectedNetwork, runtimeContext]);
+  const runtimeRequested =
+    !selectedNetwork || !runtimeContext || warmedNetworkId === selectedNetwork.id;
 
   const { control, handleSubmit, reset, trigger, formState, setValue, getValues } =
     useForm<AddAliasFormData>({
@@ -300,18 +324,20 @@ export function AddAliasDialog({
               conditional hook, never both fields mounted. All props are identical across
               branches except the ENS-only `onResolvedNameChange` notification. */}
           {enableNameResolution ? (
-            <ResolvingAliasAddressField
-              key={selectedNetwork?.id ?? 'no-network'}
-              id="new-alias-address"
-              name="address"
-              label="Address"
-              placeholder={activePlaceholder}
-              control={control}
-              validation={{ required: true }}
-              addressing={activeAddressing}
-              onResolvedNameChange={handleResolvedName}
-              dialogNetwork={selectedNetwork}
-            />
+            runtimeRequested && (
+              <ResolvingAliasAddressField
+                key={selectedNetwork?.id ?? 'no-network'}
+                id="new-alias-address"
+                name="address"
+                label="Address"
+                placeholder={activePlaceholder}
+                control={control}
+                validation={{ required: true }}
+                addressing={activeAddressing}
+                onResolvedNameChange={handleResolvedName}
+                dialogNetwork={selectedNetwork}
+              />
+            )
           ) : (
             <AddressField
               id="new-alias-address"
