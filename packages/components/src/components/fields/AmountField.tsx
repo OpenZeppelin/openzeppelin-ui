@@ -3,7 +3,9 @@ import { Controller, FieldValues } from 'react-hook-form';
 
 import {
   AMOUNT_REQUIRED_MESSAGE,
+  formatAmountText,
   isEmptyAmountValue,
+  stepAmountText,
   validateExactAmount,
 } from './utils/decimalValidation';
 import { FieldLabelRow } from './utils/FieldLabelRow';
@@ -19,7 +21,6 @@ import {
   getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
-  handleNumericKeys,
   runCustomCheck,
 } from './utils';
 
@@ -31,7 +32,8 @@ interface AmountFieldCommonProps<TFieldValues extends FieldValues = FieldValues>
     ReadOnlyModeProps,
     LabelEndProps {
   /**
-   * Default mode: decimal places the value is formatted to on blur.
+   * Default mode: decimal places the value is formatted to on blur, exactly, rounding
+   * half away from zero.
    * Exact-entry mode: the most decimal places allowed. More is a validation error,
    * never a rounding. Counted on the text as typed (`1.500` has 3).
    * @default 2
@@ -78,7 +80,7 @@ export interface AmountFieldProps<TFieldValues extends FieldValues = FieldValues
   max?: number;
 
   /**
-   * Step value for increment/decrement
+   * Step value for increment/decrement. Added exactly, as a decimal, with no float.
    */
   step?: number;
 
@@ -158,6 +160,10 @@ const NO_DEFAULT_MODE_PROPS: Pick<AmountFieldProps, 'min' | 'max' | 'step' | 'va
  * - Full accessibility support with ARIA attributes
  * - Keyboard navigation with arrow keys for numeric increment/decrement
  *
+ * Default mode formats on blur and on arrow keys without floating-point math: the
+ * typed digits are kept and padded, or rounded half away from zero, to `decimals`.
+ * Text that is not a plain decimal is left as it is.
+ *
  * Exact-entry mode (`formatOnBlur={false}`), for money values: the text the user types
  * is never rewritten. With `allowGrouping`, `,` thousands groups are accepted. The form
  * value is the text with grouping removed, always a `string` and never parsed to a
@@ -201,22 +207,6 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
   // INV-10: AmountField has always ignored `readOnly` on its own, so only the explicit
   // opt-in feeds it in; default mode passes `undefined` everywhere, exactly as today.
   const ro = getReadOnlyState(readOnlyMode === 'readonly' ? readOnly : undefined, readOnlyMode);
-
-  // Formatter for displaying currency/token values
-  const formatCurrency = (value: string | number): string => {
-    if (value === '' || value === undefined || value === null) return '';
-
-    const numValue = typeof value === 'string' ? parseFloat(value) : value;
-    if (isNaN(numValue)) return '';
-
-    return numValue.toFixed(decimals);
-  };
-
-  // Parse string input to number
-  const parseAmount = (value: string): number => {
-    const parsed = parseFloat(value);
-    return isNaN(parsed) ? 0 : parsed;
-  };
 
   return (
     <div
@@ -343,11 +333,11 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
                     }}
                     onBlur={(e) => {
                       // Format on blur. INV-14: never in readonly mode; blur still marks touched.
-                      if (e.target.value && !ro.isFocusableReadOnly) {
-                        const parsed = parseFloat(e.target.value);
-                        if (!isNaN(parsed)) {
-                          field.onChange(formatCurrency(parsed));
-                        }
+                      // An unchanged result is still written, which keeps validation timing as
+                      // it was. `null` (non-plain text, unusable decimals) writes nothing.
+                      if (!ro.isFocusableReadOnly) {
+                        const formatted = formatAmountText(e.target.value, decimals);
+                        if (formatted !== null) field.onChange(formatted);
                       }
                       if (field.onBlur) {
                         field.onBlur();
@@ -366,17 +356,18 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
                         return;
                       }
 
-                      // Handle arrow keys for increment/decrement
+                      // Arrow keys step exactly. preventDefault runs even when nothing is
+                      // written, so the caret never jumps on an arrow press in this field.
                       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-                        handleNumericKeys(
-                          (newValue) => {
-                            field.onChange(formatCurrency(newValue));
-                          },
-                          parseAmount(field.value || ''),
+                        e.preventDefault();
+                        const next = stepAmountText(field.value, {
+                          direction: e.key === 'ArrowUp' ? 1 : -1,
                           step,
+                          decimals,
                           min,
-                          max
-                        )(e);
+                          max,
+                        });
+                        if (next !== null) field.onChange(next);
                       }
                     }}
                     {...ro.controlProps}

@@ -1,5 +1,6 @@
 /**
- * Exact decimal helpers for AmountField's exact-entry mode (`formatOnBlur={false}`).
+ * AmountField's exact decimal helpers, for both modes: exact-entry validation
+ * (`formatOnBlur={false}`) and default-mode blur formatting and arrow-key stepping.
  *
  * Internal module: deliberately NOT re-exported from `utils/index.ts`, because
  * `fields/index.ts` re-exports `utils/*` and every helper here would become public
@@ -7,6 +8,7 @@
  *
  * Nothing in this file converts user text to a JS number. Values stay strings, and
  * comparisons work digit by digit, so no amount passes through a float (INV-8, INV-17).
+ * Default-mode rounding and stepping use scaled `bigint` integers, which are exact.
  */
 
 /**
@@ -285,4 +287,142 @@ export function validateExactAmount(
     return typeof result === 'string' && result !== '' ? result : AMOUNT_GENERIC_MESSAGE;
   }
   return true;
+}
+
+// ---------------------------------------------------------------------------------------
+// Default mode: exact blur formatting and arrow-key stepping. INV-n references in this
+// section are the default-formatting invariants (006 SF-1), not the exact-entry ones above.
+// ---------------------------------------------------------------------------------------
+
+/**
+ * Largest `decimals` the default formatter pads to. It was the float formatter's own
+ * limit, and it caps the padding a blur can allocate (006 SF-1 D-4, INV-18).
+ */
+const MAX_FORMAT_DECIMALS = 100;
+
+/** An integer from 0 to 100. Anything else leaves the text unformatted (INV-5). */
+function isFormattableDecimals(decimals: number): boolean {
+  return Number.isInteger(decimals) && decimals >= 0 && decimals <= MAX_FORMAT_DECIMALS;
+}
+
+interface PlainSplit {
+  readonly negative: boolean;
+  /** Integer digits as typed, possibly empty (`.5`). */
+  readonly int: string;
+  /** Fraction digits as typed, possibly empty (`5.`, `5`). */
+  readonly frac: string;
+}
+
+/** Splits a string that passed `PLAIN_AMOUNT_PATTERN`. Keeps every digit as typed. */
+function splitPlain(plain: string): PlainSplit {
+  const negative = plain.startsWith('-');
+  const body = negative ? plain.slice(1) : plain;
+  const point = body.indexOf('.');
+  return {
+    negative,
+    int: point === -1 ? body : body.slice(0, point),
+    frac: point === -1 ? '' : body.slice(point + 1),
+  };
+}
+
+/**
+ * Plain text as an integer count of 10^-scale units. Precondition: `plain` passed
+ * `PLAIN_AMOUNT_PATTERN` and `fractionDigits(plain) <= scale`, so nothing is dropped.
+ */
+function toScaled(plain: string, scale: number): bigint {
+  const { negative, int, frac } = splitPlain(plain);
+  const magnitude = BigInt(`${int}${frac.padEnd(scale, '0')}` || '0');
+  return negative ? -magnitude : magnitude;
+}
+
+/**
+ * Inverse of `toScaled`: `-`? integer part, then `.` and exactly `scale` digits (no `.`
+ * when `scale` is 0). A `bigint` has no negative zero, so a zero result is unsigned (INV-3).
+ */
+function fromScaled(scaled: bigint, scale: number): string {
+  const sign = scaled < 0n ? '-' : '';
+  const digits = (scaled < 0n ? -scaled : scaled).toString();
+  if (scale === 0) return `${sign}${digits}`;
+  const padded = digits.padStart(scale + 1, '0');
+  const point = padded.length - scale;
+  return `${sign}${padded.slice(0, point)}.${padded.slice(point)}`;
+}
+
+/**
+ * Default-mode blur formatter. Gives plain text exactly `decimals` fraction digits:
+ * leading integer zeros trimmed (one `0` kept), a short fraction padded with zeros, a
+ * long one rounded half away from zero, with carry into the integer part (`9.995` at 2
+ * → `10.00`). Every integer digit is kept, however many. A zero result is unsigned
+ * (`-0.001` at 2 → `0.00`).
+ *
+ * Returns `null`, meaning "leave the text alone", when `text` is not plain (`''`, `-`,
+ * `.`, `-.`, `1e-7`, `1,000`, ` 1.5`, `12abc`) or `decimals` is not an integer from 0
+ * to 100. Never throws.
+ */
+export function formatAmountText(text: string, decimals: number): string | null {
+  // INV-5: both gates run before any BigInt() call, so BigInt never sees bad input.
+  if (!isFormattableDecimals(decimals) || !PLAIN_AMOUNT_PATTERN.test(text)) return null;
+  const { negative, int, frac } = splitPlain(text);
+  let magnitude = BigInt(`${int}${frac.slice(0, decimals).padEnd(decimals, '0')}` || '0');
+  // INV-4: the dropped part is at least one half exactly when its first digit is 5 or more,
+  // so that one digit decides the rounding. charAt gives '' when nothing is dropped.
+  if (frac.charAt(decimals) >= '5') magnitude += 1n;
+  return fromScaled(negative ? -magnitude : magnitude, decimals);
+}
+
+/**
+ * One default-mode arrow-key step. Every number comes straight from AmountField's
+ * props and is read as its shortest round-trip decimal, never added as a float.
+ */
+export interface AmountStepOptions {
+  /** +1 for ArrowUp, -1 for ArrowDown. */
+  readonly direction: 1 | -1;
+  /** AmountField `step`. */
+  readonly step: number;
+  /** AmountField `decimals`. Same usable range as `formatAmountText`. */
+  readonly decimals: number;
+  /** Inclusive lower bound. Ignored when `NaN` or infinite. */
+  readonly min?: number;
+  /** Inclusive upper bound, applied after `min`. Ignored when `NaN` or infinite. */
+  readonly max?: number;
+}
+
+/**
+ * Default-mode arrow-key step: `value ± step`, clamped to `min` then `max`, then
+ * formatted by `formatAmountText`. All exact, at any magnitude.
+ *
+ * The base is the value's display text. An empty or incomplete one (`''`, `-`, `.`,
+ * `-.`, and values that display as `''`) counts as `0`. Returns `null`, meaning "write
+ * nothing", when the base is any other non-plain text (`1,000`, `12abc`, `NaN`), when
+ * `step` is `NaN` or infinite, or when `decimals` is unusable. Never throws.
+ */
+export function stepAmountText(value: unknown, options: AmountStepOptions): string | null {
+  const { direction, step, decimals, min, max } = options;
+  if (!isFormattableDecimals(decimals)) return null;
+
+  // INV-8: a number base goes through numberToDecimalString, a bigint through toString.
+  const displayed = toAmountDisplayText(value);
+  const base = displayed === '' || INCOMPLETE_TEXTS.has(displayed) ? '0' : displayed;
+  // D-7: never step from a guessed prefix of text the formatter would leave alone.
+  if (!PLAIN_AMOUNT_PATTERN.test(base)) return null;
+
+  // INV-9: a non-finite step writes nothing.
+  const stepText = numberToDecimalString(step);
+  if (stepText === null) return null;
+
+  // INV-7: both operands at one scale, so the add is exact integer arithmetic.
+  const scale = Math.max(fractionDigits(base), fractionDigits(stepText));
+  let next = fromScaled(
+    toScaled(base, scale) + BigInt(direction) * toScaled(stepText, scale),
+    scale
+  );
+
+  // INV-9: min first, then max, so max wins when min > max. A non-finite bound is skipped.
+  const lower = min === undefined ? null : numberToDecimalString(min);
+  if (lower !== null && compareDecimalStrings(next, lower) < 0) next = lower;
+  const upper = max === undefined ? null : numberToDecimalString(max);
+  if (upper !== null && compareDecimalStrings(next, upper) > 0) next = upper;
+
+  // D-9: formatted after the clamp, as before.
+  return formatAmountText(next, decimals);
 }
