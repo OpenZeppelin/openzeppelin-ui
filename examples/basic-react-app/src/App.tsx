@@ -30,6 +30,7 @@ import {
   Table2,
   Tag,
   TextCursorInput,
+  ToggleRight,
   Type,
   Wallet,
   Wand2,
@@ -83,6 +84,7 @@ import {
   RendererDemo,
   SelectDemo,
   SidebarLayoutDemo,
+  SwitchDemo,
   TabsDemo,
   TextareaDemo,
   ToastDemo,
@@ -119,6 +121,7 @@ type DemoKey =
   | 'select'
   | 'textarea'
   | 'checkbox'
+  | 'switch'
   | 'radio-group'
   // Component Gallery - Feedback
   | 'alert'
@@ -212,6 +215,7 @@ const galleryCategories: GalleryCategory[] = [
       { key: 'select', label: 'Select', icon: <List className="size-4" /> },
       { key: 'textarea', label: 'Textarea', icon: <Type className="size-4" /> },
       { key: 'checkbox', label: 'Checkbox', icon: <CheckSquare className="size-4" /> },
+      { key: 'switch', label: 'Switch', icon: <ToggleRight className="size-4" /> },
       { key: 'radio-group', label: 'RadioGroup', icon: <CircleDot className="size-4" /> },
     ],
   },
@@ -308,6 +312,7 @@ const demoComponents: Record<
   select: SelectDemo,
   textarea: TextareaDemo,
   checkbox: CheckboxDemo,
+  switch: SwitchDemo,
   'radio-group': RadioGroupDemo,
   // Component Gallery - Feedback
   alert: AlertDemo,

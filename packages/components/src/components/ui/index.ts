@@ -41,6 +41,7 @@ export * from './radio-group';
 export * from './select';
 export * from './sidebar';
 export * from './spinner';
+export * from './switch';
 export * from './tabs';
 export * from './textarea';
 export * from './tooltip';

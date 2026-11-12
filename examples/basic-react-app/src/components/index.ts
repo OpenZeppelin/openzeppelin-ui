@@ -8,6 +8,7 @@ export { InputDemo } from './InputDemo';
 export { SelectDemo } from './SelectDemo';
 export { TextareaDemo } from './TextareaDemo';
 export { CheckboxDemo } from './CheckboxDemo';
+export { SwitchDemo } from './SwitchDemo';
 export { RadioGroupDemo } from './RadioGroupDemo';
 
 // Feedback Demos
