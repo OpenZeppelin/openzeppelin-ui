@@ -33,6 +33,7 @@ export { AccordionDemo } from './AccordionDemo';
 export { ProgressDemo } from './ProgressDemo';
 export { TimelineDemo } from './TimelineDemo';
 export { DropdownMenuDemo } from './DropdownMenuDemo';
+export { EcosystemDropdownDemo } from './EcosystemDropdownDemo';
 
 // Data Display Demos
 export { AddressDisplayDemo } from './AddressDisplayDemo';
