@@ -33,7 +33,7 @@ describe.each(VARIANTS)('WizardStepper default step names (%s) (SF-12 S1)', (var
     render(<WizardStepper variant={variant} steps={STEPS} currentStepIndex={1} />);
     expect(stepNames()).toEqual([
       'Step 1: Basics, completed',
-      'Step 2: Details, current',
+      'Step 2: Details',
       'Step 3: Roles, upcoming',
       'Step 4: Review, upcoming',
     ]);
@@ -41,13 +41,13 @@ describe.each(VARIANTS)('WizardStepper default step names (%s) (SF-12 S1)', (var
 
   it('exposes the name through the role query (accessible name, not just attribute)', () => {
     render(<WizardStepper variant={variant} steps={STEPS} currentStepIndex={1} />);
-    expect(screen.getByRole('button', { name: 'Step 2: Details, current' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Step 2: Details' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Step 1: Basics, completed' })).toBeTruthy();
   });
 
   it('boundary: first step current, no steps completed', () => {
     render(<WizardStepper variant={variant} steps={STEPS} currentStepIndex={0} />);
-    expect(stepNames()[0]).toBe('Step 1: Basics, current');
+    expect(stepNames()[0]).toBe('Step 1: Basics');
     expect(
       stepNames()
         .slice(1)
@@ -61,13 +61,13 @@ describe.each(VARIANTS)('WizardStepper default step names (%s) (SF-12 S1)', (var
       'Step 1: Basics, completed',
       'Step 2: Details, completed',
       'Step 3: Roles, completed',
-      'Step 4: Review, current',
+      'Step 4: Review',
     ]);
   });
 
   it('boundary: single step', () => {
     render(<WizardStepper variant={variant} steps={[STEPS[0]]} currentStepIndex={0} />);
-    expect(stepNames()).toEqual(['Step 1: Basics, current']);
+    expect(stepNames()).toEqual(['Step 1: Basics']);
   });
 
   it('reads visited for a step beyond current within furthestStepIndex', () => {
@@ -75,7 +75,7 @@ describe.each(VARIANTS)('WizardStepper default step names (%s) (SF-12 S1)', (var
       <WizardStepper variant={variant} steps={STEPS} currentStepIndex={0} furthestStepIndex={2} />
     );
     expect(stepNames()).toEqual([
-      'Step 1: Basics, current',
+      'Step 1: Basics',
       'Step 2: Details, visited',
       'Step 3: Roles, visited',
       'Step 4: Review, upcoming',
@@ -111,7 +111,7 @@ describe.each(VARIANTS)('WizardStepper default step names (%s) (SF-12 S1)', (var
     const nav = screen.getByRole('navigation', { name: 'Wizard steps' });
     const current = nav.querySelectorAll('[aria-current="step"]');
     expect(current).toHaveLength(1);
-    expect(current[0].getAttribute('aria-label')).toBe('Step 3: Roles, current');
+    expect(current[0].getAttribute('aria-label')).toBe('Step 3: Roles');
   });
 
   it('still invokes onStepClick for a clickable step found by its new name', async () => {
@@ -190,7 +190,7 @@ describe.each(VARIANTS)('WizardStepper custom getStepLabel (%s) (SF-12 S2)', (va
         getStepLabel={getStepLabel}
       />
     );
-    expect(stepNames()).toEqual(['custom 0', 'Step 2: Details, current', 'custom 2']);
+    expect(stepNames()).toEqual(['custom 0', 'Step 2: Details', 'custom 2']);
   });
 
   it('formatter output has no default suffix or prefix appended', () => {
@@ -234,11 +234,11 @@ describe('WizardLayout stepper names (SF-12 S1/S2 through the layout)', () => {
     '%s: advancing with Next flips previous step to completed and the next to current',
     async (variant) => {
       render(<Harness variant={variant} />);
-      expect(stepNames()[0]).toBe('Step 1: Basics, current');
+      expect(stepNames()[0]).toBe('Step 1: Basics');
       await userEvent.click(screen.getByRole('button', { name: /next/i }));
       expect(stepNames()).toEqual([
         'Step 1: Basics, completed',
-        'Step 2: Details, current',
+        'Step 2: Details',
         'Step 3: Roles, upcoming',
         'Step 4: Review, upcoming',
       ]);
@@ -246,7 +246,7 @@ describe('WizardLayout stepper names (SF-12 S1/S2 through the layout)', () => {
       expect(stepNames().slice(0, 3)).toEqual([
         'Step 1: Basics, completed',
         'Step 2: Details, completed',
-        'Step 3: Roles, current',
+        'Step 3: Roles',
       ]);
     }
   );
@@ -256,7 +256,7 @@ describe('WizardLayout stepper names (SF-12 S1/S2 through the layout)', () => {
     await userEvent.click(screen.getByRole('button', { name: /next/i }));
     await userEvent.click(screen.getByRole('button', { name: 'Step 1: Basics, completed' }));
     expect(stepNames().slice(0, 3)).toEqual([
-      'Step 1: Basics, current',
+      'Step 1: Basics',
       'Step 2: Details, visited',
       'Step 3: Roles, upcoming',
     ]);
@@ -272,7 +272,7 @@ describe('WizardLayout stepper names (SF-12 S1/S2 through the layout)', () => {
 
   it('scrollable: default names carry number, title and state', () => {
     render(<Harness variant="scrollable" />);
-    expect(stepNames()[0]).toBe('Step 1: Basics, current');
+    expect(stepNames()[0]).toBe('Step 1: Basics');
     expect(stepNames()[3]).toBe('Step 4: Review, upcoming');
   });
 });

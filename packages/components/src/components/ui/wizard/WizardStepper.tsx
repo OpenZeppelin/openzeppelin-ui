@@ -40,22 +40,25 @@ export interface WizardStepperProps {
   freeNavigation?: boolean;
   /**
    * Builds each step button's accessible name, e.g. for localisation. An empty
-   * result falls back to the default, `"Step 2: Title, current"`.
+   * result falls back to the default, `"Step 2: Title, completed"`. The current step's
+   * default name has no state (`"Step 3: Title"`): `aria-current="step"` already says it.
    */
   getStepLabel?: (info: WizardStepLabelInfo) => string;
   className?: string;
 }
 
-const STATE_LABEL: Record<StepVisualState, string> = {
+// No 'current': the current step carries aria-current="step", so naming it too reads it twice.
+const STATE_LABEL: Record<Exclude<StepVisualState, 'current'>, string> = {
   completed: 'completed',
-  current: 'current',
   visited: 'visited',
   invalid: 'invalid',
   upcoming: 'upcoming',
 };
 
 function defaultStepLabel({ index, title, state, skipped }: WizardStepLabelInfo): string {
-  return `Step ${index + 1}: ${title}, ${skipped ? 'skipped' : STATE_LABEL[state]}`;
+  const base = `Step ${index + 1}: ${title}`;
+  if (skipped) return `${base}, skipped`;
+  return state === 'current' ? base : `${base}, ${STATE_LABEL[state]}`;
 }
 
 function resolveStepLabel(

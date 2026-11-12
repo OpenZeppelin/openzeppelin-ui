@@ -2,6 +2,9 @@
  * 005 SF-31 parity baseline: `WizardStepper` exactly as it was before the StepMarker
  * extraction (`git show fe5c41b95^:packages/components/src/components/ui/wizard/WizardStepper.tsx`),
  * with only the component renamed. Test fixture only; never exported from the package.
+ *
+ * One later change is carried forward so the parity test keeps comparing structure only: the
+ * default step name no longer appends ", current" (aria-current="step" already says it).
  */
 import { AlertCircle, Check, Pencil } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -59,7 +62,9 @@ const STATE_LABEL: Record<StepVisualState, string> = {
 };
 
 function defaultStepLabel({ index, title, state, skipped }: WizardStepLabelInfo): string {
-  return `Step ${index + 1}: ${title}, ${skipped ? 'skipped' : STATE_LABEL[state]}`;
+  const base = `Step ${index + 1}: ${title}`;
+  if (skipped) return `${base}, skipped`;
+  return state === 'current' ? base : `${base}, ${STATE_LABEL[state]}`;
 }
 
 function resolveStepLabel(
