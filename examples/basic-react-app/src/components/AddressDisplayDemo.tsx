@@ -7,6 +7,9 @@ import { MainnetL1FallbackOptInToggle } from './MainnetL1FallbackOptInToggle';
 import { NameResolutionNetworkHint } from './NameResolutionNetworkHint';
 import { ResolvedAddressDisplay } from './ResolvedAddressDisplay';
 
+/** Sample transaction hash for the custom copy-label demo. */
+const SAMPLE_TX_HASH = `0x${'ab12'.repeat(16)}`;
+
 /** Well-known mainnet addresses with a primary ENS record (name + avatar on mainnet). */
 const ENS_SAMPLE_ADDRESSES = [
   '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', // vitalik.eth
@@ -267,6 +270,23 @@ import { AddressNameResolutionProvider } from '@openzeppelin/ui-renderer';
           <div className="space-y-2">
             <p className="text-muted-foreground text-sm">Show on hover only</p>
             <AddressDisplay address={sampleAddresses.wallet} showCopyButton showCopyButtonOnHover />
+          </div>
+          <div className="space-y-2">
+            <p className="text-muted-foreground text-sm">
+              Custom labels (<code className="bg-muted rounded px-1">copyLabel</code>,{' '}
+              <code className="bg-muted rounded px-1">copiedLabel</code>) — serve a transaction hash
+              and tell copy buttons apart
+            </p>
+            <div className="flex flex-wrap items-center gap-4" data-testid="copy-label-demo">
+              <AddressDisplay
+                address={SAMPLE_TX_HASH}
+                truncate
+                showCopyButton
+                copyLabel="Copy transaction hash"
+                copiedLabel="Transaction hash copied"
+              />
+              <AddressDisplay address={sampleAddresses.wallet} showCopyButton />
+            </div>
           </div>
         </div>
       </div>
