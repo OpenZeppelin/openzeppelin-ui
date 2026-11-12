@@ -441,7 +441,7 @@ describe('MapField with a dotted name settles', () => {
             renderKeyField={(field) => (
               <TextField
                 id={field.id}
-                name={field.name}
+                name={field.name as `outer.v.${number}.key`}
                 label="key"
                 control={api.control}
                 validation={{
@@ -452,7 +452,12 @@ describe('MapField with a dotted name settles', () => {
               />
             )}
             renderValueField={(field) => (
-              <TextField id={field.id} name={field.name} label="value" control={api.control} />
+              <TextField
+                id={field.id}
+                name={field.name as `outer.v.${number}.value`}
+                label="value"
+                control={api.control}
+              />
             )}
           />
           <button type="submit">Submit</button>
