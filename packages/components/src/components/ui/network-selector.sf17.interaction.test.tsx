@@ -290,7 +290,7 @@ describe('INV-19: open, navigate and activate follow SF-15 for every trigger', (
         const dialog = q.dialog();
         const expanded = trig().getAttribute('aria-expanded') === 'true';
         const searchMounted =
-          document.querySelector('[data-slot="searchable-multi-select-search"]') !== null;
+          document.querySelector('[data-slot="network-selector-search"]') !== null;
         expect({ seed, i, open: dialog !== null }).toEqual({ seed, i, open: expanded });
         expect(searchMounted).toBe(dialog !== null);
         if (dialog) expect(dialog.contains(document.activeElement)).toBe(true);

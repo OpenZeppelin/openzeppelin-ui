@@ -97,6 +97,12 @@ export interface SearchableSelectCoreProps<T> {
    */
   readonly readOnly?: boolean;
   /**
+   * Prefix for the `data-slot` of every element the core renders (`<prefix>-content`,
+   * `-search`, `-listbox`, `-option`, `-empty`), so each wrapper's DOM can be targeted on its
+   * own. Default `'searchable-multi-select'`.
+   */
+  readonly slotPrefix?: string;
+  /**
    * Called once per change of the effective open state (SF-16 INV-14). User
    * acts report synchronously in their event, before the popover moves focus;
    * a `disabled`- or `readOnly`-forced close reports from a layout effect. Never on mount or unmount.
@@ -139,6 +145,7 @@ export function SearchableSelectCore<T>({
   listName,
   disabled = false,
   readOnly = false,
+  slotPrefix = 'searchable-multi-select',
   onOpenChange,
 }: SearchableSelectCoreProps<T>): React.ReactElement {
   const [openState, setOpenState] = React.useState(false);
@@ -280,7 +287,7 @@ export function SearchableSelectCore<T>({
         aria-selected={state.selected}
         aria-disabled={state.disabled || undefined}
         data-active={state.active ? '' : undefined}
-        data-slot="searchable-multi-select-option"
+        data-slot={`${slotPrefix}-option`}
         className={cn(
           'relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none',
           // INV-41: active is a highlight distinct from the selected check.
@@ -330,7 +337,7 @@ export function SearchableSelectCore<T>({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        data-slot="searchable-multi-select-content"
+        data-slot={`${slotPrefix}-content`}
         className="w-[var(--radix-popover-trigger-width)] min-w-[240px] p-0"
         {...listName}
         onOpenAutoFocus={(event) => {
@@ -349,7 +356,7 @@ export function SearchableSelectCore<T>({
             aria-expanded={true}
             aria-controls={listboxId}
             aria-activedescendant={activeOption ? optionDomId(listboxId, activeOption) : undefined}
-            data-slot="searchable-multi-select-search"
+            data-slot={`${slotPrefix}-search`}
             placeholder={searchPlaceholder}
             value={query}
             onChange={(event) => {
@@ -369,7 +376,7 @@ export function SearchableSelectCore<T>({
           {...listName}
           // D11: keep the id resolvable for aria-controls, but hide an empty listbox.
           hidden={isEmpty || undefined}
-          data-slot="searchable-multi-select-listbox"
+          data-slot={`${slotPrefix}-listbox`}
           className="max-h-[300px] overflow-y-auto p-1"
         >
           {model.groups.map((group, groupIndex) => {
@@ -398,7 +405,7 @@ export function SearchableSelectCore<T>({
         <div
           role="status"
           aria-live="polite"
-          data-slot="searchable-multi-select-empty"
+          data-slot={`${slotPrefix}-empty`}
           className={cn(isEmpty && 'py-6 text-center text-sm text-muted-foreground')}
         >
           {isEmpty ? emptyText : ''}

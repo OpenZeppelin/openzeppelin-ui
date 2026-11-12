@@ -162,16 +162,14 @@ export const q = {
   trigger: () => must(slot<HTMLButtonElement>('network-selector-trigger'), 'default trigger'),
   filter: () =>
     must(document.querySelector<HTMLButtonElement>('[data-testid="filter"]'), 'custom trigger'),
-  dialog: () => slot<HTMLElement>('searchable-multi-select-content'),
-  search: () => must(slot<HTMLInputElement>('searchable-multi-select-search'), 'search box'),
-  listbox: () => must(slot<HTMLElement>('searchable-multi-select-listbox'), 'listbox'),
-  status: () => must(slot<HTMLElement>('searchable-multi-select-empty'), 'status region'),
-  summary: () => slot<HTMLElement>('searchable-multi-select-summary'),
-  clear: () => slot<HTMLButtonElement>('searchable-multi-select-clear'),
+  dialog: () => slot<HTMLElement>('network-selector-content'),
+  search: () => must(slot<HTMLInputElement>('network-selector-search'), 'search box'),
+  listbox: () => must(slot<HTMLElement>('network-selector-listbox'), 'listbox'),
+  status: () => must(slot<HTMLElement>('network-selector-empty'), 'status region'),
+  summary: () => slot<HTMLElement>('network-selector-summary'),
+  clear: () => slot<HTMLButtonElement>('network-selector-clear'),
   options: () =>
-    Array.from(
-      document.querySelectorAll<HTMLElement>('[data-slot="searchable-multi-select-option"]')
-    ),
+    Array.from(document.querySelectorAll<HTMLElement>('[data-slot="network-selector-option"]')),
   /** The option whose label span is exactly `text`. */
   option: (text: string) => {
     const found = q.options().filter((o) => o.querySelector('span.truncate')?.textContent === text);

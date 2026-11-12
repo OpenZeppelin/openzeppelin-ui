@@ -24,7 +24,7 @@ async function openDemo(page: Page, name: string): Promise<void> {
   await clickVisibleText(page, name);
 }
 
-const popover = (page: Page) => page.locator('[data-slot="searchable-multi-select-content"]');
+const popover = (page: Page) => page.locator('[data-slot="network-selector-content"]');
 
 test('INV-8: the multi demo applies every copy override and reports the selected ids', async ({
   page,
@@ -46,7 +46,7 @@ test('INV-8: the multi demo applies every copy override and reports the selected
   await options.nth(1).click();
   await expect(readout).toHaveText(/^[^,]+, [^,]+$/);
   await expect(trigger).toHaveText(/^2 of \d+ chains$/);
-  await expect(popover(page).locator('[data-slot="searchable-multi-select-summary"]')).toHaveText(
+  await expect(popover(page).locator('[data-slot="network-selector-summary"]')).toHaveText(
     '2 pickedReset'
   );
 

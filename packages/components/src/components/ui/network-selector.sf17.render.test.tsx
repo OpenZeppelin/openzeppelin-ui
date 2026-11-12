@@ -385,6 +385,19 @@ describe('INV-7: the selection row appears only in multi mode with a selection',
     expect(q.summary()?.contains(clear)).toBe(true);
   });
 
+  it("uses its own data-slot names, never SearchableMultiSelect's", async () => {
+    const user = setup();
+    render(<Multi initial={['eth']} />);
+    await user.click(q.trigger());
+    const slots = Array.from(document.querySelectorAll('[data-slot]')).map((el) =>
+      el.getAttribute('data-slot')
+    );
+    expect(slots.filter((slot) => slot?.startsWith('searchable-multi-select'))).toEqual([]);
+    for (const name of ['trigger', 'content', 'search', 'listbox', 'option', 'empty', 'summary']) {
+      expect(slots, name).toContain(`network-selector-${name}`);
+    }
+  });
+
   it('never in single mode, even with a selection', async () => {
     const user = setup();
     render(<Single initial={byId('eth')} />);
