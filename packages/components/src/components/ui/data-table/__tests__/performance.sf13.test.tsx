@@ -136,6 +136,8 @@ describe('INV-361 / INV-362: closed-list tokens and no new production files', ()
         'chrome.ts',
         'data-table-scroller.tsx',
         'data-table.tsx',
+        // 005 SF-22: internal grouping pipeline (SF-22 INV-9).
+        'grouping.ts',
         'helpers.ts',
         'index.ts',
         'pagination-controls.tsx',

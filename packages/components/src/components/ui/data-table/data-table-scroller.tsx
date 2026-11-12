@@ -16,14 +16,22 @@ import { cn, logger } from '@openzeppelin/ui-utils';
 import {
   DATA_TABLE_CAPTION_CHROME,
   DATA_TABLE_CELL_CHROME,
+  DATA_TABLE_GROUP_HEADER_CELL_CHROME,
+  DATA_TABLE_GROUP_ROW_CHROME,
   DATA_TABLE_HEAD_CHROME,
   DATA_TABLE_ROW_CHROME,
   DATA_TABLE_WRAPPER_CHROME,
 } from './chrome';
+import {
+  DATA_TABLE_GROUP_ROW_ESTIMATE_SIZE,
+  findPaintIndexByRowKey,
+  type DataTableBodyItem,
+} from './grouping';
 import { alignClass, resolveAlign } from './helpers';
 import {
   DATA_TABLE_DEFAULT_VIRTUALIZED_MAX_HEIGHT,
   type DataTableColumn,
+  type DataTableGroupHeaderInfo,
   type DataTableScrollToAlign,
   type DataTableVirtualization,
   type DataTableVirtualizationHandle,
@@ -94,6 +102,124 @@ function DataTableRowCells<Row>({
   );
 }
 
+type RowMeasureRef = ((node: HTMLTableRowElement | null) => void) | undefined;
+
+/**
+ * Data row for both grouped body paths (SF-22 INV-3). Same attributes, order and
+ * cells as the ungrouped rows below, which stay textually as shipped (SF-22 INV-5);
+ * `undefined` props emit no attribute, so plain and virtualized markup match.
+ */
+function renderGroupedDataRow<Row>(args: {
+  row: Row;
+  rowKey: string;
+  columns: readonly DataTableColumn<Row>[];
+  getRowClassName: ((row: Row) => string | undefined) | undefined;
+  selectedKeys: ReadonlySet<string> | undefined;
+  measureRef: RowMeasureRef;
+  dataIndex: number | undefined;
+  ariaRowIndex: number | undefined;
+}): ReactElement {
+  const {
+    row,
+    rowKey,
+    columns,
+    getRowClassName,
+    selectedKeys,
+    measureRef,
+    dataIndex,
+    ariaRowIndex,
+  } = args;
+  const isSelected = selectedKeys?.has(rowKey) === true;
+  return (
+    <tr
+      key={rowKey}
+      ref={measureRef}
+      data-slot="data-table-row"
+      data-row-key={rowKey}
+      data-index={dataIndex}
+      data-selected={isSelected ? 'true' : undefined}
+      data-state={isSelected ? 'selected' : undefined}
+      aria-rowindex={ariaRowIndex}
+      className={cn(DATA_TABLE_ROW_CHROME, getRowClassName?.(row))}
+    >
+      <DataTableRowCells row={row} columns={columns} />
+    </tr>
+  );
+}
+
+/**
+ * The one section-row JSX site for both body paths (SF-22 INV-1). `<th scope="row">`
+ * maps to `rowheader` and adds no `columnheader` (Design probe). No `role`, no row
+ * key, no selection attributes, no `cell` call (SF-22 INV-1 / INV-21).
+ */
+function renderGroupRow<Row>(args: {
+  itemKey: string;
+  info: DataTableGroupHeaderInfo<Row>;
+  colSpan: number;
+  content: ReactNode;
+  measureRef: RowMeasureRef;
+  dataIndex: number | undefined;
+  ariaRowIndex: number | undefined;
+}): ReactElement {
+  const { itemKey, info, colSpan, content, measureRef, dataIndex, ariaRowIndex } = args;
+  return (
+    <tr
+      key={itemKey}
+      ref={measureRef}
+      data-slot="data-table-group-row"
+      data-group-key={info.key ?? undefined}
+      data-index={dataIndex}
+      aria-rowindex={ariaRowIndex}
+      className={DATA_TABLE_GROUP_ROW_CHROME}
+    >
+      <th
+        scope="row"
+        colSpan={colSpan}
+        data-slot="data-table-group-header"
+        className={DATA_TABLE_GROUP_HEADER_CELL_CHROME}
+      >
+        {content}
+      </th>
+    </tr>
+  );
+}
+
+/** Paints one `bodyItems` entry: a section row or a data row (SF-22). */
+function renderBodyItem<Row>(args: {
+  item: DataTableBodyItem<Row>;
+  columns: readonly DataTableColumn<Row>[];
+  getRowClassName: ((row: Row) => string | undefined) | undefined;
+  selectedKeys: ReadonlySet<string> | undefined;
+  colSpan: number;
+  renderGroupHeaderContent: (info: DataTableGroupHeaderInfo<Row>) => ReactNode;
+  measureRef: RowMeasureRef;
+  dataIndex: number | undefined;
+  ariaRowIndex: number | undefined;
+}): ReactElement {
+  const { item, measureRef, dataIndex, ariaRowIndex } = args;
+  if (item.kind === 'group') {
+    return renderGroupRow({
+      itemKey: item.itemKey,
+      info: item.info,
+      colSpan: args.colSpan,
+      content: args.renderGroupHeaderContent(item.info),
+      measureRef,
+      dataIndex,
+      ariaRowIndex,
+    });
+  }
+  return renderGroupedDataRow({
+    row: item.row,
+    rowKey: item.itemKey,
+    columns: args.columns,
+    getRowClassName: args.getRowClassName,
+    selectedKeys: args.selectedKeys,
+    measureRef,
+    dataIndex,
+    ariaRowIndex,
+  });
+}
+
 function SpacerRow({
   side,
   height,
@@ -134,6 +260,9 @@ function InfiniteSentinelRow({
 
 interface VirtualizedBodyRowsProps<Row> {
   bodyRows: readonly Row[];
+  /** SF-22: non-null → the virtualizer windows these paint items instead of `bodyRows`. */
+  bodyItems: readonly DataTableBodyItem<Row>[] | null;
+  renderGroupHeaderContent: ((info: DataTableGroupHeaderInfo<Row>) => ReactNode) | undefined;
   columns: readonly DataTableColumn<Row>[];
   getRowKey: (row: Row) => string;
   getRowClassName: ((row: Row) => string | undefined) | undefined;
@@ -152,6 +281,8 @@ interface VirtualizedBodyRowsProps<Row> {
 
 function VirtualizedBodyRows<Row>({
   bodyRows,
+  bodyItems,
+  renderGroupHeaderContent,
   columns,
   getRowKey,
   getRowClassName,
@@ -167,10 +298,14 @@ function VirtualizedBodyRows<Row>({
   sentinelRef,
   onVirtualEndEligible,
 }: VirtualizedBodyRowsProps<Row>): ReactElement {
-  const sentinelIndex = bodyRows.length;
-  const count = infiniteHasMore ? bodyRows.length + 1 : bodyRows.length;
+  // SF-22 INV-28 / INV-32: grouped → virtual indices are paint indices over `bodyItems`.
+  const paintCount = bodyItems?.length ?? bodyRows.length;
+  const sentinelIndex = paintCount;
+  const count = infiniteHasMore ? paintCount + 1 : paintCount;
   const estimateSizeRef = useRef(estimateSize);
   estimateSizeRef.current = estimateSize;
+  const bodyItemsRef = useRef(bodyItems);
+  bodyItemsRef.current = bodyItems;
   const infiniteHasMoreRef = useRef(infiniteHasMore);
   infiniteHasMoreRef.current = infiniteHasMore;
   const sentinelIndexRef = useRef(sentinelIndex);
@@ -187,7 +322,17 @@ function VirtualizedBodyRows<Row>({
       return 1;
     }
     const estimate = estimateSizeRef.current;
-    return typeof estimate === 'function' ? estimate(index) : estimate;
+    const items = bodyItemsRef.current;
+    if (items == null) {
+      return typeof estimate === 'function' ? estimate(index) : estimate;
+    }
+    // SF-22 INV-28: sections use the kit estimate; the integrator's function only ever
+    // receives data-row (`bodyRows`) indices.
+    const item = items[index];
+    if (item === undefined || item.kind === 'group') {
+      return DATA_TABLE_GROUP_ROW_ESTIMATE_SIZE;
+    }
+    return typeof estimate === 'function' ? estimate(item.bodyIndex) : estimate;
   }, []);
   const getItemKey = useCallback(
     (index: number): string => {
@@ -198,6 +343,19 @@ function VirtualizedBodyRows<Row>({
       return row === undefined ? `__missing:${String(index)}` : getRowKey(row);
     },
     [bodyRows, getRowKey, infiniteHasMore]
+  );
+  // SF-22 INV-16 / INV-28: grouped item keys come from `bodyItems` (sections use reserved keys).
+  const getGroupedItemKey = useCallback(
+    (index: number): string => {
+      if (bodyItems == null) {
+        return `__missing:${String(index)}`;
+      }
+      if (infiniteHasMore && index === bodyItems.length) {
+        return DATA_TABLE_INFINITE_SENTINEL_KEY;
+      }
+      return bodyItems[index]?.itemKey ?? `__missing:${String(index)}`;
+    },
+    [bodyItems, infiniteHasMore]
   );
   const initialRect = useMemo(
     () => ({
@@ -216,7 +374,7 @@ function VirtualizedBodyRows<Row>({
     estimateSize: stableEstimateSize,
     overscan,
     enabled: true,
-    getItemKey,
+    getItemKey: bodyItems == null ? getItemKey : getGroupedItemKey,
     paddingStart,
     scrollPaddingStart: paddingStart,
     initialRect,
@@ -226,7 +384,10 @@ function VirtualizedBodyRows<Row>({
   useLayoutEffect(() => {
     const handle: DataTableVirtualizationHandle = {
       scrollToRowKey: (key: string, align?: DataTableScrollToAlign) => {
-        const index = findBodyIndexByKey(bodyRows, getRowKey, key);
+        const index =
+          bodyItems == null
+            ? findBodyIndexByKey(bodyRows, getRowKey, key)
+            : findPaintIndexByRowKey(bodyItems, key);
         if (index == null) {
           return;
         }
@@ -237,7 +398,7 @@ function VirtualizedBodyRows<Row>({
     return () => {
       assignRef(virtualizationRef, null);
     };
-  }, [bodyRows, getRowKey, virtualizationRef, virtualizer]);
+  }, [bodyItems, bodyRows, getRowKey, virtualizationRef, virtualizer]);
 
   const items = virtualizer.getVirtualItems();
   const first = items[0];
@@ -253,12 +414,12 @@ function VirtualizedBodyRows<Row>({
     if (
       shouldRequestMoreFromVirtualRange({
         lastVirtualIndex: last?.index,
-        bodyRowCount: bodyRows.length,
+        bodyRowCount: paintCount,
       })
     ) {
       onVirtualEndEligibleRef.current();
     }
-  }, [last?.index, bodyRows.length]);
+  }, [last?.index, paintCount]);
 
   return (
     <>
@@ -272,6 +433,24 @@ function VirtualizedBodyRows<Row>({
               sentinelRef={sentinelRef}
             />
           );
+        }
+        if (bodyItems != null && renderGroupHeaderContent != null) {
+          const bodyItem = bodyItems[item.index];
+          if (bodyItem === undefined) {
+            return null;
+          }
+          // SF-22 INV-35: every painted item, sections included, is indexed by paint position.
+          return renderBodyItem({
+            item: bodyItem,
+            columns,
+            getRowClassName,
+            selectedKeys,
+            colSpan: spacerColSpan,
+            renderGroupHeaderContent,
+            measureRef: IS_FIREFOX ? undefined : virtualizer.measureElement,
+            dataIndex: item.index,
+            ariaRowIndex: ariaRowIndexForBodyRow(item.index),
+          });
         }
         const row = bodyRows[item.index];
         if (row === undefined) {
@@ -311,6 +490,14 @@ export interface DataTableScrollerProps<Row> {
   tableClassName: string | undefined;
   columns: readonly DataTableColumn<Row>[];
   bodyRows: readonly Row[];
+  /**
+   * SF-22 paint list (section + data rows), built by DataTable. `null` selects the
+   * ungrouped path verbatim (SF-22 INV-5). Never used for selection, counts or
+   * empty decisions, which stay on `bodyRows` (SF-22 INV-15).
+   */
+  bodyItems: readonly DataTableBodyItem<Row>[] | null;
+  /** Resolves a section's header content (SF-22 INV-4). Set iff `bodyItems` is. */
+  renderGroupHeaderContent: ((info: DataTableGroupHeaderInfo<Row>) => ReactNode) | undefined;
   getRowKey: (row: Row) => string;
   getRowClassName: ((row: Row) => string | undefined) | undefined;
   selectedKeys: ReadonlySet<string> | undefined;
@@ -350,6 +537,8 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
     tableClassName,
     columns,
     bodyRows,
+    bodyItems,
+    renderGroupHeaderContent,
     getRowKey,
     getRowClassName,
     selectedKeys,
@@ -610,10 +799,11 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
     ? { maxHeight: `${String(resolved.maxHeight)}px` }
     : undefined;
 
+  // SF-22 INV-35: section rows are real rows, so the grouped count covers `bodyItems`.
   const tableAriaRowCount = resolveAriaRowCount({
     virtualizedActive: resolved.active,
     infiniteHasMore,
-    bodyRowCount: bodyRows.length,
+    bodyRowCount: bodyItems?.length ?? bodyRows.length,
   });
 
   const showEmptyPlaceholder = isEmpty && suppressEmptyChrome;
@@ -665,6 +855,8 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
           ) : resolved.active ? (
             <VirtualizedBodyRows
               bodyRows={bodyRows}
+              bodyItems={bodyItems}
+              renderGroupHeaderContent={renderGroupHeaderContent}
               columns={columns}
               getRowKey={getRowKey}
               getRowClassName={getRowClassName}
@@ -687,23 +879,39 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
                   <td colSpan={emptyColSpan} className="p-0" />
                 </tr>
               ) : null}
-              {bodyRows.map((row, index) => {
-                const rowKey = getRowKey(row);
-                const isSelected = selectedKeys?.has(rowKey) === true;
-                return (
-                  <tr
-                    key={rowKey}
-                    data-slot="data-table-row"
-                    data-row-key={rowKey}
-                    data-selected={isSelected ? 'true' : undefined}
-                    data-state={isSelected ? 'selected' : undefined}
-                    aria-rowindex={infiniteHasMore ? ariaRowIndexForBodyRow(index) : undefined}
-                    className={cn(DATA_TABLE_ROW_CHROME, getRowClassName?.(row))}
-                  >
-                    <DataTableRowCells row={row} columns={columns} />
-                  </tr>
-                );
-              })}
+              {bodyItems != null && renderGroupHeaderContent != null
+                ? bodyItems.map((item, paintIndex) =>
+                    renderBodyItem({
+                      item,
+                      columns,
+                      getRowClassName,
+                      selectedKeys,
+                      colSpan: emptyColSpan,
+                      renderGroupHeaderContent,
+                      measureRef: undefined,
+                      dataIndex: undefined,
+                      ariaRowIndex: infiniteHasMore
+                        ? ariaRowIndexForBodyRow(paintIndex)
+                        : undefined,
+                    })
+                  )
+                : bodyRows.map((row, index) => {
+                    const rowKey = getRowKey(row);
+                    const isSelected = selectedKeys?.has(rowKey) === true;
+                    return (
+                      <tr
+                        key={rowKey}
+                        data-slot="data-table-row"
+                        data-row-key={rowKey}
+                        data-selected={isSelected ? 'true' : undefined}
+                        data-state={isSelected ? 'selected' : undefined}
+                        aria-rowindex={infiniteHasMore ? ariaRowIndexForBodyRow(index) : undefined}
+                        className={cn(DATA_TABLE_ROW_CHROME, getRowClassName?.(row))}
+                      >
+                        <DataTableRowCells row={row} columns={columns} />
+                      </tr>
+                    );
+                  })}
               {unvirtualizedSentinel ? (
                 <InfiniteSentinelRow colSpan={emptyColSpan} sentinelRef={setSentinelNode} />
               ) : null}

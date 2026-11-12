@@ -29,6 +29,8 @@ describe('INV-52: dependency and barrel boundary', () => {
       '../empty-state',
       './chrome',
       './data-table-scroller',
+      // 005 SF-22: internal grouping pipeline (SF-22 INV-9; not barrel-exported).
+      './grouping',
       './helpers',
       './pagination-controls',
       './selection',

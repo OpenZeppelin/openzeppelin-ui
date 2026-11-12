@@ -23,6 +23,14 @@ export const DATA_TABLE_CELL_CHROME = 'p-4 align-middle';
 export const DATA_TABLE_ROW_CHROME =
   'border-b last:border-b-0 transition-colors hover:bg-accent/50 data-[state=selected]:bg-accent/30';
 
+/**
+ * Section row and its spanning header cell (SF-22). Plain `table-row` / `table-cell`:
+ * no display, position or sticky tokens (004 INV-36, SF-22 INV-7).
+ */
+export const DATA_TABLE_GROUP_ROW_CHROME = 'border-b bg-muted/30';
+
+export const DATA_TABLE_GROUP_HEADER_CELL_CHROME = 'px-4 py-2 text-start text-sm font-medium';
+
 /** Outer wrap when pagination is on (`data-slot="data-table-root"`). INV-238 / INV-214 */
 export const DATA_TABLE_PAGINATION_ROOT_CHROME = 'flex flex-col gap-3';
 

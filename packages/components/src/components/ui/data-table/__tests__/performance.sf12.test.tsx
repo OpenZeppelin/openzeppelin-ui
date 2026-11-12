@@ -66,6 +66,8 @@ describe('INV-326: no new production modules or i18n package', () => {
         'chrome.ts',
         'data-table-scroller.tsx',
         'data-table.tsx',
+        // 005 SF-22: internal grouping pipeline (SF-22 INV-9).
+        'grouping.ts',
         'helpers.ts',
         'index.ts',
         'pagination-controls.tsx',

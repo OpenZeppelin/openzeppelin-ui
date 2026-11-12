@@ -14,6 +14,12 @@ import {
 } from './chrome';
 import { DataTableScroller } from './data-table-scroller';
 import {
+  buildGroupedBodyItems,
+  groupDisplayRows,
+  resolveGroupHeaderContent,
+  type DataTableBodyItem,
+} from './grouping';
+import {
   alignClass,
   buildPageItems,
   defaultPaginationStatus,
@@ -40,6 +46,7 @@ import { applyClientSort, isColumnSortable, nextSortState, resolveEffectiveSort 
 import {
   DATA_TABLE_SELECT_COLUMN_ID,
   type DataTableColumn,
+  type DataTableGroupHeaderInfo,
   type DataTableProps,
   type DataTableSortButtonNameInfo,
   type DataTableSortDirection,
@@ -127,6 +134,10 @@ function headerAriaSort(
  *   Untyped both-props still pager-wins (INV-112).
  * - Never fetches. Never writes scroll position on append. Never calls onLoadMore during render.
  *
+ * Additive grouped rows (005 SF-22):
+ * - Optional `grouping`; omitted keeps today's pipeline and DOM (SF-22 INV-5).
+ * - `bodyRows` stays data-only; `bodyItems` (section + data rows) is paint-only (SF-22 INV-15).
+ *
  * Additive consumer composition (INV-327 … INV-368):
  * - Optional toolbar and inside pager share one bordered frame.
  * - The scroller remains the only overflow, sticky, and virtualization host.
@@ -142,6 +153,7 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
     rows,
     getRowKey,
     selection,
+    grouping,
     toolbar,
     getRowClassName,
     emptyState,
@@ -186,9 +198,24 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
   const effectiveSort = resolveEffectiveSort(requestedSort, columns);
   // INV-97 / INV-155: server pages and active feeds skip applyClientSort.
   const skipClientSort = pagination?.kind === 'server' || infiniteActive;
-  const displayRows: readonly Row[] = skipClientSort
-    ? rows
-    : applyClientSort(rows, columns, effectiveSort);
+  // SF-22: `grouping == null` (incl. untyped `null`) keeps today's pipeline (INV-5 / A4).
+  // Derived every render, no memo on `grouping` identity (INV-17).
+  const grouped =
+    grouping == null
+      ? null
+      : groupDisplayRows({
+          rows,
+          getGroupKey: grouping.getGroupKey,
+          columns,
+          sort: effectiveSort,
+          clientSort: !skipClientSort,
+        });
+  const displayRows: readonly Row[] =
+    grouped != null
+      ? grouped.displayRows
+      : skipClientSort
+        ? rows
+        : applyClientSort(rows, columns, effectiveSort);
 
   const pageSizeResolved = pagination != null ? resolvePageSize(pagination.pageSize) : 1;
   const serverTotalCount = pagination?.kind === 'server' ? pagination.totalCount : undefined;
@@ -207,6 +234,32 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
     pagination?.kind === 'client'
       ? sliceClientPage(displayRows, pagination.pageIndex, pagination.pageSize)
       : displayRows;
+
+  // SF-22 INV-14: same expression `sliceClientPage` uses, so slice and `continued` agree.
+  const pageStart =
+    pagination?.kind === 'client' && isUsablePageIndex(pagination.pageIndex)
+      ? pagination.pageIndex * pageSizeResolved
+      : 0;
+  // SF-22 INV-15: paint-only list. Never read by selection, pager, empty or activation logic.
+  const bodyItems: readonly DataTableBodyItem<Row>[] | null =
+    grouped == null ? null : buildGroupedBodyItems({ bodyRows, pageStart, grouped, getRowKey });
+
+  // SF-22 INV-18: set while the scroller paints a section whose renderer returned empty
+  // content; read by the diagnostics effect below (never logged during render).
+  const groupHeaderEmptySeenRef = useRef(false);
+  const renderGroupHeaderContent =
+    grouping == null
+      ? undefined
+      : (info: DataTableGroupHeaderInfo<Row>) => {
+          const resolved = resolveGroupHeaderContent(info, grouping);
+          if (resolved.rendererReturnedEmpty) {
+            groupHeaderEmptySeenRef.current = true;
+          }
+          return resolved.content;
+        };
+  const groupKeyTypeInvalid = grouped?.invalidKeySeen === true;
+  // A5: moving client-held rows into groups is expected; only server pages and feeds report it.
+  const groupReorderedFeed = grouped?.reordered === true && skipClientSort;
 
   const applicableKeys = selection == null ? [] : applicableRowKeys(bodyRows, getRowKey);
   const selectionState =
@@ -446,6 +499,27 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
         );
       }
     }
+
+    if (groupKeyTypeInvalid) {
+      logOnce(
+        'group:key-type',
+        'DataTable: grouping.getGroupKey returned a non-string value; the row is shown under the ungrouped section.'
+      );
+    }
+
+    if (groupReorderedFeed) {
+      logOnce(
+        'group:reordered',
+        'DataTable: grouping moved rows of a server page or feed; deliver rows ordered by group to keep scroll position stable.'
+      );
+    }
+
+    if (groupHeaderEmptySeenRef.current) {
+      logOnce(
+        'group:empty-header',
+        'DataTable: grouping.renderGroupHeader returned empty content; using the default group label.'
+      );
+    }
   }, [
     ariaLabel,
     ariaLabelledBy,
@@ -464,6 +538,10 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
     infiniteActive,
     infiniteIgnored,
     sortNameEmpty,
+    groupKeyTypeInvalid,
+    groupReorderedFeed,
+    // A new paint list means sections were painted again; re-check the empty-header flag.
+    bodyItems,
   ]);
 
   const isEmpty = bodyRows.length === 0;
@@ -495,6 +573,8 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
       tableClassName={tableClassName}
       columns={paintColumns}
       bodyRows={bodyRows}
+      bodyItems={bodyItems}
+      renderGroupHeaderContent={renderGroupHeaderContent}
       getRowKey={getRowKey}
       getRowClassName={getRowClassName}
       selectedKeys={selection?.selectedKeys}

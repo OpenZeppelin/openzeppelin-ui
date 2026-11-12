@@ -347,6 +347,59 @@ export interface DataTableSelection<Row> {
   readonly columnClassName?: string;
 }
 
+/** What a group header renderer receives. One call per painted section row. */
+export interface DataTableGroupHeaderInfo<Row> {
+  /**
+   * The group's key as returned by `getGroupKey`, or `null` for the group of rows
+   * whose key is missing (`null`, `undefined`, or a blank string).
+   */
+  readonly key: string | null;
+
+  /**
+   * Every row of this group, in display order. For client-held rows (no
+   * pagination, or `kind: 'client'`) this spans all pages, so `rows.length` is
+   * the group's full size. For server pages and infinite feeds it is the group's
+   * rows in the current `rows` array.
+   */
+  readonly rows: readonly Row[];
+
+  /**
+   * `true` when this section row repeats a group that started on an earlier
+   * client page. Always `false` without client pagination.
+   */
+  readonly continued: boolean;
+}
+
+/**
+ * Opt-in section rows under the single column header. The kit groups, orders and
+ * paints; the app owns the key, the header content and the group copy.
+ * Presentational only: no expand, collapse or group state.
+ *
+ * Row keys starting with `__data-table-group` are reserved for section rows,
+ * in the same way as `DATA_TABLE_SELECT_COLUMN_ID`.
+ */
+export interface DataTableGrouping<Row> {
+  /**
+   * Group identity for a row. Rows with the same string (exact match, no
+   * trimming or case folding) share a section. `null`, `undefined` or a blank
+   * string put the row in the trailing "no group" section (`key: null`).
+   * Called once per row per render; must be pure.
+   */
+  readonly getGroupKey: (row: Row) => string | null | undefined;
+
+  /**
+   * Content of the section row's header cell. The kit owns the `<tr>` and the
+   * `<th scope="row" colSpan>`; this owns what goes inside. Omitted, or returning
+   * `null` / `undefined` / a boolean / a blank string, renders the default label:
+   * `key`, or `ungroupedLabel` for `key: null`. It becomes the section's
+   * accessible name, so keep a text label in it.
+   */
+  readonly renderGroupHeader?: (info: DataTableGroupHeaderInfo<Row>) => ReactNode;
+
+  /** Default label for the `key: null` section. Default `'Other'`. */
+  readonly ungroupedLabel?: string;
+}
+
 /** Kit default estimate: SF-9 `p-4` composed rows are approximately 64px. INV-140 */
 export const DATA_TABLE_DEFAULT_ESTIMATE_SIZE = 64;
 
@@ -434,6 +487,14 @@ type DataTablePropsBase<Row> = {
 
   /** Optional kit-owned checkbox chrome backed by app-controlled identities (INV-176). */
   readonly selection?: DataTableSelection<Row>;
+
+  /**
+   * Opt-in section rows under the single column header. Omitted → the flat table.
+   * Groups keep first-appearance order in `rows` (missing keys last); client sort
+   * reorders rows within each group only. Section rows are not data rows: they are
+   * never selectable, never counted by pagination, and never passed to `cell`.
+   */
+  readonly grouping?: DataTableGrouping<Row>;
 
   /**
    * Opaque integrator content hosted inside the bordered frame above the table.

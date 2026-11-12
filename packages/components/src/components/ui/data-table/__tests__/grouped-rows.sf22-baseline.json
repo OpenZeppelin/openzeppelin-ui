@@ -1,0 +1,85 @@
+{
+  "baseCommit": "7a2a4a379^",
+  "cases": {
+    "plain · selection off · rows": {
+      "sha256": "b165a88de2b541e33fcedea626d9a46c31425ba4091e1f21da7b01fdb6f971f9",
+      "length": 18385
+    },
+    "plain · selection off · empty": {
+      "sha256": "bf1d4f946302a66a4004822e5c0aca492d58351cb547e40545d64661198de974",
+      "length": 3290
+    },
+    "plain · selection on · rows": {
+      "sha256": "6380859d574e20dc242278a1e88fb802fead266ecddcd232613233f0d248d10c",
+      "length": 48131
+    },
+    "plain · selection on · empty": {
+      "sha256": "fd09f8f33759b5a9ece5759fcfe80874514f4c6272350b56fcf9c204e0fbe2b6",
+      "length": 4329
+    },
+    "virtualized · selection off · rows": {
+      "sha256": "39a5f0f9e5c861736231af4fa2a4b9abe5991a8daf5b7eaaea5f273a1e1319e4",
+      "length": 10013
+    },
+    "virtualized · selection off · empty": {
+      "sha256": "bf1d4f946302a66a4004822e5c0aca492d58351cb547e40545d64661198de974",
+      "length": 3290
+    },
+    "virtualized · selection on · rows": {
+      "sha256": "cdc4880cb6158c46f5563bea2d36e262c22235b7d5b2f28a99a19afeb155e133",
+      "length": 25003
+    },
+    "virtualized · selection on · empty": {
+      "sha256": "fd09f8f33759b5a9ece5759fcfe80874514f4c6272350b56fcf9c204e0fbe2b6",
+      "length": 4329
+    },
+    "client pager · selection off · rows": {
+      "sha256": "490a25ae62d3b2190982594e2c1e0e2a8be2c8366e8aaec06a19ba828ee1dc57",
+      "length": 10814
+    },
+    "client pager · selection off · empty": {
+      "sha256": "a9e39119bb8aca7cecf224fdd23917a34ec54c5bbb89bd80ff0af8eec42a09e6",
+      "length": 5862
+    },
+    "client pager · selection on · rows": {
+      "sha256": "babcf02e6f2b141b526ac48226f3a4ada908957beb2ddcc27db9596c1fa238e6",
+      "length": 17897
+    },
+    "client pager · selection on · empty": {
+      "sha256": "ab591d7026b23bdc81a51bf247c188e3079c5c056daddcdf59822f9f2b7ee967",
+      "length": 6901
+    },
+    "server pager · selection off · rows": {
+      "sha256": "af0e356033751b17cce9c35a00c0c4534f2de239bb7959e232a644870395bcb5",
+      "length": 21982
+    },
+    "server pager · selection off · empty": {
+      "sha256": "5ade52776c277c4c0d89aa469cd8181ede3d8d417649e6fd0bc25726795d808a",
+      "length": 6886
+    },
+    "server pager · selection on · rows": {
+      "sha256": "bf48dd3e9fcbb9dc3acca0184bdf135c516ae0898ecca356aae0a8fc3dac4212",
+      "length": 51728
+    },
+    "server pager · selection on · empty": {
+      "sha256": "4786b5ad51d891c57dd872f56bf49b9e86cef1d16a8f0a50e3041032d95c98f3",
+      "length": 7925
+    },
+    "infinite · selection off · rows": {
+      "sha256": "8e681c8b3b08893e934d42d970fde5b8300bfc140b8d7b76648051b4fcaabd55",
+      "length": 19168
+    },
+    "infinite · selection off · empty": {
+      "sha256": "39dc94734974d078ebf810463a39941eb8fb1861f4709d9fa1f922d967ad4f2b",
+      "length": 2778
+    },
+    "infinite · selection on · rows": {
+      "sha256": "a2cc21ba630101cac6a6cac3a3a5108f99b0da70f4d49adcbacc6f50735b0c7e",
+      "length": 48914
+    },
+    "infinite · selection on · empty": {
+      "sha256": "8cc47402b703115bce4a06c733eae557b9052ef712d274c234ea3e3e01a9b752",
+      "length": 3817
+    }
+  }
+}

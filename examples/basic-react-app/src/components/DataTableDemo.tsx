@@ -8,6 +8,7 @@ import {
   Input,
   type BadgeTone,
   type DataTableColumn,
+  type DataTableGrouping,
 } from '@openzeppelin/ui-components';
 
 import { DemoSection } from './DemoSection';
@@ -428,6 +429,151 @@ function InfiniteCatalogTable(): ReactElement {
   );
 }
 
+/** Access-control key row for the grouped-rows demo. `role` is optional on purpose. */
+interface KeyRow {
+  readonly id: string;
+  readonly role?: 'Admin' | 'Minter' | 'Pauser';
+  readonly account: string;
+  readonly label: string;
+  readonly addedAt: Date;
+}
+
+const KEY_ROLES = ['Admin', 'Minter', 'Pauser'] as const;
+const KEY_EPOCH_MS = Date.UTC(2026, 0, 1);
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Deterministic key rows (no `Math.random`), so the proof script can assert exact
+ * counts and orders. Roles cycle through the input, so grouping has to gather them.
+ */
+function keyRows(count: number, withoutRole: readonly number[] = []): KeyRow[] {
+  return Array.from({ length: count }, (_, n) => ({
+    id: `key-${String(n)}`,
+    role: withoutRole.includes(n) ? undefined : KEY_ROLES[n % KEY_ROLES.length],
+    account: `0x${(n + 1).toString(16).padStart(4, '0')}${'ab'.repeat(18)}`,
+    label: `Signer ${String(n + 1).padStart(3, '0')}`,
+    addedAt: new Date(KEY_EPOCH_MS + ((n * 37) % 300) * DAY_MS),
+  }));
+}
+
+/** No Role column: the section row carries the role. */
+const KEY_COLUMNS: readonly DataTableColumn<KeyRow>[] = [
+  {
+    id: 'account',
+    header: 'Account',
+    cell: (row) => (
+      <AddressDisplay address={row.account} showCopyButton startChars={6} endChars={4} />
+    ),
+  },
+  {
+    id: 'label',
+    header: 'Label',
+    sortable: true,
+    getSortValue: (row) => row.label,
+    cell: (row) => row.label,
+  },
+  {
+    id: 'added',
+    header: 'Added',
+    sortable: true,
+    getSortValue: (row) => row.addedAt,
+    cell: (row) => row.addedAt.toISOString().slice(0, 10),
+  },
+];
+
+const NO_ROLE_LABEL = 'No role';
+
+function GroupedKeysTable(): ReactElement {
+  // 120 role keys, 3 of them without a role (interleaved in the input).
+  const rows = useMemo(() => keyRows(120, [10, 55, 100]), []);
+  const [selectedKeys, setSelectedKeys] = useState<ReadonlySet<string>>(() => new Set());
+  const grouping: DataTableGrouping<KeyRow> = {
+    getGroupKey: (row) => row.role,
+    ungroupedLabel: NO_ROLE_LABEL,
+    renderGroupHeader: ({ key, rows: groupRows }) => (
+      <span className="flex items-center gap-2">
+        {key ?? NO_ROLE_LABEL}
+        <Badge label={`${String(groupRows.length)} keys`} tone="neutral" />
+      </span>
+    ),
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-muted-foreground text-sm" aria-live="polite">
+        {selectedKeys.size} of {rows.length} keys selected
+      </p>
+      <DataTable
+        caption="Keys by role"
+        columns={KEY_COLUMNS}
+        rows={rows}
+        getRowKey={(row) => row.id}
+        grouping={grouping}
+        selection={{
+          selectedKeys,
+          onSelectionChange: setSelectedKeys,
+          selectAllLabel: 'Select all keys',
+          getCheckboxLabel: (row) => `Select ${row.label}`,
+          columnHeaderLabel: 'Select keys',
+        }}
+        virtualized
+      />
+    </div>
+  );
+}
+
+function PaginatedGroupedKeysTable(): ReactElement {
+  // Admin 4, Minter 5, Pauser 3: pages of 5 split Minter and Pauser across pages.
+  const rows = useMemo(
+    () =>
+      keyRows(12).map((row, n) => ({
+        ...row,
+        role: n < 4 ? ('Admin' as const) : n < 9 ? ('Minter' as const) : ('Pauser' as const),
+      })),
+    []
+  );
+  const [pageIndex, setPageIndex] = useState(0);
+
+  return (
+    <DataTable
+      caption="Keys by role (paginated)"
+      columns={KEY_COLUMNS}
+      rows={rows}
+      getRowKey={(row) => row.id}
+      grouping={{
+        getGroupKey: (row) => row.role,
+        renderGroupHeader: ({ key, continued }) =>
+          `${key ?? NO_ROLE_LABEL}${continued ? ' (continued)' : ''}`,
+      }}
+      pagination={{
+        kind: 'client',
+        pageIndex,
+        pageSize: 5,
+        onPageChange: setPageIndex,
+        placement: 'inside',
+      }}
+    />
+  );
+}
+
+function GroupedRowsDemo(): ReactElement {
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <h3 className="text-sm font-medium">Grouped rows</h3>
+        <p className="text-muted-foreground text-sm">
+          `grouping` paints a section row before each group under one column header. Sorting by
+          Label or Added reorders keys inside each role, and the roles stay in place. Select all
+          picks every key and no section rows. Keys without a role go to a trailing section. The
+          paginated table repeats a split role at the top of the next page.
+        </p>
+      </div>
+      <GroupedKeysTable />
+      <PaginatedGroupedKeysTable />
+    </div>
+  );
+}
+
 /**
  * Example-app consumption of kit DataTable: column-as-data, composed cells,
  * end-aligned amounts, client sort, and a live empty-state path, plus controlled
@@ -491,6 +637,7 @@ export function DataTableDemo(): ReactElement {
         emptyTitle="No matching accounts"
         emptyDescription="Try a different token or holder address."
       />
+      <GroupedRowsDemo />
       <VirtualizedCatalogTable />
       <PaginatedCatalogTable />
       <InfiniteCatalogTable />
