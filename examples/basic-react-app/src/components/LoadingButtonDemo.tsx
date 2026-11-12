@@ -11,6 +11,7 @@ import { DemoSection } from './DemoSection';
 export function LoadingButtonDemo(): React.ReactElement {
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   const [completedStates, setCompletedStates] = useState<Record<string, boolean>>({});
+  const [formSubmits, setFormSubmits] = useState(0);
 
   const simulateAsync = (id: string, duration: number = 2000) => {
     setLoadingStates((prev) => ({ ...prev, [id]: true }));
@@ -30,7 +31,7 @@ export function LoadingButtonDemo(): React.ReactElement {
   return (
     <DemoSection
       title="LoadingButton"
-      description="A button component that displays a loading spinner during async operations. Automatically disables the button while loading to prevent duplicate submissions."
+      description="A button component that displays a loading spinner during async operations. While loading it ignores clicks, Enter, Space and form submission, so a request is not sent twice, and it keeps keyboard focus."
       codeExample={`import { LoadingButton } from '@openzeppelin/ui-components';
 
 // Basic usage
@@ -185,7 +186,7 @@ const handleSubmit = async () => {
           <LoadingButton disabled>Disabled</LoadingButton>
           <LoadingButton loading={true}>Loading</LoadingButton>
           <LoadingButton disabled loading={true}>
-            Both (loading wins)
+            Both (spinner, stays disabled)
           </LoadingButton>
         </div>
       </div>
@@ -231,38 +232,55 @@ const handleSubmit = async () => {
       {/* In Form Context */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">In Form Context</h3>
-        <div className="max-w-md rounded-lg border p-4">
+        <p className="text-muted-foreground text-sm">
+          Press Enter in a field or activate the button to submit. While the submit is loading, more
+          presses, clicks and Enter in a field are ignored, so the count goes up once per submit.
+        </p>
+        <form
+          noValidate
+          className="max-w-md rounded-lg border p-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setFormSubmits((count) => count + 1);
+            simulateAsync('form-submit', 2000);
+          }}
+        >
           <h4 className="mb-4 font-medium">Transfer Tokens</h4>
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Recipient Address</label>
+              <label htmlFor="loading-button-form-recipient" className="text-sm font-medium">
+                Recipient Address
+              </label>
               <input
+                id="loading-button-form-recipient"
                 type="text"
                 placeholder="0x..."
                 className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Amount</label>
+              <label htmlFor="loading-button-form-amount" className="text-sm font-medium">
+                Amount
+              </label>
               <input
+                id="loading-button-form-amount"
                 type="text"
                 placeholder="0.0"
                 className="border-input bg-background w-full rounded-md border px-3 py-2 text-sm"
               />
             </div>
-            <LoadingButton
-              className="w-full"
-              loading={loadingStates['form-submit']}
-              onClick={() => simulateAsync('form-submit', 2000)}
-            >
+            <LoadingButton type="submit" className="w-full" loading={loadingStates['form-submit']}>
               {loadingStates['form-submit']
                 ? 'Processing Transaction...'
                 : completedStates['form-submit']
                   ? 'Transaction Sent!'
                   : 'Send Tokens'}
             </LoadingButton>
+            <p className="text-muted-foreground text-sm" data-testid="loading-button-form-submits">
+              Submitted {formSubmits} {formSubmits === 1 ? 'time' : 'times'}
+            </p>
           </div>
-        </div>
+        </form>
       </div>
 
       {/* Action Group */}
