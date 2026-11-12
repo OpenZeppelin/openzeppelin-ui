@@ -1,12 +1,12 @@
 /**
- * Internal searchable select core (SF-15, Design D1).
+ * Internal searchable select core.
  *
  * Owns the modal popover, the search combobox, the listbox, filtering, keyboard
  * handling and ARIA wiring. Focus stays in the search box while the list is
- * navigated through `aria-activedescendant` (D2).
+ * navigated through `aria-activedescendant`.
  *
- * Internal: NOT exported from the package barrel (INV-7). `SearchableMultiSelect`
- * wraps it for multi-select; SF-17's `NetworkSelector` imports it by path for
+ * Internal: NOT exported from the package barrel. `SearchableMultiSelect`
+ * wraps it for multi-select; `NetworkSelector` imports it by path for
  * single mode, grouping, disabled items and custom option content.
  */
 import { Check, Search } from 'lucide-react';
@@ -34,7 +34,7 @@ export interface TriggerAria {
   readonly role: 'combobox';
   readonly 'aria-haspopup': 'listbox';
   readonly 'aria-expanded': boolean;
-  /** The listbox id while open; absent while closed (INV-1, INV-2). */
+  /** The listbox id while open; absent while closed. */
   readonly 'aria-controls': string | undefined;
 }
 
@@ -56,7 +56,7 @@ export interface SelectionSummary {
   readonly onClear: () => void;
 }
 
-/** Accessible name for the listbox and the popover dialog (INV-17). */
+/** Accessible name for the listbox and the popover dialog. */
 export interface ListName {
   readonly 'aria-label'?: string;
   readonly 'aria-labelledby'?: string;
@@ -68,14 +68,14 @@ export interface SearchableSelectCoreProps<T> {
   readonly getItemId: (item: T) => string;
   readonly getItemLabel: (item: T) => string;
   readonly filterItem?: (item: T, query: string) => boolean;
-  /** Disabled options are announced, skipped by arrows and inert (INV-22). */
+  /** Disabled options are announced, skipped by arrows and inert. */
   readonly isItemDisabled?: (item: T) => boolean;
-  /** Group key per item. Without it no `role="group"` is rendered (INV-21). */
+  /** Group key per item. Without it no `role="group"` is rendered. */
   readonly getItemGroup?: (item: T) => string;
-  /** Option body. Default: the label. The core always owns the option element and its ARIA (INV-23). */
+  /** Option body. Default: the label. The core always owns the option element and its ARIA. */
   readonly renderItemContent?: (item: T, state: OptionState) => React.ReactNode;
 
-  /** `true` → multiselectable, stays open on activate. `false` → closes and refocuses the trigger (INV-32). */
+  /** `true` → multiselectable, stays open on activate. `false` → closes and refocuses the trigger. */
   readonly multiple: boolean;
   readonly isSelected: (item: T) => boolean;
   /** Called once for an enabled option on Enter or click. The caller decides what selection means. */
@@ -98,7 +98,7 @@ export interface SearchableSelectCoreProps<T> {
   readonly searchLabel: string;
   readonly emptyText: string;
   readonly listName: ListName;
-  /** Nothing opens; an open popover closes (INV-25). */
+  /** Nothing opens; an open popover closes. */
   readonly disabled?: boolean;
   /**
    * Like `disabled`, but the trigger stays enabled and focusable: nothing opens and an open
@@ -112,14 +112,14 @@ export interface SearchableSelectCoreProps<T> {
    */
   readonly slotPrefix?: string;
   /**
-   * Called once per change of the effective open state (SF-16 INV-14). User
+   * Called once per change of the effective open state. User
    * acts report synchronously in their event, before the popover moves focus;
    * a `disabled`- or `readOnly`-forced close reports from a layout effect. Never on mount or unmount.
    */
   readonly onOpenChange?: (open: boolean) => void;
 }
 
-/** `aria-activedescendant` target id. Uses the source index, never the item id (D12, INV-4). */
+/** `aria-activedescendant` target id. Uses the source index, never the item id. */
 function optionDomId(listboxId: string, option: ListOption<unknown>): string {
   return `${listboxId}-opt-${option.sourceIndex}`;
 }
@@ -161,20 +161,20 @@ export function SearchableSelectCore<T>({
   onOpenChange,
 }: SearchableSelectCoreProps<T>): React.ReactElement {
   const [openState, setOpenState] = React.useState(false);
-  // Query survives close and reopen (D7, INV-31).
+  // Query survives close and reopen.
   const [query, setQuery] = React.useState('');
-  // `null` = "first enabled option". Resolved against the current model during render (INV-26).
+  // `null` = "first enabled option". Resolved against the current model during render.
   const [storedActive, setStoredActive] = React.useState<number | null>(null);
   const searchRef = React.useRef<HTMLInputElement>(null);
   const listboxId = `${React.useId()}listbox`;
 
-  // INV-25: disabling (or turning read-only) while open closes for good, not just hidden until
+  // Disabling (or turning read-only) while open closes for good, not just hidden until
   // re-enabled. Read-only blocks opening exactly like disabled; only the trigger stays enabled.
   const blocked = disabled || readOnly;
   if (blocked && openState) setOpenState(false);
   const open = openState && !blocked;
 
-  // SF-16 INV-14: the last open state reported to `onOpenChange`. Starts closed, so mount
+  // The last open state reported to `onOpenChange`. Starts closed, so mount
   // (StrictMode included) reports nothing.
   const reportedOpenRef = React.useRef(false);
   const reportOpenChange = (next: boolean): void => {
@@ -182,7 +182,7 @@ export function SearchableSelectCore<T>({
     reportedOpenRef.current = next;
     onOpenChange?.(next);
   };
-  // SF-16 INV-14: catches changes no event reported, i.e. the render-phase forced close above.
+  // Catches changes no event reported, i.e. the render-phase forced close above.
   // A layout effect, so the consumer hears it after commit and never during render.
   React.useLayoutEffect(() => {
     if (reportedOpenRef.current === open) return;
@@ -190,7 +190,7 @@ export function SearchableSelectCore<T>({
     onOpenChange?.(open);
   }, [open, onOpenChange]);
 
-  // Navigation and hover only touch `storedActive`, so they never rebuild this (INV-35).
+  // Navigation and hover only touch `storedActive`, so they never rebuild this.
   const model = React.useMemo(
     () =>
       buildListModel({
@@ -211,7 +211,7 @@ export function SearchableSelectCore<T>({
     [flat, isSelected]
   );
 
-  // INV-26: the stored index survives only while in range and enabled; else first enabled.
+  // The stored index survives only while in range and enabled; else first enabled.
   const storedOption = storedActive === null ? undefined : flat[storedActive];
   const activeIndex =
     storedActive !== null && storedOption !== undefined && !storedOption.disabled
@@ -222,9 +222,9 @@ export function SearchableSelectCore<T>({
 
   const handleOpenChange = (next: boolean): void => {
     if (next && blocked) return;
-    // SF-16 INV-14: report inside the event, before the popover's focus move commits.
+    // Report inside the event, before the popover's focus move commits.
     reportOpenChange(next);
-    // INV-26: a fresh open starts on the first enabled option.
+    // A fresh open starts on the first enabled option.
     if (next) setStoredActive(null);
     setOpenState(next);
   };
@@ -232,13 +232,13 @@ export function SearchableSelectCore<T>({
   const focusSearch = React.useCallback(() => searchRef.current?.focus(), []);
 
   const activate = (option: ListOption<T>, index: number): void => {
-    // INV-22: disabled options do nothing, not even move the highlight.
+    // Disabled options do nothing, not even move the highlight.
     if (option.disabled) return;
     setStoredActive(index);
-    onActivate(option.item); // INV-11: the only emit path besides the wrapper's Clear all.
-    // INV-32: single mode closes; Radix's modal onCloseAutoFocus returns focus to the trigger (INV-40).
+    onActivate(option.item); // The only emit path besides the wrapper's Clear all.
+    // Single mode closes; Radix's modal onCloseAutoFocus returns focus to the trigger.
     if (!multiple) {
-      reportOpenChange(false); // SF-16 INV-14
+      reportOpenChange(false);
       setOpenState(false);
     }
   };
@@ -252,7 +252,7 @@ export function SearchableSelectCore<T>({
 
   const handleSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>): void => {
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      // INV-27: keep the caret where it is, wrap over enabled options, scroll into view.
+      // Keep the caret where it is, wrap over enabled options, scroll into view.
       event.preventDefault();
       const next = stepEnabledIndex(flat, activeIndex, event.key === 'ArrowDown' ? 1 : -1);
       if (next < 0) return;
@@ -262,7 +262,7 @@ export function SearchableSelectCore<T>({
     }
     if (event.key === 'Enter') {
       if (isComposing(event)) return; // A4: confirm IME text, toggle nothing.
-      // INV-28: never let an enclosing form submit from the open popover.
+      // Never let an enclosing form submit from the open popover.
       event.preventDefault();
       if (activeOption) activate(activeOption, activeIndex);
     }
@@ -295,20 +295,20 @@ export function SearchableSelectCore<T>({
         key={option.sourceIndex}
         id={optionDomId(listboxId, option)}
         role="option"
-        // INV-4: explicit "true" / "false", never absent.
+        // Explicit "true" / "false", never absent.
         aria-selected={state.selected}
         aria-disabled={state.disabled || undefined}
         data-active={state.active ? '' : undefined}
         data-slot={`${slotPrefix}-option`}
         className={cn(
           'relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none',
-          // INV-41: active is a highlight distinct from the selected check.
+          // Active is a highlight distinct from the selected check.
           'data-[active]:bg-accent data-[active]:text-accent-foreground',
           // Dark theme: the accent fill alone is ~1.3:1 on the surface, so the active row also gets an inset ring.
           '[.dark_&]:data-[active]:ring-1 [.dark_&]:data-[active]:ring-inset [.dark_&]:data-[active]:ring-muted-foreground',
           state.disabled && 'cursor-not-allowed opacity-60'
         )}
-        // INV-29: keep focus in the search box.
+        // Keep focus in the search box.
         onPointerDown={(event) => event.preventDefault()}
         onMouseDown={(event) => event.preventDefault()}
         onClick={() => activate(option, index)}
@@ -373,7 +373,7 @@ export function SearchableSelectCore<T>({
             value={query}
             onChange={(event) => {
               setQuery(event.target.value);
-              setStoredActive(null); // INV-26: query change → first enabled option.
+              setStoredActive(null); // Query change → first enabled option.
             }}
             onKeyDown={handleSearchKeyDown}
             autoComplete="off"
@@ -387,12 +387,12 @@ export function SearchableSelectCore<T>({
                 {selectionSummary.text}
               </span>
               <button
-                // INV-17: never submits an enclosing form.
+                // Never submits an enclosing form.
                 type="button"
                 data-slot={`${slotPrefix}-clear`}
                 className="text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
                 onClick={() => {
-                  // INV-30: move focus before this button unmounts, so it never falls to <body>.
+                  // Move focus before this button unmounts, so it never falls to <body>.
                   focusSearch();
                   selectionSummary.onClear();
                 }}
@@ -414,7 +414,7 @@ export function SearchableSelectCore<T>({
           role="listbox"
           aria-multiselectable={multiple || undefined}
           {...listName}
-          // D11: keep the id resolvable for aria-controls, but hide an empty listbox.
+          // Keep the id resolvable for aria-controls, but hide an empty listbox.
           hidden={isEmpty || undefined}
           data-slot={`${slotPrefix}-listbox`}
           className="max-h-[300px] overflow-y-auto p-1"
@@ -441,7 +441,7 @@ export function SearchableSelectCore<T>({
             );
           })}
         </div>
-        {/* D11, INV-38: always mounted while open; only its text changes. */}
+        {/* Always mounted while open; only its text changes. */}
         <div
           role="status"
           aria-live="polite"

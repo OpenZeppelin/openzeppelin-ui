@@ -161,7 +161,7 @@ export function TextAreaField<TFieldValues extends FieldValues = FieldValues>({
               {...accessibilityProps}
               {...ro.controlProps}
               onKeyDown={
-                // INV-12: no Escape-clear (and no preventDefault) in readonly mode.
+                // No Escape-clear (and no preventDefault) in readonly mode.
                 ro.isFocusableReadOnly
                   ? undefined
                   : handleEscapeKey((value) => {

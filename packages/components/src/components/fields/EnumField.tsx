@@ -151,7 +151,7 @@ export function EnumField<TFieldValues extends FieldValues = FieldValues>({
               }
 
               // This exit also passes an empty optional value; the custom check
-              // must never see one (INV-9).
+              // must never see one.
               if (value === undefined || value === null) return true;
               return runCustomCheck(value, validation);
             },

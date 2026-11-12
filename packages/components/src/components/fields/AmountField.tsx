@@ -138,7 +138,7 @@ export interface AmountFieldExactProps<TFieldValues extends FieldValues = FieldV
   validateAmount?: (value: string) => boolean | string;
 }
 
-/** Default-mode props the exact branch never reads (INV-7). */
+/** Default-mode props the exact branch never reads. */
 const NO_DEFAULT_MODE_PROPS: Pick<AmountFieldProps, 'min' | 'max' | 'step' | 'validateAmount'> = {};
 
 /**
@@ -190,10 +190,10 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
     readOnly,
     readOnlyMode,
   } = props;
-  // INV-1: exact mode only on a strict `false`; omitted, `true` and type-bypass values
+  // Exact mode only on a strict `false`; omitted, `true` and type-bypass values
   // all keep the default mode.
   const exactProps = props.formatOnBlur === false ? props : undefined;
-  // INV-7: reduced to a boolean once; only exact mode reads it.
+  // Reduced to a boolean once; only exact mode reads it.
   const allowGrouping = !!exactProps?.allowGrouping;
   const {
     min,
@@ -223,7 +223,7 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
         name={name}
         rules={{
           // The rules are re-registered on every render, so a runtime mode flip
-          // validates with the mode now rendered (INV-24).
+          // validates with the mode now rendered.
           validate: exactProps
             ? (value) => {
                 const result = validateExactAmount(value, {
@@ -236,8 +236,8 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
                   requiredMessage: getRequiredMessage(validation, AMOUNT_REQUIRED_MESSAGE),
                 });
                 // validateExactAmount also passes an empty optional value; the
-                // custom check must never see one (INV-9). It gets the stored
-                // exact string, never a float (INV-12).
+                // custom check must never see one. It gets the stored
+                // exact string, never a float.
                 if (result !== true || isEmptyAmountValue(value)) return result;
                 return runCustomCheck(value, validation);
               }
@@ -330,7 +330,7 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
                       }
                     }}
                     onBlur={(e) => {
-                      // Format on blur. INV-14: never in readonly mode; blur still marks touched.
+                      // Format on blur, never in readonly mode; blur still marks touched.
                       // An unchanged result is still written, which keeps validation timing as
                       // it was. `null` (non-plain text, unusable decimals) writes nothing.
                       if (!ro.isFocusableReadOnly) {
@@ -342,7 +342,7 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
                       }
                     }}
                     onKeyDown={(e) => {
-                      // INV-12 / INV-13: in readonly mode Escape and the arrows never write and
+                      // In readonly mode Escape and the arrows never write and
                       // are not preventDefault-ed.
                       if (ro.isFocusableReadOnly) return;
 

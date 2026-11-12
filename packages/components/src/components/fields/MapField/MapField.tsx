@@ -37,7 +37,7 @@ function formatLabeledType(baseLabel: string, typeHint?: string): string {
 /**
  * The map's whole rule: structure first, then the custom check for a map with at
  * least one complete entry. The Controller rule and the error effect both call
- * it, so a custom-check error is never cleared behind the rule's back (INV-21).
+ * it, so a custom-check error is never cleared behind the rule's back.
  * `runCheck: false` gives the structural result alone.
  */
 function validateMapValue(
@@ -55,7 +55,7 @@ function validateMapValue(
   if (structural !== true || !runCheck) return structural;
 
   // Same "complete entry" test as validateMapStructure's required rule: a map
-  // without one is empty, and the custom check never sees an empty map (INV-9).
+  // without one is empty, and the custom check never sees an empty map.
   const hasCompleteEntry =
     isMapEntryArray(value) &&
     value.some(
@@ -219,7 +219,7 @@ export function MapField<TFieldValues extends FieldValues = FieldValues>({
     }
 
     // A read-only map skips its Controller rule, so the effect must not raise a
-    // custom-check error the rule would never clear (INV-17).
+    // custom-check error the rule would never clear.
     const effectValidation: FieldValidation = {
       required: mapRequired,
       messages: mapRequiredMessage !== undefined ? { required: mapRequiredMessage } : undefined,

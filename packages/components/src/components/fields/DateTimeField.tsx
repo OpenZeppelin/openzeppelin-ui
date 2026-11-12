@@ -138,7 +138,7 @@ export function DateTimeField<TFieldValues extends FieldValues = FieldValues>({
           };
 
           const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-            // INV-12: in readonly mode Escape neither clears nor blurs, and is not preventDefault-ed.
+            // In readonly mode Escape neither clears nor blurs, and is not preventDefault-ed.
             if (e.key === 'Escape' && !ro.isFocusableReadOnly) {
               if (clearOnEscape) {
                 handleEscapeKey(field.onChange as (v: string) => void, field.value)(e);
@@ -153,7 +153,7 @@ export function DateTimeField<TFieldValues extends FieldValues = FieldValues>({
             hasError,
             isRequired,
             hasHelperText: !!helperText,
-            // Same value as today in default mode; readonly mode keeps tabIndex 0 (INV-7).
+            // Same value as today in default mode; readonly mode keeps tabIndex 0.
             isDisabled: !!ro.controllerDisabled,
             isReadOnly: ro.isFocusableReadOnly,
           });
