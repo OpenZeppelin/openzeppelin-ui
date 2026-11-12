@@ -272,6 +272,8 @@ export function SearchableSelectCore<T>({
           'relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none',
           // INV-41: active is a highlight distinct from the selected check.
           'data-[active]:bg-accent data-[active]:text-accent-foreground',
+          // Dark theme: the accent fill alone is ~1.3:1 on the surface, so the active row also gets an inset ring.
+          '[.dark_&]:data-[active]:ring-1 [.dark_&]:data-[active]:ring-inset [.dark_&]:data-[active]:ring-muted-foreground',
           state.disabled && 'cursor-not-allowed opacity-60'
         )}
         // INV-29: keep focus in the search box.
@@ -290,7 +292,7 @@ export function SearchableSelectCore<T>({
               'flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors',
               state.selected
                 ? 'border-selected bg-selected text-selected-foreground'
-                : 'border-input bg-background'
+                : 'border-input bg-background [.dark_&]:border-muted-foreground'
             )}
           >
             {state.selected && <Check className="h-3 w-3" />}

@@ -84,12 +84,12 @@ const RadioGroupItem = React.forwardRef<HTMLButtonElement, RadioGroupItemProps>(
           aria-describedby={hasDescription ? descriptionId : undefined}
           data-variant="card"
           className={cn(
-            'border-input bg-background hover:bg-accent focus-visible:ring-ring data-[state=checked]:border-primary data-[state=checked]:bg-primary/5 flex w-full items-start gap-3 rounded-lg border-2 p-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-background',
+            'border-input bg-background hover:bg-accent focus-visible:ring-ring data-[state=checked]:border-primary data-[state=checked]:bg-primary/5 [.dark_&]:data-[state=unchecked]:border-muted-foreground flex w-full items-start gap-3 rounded-lg border-2 p-4 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-background',
             className
           )}
           {...props}
         >
-          <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-input">
+          <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-input [.dark_&]:border-muted-foreground">
             <RadioGroupPrimitive.Indicator className="flex items-center justify-center">
               <Circle className="text-selected h-2.5 w-2.5 fill-current" />
             </RadioGroupPrimitive.Indicator>
