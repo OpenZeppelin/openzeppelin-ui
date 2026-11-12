@@ -18,6 +18,7 @@ export * from './card';
 export * from './checkbox';
 export * from './data-table';
 export * from './date-range-picker';
+export * from './description-list';
 export * from './dialog';
 export * from './dropdown-menu';
 export * from './ecosystem-dropdown';

@@ -16,6 +16,7 @@ export { RadioGroupDemo } from './RadioGroupDemo';
 export { AlertDemo } from './AlertDemo';
 export { DialogDemo } from './DialogDemo';
 export { TooltipDemo } from './TooltipDemo';
+export { DescriptionListDemo } from './DescriptionListDemo';
 export { PageHeaderDemo } from './PageHeaderDemo';
 export { PopoverDemo } from './PopoverDemo';
 export { ToastDemo } from './ToastDemo';

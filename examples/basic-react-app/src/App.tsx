@@ -67,6 +67,7 @@ import {
   ContractInteractionsDemo,
   DataTableDemo,
   DateRangePickerDemo,
+  DescriptionListDemo,
   DialogDemo,
   DropdownMenuDemo,
   EmptyStateDemo,
@@ -155,6 +156,7 @@ type DemoKey =
   | 'form'
   | 'form-fields'
   | 'page-header'
+  | 'description-list'
   | 'address-field'
   | 'address-list-field'
   | 'calendar'
@@ -265,6 +267,7 @@ const galleryCategories: GalleryCategory[] = [
       { key: 'empty-state', label: 'EmptyState', icon: <LayoutGrid className="size-4" /> },
       { key: 'banner', label: 'Banner', icon: <PanelTop className="size-4" /> },
       { key: 'page-header', label: 'PageHeader', icon: <PanelTop className="size-4" /> },
+      { key: 'description-list', label: 'DescriptionList', icon: <List className="size-4" /> },
       {
         key: 'external-link',
         label: 'ExternalLink',
@@ -349,6 +352,7 @@ const demoComponents: Record<
   'empty-state': EmptyStateDemo,
   banner: BannerDemo,
   'page-header': PageHeaderDemo,
+  'description-list': DescriptionListDemo,
   'external-link': ExternalLinkDemo,
   'loading-button': LoadingButtonDemo,
   // Component Gallery - Forms
