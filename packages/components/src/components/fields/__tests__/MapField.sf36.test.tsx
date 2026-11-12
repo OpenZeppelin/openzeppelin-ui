@@ -123,6 +123,20 @@ describe('SF-36 CD-3 — when MapField’s effect runs the check', () => {
     m.unmount();
   });
 
+  it('inline messages (a new object each render) with a stable check do not re-run it', async () => {
+    const check = vi.fn((_v: unknown) => true as const);
+    const m = mountField(MAP, {
+      value: one,
+      validation: { validate: check, messages: { required: 'Add an entry' } },
+    });
+    const afterMount = check.mock.calls.length;
+    for (let i = 0; i < 5; i += 1) {
+      m.set({ validation: { validate: check, messages: { required: 'Add an entry' } } });
+    }
+    expect(check).toHaveBeenCalledTimes(afterMount);
+    m.unmount();
+  });
+
   it('documented: an inline check (new function each render) runs once per parent re-render while the map is valid', async () => {
     const calls = vi.fn();
     const m = mountField(MAP, { value: one, validation: { validate: () => (calls(), true) } });

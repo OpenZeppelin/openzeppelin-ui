@@ -180,9 +180,11 @@ export function MapField<TFieldValues extends FieldValues = FieldValues>({
    * This avoids re-entrancy loops that can happen when calling trigger during Preview.
    *
    * The effect depends on the `validation` members it uses, not on the object, so a
-   * parent passing `validation` inline doesn't re-run it on every render.
+   * parent passing `validation` inline doesn't re-run it on every render. Of `messages` it
+   * reads only the required text, so it depends on that string, not on the `messages` object.
    */
   const { required: mapRequired, messages: mapMessages, validate: mapCheck } = validation ?? {};
+  const mapRequiredMessage = mapMessages?.required;
   React.useEffect(() => {
     if (!formContext) return;
     if (isReplacingRef.current) return;
@@ -211,7 +213,7 @@ export function MapField<TFieldValues extends FieldValues = FieldValues>({
     // custom-check error the rule would never clear (INV-17).
     const effectValidation: FieldValidation = {
       required: mapRequired,
-      messages: mapMessages,
+      messages: mapRequiredMessage !== undefined ? { required: mapRequiredMessage } : undefined,
       validate: mapCheck,
     };
     const result = validateMapValue(watchedValue, effectValidation, minItems, !readOnly);
@@ -240,7 +242,7 @@ export function MapField<TFieldValues extends FieldValues = FieldValues>({
     watchedValue,
     watchedValueKey,
     mapRequired,
-    mapMessages,
+    mapRequiredMessage,
     mapCheck,
     minItems,
     readOnly,
