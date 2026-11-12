@@ -208,7 +208,6 @@ export function ObjectField<TFieldValues extends FieldValues = FieldValues>({
           <div
             className={`flex flex-col gap-2 ${width === 'full' ? 'w-full' : width === 'half' ? 'w-1/2' : 'w-1/3'}`}
             {...accessibilityProps}
-            aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
           >
             {/* Label for the entire object */}
             {label && (

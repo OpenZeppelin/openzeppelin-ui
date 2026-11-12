@@ -286,7 +286,6 @@ export function ArrayField<TFieldValues extends FieldValues = FieldValues>({
           <div
             className={`flex flex-col gap-4 ${width === 'full' ? 'w-full' : width === 'half' ? 'w-1/2' : 'w-1/3'}`}
             {...accessibilityProps}
-            aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
           >
             {/* Label */}
             {label && (

@@ -144,7 +144,6 @@ export function TextAreaField<TFieldValues extends FieldValues = FieldValues>({
               value={field.value ?? ''}
               disabled={readOnly}
               {...accessibilityProps}
-              aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
               onKeyDown={handleEscapeKey((value) => {
                 if (typeof field.onChange === 'function') {
                   field.onChange(value);

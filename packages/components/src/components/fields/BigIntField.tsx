@@ -223,7 +223,6 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
                 inputMode="numeric"
                 pattern={INTEGER_HTML_PATTERN}
                 {...accessibilityProps}
-                aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
                 disabled={readOnly}
               />
 

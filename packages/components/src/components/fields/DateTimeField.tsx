@@ -172,7 +172,6 @@ export function DateTimeField<TFieldValues extends FieldValues = FieldValues>({
                 value={inputValue}
                 type="datetime-local"
                 {...accessibilityProps}
-                aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
                 disabled={readOnly}
               />
 

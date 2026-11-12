@@ -148,7 +148,6 @@ export function BooleanField<TFieldValues extends FieldValues = FieldValues>({
                   onKeyDown={handleKeyDown}
                   disabled={readOnly}
                   {...accessibilityProps}
-                  aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
                 />
                 <Label htmlFor={id}>
                   {label} {isRequired && <span className="text-destructive">*</span>}

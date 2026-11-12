@@ -189,7 +189,6 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>({
                   } ${symbol && symbolPosition === 'suffix' ? 'pr-8' : ''}`}
                   data-slot="input"
                   {...accessibilityProps}
-                  aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
                   onChange={(e) => {
                     // Allow numeric values and decimal point
                     const value = e.target.value;

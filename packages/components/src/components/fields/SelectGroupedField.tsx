@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '../ui/select';
 import { BaseFieldProps } from './BaseField';
-import { ErrorMessage } from './utils';
+import { ErrorMessage, getAccessibilityProps } from './utils';
 
 /**
  * Option item for select fields with visual indicators
@@ -147,8 +147,11 @@ export function SelectGroupedField<TFieldValues extends FieldValues = FieldValue
           const accessibilityAttrs = {
             'aria-invalid': hasError,
             'aria-required': isRequired,
-            'aria-describedby':
-              `${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`.trim(),
+            'aria-describedby': getAccessibilityProps({
+              id,
+              hasError,
+              hasHelperText: !!helperText,
+            })['aria-describedby'],
           };
 
           // Ensure we properly handle the onValueChange event

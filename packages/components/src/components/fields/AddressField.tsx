@@ -599,15 +599,13 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
         // Identical to binding `field.value` when no resolver is mounted (INV-82).
         value={inputValue}
         {...accessibilityProps}
-        // INV-92: preserve the legacy describedby wiring verbatim when no resolver
-        // is mounted; with a resolver, additively associate the dedicated
-        // resolution announcer (never overwriting error/description).
+        // INV-92: without a resolver the helper's describedby is used as-is; with a
+        // resolver, additively associate the dedicated resolution announcer
+        // (never overwriting error/description).
         aria-describedby={
-          !includeResolutionInDescribedBy
-            ? `${helperText ? descriptionId : ''} ${hasRealError ? errorId : ''}`
-            : [helperText ? descriptionId : '', hasRealError ? errorId : '', resolutionRegionId]
-                .filter(Boolean)
-                .join(' ') || undefined
+          includeResolutionInDescribedBy
+            ? [accessibilityProps['aria-describedby'], resolutionRegionId].filter(Boolean).join(' ')
+            : accessibilityProps['aria-describedby']
         }
         aria-expanded={hasSuggestions}
         aria-autocomplete={suggestionsDisabled ? undefined : 'list'}

@@ -6,7 +6,7 @@ import { cn } from '@openzeppelin/ui-utils';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { BaseFieldProps } from './BaseField';
-import { ErrorMessage } from './utils';
+import { ErrorMessage, getAccessibilityProps } from './utils';
 
 /**
  * Option item for select fields
@@ -125,8 +125,11 @@ export function SelectField<TFieldValues extends FieldValues = FieldValues>({
           const accessibilityAttrs = {
             'aria-invalid': hasError,
             'aria-required': isRequired,
-            'aria-describedby':
-              `${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`.trim(),
+            'aria-describedby': getAccessibilityProps({
+              id,
+              hasError,
+              hasHelperText: !!helperText,
+            })['aria-describedby'],
           };
 
           // Ensure we properly handle the onValueChange event

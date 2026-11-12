@@ -117,7 +117,7 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
 
           // Group accessibility attributes
           const groupAccessibilityProps = getAccessibilityProps({
-            id: radioGroupId,
+            id, // description/error elements are `${id}-description` / `${id}-error`, not group-scoped
             hasError,
             isRequired,
             hasHelperText: !!helperText,
@@ -129,7 +129,6 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
                 id={radioGroupId}
                 role="radiogroup"
                 className={`flex ${layout === 'vertical' ? 'flex-col gap-3' : 'flex-row flex-wrap gap-4'}`}
-                aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
                 {...groupAccessibilityProps}
               >
                 {options.map((option, index) => {

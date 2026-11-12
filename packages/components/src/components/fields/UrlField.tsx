@@ -117,7 +117,6 @@ export function UrlField<TFieldValues extends FieldValues = FieldValues>({
                 data-slot="input"
                 value={field.value ?? ''}
                 {...accessibilityProps}
-                aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
                 disabled={readOnly}
               />
 

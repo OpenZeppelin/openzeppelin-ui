@@ -186,7 +186,6 @@ export function BytesField<TFieldValues extends FieldValues = FieldValues>({
                 }}
                 onKeyDown={handleEscapeKey(field.onChange, field.value)}
                 {...accessibilityProps}
-                aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`.trim()}
               />
 
               {/* Display helper text with format hint */}

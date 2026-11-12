@@ -294,7 +294,6 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
                 inputMode="decimal"
                 pattern="-?[0-9]*\.?[0-9]*"
                 {...accessibilityProps}
-                aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
                 disabled={readOnly}
               />
 
