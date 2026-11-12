@@ -31,6 +31,17 @@ export function NetworkDemo(): React.ReactElement {
   const networks = metadata?.networks ?? [];
   const defaultNetwork = metadata?.defaultNetwork ?? null;
 
+  // A network without an icon component, to show the compact badge drops the placeholder circle
+  const baseNetwork = networks.find((n) => n.ecosystem !== 'midnight') ?? null;
+  const iconlessNetwork: NetworkConfig | null = baseNetwork
+    ? {
+        ...baseNetwork,
+        id: `${baseNetwork.id}-iconless-demo`,
+        name: 'Icon-less Demo Net',
+        iconComponent: undefined,
+      }
+    : null;
+
   // Use selected network or fall back to default
   const currentNetwork = selectedNetwork ?? defaultNetwork;
 
@@ -104,6 +115,9 @@ import type { NetworkConfig } from '@openzeppelin/ui-types';
 
 // Network status badge
 <NetworkStatusBadge network={network} />
+
+// Compact, name-only chip
+<NetworkStatusBadge network={network} showEcosystem={false} showIcon={false} />
 
 // Network service error banner - for connection failures
 // Pass onOpenNetworkSettings to enable the "Configure Settings" button
@@ -238,6 +252,43 @@ import type { NetworkConfig } from '@openzeppelin/ui-types';
           {networks.slice(0, 6).map((network) => (
             <NetworkStatusBadge key={network.id} network={network} />
           ))}
+        </div>
+
+        {/* Compact chips */}
+        <div className="space-y-2" data-testid="network-badge-compact-demo">
+          <p className="text-muted-foreground text-sm">
+            Compact: <code className="text-xs">showEcosystem={'{false}'}</code> and{' '}
+            <code className="text-xs">showIcon={'{false}'}</code> give a name-only chip, with no
+            placeholder circle for a network without an icon.
+          </p>
+          <div className="flex flex-wrap items-center gap-4">
+            {networks.slice(0, 1).map((network) => (
+              <div
+                key={network.id}
+                className="flex items-center gap-2"
+                data-testid="compact-badge-with-icon"
+              >
+                <span className="text-muted-foreground text-xs">With icon:</span>
+                <NetworkStatusBadge network={network} showEcosystem={false} showIcon={false} />
+              </div>
+            ))}
+            {iconlessNetwork && (
+              <div className="flex items-center gap-2" data-testid="compact-badge-iconless">
+                <span className="text-muted-foreground text-xs">Without icon:</span>
+                <NetworkStatusBadge
+                  network={iconlessNetwork}
+                  showEcosystem={false}
+                  showIcon={false}
+                />
+              </div>
+            )}
+            {iconlessNetwork && (
+              <div className="flex items-center gap-2" data-testid="default-badge-iconless">
+                <span className="text-muted-foreground text-xs">Default (unchanged):</span>
+                <NetworkStatusBadge network={iconlessNetwork} />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Mainnet vs Testnet Styling */}
