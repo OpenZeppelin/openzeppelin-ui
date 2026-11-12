@@ -3,9 +3,11 @@ import { Controller, FieldValues } from 'react-hook-form';
 
 import { cn } from '@openzeppelin/ui-utils';
 
+import { FieldLabelRow } from './utils/FieldLabelRow';
+
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps } from './BaseField';
 import { ErrorMessage, getAccessibilityProps } from './utils';
 
 /**
@@ -32,7 +34,8 @@ export interface SelectOption {
  * SelectField component properties
  */
 export interface SelectFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    LabelEndProps {
   /**
    * Available options for selection
    */
@@ -70,6 +73,7 @@ export interface SelectFieldProps<TFieldValues extends FieldValues = FieldValues
 export function SelectField<TFieldValues extends FieldValues = FieldValues>({
   id,
   label,
+  labelEnd,
   placeholder = 'Select an option',
   helperText,
   control,
@@ -91,9 +95,11 @@ export function SelectField<TFieldValues extends FieldValues = FieldValues>({
   return (
     <div className={cn('flex flex-col gap-2', widthClass)} style={{ width: widthPercentage }}>
       {label && (
-        <Label htmlFor={id}>
-          {label} {isRequired && <span className="text-destructive">*</span>}
-        </Label>
+        <FieldLabelRow labelEnd={labelEnd}>
+          <Label htmlFor={id}>
+            {label} {isRequired && <span className="text-destructive">*</span>}
+          </Label>
+        </FieldLabelRow>
       )}
 
       <Controller

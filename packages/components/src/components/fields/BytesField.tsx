@@ -3,11 +3,12 @@ import { Controller, FieldValues } from 'react-hook-form';
 
 import { validateBytesSimple } from '@openzeppelin/ui-utils';
 
+import { FieldLabelRow } from './utils/FieldLabelRow';
 import { getReadOnlyState } from './utils/readOnlyState';
 
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
-import { BaseFieldProps, ReadOnlyModeProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
@@ -20,7 +21,8 @@ import {
  */
 export interface BytesFieldProps<TFieldValues extends FieldValues = FieldValues>
   extends BaseFieldProps<TFieldValues>,
-    ReadOnlyModeProps {
+    ReadOnlyModeProps,
+    LabelEndProps {
   /**
    * Number of rows for the textarea
    */
@@ -79,6 +81,7 @@ export interface BytesFieldProps<TFieldValues extends FieldValues = FieldValues>
 export function BytesField<TFieldValues extends FieldValues = FieldValues>({
   id,
   label,
+  labelEnd,
   helperText,
   control,
   name,
@@ -133,9 +136,11 @@ export function BytesField<TFieldValues extends FieldValues = FieldValues>({
       className={`flex flex-col gap-2 ${width === 'full' ? 'w-full' : width === 'half' ? 'w-1/2' : 'w-1/3'}`}
     >
       {label && (
-        <Label htmlFor={id}>
-          {label} {isRequired && <span className="text-destructive">*</span>}
-        </Label>
+        <FieldLabelRow labelEnd={labelEnd}>
+          <Label htmlFor={id}>
+            {label} {isRequired && <span className="text-destructive">*</span>}
+          </Label>
+        </FieldLabelRow>
       )}
 
       <Controller

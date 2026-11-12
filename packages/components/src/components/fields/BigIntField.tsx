@@ -1,11 +1,12 @@
 import React from 'react';
 import { Controller, FieldValues } from 'react-hook-form';
 
+import { FieldLabelRow } from './utils/FieldLabelRow';
 import { getReadOnlyState } from './utils/readOnlyState';
 
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { BaseFieldProps, ReadOnlyModeProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
@@ -22,7 +23,8 @@ import {
  */
 export interface BigIntFieldProps<TFieldValues extends FieldValues = FieldValues>
   extends BaseFieldProps<TFieldValues>,
-    ReadOnlyModeProps {
+    ReadOnlyModeProps,
+    LabelEndProps {
   /**
    * Custom validation function for big integer string values
    */
@@ -53,6 +55,7 @@ export interface BigIntFieldProps<TFieldValues extends FieldValues = FieldValues
 export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
   id,
   label,
+  labelEnd,
   placeholder,
   helperText,
   control,
@@ -97,9 +100,11 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
       className={`flex flex-col gap-2 ${width === 'full' ? 'w-full' : width === 'half' ? 'w-1/2' : 'w-1/3'}`}
     >
       {label && (
-        <Label htmlFor={id}>
-          {label} {isRequired && <span className="text-destructive">*</span>}
-        </Label>
+        <FieldLabelRow labelEnd={labelEnd}>
+          <Label htmlFor={id}>
+            {label} {isRequired && <span className="text-destructive">*</span>}
+          </Label>
+        </FieldLabelRow>
       )}
 
       <Controller

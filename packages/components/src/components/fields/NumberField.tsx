@@ -1,11 +1,12 @@
 import React from 'react';
 import { Controller, FieldValues } from 'react-hook-form';
 
+import { FieldLabelRow } from './utils/FieldLabelRow';
 import { getReadOnlyState } from './utils/readOnlyState';
 
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { BaseFieldProps, ReadOnlyModeProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
@@ -19,7 +20,8 @@ import {
  */
 export interface NumberFieldProps<TFieldValues extends FieldValues = FieldValues>
   extends BaseFieldProps<TFieldValues>,
-    ReadOnlyModeProps {
+    ReadOnlyModeProps,
+    LabelEndProps {
   /**
    * Minimum value validation
    */
@@ -62,6 +64,7 @@ export interface NumberFieldProps<TFieldValues extends FieldValues = FieldValues
 export function NumberField<TFieldValues extends FieldValues = FieldValues>({
   id,
   label,
+  labelEnd,
   placeholder,
   helperText,
   control,
@@ -117,9 +120,11 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
       className={`flex flex-col gap-2 ${width === 'full' ? 'w-full' : width === 'half' ? 'w-1/2' : 'w-1/3'}`}
     >
       {label && (
-        <Label htmlFor={id}>
-          {label} {isRequired && <span className="text-destructive">*</span>}
-        </Label>
+        <FieldLabelRow labelEnd={labelEnd}>
+          <Label htmlFor={id}>
+            {label} {isRequired && <span className="text-destructive">*</span>}
+          </Label>
+        </FieldLabelRow>
       )}
 
       <Controller

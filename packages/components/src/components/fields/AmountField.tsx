@@ -2,12 +2,13 @@ import React from 'react';
 import { Controller, FieldValues } from 'react-hook-form';
 
 import { validateExactAmount } from './utils/decimalValidation';
+import { FieldLabelRow } from './utils/FieldLabelRow';
 import { getReadOnlyState } from './utils/readOnlyState';
 
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { AmountFieldExactInput } from './AmountFieldExactInput';
-import { BaseFieldProps, ReadOnlyModeProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
@@ -21,7 +22,8 @@ import {
  */
 interface AmountFieldCommonProps<TFieldValues extends FieldValues = FieldValues>
   extends BaseFieldProps<TFieldValues>,
-    ReadOnlyModeProps {
+    ReadOnlyModeProps,
+    LabelEndProps {
   /**
    * Default mode: decimal places the value is formatted to on blur.
    * Exact-entry mode: the most decimal places allowed. More is a validation error,
@@ -158,6 +160,7 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
   const {
     id,
     label,
+    labelEnd,
     placeholder,
     helperText,
     control,
@@ -209,9 +212,11 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
       className={`flex flex-col gap-2 ${width === 'full' ? 'w-full' : width === 'half' ? 'w-1/2' : 'w-1/3'}`}
     >
       {label && (
-        <Label htmlFor={id}>
-          {label} {isRequired && <span className="text-destructive">*</span>}
-        </Label>
+        <FieldLabelRow labelEnd={labelEnd}>
+          <Label htmlFor={id}>
+            {label} {isRequired && <span className="text-destructive">*</span>}
+          </Label>
+        </FieldLabelRow>
       )}
 
       <Controller

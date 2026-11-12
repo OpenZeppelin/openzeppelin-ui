@@ -3,6 +3,7 @@ import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 
 import { type FieldValidation } from '@openzeppelin/ui-types';
 
+import { FieldLabelRow } from './utils/FieldLabelRow';
 import { getWidthClasses } from './utils/layout';
 
 import {
@@ -86,6 +87,17 @@ export interface ReadOnlyModeProps {
   readOnlyMode?: ReadOnlyMode;
 }
 
+/** Mixed into the props of fields that accept content at the end of the label row. */
+export interface LabelEndProps {
+  /**
+   * Content placed at the end of the label row, such as an "Optional" chip or a small action
+   * ("Address book"). It sits beside the label, not inside it, so the control's accessible name
+   * stays the label text and clicking the label still focuses the input. Shown only when the
+   * field has a `label`.
+   */
+  labelEnd?: ReactNode;
+}
+
 /**
  * BaseField component to provide a consistent layout for form fields
  *
@@ -115,21 +127,27 @@ export function BaseField<TFieldValues extends FieldValues = FieldValues>({
   control,
   name,
   width = 'full',
+  labelEnd,
   renderInput,
-}: BaseFieldProps<TFieldValues> & {
-  renderInput: (
-    field: Record<string, unknown>,
-    props: { id: string; ref?: ForwardedRef<HTMLElement> }
-  ) => ReactNode;
-  ref?: ForwardedRef<HTMLElement>;
-}): ReactElement {
+}: BaseFieldProps<TFieldValues> &
+  LabelEndProps & {
+    renderInput: (
+      field: Record<string, unknown>,
+      props: { id: string; ref?: ForwardedRef<HTMLElement> }
+    ) => ReactNode;
+    ref?: ForwardedRef<HTMLElement>;
+  }): ReactElement {
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => (
         <FormItem className={getWidthClasses(width)}>
-          <FormLabel htmlFor={id}>{label}</FormLabel>
+          {label && (
+            <FieldLabelRow labelEnd={labelEnd}>
+              <FormLabel htmlFor={id}>{label}</FormLabel>
+            </FieldLabelRow>
+          )}
           <FormControl>{renderInput(field, { id })}</FormControl>
           {helperText && <FormDescription id={`${id}-description`}>{helperText}</FormDescription>}
           <FormMessage id={`${id}-error`} />

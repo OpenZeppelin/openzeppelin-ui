@@ -1,9 +1,11 @@
 import React from 'react';
 import { Controller, FieldValues } from 'react-hook-form';
 
+import { FieldLabelRow } from './utils/FieldLabelRow';
+
 import { Label } from '../ui/label';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps } from './BaseField';
 import { ErrorMessage, getAccessibilityProps } from './utils';
 
 /**
@@ -35,7 +37,8 @@ export interface RadioOption {
  * RadioField component properties
  */
 export interface RadioFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    LabelEndProps {
   /**
    * Available options for selection
    */
@@ -81,6 +84,7 @@ export interface RadioFieldProps<TFieldValues extends FieldValues = FieldValues>
 export function RadioField<TFieldValues extends FieldValues = FieldValues>({
   id,
   label,
+  labelEnd,
   helperText,
   control,
   name,
@@ -101,9 +105,11 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
       className={`flex flex-col gap-2 ${width === 'full' ? 'w-full' : width === 'half' ? 'w-1/2' : 'w-1/3'}`}
     >
       {label && (
-        <Label htmlFor={radioGroupId} className="text-sm font-medium">
-          {label} {isRequired && <span className="text-destructive">*</span>}
-        </Label>
+        <FieldLabelRow labelEnd={labelEnd}>
+          <Label htmlFor={radioGroupId} className="text-sm font-medium">
+            {label} {isRequired && <span className="text-destructive">*</span>}
+          </Label>
+        </FieldLabelRow>
       )}
 
       <Controller

@@ -3,6 +3,8 @@ import { Controller, FieldValues } from 'react-hook-form';
 
 import { cn } from '@openzeppelin/ui-utils';
 
+import { FieldLabelRow } from './utils/FieldLabelRow';
+
 import { Label } from '../ui/label';
 import {
   Select,
@@ -14,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps } from './BaseField';
 import { ErrorMessage, getAccessibilityProps } from './utils';
 
 /**
@@ -61,7 +63,8 @@ export interface OptionGroup {
  * SelectGroupedField component properties
  */
 export interface SelectGroupedFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    LabelEndProps {
   /**
    * Available option groups for selection
    */
@@ -94,6 +97,7 @@ export interface SelectGroupedFieldProps<TFieldValues extends FieldValues = Fiel
 export function SelectGroupedField<TFieldValues extends FieldValues = FieldValues>({
   id,
   label,
+  labelEnd,
   placeholder = 'Select an option',
   helperText,
   control,
@@ -114,9 +118,11 @@ export function SelectGroupedField<TFieldValues extends FieldValues = FieldValue
   return (
     <div className={cn('flex flex-col gap-2', widthClass)} style={{ width: widthPercentage }}>
       {label && (
-        <Label htmlFor={id}>
-          {label} {isRequired && <span className="text-destructive">*</span>}
-        </Label>
+        <FieldLabelRow labelEnd={labelEnd}>
+          <Label htmlFor={id}>
+            {label} {isRequired && <span className="text-destructive">*</span>}
+          </Label>
+        </FieldLabelRow>
       )}
 
       <Controller

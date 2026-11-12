@@ -3,12 +3,14 @@ import { Controller, FieldValues } from 'react-hook-form';
 
 import { cn } from '@openzeppelin/ui-utils';
 
+import { FieldLabelRow } from './utils/FieldLabelRow';
+
 import { Label } from '../ui/label';
 import {
   SearchableMultiSelect,
   type SearchableMultiSelectProps,
 } from '../ui/searchable-multi-select';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps } from './BaseField';
 import { ErrorMessage, getAccessibilityProps } from './utils';
 
 const REQUIRED_MESSAGE = 'This field is required';
@@ -32,6 +34,7 @@ export interface SearchableMultiSelectFieldProps<
   TItem,
   TFieldValues extends FieldValues = FieldValues,
 > extends BaseFieldProps<TFieldValues>,
+    LabelEndProps,
     Pick<
       SearchableMultiSelectProps<TItem>,
       | 'items'
@@ -67,6 +70,7 @@ export interface SearchableMultiSelectFieldProps<
 export function SearchableMultiSelectField<TItem, TFieldValues extends FieldValues = FieldValues>({
   id,
   label,
+  labelEnd,
   placeholder,
   helperText,
   control,
@@ -113,9 +117,11 @@ export function SearchableMultiSelectField<TItem, TFieldValues extends FieldValu
   return (
     <div className={cn('flex flex-col gap-2', widthClass)} style={{ width: widthPercentage }}>
       {label && (
-        <Label id={labelId} htmlFor={id} onMouseDown={handleLabelMouseDown}>
-          {label} {isRequired && <span className="text-destructive">*</span>}
-        </Label>
+        <FieldLabelRow labelEnd={labelEnd}>
+          <Label id={labelId} htmlFor={id} onMouseDown={handleLabelMouseDown}>
+            {label} {isRequired && <span className="text-destructive">*</span>}
+          </Label>
+        </FieldLabelRow>
       )}
 
       <Controller
