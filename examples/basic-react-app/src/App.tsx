@@ -76,6 +76,7 @@ import {
   InputDemo,
   LoadingButtonDemo,
   NetworkDemo,
+  PageHeaderDemo,
   PopoverDemo,
   ProgressDemo,
   RadioGroupDemo,
@@ -145,6 +146,7 @@ type DemoKey =
   // Component Gallery - Forms
   | 'form'
   | 'form-fields'
+  | 'page-header'
   | 'address-field'
   | 'address-list-field'
   | 'calendar'
@@ -247,6 +249,7 @@ const galleryCategories: GalleryCategory[] = [
       { key: 'data-table', label: 'DataTable', icon: <Table2 className="size-4" /> },
       { key: 'empty-state', label: 'EmptyState', icon: <LayoutGrid className="size-4" /> },
       { key: 'banner', label: 'Banner', icon: <PanelTop className="size-4" /> },
+      { key: 'page-header', label: 'PageHeader', icon: <PanelTop className="size-4" /> },
       {
         key: 'external-link',
         label: 'ExternalLink',
@@ -327,6 +330,7 @@ const demoComponents: Record<
   'data-table': DataTableDemo,
   'empty-state': EmptyStateDemo,
   banner: BannerDemo,
+  'page-header': PageHeaderDemo,
   'external-link': ExternalLinkDemo,
   'loading-button': LoadingButtonDemo,
   // Component Gallery - Forms
