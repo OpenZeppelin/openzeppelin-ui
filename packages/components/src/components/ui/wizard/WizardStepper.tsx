@@ -1,12 +1,13 @@
-import { AlertCircle, Check, Pencil } from 'lucide-react';
 import type { ReactNode } from 'react';
 import React from 'react';
 
 import { cn } from '@openzeppelin/ui-utils';
 
+import { StepMarker, type StepMarkerState } from '../step-marker';
+
 export type StepStatus = 'pending' | 'completed' | 'skipped';
 
-export type StepVisualState = 'completed' | 'current' | 'visited' | 'invalid' | 'upcoming';
+export type StepVisualState = StepMarkerState;
 
 export interface WizardStepDef {
   id: string;
@@ -81,31 +82,6 @@ function resolveState(
 function canClick(state: StepVisualState, freeNavigation = false): boolean {
   if (freeNavigation) return true;
   return state !== 'upcoming';
-}
-
-function StepCircle({ state, index }: { state: StepVisualState; index: number }) {
-  return (
-    <span
-      className={cn(
-        'flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-all',
-        state === 'completed' && 'bg-selected text-selected-foreground',
-        state === 'current' && 'bg-selected text-selected-foreground ring-2 ring-selected/30',
-        state === 'visited' && 'bg-selected/10 text-selected ring-1 ring-selected/40',
-        state === 'invalid' && 'bg-destructive/10 text-destructive ring-1 ring-destructive/40',
-        state === 'upcoming' && 'bg-muted text-muted-foreground'
-      )}
-    >
-      {state === 'completed' ? (
-        <Check className="size-3.5" />
-      ) : state === 'visited' ? (
-        <Pencil className="size-3" />
-      ) : state === 'invalid' ? (
-        <AlertCircle className="size-3.5" />
-      ) : (
-        index + 1
-      )}
-    </span>
-  );
 }
 
 function StepLabel({
@@ -187,7 +163,7 @@ function VerticalStepper({
                 getStepLabel
               )}
             >
-              <StepCircle state={state} index={index} />
+              <StepMarker state={state} number={index + 1} />
               <StepLabel title={step.title} state={state} isSkipped={step.status === 'skipped'} />
             </button>
           );
@@ -249,7 +225,7 @@ function HorizontalStepper({
                   getStepLabel
                 )}
               >
-                <StepCircle state={state} index={index} />
+                <StepMarker state={state} number={index + 1} />
                 <div className="hidden sm:block">
                   <StepLabel
                     title={step.title}

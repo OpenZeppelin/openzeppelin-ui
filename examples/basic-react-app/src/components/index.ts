@@ -24,6 +24,7 @@ export { ToastDemo } from './ToastDemo';
 export { BreadcrumbDemo } from './BreadcrumbDemo';
 export { SidebarLayoutDemo } from './SidebarLayoutDemo';
 export { WizardDemo } from './WizardDemo';
+export { StepMarkerDemo } from './StepMarkerDemo';
 export { CardDemo } from './CardDemo';
 export { TabsDemo } from './TabsDemo';
 export { AccordionDemo } from './AccordionDemo';

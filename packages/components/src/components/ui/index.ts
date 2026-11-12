@@ -42,6 +42,7 @@ export * from './searchable-multi-select';
 export * from './select';
 export * from './sidebar';
 export * from './spinner';
+export * from './step-marker';
 export * from './switch';
 export * from './tabs';
 export * from './textarea';

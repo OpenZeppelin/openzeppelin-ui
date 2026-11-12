@@ -86,6 +86,7 @@ import {
   SearchableMultiSelectDemo,
   SelectDemo,
   SidebarLayoutDemo,
+  StepMarkerDemo,
   SwitchDemo,
   TabsDemo,
   TextareaDemo,
@@ -136,6 +137,7 @@ type DemoKey =
   | 'breadcrumb'
   | 'sidebar-layout'
   | 'wizard'
+  | 'step-marker'
   | 'card'
   | 'tabs'
   | 'accordion'
@@ -245,6 +247,7 @@ const galleryCategories: GalleryCategory[] = [
       { key: 'breadcrumb', label: 'Breadcrumb', icon: <List className="size-4" /> },
       { key: 'sidebar-layout', label: 'Scaffold', icon: <PanelLeft className="size-4" /> },
       { key: 'wizard', label: 'Wizard', icon: <Wand2 className="size-4" /> },
+      { key: 'step-marker', label: 'StepMarker', icon: <ListChecks className="size-4" /> },
       { key: 'card', label: 'Card', icon: <CreditCard className="size-4" /> },
       { key: 'tabs', label: 'Tabs', icon: <LayoutGrid className="size-4" /> },
       { key: 'accordion', label: 'Accordion', icon: <ListCollapse className="size-4" /> },
@@ -333,6 +336,7 @@ const demoComponents: Record<
   breadcrumb: BreadcrumbDemo,
   'sidebar-layout': SidebarLayoutDemo,
   wizard: WizardDemo,
+  'step-marker': StepMarkerDemo,
   card: CardDemo,
   tabs: TabsDemo,
   accordion: AccordionDemo,
