@@ -187,12 +187,23 @@ describe('INV-2: Back label is rendered verbatim', () => {
     expect(screen.getByRole('button', { name: 'Previous' })).toBeTruthy();
   });
 
-  it('boundary: "" renders an icon-only Back (no fallback to "Previous")', () => {
+  it('boundary: "" renders an icon-only Back, still named "Previous"', () => {
     const { container } = render(<WizardNavigation {...base({ previousLabel: '' })} />);
-    expect(screen.queryByRole('button', { name: 'Previous' })).toBeNull();
     const back = nav(container).children[0]?.querySelector('button');
+    // No visible text fallback, but the button is not left unnamed.
     expect(back?.textContent).toBe('');
     expect(back?.querySelectorAll('svg.lucide-chevron-left').length).toBe(1);
+    expect(screen.getByRole('button', { name: 'Previous' })).toBe(back);
+  });
+
+  it('boundary: a whitespace-only label is also named "Previous"', () => {
+    render(<WizardNavigation {...base({ previousLabel: '   ' })} />);
+    expect(screen.getByRole('button', { name: 'Previous' }).textContent).toBe('   ');
+  });
+
+  it('a visible label gets no aria-label', () => {
+    render(<WizardNavigation {...base({ previousLabel: 'Back' })} />);
+    expect(screen.getByRole('button', { name: 'Back' }).hasAttribute('aria-label')).toBe(false);
   });
 
   it('boundary: whitespace and markup-like labels are not trimmed or interpreted', () => {

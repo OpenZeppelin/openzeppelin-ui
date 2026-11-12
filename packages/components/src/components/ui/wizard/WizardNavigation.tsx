@@ -54,7 +54,9 @@ export interface WizardNavigationProps {
   showLastStepPrimary?: boolean;
   className?: string;
   /**
-   * Label of the Back button, rendered as given (an empty string leaves Back icon-only).
+   * Label of the Back button, rendered as given. An empty (or whitespace-only) string leaves
+   * Back icon-only; it is then named "Previous" for assistive technology, since the chevron
+   * icon is hidden from it.
    * @default "Previous"
    */
   previousLabel?: string;
@@ -151,6 +153,8 @@ export function WizardNavigation({
             // `aria-disabled`, not native `disabled`, keeps focus on Back (INV-21).
             // Omitted when off so the default markup is unchanged (INV-1, INV-6).
             aria-disabled={previousDisabled || undefined}
+            // Icon-only Back: the chevron is aria-hidden, so the button needs its own name.
+            aria-label={previousLabel.trim() === '' ? 'Previous' : undefined}
             className={cn('gap-2', previousDisabled && BLOCKED_LOOK)}
           >
             <ChevronLeft className="size-4" />
