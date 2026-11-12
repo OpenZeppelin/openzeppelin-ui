@@ -1,4 +1,5 @@
 import { FileText, FolderOpen, Inbox, Search, Users, Wallet } from 'lucide-react';
+import { useState } from 'react';
 
 import { Button, EmptyState } from '@openzeppelin/ui-components';
 
@@ -8,6 +9,8 @@ import { DemoSection } from './DemoSection';
  * Demonstrates EmptyState component variations for showing helpful messages when content is unavailable
  */
 export function EmptyStateDemo(): React.ReactElement {
+  const [retryCount, setRetryCount] = useState(0);
+
   return (
     <DemoSection
       title="EmptyState"
@@ -143,8 +146,7 @@ import { FileText } from 'lucide-react';
       <div className="space-y-4">
         <h3 className="text-lg font-medium">With Actions</h3>
         <p className="text-muted-foreground text-sm">
-          While EmptyState does not include built-in actions, you can easily compose it with
-          buttons:
+          Compose EmptyState with buttons by passing them through the <code>action</code> prop:
         </p>
         <div className="grid gap-6 md:grid-cols-2">
           <div className="rounded-lg border">
@@ -173,6 +175,29 @@ import { FileText } from 'lucide-react';
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Action slot, no icon, no description */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Action slot (no icon, no description)</h3>
+        <p className="text-muted-foreground text-sm">
+          Pass <code>icon={'{null}'}</code> to hide the icon (omitting it keeps the default), leave
+          out <code>description</code>, and put a retry button in <code>action</code>.
+        </p>
+        <div className="rounded-lg border" data-testid="empty-state-retry-demo">
+          <EmptyState
+            icon={null}
+            title="Couldn't load transactions"
+            action={
+              <Button variant="outline" onClick={() => setRetryCount((n) => n + 1)}>
+                Retry
+              </Button>
+            }
+          />
+        </div>
+        <p className="text-muted-foreground text-sm" data-testid="empty-state-retry-count">
+          Retry clicked {retryCount} time{retryCount === 1 ? '' : 's'}
+        </p>
       </div>
 
       {/* In Context */}
