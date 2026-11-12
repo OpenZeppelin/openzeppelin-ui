@@ -171,7 +171,7 @@ export function CodeEditorField<TFieldValues extends FieldValues = FieldValues>(
             },
           },
         }}
-        render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => {
+        render={({ field: { onChange, onBlur, value, ref }, fieldState: { error } }) => {
           // Check if content is too large for syntax highlighting
           const contentSize = (value || '').length;
           const shouldDisableHighlighting = contentSize > performanceThreshold;
@@ -201,6 +201,7 @@ export function CodeEditorField<TFieldValues extends FieldValues = FieldValues>(
               >
                 <EditorComponent
                   id={id}
+                  ref={ref}
                   value={value || ''}
                   language={language}
                   placeholder={placeholder}
