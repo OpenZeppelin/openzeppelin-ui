@@ -2,11 +2,12 @@ import React from 'react';
 import { Controller, FieldValues } from 'react-hook-form';
 
 import { validateExactAmount } from './utils/decimalValidation';
+import { getReadOnlyState } from './utils/readOnlyState';
 
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { AmountFieldExactInput } from './AmountFieldExactInput';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
@@ -19,7 +20,8 @@ import {
  * Props shared by both AmountField modes.
  */
 interface AmountFieldCommonProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    ReadOnlyModeProps {
   /**
    * Default mode: decimal places the value is formatted to on blur.
    * Exact-entry mode: the most decimal places allowed. More is a validation error,
@@ -165,6 +167,8 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
     decimals = 2,
     symbol = '',
     symbolPosition = 'suffix',
+    readOnly,
+    readOnlyMode,
   } = props;
   // INV-1: exact mode only on a strict `false`; omitted, `true` and type-bypass values
   // all keep the default mode.
@@ -180,6 +184,9 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
+  // INV-10: AmountField has always ignored `readOnly` on its own, so only the explicit
+  // opt-in feeds it in; default mode passes `undefined` everywhere, exactly as today.
+  const ro = getReadOnlyState(readOnlyMode === 'readonly' ? readOnly : undefined, readOnlyMode);
 
   // Formatter for displaying currency/token values
   const formatCurrency = (value: string | number): string => {
@@ -252,6 +259,7 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
                 return true;
               },
         }}
+        disabled={ro.controllerDisabled}
         render={({ field, fieldState: { error, isTouched } }) => {
           const hasError = !!error?.message;
           const shouldShowError = hasError && isTouched;
@@ -262,6 +270,7 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
             id,
             hasError,
             isRequired,
+            isReadOnly: ro.isFocusableReadOnly,
             hasHelperText: !!helperText,
           });
 
@@ -289,6 +298,7 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
                     allowGrouping={allowGrouping}
                     className={inputClassName}
                     accessibilityProps={accessibilityProps}
+                    readOnlyState={ro}
                   />
                 ) : (
                   <Input
@@ -309,8 +319,8 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
                       }
                     }}
                     onBlur={(e) => {
-                      // Format on blur
-                      if (e.target.value) {
+                      // Format on blur. INV-14: never in readonly mode; blur still marks touched.
+                      if (e.target.value && !ro.isFocusableReadOnly) {
                         const parsed = parseFloat(e.target.value);
                         if (!isNaN(parsed)) {
                           field.onChange(formatCurrency(parsed));
@@ -321,6 +331,10 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
                       }
                     }}
                     onKeyDown={(e) => {
+                      // INV-12 / INV-13: in readonly mode Escape and the arrows never write and
+                      // are not preventDefault-ed.
+                      if (ro.isFocusableReadOnly) return;
+
                       // Handle Escape key
                       if (e.key === 'Escape') {
                         handleEscapeKey((value) => {
@@ -342,6 +356,7 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
                         )(e);
                       }
                     }}
+                    {...ro.controlProps}
                   />
                 )}
 

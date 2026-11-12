@@ -1,9 +1,11 @@
 import React from 'react';
 import { Controller, FieldValues } from 'react-hook-form';
 
+import { getReadOnlyState } from './utils/readOnlyState';
+
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
@@ -15,7 +17,8 @@ import {
  * TextAreaField component properties
  */
 export interface TextAreaFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    ReadOnlyModeProps {
   /**
    * Number of rows for the textarea
    */
@@ -71,11 +74,13 @@ export function TextAreaField<TFieldValues extends FieldValues = FieldValues>({
   maxLength,
   validateTextArea,
   readOnly,
+  readOnlyMode,
   helperEndSlot,
 }: TextAreaFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
+  const ro = getReadOnlyState(readOnly, readOnlyMode);
 
   return (
     <div
@@ -113,7 +118,7 @@ export function TextAreaField<TFieldValues extends FieldValues = FieldValues>({
             return true;
           },
         }}
-        disabled={readOnly}
+        disabled={ro.controllerDisabled}
         render={({ field, fieldState: { error, isTouched } }) => {
           const hasError = !!error;
           const shouldShowError = hasError && isTouched;
@@ -124,6 +129,7 @@ export function TextAreaField<TFieldValues extends FieldValues = FieldValues>({
             id,
             hasError,
             isRequired,
+            isReadOnly: ro.isFocusableReadOnly,
             hasHelperText: !!helperText,
           });
 
@@ -142,13 +148,21 @@ export function TextAreaField<TFieldValues extends FieldValues = FieldValues>({
                 hasHelperEndSlot ? `relative z-10 ${validationClasses}` : validationClasses
               }
               value={field.value ?? ''}
-              disabled={readOnly}
+              // Kept before the accessibility props, where `disabled={readOnly}` sat, so the
+              // default mode stays byte-identical (INV-1): today the accessibility props'
+              // `disabled: false` wins here. In readonly mode both agree (INV-7).
+              {...ro.controlProps}
               {...accessibilityProps}
-              onKeyDown={handleEscapeKey((value) => {
-                if (typeof field.onChange === 'function') {
-                  field.onChange(value);
-                }
-              }, field.value)}
+              onKeyDown={
+                // INV-12: no Escape-clear (and no preventDefault) in readonly mode.
+                ro.isFocusableReadOnly
+                  ? undefined
+                  : handleEscapeKey((value) => {
+                      if (typeof field.onChange === 'function') {
+                        field.onChange(value);
+                      }
+                    }, field.value)
+              }
             />
           );
 

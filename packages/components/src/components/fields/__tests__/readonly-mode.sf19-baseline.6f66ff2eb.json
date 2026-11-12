@@ -1,0 +1,237 @@
+{
+  "TextField": {
+    "absent": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" value=\"hello\" name=\"v\"><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "hello"
+      },
+      "payloadHasName": true
+    },
+    "false": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" value=\"hello\" name=\"v\"><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "hello"
+      },
+      "payloadHasName": true
+    },
+    "true": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" disabled=\"\" id=\"f\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" value=\"hello\" name=\"v\"><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {},
+      "payloadHasName": false
+    }
+  },
+  "TextAreaField": {
+    "absent": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><textarea data-slot=\"textarea\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground aria-invalid:ring-destructive/20 aria-invalid:border-destructive dark:aria-invalid:ring-destructive/40 min-h-16 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" name=\"v\" id=\"f\" rows=\"4\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\">multi line</textarea><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "multi line"
+      },
+      "payloadHasName": true
+    },
+    "false": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><textarea data-slot=\"textarea\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground aria-invalid:ring-destructive/20 aria-invalid:border-destructive dark:aria-invalid:ring-destructive/40 min-h-16 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" name=\"v\" id=\"f\" rows=\"4\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\">multi line</textarea><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "multi line"
+      },
+      "payloadHasName": true
+    },
+    "true": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><textarea data-slot=\"textarea\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground aria-invalid:ring-destructive/20 aria-invalid:border-destructive dark:aria-invalid:ring-destructive/40 min-h-16 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" name=\"v\" id=\"f\" rows=\"4\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\">multi line</textarea><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {},
+      "payloadHasName": false
+    }
+  },
+  "NumberField": {
+    "absent": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" step=\"1\" inputmode=\"decimal\" pattern=\"-?[0-9]*\\.?[0-9]*\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"text\" value=\"5\" name=\"v\"><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": 5
+      },
+      "payloadHasName": true
+    },
+    "false": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" step=\"1\" inputmode=\"decimal\" pattern=\"-?[0-9]*\\.?[0-9]*\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"text\" value=\"5\" name=\"v\"><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": 5
+      },
+      "payloadHasName": true
+    },
+    "true": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" disabled=\"\" id=\"f\" step=\"1\" inputmode=\"decimal\" pattern=\"-?[0-9]*\\.?[0-9]*\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"text\" value=\"5\" name=\"v\"><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {},
+      "payloadHasName": false
+    }
+  },
+  "BigIntField": {
+    "absent": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" placeholder=\"Enter integer value\" inputmode=\"numeric\" pattern=\"-?[0-9]*\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"text\" value=\"123\" name=\"v\"><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "123"
+      },
+      "payloadHasName": true
+    },
+    "false": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" placeholder=\"Enter integer value\" inputmode=\"numeric\" pattern=\"-?[0-9]*\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"text\" value=\"123\" name=\"v\"><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "123"
+      },
+      "payloadHasName": true
+    },
+    "true": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" disabled=\"\" id=\"f\" placeholder=\"Enter integer value\" inputmode=\"numeric\" pattern=\"-?[0-9]*\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"text\" value=\"123\" name=\"v\"><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {},
+      "payloadHasName": false
+    }
+  },
+  "AmountField": {
+    "absent": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><div class=\"relative\"><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" inputmode=\"decimal\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"text\" value=\"1.5\" name=\"v\"></div><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "1.5"
+      },
+      "payloadHasName": true
+    },
+    "false": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><div class=\"relative\"><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" inputmode=\"decimal\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"text\" value=\"1.5\" name=\"v\"></div><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "1.5"
+      },
+      "payloadHasName": true
+    },
+    "true": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><div class=\"relative\"><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" inputmode=\"decimal\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"text\" value=\"1.5\" name=\"v\"></div><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "1.5"
+      },
+      "payloadHasName": true
+    }
+  },
+  "AmountFieldExact": {
+    "absent": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><div class=\"relative\"><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" inputmode=\"decimal\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"text\" value=\"1.5\" name=\"v\"></div><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "1.5"
+      },
+      "payloadHasName": true
+    },
+    "false": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><div class=\"relative\"><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" inputmode=\"decimal\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"text\" value=\"1.5\" name=\"v\"></div><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "1.5"
+      },
+      "payloadHasName": true
+    },
+    "true": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><div class=\"relative\"><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" inputmode=\"decimal\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"text\" value=\"1.5\" name=\"v\"></div><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "1.5"
+      },
+      "payloadHasName": true
+    }
+  },
+  "UrlField": {
+    "absent": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" placeholder=\"https://example.com\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"url\" value=\"https://example.com\" name=\"v\"><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "https://example.com"
+      },
+      "payloadHasName": true
+    },
+    "false": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" placeholder=\"https://example.com\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"url\" value=\"https://example.com\" name=\"v\"><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "https://example.com"
+      },
+      "payloadHasName": true
+    },
+    "true": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" disabled=\"\" id=\"f\" placeholder=\"https://example.com\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"url\" value=\"https://example.com\" name=\"v\"><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {},
+      "payloadHasName": false
+    }
+  },
+  "PasswordField": {
+    "absent": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><div class=\"relative\"><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 pr-10\" id=\"f\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"password\" value=\"secret\" name=\"v\"><button data-slot=\"button\" data-variant=\"ghost\" data-size=\"sm\" class=\"ring-offset-background focus-visible:ring-ring inline-flex items-center justify-center text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 text-foreground hover:text-accent-foreground rounded-md absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent cursor-pointer\" type=\"button\" aria-label=\"Show password\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-eye h-4 w-4 text-muted-foreground\" aria-hidden=\"true\"><path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\"></path><circle cx=\"12\" cy=\"12\" r=\"3\"></circle></svg></button></div><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "secret"
+      },
+      "payloadHasName": true
+    },
+    "false": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><div class=\"relative\"><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 pr-10\" id=\"f\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"password\" value=\"secret\" name=\"v\"><button data-slot=\"button\" data-variant=\"ghost\" data-size=\"sm\" class=\"ring-offset-background focus-visible:ring-ring inline-flex items-center justify-center text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 text-foreground hover:text-accent-foreground rounded-md absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent cursor-pointer\" type=\"button\" aria-label=\"Show password\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-eye h-4 w-4 text-muted-foreground\" aria-hidden=\"true\"><path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\"></path><circle cx=\"12\" cy=\"12\" r=\"3\"></circle></svg></button></div><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "secret"
+      },
+      "payloadHasName": true
+    },
+    "true": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><div class=\"relative\"><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 pr-10\" disabled=\"\" id=\"f\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"password\" value=\"secret\" name=\"v\"></div><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {},
+      "payloadHasName": false
+    }
+  },
+  "BytesField": {
+    "absent": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><textarea data-slot=\"textarea\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground aria-invalid:ring-destructive/20 aria-invalid:border-destructive dark:aria-invalid:ring-destructive/40 min-h-16 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" name=\"v\" placeholder=\"Enter hex or base64 encoded bytes\" rows=\"3\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\">0xabcd</textarea><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help<div class=\"text-xs text-muted-foreground mt-1\">Hex (e.g., 48656c6c6f) or Base64 (e.g., SGVsbG8=) format</div></div></div>",
+      "payload": {
+        "v": "0xabcd"
+      },
+      "payloadHasName": true
+    },
+    "false": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><textarea data-slot=\"textarea\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground aria-invalid:ring-destructive/20 aria-invalid:border-destructive dark:aria-invalid:ring-destructive/40 min-h-16 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" name=\"v\" placeholder=\"Enter hex or base64 encoded bytes\" rows=\"3\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\">0xabcd</textarea><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help<div class=\"text-xs text-muted-foreground mt-1\">Hex (e.g., 48656c6c6f) or Base64 (e.g., SGVsbG8=) format</div></div></div>",
+      "payload": {
+        "v": "0xabcd"
+      },
+      "payloadHasName": true
+    },
+    "true": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><textarea data-slot=\"textarea\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground aria-invalid:ring-destructive/20 aria-invalid:border-destructive dark:aria-invalid:ring-destructive/40 min-h-16 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" name=\"v\" placeholder=\"Enter hex or base64 encoded bytes\" rows=\"3\" disabled=\"\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"-1\">0xabcd</textarea><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help<div class=\"text-xs text-muted-foreground mt-1\">Hex (e.g., 48656c6c6f) or Base64 (e.g., SGVsbG8=) format</div></div></div>",
+      "payload": {},
+      "payloadHasName": false
+    }
+  },
+  "AddressField": {
+    "absent": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><div class=\"relative\"><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" placeholder=\"0x...\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" aria-expanded=\"false\" aria-autocomplete=\"list\" value=\"0x1234567890abcdef1234567890abcdef12345678\" name=\"v\"></div><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "0x1234567890abcdef1234567890abcdef12345678"
+      },
+      "payloadHasName": true
+    },
+    "false": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><div class=\"relative\"><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" placeholder=\"0x...\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" aria-expanded=\"false\" aria-autocomplete=\"list\" value=\"0x1234567890abcdef1234567890abcdef12345678\" name=\"v\"></div><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "0x1234567890abcdef1234567890abcdef12345678"
+      },
+      "payloadHasName": true
+    },
+    "true": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><div class=\"relative\"><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" disabled=\"\" id=\"f\" placeholder=\"0x...\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" aria-expanded=\"false\" aria-autocomplete=\"list\" value=\"0x1234567890abcdef1234567890abcdef12345678\" name=\"v\"></div><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {},
+      "payloadHasName": false
+    }
+  },
+  "DateTimeField": {
+    "absent": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"datetime-local\" value=\"2026-01-01T10:00\" name=\"v\"><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "2026-01-01T10:00"
+      },
+      "payloadHasName": true
+    },
+    "false": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" id=\"f\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\" type=\"datetime-local\" value=\"2026-01-01T10:00\" name=\"v\"><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "2026-01-01T10:00"
+      },
+      "payloadHasName": true
+    },
+    "true": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><input data-slot=\"input\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50\" disabled=\"\" id=\"f\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"-1\" type=\"datetime-local\" value=\"2026-01-01T10:00\" name=\"v\"><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {},
+      "payloadHasName": false
+    }
+  }
+}

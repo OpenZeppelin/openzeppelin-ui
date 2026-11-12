@@ -68,6 +68,25 @@ export interface BaseFieldProps<TFieldValues extends FieldValues = FieldValues> 
 }
 
 /**
+ * How a field renders when `readOnly` is true.
+ * - `'disabled'` (default): today's behaviour. The control is disabled, leaves the tab order,
+ *   and react-hook-form leaves its value out of `handleSubmit` data.
+ * - `'readonly'`: the control stays focusable and selectable, gets the native `readonly`
+ *   attribute and the kit's read-only look, ignores user edits, and keeps its value in
+ *   `handleSubmit` data. Validation still runs.
+ */
+export type ReadOnlyMode = 'disabled' | 'readonly';
+
+/** Mixed into the props of fields that support the focusable read-only mode. */
+export interface ReadOnlyModeProps {
+  /**
+   * Has an effect only when `readOnly` is true. See {@link ReadOnlyMode}.
+   * @default 'disabled'
+   */
+  readOnlyMode?: ReadOnlyMode;
+}
+
+/**
  * BaseField component to provide a consistent layout for form fields
  *
  * @important This component is the foundation of the app rendering architecture and should

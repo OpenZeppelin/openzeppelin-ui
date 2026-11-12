@@ -1,9 +1,11 @@
 import React from 'react';
 import { Controller, FieldValues } from 'react-hook-form';
 
+import { getReadOnlyState } from './utils/readOnlyState';
+
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
@@ -16,7 +18,8 @@ import {
  * TextField component properties
  */
 export interface TextFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    ReadOnlyModeProps {
   /**
    * Placeholder text displayed when the field is empty
    */
@@ -61,11 +64,13 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
   width = 'full',
   validation,
   readOnly,
+  readOnlyMode,
   onUserEdit,
 }: TextFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
+  const ro = getReadOnlyState(readOnly, readOnlyMode);
 
   // Function for validating text values
   const validateTextValue = (value: string): string | true => {
@@ -101,7 +106,7 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
             return true;
           },
         }}
-        disabled={readOnly}
+        disabled={ro.controllerDisabled}
         render={({ field, fieldState: { error, isTouched } }) => {
           const hasError = !!error;
           const shouldShowError = hasError && isTouched;
@@ -118,7 +123,8 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
 
           // Handle keyboard events
           const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-            if (e.key === 'Escape') {
+            // INV-12: no Escape-clear (and no preventDefault) in readonly mode.
+            if (e.key === 'Escape' && !ro.isFocusableReadOnly) {
               // Escape-clear is a user edit too — notify with the cleared value.
               handleEscapeKey((value) => {
                 field.onChange(value);
@@ -134,6 +140,7 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
             id,
             hasError,
             isRequired,
+            isReadOnly: ro.isFocusableReadOnly,
             hasHelperText: !!helperText,
           });
 
@@ -149,7 +156,7 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
                 data-slot="input"
                 value={field.value ?? ''}
                 {...accessibilityProps}
-                disabled={readOnly}
+                {...ro.controlProps}
               />
 
               {/* Display helper text */}

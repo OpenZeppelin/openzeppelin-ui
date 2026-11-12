@@ -1,9 +1,11 @@
 import React from 'react';
 import { Controller, FieldValues } from 'react-hook-form';
 
+import { getReadOnlyState } from './utils/readOnlyState';
+
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
@@ -16,7 +18,8 @@ import {
  * NumberField component properties
  */
 export interface NumberFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    ReadOnlyModeProps {
   /**
    * Minimum value validation
    */
@@ -70,10 +73,12 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
   step = 1,
   validateNumber,
   readOnly,
+  readOnlyMode,
 }: NumberFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
+  const ro = getReadOnlyState(readOnly, readOnlyMode);
 
   // Create merged validation that includes min/max from props
   const mergedValidation = {
@@ -155,7 +160,7 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
             return true;
           },
         }}
-        disabled={readOnly}
+        disabled={ro.controllerDisabled}
         render={({ field, fieldState: { error, isTouched } }) => {
           const hasError = !!error;
           const shouldShowError = hasError && isTouched;
@@ -234,6 +239,15 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
               e.preventDefault();
             }
 
+            // INV-12 / INV-13: in readonly mode Escape and the arrows never write and are not
+            // preventDefault-ed, so native caret movement and ancestor Escape handlers apply.
+            if (
+              ro.isFocusableReadOnly &&
+              (e.key === 'Escape' || e.key === 'ArrowUp' || e.key === 'ArrowDown')
+            ) {
+              return;
+            }
+
             // Handle escape key to clear input
             if (e.key === 'Escape') {
               handleEscapeKey(field.onChange, field.value)(e);
@@ -273,6 +287,7 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
             id,
             hasError,
             isRequired,
+            isReadOnly: ro.isFocusableReadOnly,
             hasHelperText: !!helperText,
           });
 
@@ -294,7 +309,7 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
                 inputMode="decimal"
                 pattern="-?[0-9]*\.?[0-9]*"
                 {...accessibilityProps}
-                disabled={readOnly}
+                {...ro.controlProps}
               />
 
               {/* Display helper text */}

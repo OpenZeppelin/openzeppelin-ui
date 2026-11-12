@@ -23,10 +23,11 @@ import {
 } from './name-resolution/useInjectedNameResolution';
 import { useNameResolver } from './name-resolution/useNameResolver';
 import { useResolvingAnnouncerCopy } from './name-resolution/useResolvingAnnouncerCopy';
+import { getReadOnlyState } from './utils/readOnlyState';
 
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
@@ -36,7 +37,8 @@ import {
 } from './utils';
 
 export interface AddressFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    ReadOnlyModeProps {
   addressing?: AddressingCapability;
 
   /**
@@ -182,6 +184,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   validation,
   addressing,
   readOnly,
+  readOnlyMode,
   suggestions: suggestionsProp,
   onSuggestionSelect,
   onResolvedNameChange,
@@ -194,6 +197,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
   const resolutionRegionId = `${id}-resolution`;
+  const ro = getReadOnlyState(readOnly, readOnlyMode);
 
   // Injected forward resolver — `null` with no NameResolverProvider mounted,
   // in which case every resolution branch below is dead code (INV-82).
@@ -309,7 +313,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
     control,
     name,
     rules: { validate },
-    disabled: readOnly,
+    disabled: ro.controllerDisabled,
   });
   const fieldOnChange = field.onChange;
 
@@ -377,7 +381,12 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
     closeSuggestions,
     onInputChange,
     onContainerKeyDown,
-  } = useAddressSuggestionField({ inputValue, suggestions: suggestionsProp });
+  } = useAddressSuggestionField({
+    inputValue,
+    // INV-15: readonly mode takes the suggestions-disabled path for this render, so an open
+    // list unmounts and Enter/Escape have nothing to apply. Derived, not latched (INV-20).
+    suggestions: ro.isFocusableReadOnly ? false : suggestionsProp,
+  });
 
   /**
    * The single site for the typed/raw write (the name→hex write lives in the
@@ -439,6 +448,10 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    // INV-12 / INV-21: in readonly mode Escape never clears and nothing is preventDefault-ed,
+    // so Enter still submits the form natively.
+    if (ro.isFocusableReadOnly) return;
+
     if (hasSuggestions && e.key === 'Enter' && highlightedIndex >= 0) {
       e.preventDefault();
       applySuggestion(resolvedSuggestions[highlightedIndex]);
@@ -479,6 +492,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
     id,
     hasError: hasRealError,
     isRequired,
+    isReadOnly: ro.isFocusableReadOnly,
     hasHelperText: !!helperText,
   });
 
@@ -642,7 +656,8 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
             ? [accessibilityProps['aria-describedby'], resolutionRegionId].filter(Boolean).join(' ')
             : accessibilityProps['aria-describedby']
         }
-        aria-expanded={hasSuggestions}
+        // INV-15: no combobox state at all in readonly mode.
+        aria-expanded={ro.isFocusableReadOnly ? undefined : hasSuggestions}
         aria-autocomplete={suggestionsDisabled ? undefined : 'list'}
         aria-controls={hasSuggestions ? `${id}-suggestions` : undefined}
         aria-activedescendant={
@@ -650,7 +665,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
             ? `${id}-suggestion-${highlightedIndex}`
             : undefined
         }
-        disabled={readOnly}
+        {...ro.controlProps}
       />
 
       {hasInputEnd && (

@@ -6,6 +6,7 @@ import {
   toAmountDisplayText,
   toAmountFormValue,
 } from './utils/decimalValidation';
+import type { ReadOnlyState } from './utils/readOnlyState';
 
 import { Input } from '../ui/input';
 
@@ -32,6 +33,8 @@ export interface AmountFieldExactInputProps {
   readonly className: string;
   /** `getAccessibilityProps` output, computed by AmountField (INV-3, INV-29). */
   readonly accessibilityProps: AccessibilityProps;
+  /** `getReadOnlyState` output, computed by AmountField (SF-19 INV-2, INV-7, INV-12). */
+  readonly readOnlyState: ReadOnlyState;
 }
 
 interface ExactInputState {
@@ -76,6 +79,7 @@ export function AmountFieldExactInput({
   allowGrouping,
   className,
   accessibilityProps,
+  readOnlyState,
 }: AmountFieldExactInputProps): React.ReactElement {
   const [state, setState] = useState<ExactInputState>(() => stateFromValue(field.value));
 
@@ -103,8 +107,9 @@ export function AmountFieldExactInput({
 
   // INV-21: Escape clears to '' (never reverts); on an empty field it blurs. Every other
   // key, arrows included, keeps the browser's text-editing behaviour.
+  // SF-19 INV-12: in readonly mode Escape neither clears nor blurs, and is not preventDefault-ed.
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>): void => {
-    if (event.key !== 'Escape') return;
+    if (event.key !== 'Escape' || readOnlyState.isFocusableReadOnly) return;
     event.preventDefault();
     // A-4: a value that displays as '' (an unsupported type) still counts as non-empty.
     if (text !== '' || !isEmptyAmountValue(field.value)) {
@@ -131,6 +136,7 @@ export function AmountFieldExactInput({
       onChange={handleChange}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
+      {...readOnlyState.controlProps}
     />
   );
 }

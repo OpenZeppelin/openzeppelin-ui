@@ -33,6 +33,7 @@ import { CodeBlock } from './CodeBlock';
 import { DemoSection } from './DemoSection';
 import { EcosystemIndicator } from './EcosystemIndicator';
 import { RadioFieldCardDemo } from './RadioFieldCardDemo';
+import { ReadOnlySaveDemo } from './ReadOnlySaveDemo';
 
 // Form data interface with all field types
 interface FormFieldsData {
@@ -503,6 +504,7 @@ const form = useForm({ defaultValues: { ... } });
 
       <AmountExactEntryDemo />
       <RadioFieldCardDemo />
+      <ReadOnlySaveDemo />
     </DemoSection>
   );
 }

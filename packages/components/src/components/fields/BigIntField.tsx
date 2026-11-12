@@ -1,9 +1,11 @@
 import React from 'react';
 import { Controller, FieldValues } from 'react-hook-form';
 
+import { getReadOnlyState } from './utils/readOnlyState';
+
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
@@ -19,7 +21,8 @@ import {
  * BigIntField component properties
  */
 export interface BigIntFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    ReadOnlyModeProps {
   /**
    * Custom validation function for big integer string values
    */
@@ -58,10 +61,12 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
   validation,
   validateBigInt,
   readOnly,
+  readOnlyMode,
 }: BigIntFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
+  const ro = getReadOnlyState(readOnly, readOnlyMode);
 
   // Ensure validation includes integer-only pattern
   // This will be handled by validateField utility, avoiding duplication
@@ -125,7 +130,7 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
             return true;
           },
         }}
-        disabled={readOnly}
+        disabled={ro.controllerDisabled}
         render={({ field, fieldState: { error, isTouched } }) => {
           const hasError = !!error;
           const shouldShowError = hasError && isTouched;
@@ -193,8 +198,8 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
               e.preventDefault();
             }
 
-            // Handle escape key to clear input
-            if (e.key === 'Escape') {
+            // Handle escape key to clear input (INV-12: not in readonly mode, no preventDefault)
+            if (e.key === 'Escape' && !ro.isFocusableReadOnly) {
               handleEscapeKey(field.onChange, field.value)(e);
               return;
             }
@@ -205,6 +210,7 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
             id,
             hasError,
             isRequired,
+            isReadOnly: ro.isFocusableReadOnly,
             hasHelperText: !!helperText,
           });
 
@@ -223,7 +229,7 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
                 inputMode="numeric"
                 pattern={INTEGER_HTML_PATTERN}
                 {...accessibilityProps}
-                disabled={readOnly}
+                {...ro.controlProps}
               />
 
               {/* Display helper text */}
