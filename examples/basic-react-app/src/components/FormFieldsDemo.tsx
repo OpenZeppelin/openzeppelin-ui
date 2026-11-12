@@ -32,6 +32,7 @@ import { AmountExactEntryDemo } from './AmountExactEntryDemo';
 import { CodeBlock } from './CodeBlock';
 import { DemoSection } from './DemoSection';
 import { EcosystemIndicator } from './EcosystemIndicator';
+import { FocusOnErrorDemo } from './FocusOnErrorDemo';
 import { LabelEndDemo } from './LabelEndDemo';
 import { RadioFieldCardDemo } from './RadioFieldCardDemo';
 import { ReadOnlySaveDemo } from './ReadOnlySaveDemo';
@@ -509,6 +510,7 @@ const form = useForm({ defaultValues: { ... } });
       <RadioFieldCardDemo />
       <SearchableMultiSelectFieldDemo />
       <ValidationMessagesDemo />
+      <FocusOnErrorDemo />
       <ReadOnlySaveDemo />
       <LabelEndDemo />
     </DemoSection>
