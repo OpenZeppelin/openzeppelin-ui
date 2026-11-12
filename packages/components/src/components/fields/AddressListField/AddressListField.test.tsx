@@ -271,3 +271,79 @@ describe('AddressListField', () => {
     expect(screen.getByRole('textbox').id).toBe(generated);
   });
 });
+
+describe('006 SF-3 INV-10: the bulk textarea is disabled when the field is disabled or full', () => {
+  async function openBulk(): Promise<HTMLTextAreaElement> {
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /bulk paste/i }));
+    });
+    return screen.getByRole('textbox') as HTMLTextAreaElement;
+  }
+
+  it('is enabled while the field is enabled and below maxItems', async () => {
+    render(<AddressListField value={[validAddr]} onChange={vi.fn()} maxItems={2} {...copyProps} />);
+    const input = await openBulk();
+    expect(input.tagName).toBe('TEXTAREA');
+    expect(input.disabled).toBe(false);
+    expect(screen.queryByText('Maximum of 2 addresses reached.')).toBeNull();
+  });
+
+  it('is DOM-disabled, like single mode, when the field is disabled', async () => {
+    render(<AddressListField value={[]} onChange={vi.fn()} disabled {...copyProps} />);
+    expect((screen.getByRole('textbox') as HTMLInputElement).disabled).toBe(true);
+    const input = await openBulk();
+    expect(input.tagName).toBe('TEXTAREA');
+    expect(input.disabled).toBe(true);
+    expect(input.readOnly).toBe(false);
+    expect(screen.getByRole('button', { name: /add addresses/i })).toHaveProperty('disabled', true);
+  });
+
+  it('is DOM-disabled with the limit message when value.length reaches maxItems', async () => {
+    render(
+      <AddressListField
+        value={[validAddr, validB]}
+        onChange={vi.fn()}
+        maxItems={2}
+        {...copyProps}
+      />
+    );
+    const input = await openBulk();
+    expect(input.disabled).toBe(true);
+    expect(screen.getByText('Maximum of 2 addresses reached.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /add addresses/i })).toHaveProperty('disabled', true);
+  });
+
+  it('keeps the draft and its preview through a disabled toggle, and the draft stays editable', async () => {
+    const onChange = vi.fn();
+    const props = { value: [], onChange, addressing: mockAddressing, ...copyProps };
+    const { rerender } = render(<AddressListField {...props} />);
+    const input = await openBulk();
+    await act(async () => {
+      fireEvent.change(input, { target: { value: validAddr } });
+    });
+    expect(screen.getByRole('button', { name: /add 1 address/i })).toHaveProperty(
+      'disabled',
+      false
+    );
+
+    rerender(<AddressListField {...props} disabled />);
+    const locked = screen.getByRole('textbox') as HTMLTextAreaElement;
+    expect(locked).toBe(input);
+    expect(locked.disabled).toBe(true);
+    expect(locked.value).toBe(validAddr);
+    expect(screen.getByRole('button', { name: /add 1 address/i })).toHaveProperty('disabled', true);
+
+    rerender(<AddressListField {...props} />);
+    const unlocked = screen.getByRole('textbox') as HTMLTextAreaElement;
+    expect(unlocked).toBe(input);
+    expect(unlocked.disabled).toBe(false);
+    expect(unlocked.value).toBe(validAddr);
+    await act(async () => {
+      fireEvent.change(unlocked, { target: { value: `${validAddr}, ${validB}` } });
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /add 2 addresses/i }));
+    });
+    expect(onChange).toHaveBeenCalledWith([validAddr, validB]);
+  });
+});
