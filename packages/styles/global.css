@@ -213,7 +213,8 @@
   --muted-foreground: oklch(0.708 0 0);
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
+  /* ≥ 4.5:1 as text on every dark surface; components that put white text on it pin red-900 in dark */
+  --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.985 0 0);
   --success: oklch(0.396 0.12 150); /* Darker green */
   --success-foreground: oklch(0.985 0 0);

@@ -6,7 +6,10 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        // Dark fill pinned to red-900 (the previous dark --destructive): the token is now a light red
+        // for text, and white text on it would fall below AA.
+        destructive:
+          'bg-destructive text-destructive-foreground hover:bg-destructive/90 dark:bg-red-900 dark:hover:bg-red-900/90',
         outline:
           'border-input bg-background text-foreground hover:bg-accent hover:text-accent-foreground border',
         secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',

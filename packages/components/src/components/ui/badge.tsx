@@ -40,7 +40,8 @@ const toneClasses: Record<BadgeVariant, Record<BadgeTone, string>> = {
     info: 'bg-info text-info-foreground',
     success: 'bg-success text-success-foreground',
     warning: 'bg-warning text-warning-foreground',
-    danger: 'bg-destructive text-destructive-foreground',
+    // Dark fill pinned to red-900 so white text keeps its contrast (see buttonVariants destructive).
+    danger: 'bg-destructive text-destructive-foreground dark:bg-red-900',
   },
 };
 
