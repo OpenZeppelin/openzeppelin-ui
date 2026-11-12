@@ -30,3 +30,10 @@ updates:
       - dependabot
       - dependencies
     open-pull-requests-limit: 5
+    groups:
+      # Radix primitives pin their layering internals (focus-scope, dismissable-layer)
+      # to exact versions, so bumping one primitive alone splits those copies and
+      # breaks nested layers. Keep every @radix-ui bump in one PR.
+      radix-ui:
+        patterns:
+          - '@radix-ui/*'
