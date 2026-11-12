@@ -259,7 +259,9 @@ async function measureLibrary(page: Page): Promise<Row[]> {
  * Dark values each revived class sets (Tailwind v4 palette, or the dark token it names). R5 has no
  * `dark:` class after SF-10, so its label stays white on the light theme's fill. Colours with alpha
  * go through the canvas's premultiplied storage, so their RGB reads a step off the palette value
- * (red-950 #460809 at 20% reads #460a0a33; dark --destructive #82181a at 40% reads #82191966).
+ * (red-950 #460809 at 20% reads #460a0a33; dark --destructive #ff6467 at 40% reads #ff646666).
+ * 006 SF-14 moved dark --destructive from red-900 (#82181a) to red-400 (#ff6467) for text contrast,
+ * so the R6 and R9 / R11 pins below rise with it (R10 reads the R9 pin).
  */
 const DARK: Record<string, string> = {
   'R1 banner surface': '#460a0a33', // red-950 / 20%
@@ -268,13 +270,13 @@ const DARK: Record<string, string> = {
   'R4 banner description': '#ffc9c9ff', // red-200
   'R5 settings button label (rest)': '#ffffffff',
   'R5 settings button label (hover)': '#ffffffff',
-  'R6 banner border': '#82181aff', // dark --destructive
-  'R6 Alert destructive border': '#82181aff',
+  'R6 banner border': '#ff6467ff', // dark --destructive (006 SF-14: was #82181aff)
+  'R6 Alert destructive border': '#ff6467ff', // 006 SF-14: was #82181aff
   'R7 Alert success border': '#00c950ff', // green-500
   'R8 Progress track': '#1e2939ff', // gray-800
   'R8 Progress indicator on track': '#8398ffff', // dark --primary (unchanged; the track moved)
-  'R9 invalid Checkbox focus ring': '#82191966', // dark --destructive / 40%
-  'R11 invalid Textarea focus ring': '#82191966',
+  'R9 invalid Checkbox focus ring': '#ff646666', // dark --destructive / 40% (006 SF-14: was #82191966)
+  'R11 invalid Textarea focus ring': '#ff646666', // 006 SF-14: was #82191966
 };
 
 /**
@@ -323,7 +325,11 @@ test('SF-10 scenario 1 (INV-4, INV-10, INV-11, R2): each library dark: class sho
   ).toEqual(Object.fromEntries(revived.map((r) => [r.name, DARK[r.name]])));
   // The class is what moved the value: with dark: classes stripped it differs. R5 has no dark:
   // class left, and the indicator has none of its own (its track moved), so they are checked below.
-  const own = revived.filter((r) => !r.name.startsWith('R5') && !r.name.includes('indicator'));
+  // 006 SF-14: with dark: stripped, the banner icon falls back to the Alert's text-destructive,
+  // which is now red-400 in dark too, so R2 equals its dark: value either way (still pinned above).
+  const own = revived.filter(
+    (r) => !r.name.startsWith('R5') && !r.name.includes('indicator') && r.name !== 'R2 banner icon'
+  );
   const unmoved = own.filter((r) => r.value === r.pre.value);
   expect(
     unmoved.map((r) => r.name),
