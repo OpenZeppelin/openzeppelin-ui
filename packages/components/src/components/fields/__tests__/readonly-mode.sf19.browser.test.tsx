@@ -214,7 +214,7 @@ describe('INV-29: focus, caret and selection survive the switch', () => {
 
   // Sensitivity: the default mode really does drop focus in Chromium, so the test above can fail.
   it.each(
-    FIELDS.filter((s) => !['TextAreaField', 'AmountField', 'AmountFieldExact'].includes(s.key)).map(
+    FIELDS.filter((s) => !['AmountField', 'AmountFieldExact'].includes(s.key)).map(
       (s) => [s.key, s] as const
     )
   )("%s: default mode (today's disabled) drops focus to <body>", async (_k, spec) => {
@@ -364,7 +364,7 @@ describe('INV-30: assistive tech reports read-only, not disabled', () => {
   );
 
   it.each(
-    FIELDS.filter((s) => !['TextAreaField', 'AmountField', 'AmountFieldExact'].includes(s.key)).map(
+    FIELDS.filter((s) => !['AmountField', 'AmountFieldExact'].includes(s.key)).map(
       (s) => [s.key, s] as const
     )
   )(

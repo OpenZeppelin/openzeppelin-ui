@@ -78,6 +78,25 @@ async function renderBaselineCase(
   return { html, payload, payloadHasName: Object.prototype.hasOwnProperty.call(payload, 'v') };
 }
 
+/**
+ * Asserts the control in `gotHtml` has the attributes of the one in `wantHtml` plus `disabled=""`,
+ * and that the HTML around the control is byte-identical. Attribute order inside the tag follows
+ * React's prop key order, so the control is compared as an attribute map.
+ */
+function expectOnlyDisabledAdded(gotHtml: string, wantHtml: string): void {
+  const parse = (html: string): { control: Element; outside: string } => {
+    const host = document.createElement('div');
+    host.innerHTML = html;
+    const control = host.querySelector('textarea');
+    if (!control) throw new Error('no <textarea> in rendered HTML');
+    return { control, outside: host.innerHTML.replace(control.outerHTML, '<CONTROL/>') };
+  };
+  const got = parse(gotHtml);
+  const want = parse(wantHtml);
+  expect(attrs(got.control)).toStrictEqual({ ...attrs(want.control), disabled: '' });
+  expect(got.outside).toBe(want.outside);
+}
+
 describe('INV-1: default mode matches the pre-SF-19 baseline (HTML minus look tokens, payload)', () => {
   const cases = FIELDS.flatMap((spec) =>
     (['absent', 'disabled'] as const).flatMap((mode) =>
@@ -94,7 +113,13 @@ describe('INV-1: default mode matches the pre-SF-19 baseline (HTML minus look to
         c.mode === 'absent' ? undefined : c.mode
       );
       const want = BASELINE[c.spec.key][c.key];
-      expect(stripLook(got.html)).toBe(want.html);
+      if (c.spec.key === 'TextAreaField' && c.key === 'true') {
+        // 006 SF-3 exception: default read-only TextAreaField is now DOM-disabled like TextField.
+        // The textarea gains `disabled=""` and nothing else; the rest of the HTML is unchanged.
+        expectOnlyDisabledAdded(stripLook(got.html), want.html);
+      } else {
+        expect(stripLook(got.html)).toBe(want.html);
+      }
       expect(got.payload).toStrictEqual(want.payload);
       expect(got.payloadHasName).toBe(want.payloadHasName);
     }
@@ -199,10 +224,11 @@ describe('INV-7: controlProps win over field / accessibility props', () => {
     }
   );
 
-  it('TextAreaField default-mode quirk is preserved: readOnly alone is not DOM-disabled (Code drift note)', () => {
+  it('TextAreaField default mode: readOnly alone is DOM-disabled and stays tabIndex 0, like TextField (006 SF-3)', () => {
     const m = mountField(fieldSpec('TextAreaField'), { readOnly: true });
-    expect(m.control().disabled).toBe(false);
+    expect(m.control().disabled).toBe(true);
     expect(m.control().readOnly).toBe(false);
+    expect(m.control().tabIndex).toBe(0);
     m.set({ readOnlyMode: 'readonly' });
     expect(m.control().readOnly).toBe(true);
     expect(m.control().disabled).toBe(false);
