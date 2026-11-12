@@ -5,12 +5,18 @@ export interface BreadcrumbLinkItem {
   readonly href: string;
 }
 
+/** An ancestor that may omit its link; it then renders as plain text. */
+export interface BreadcrumbAncestorItem {
+  readonly label: string;
+  readonly href?: string;
+}
+
 export interface BreadcrumbCurrentItem {
   readonly label: string;
   readonly href?: never;
 }
 
-export type BreadcrumbItems = readonly [...BreadcrumbLinkItem[], BreadcrumbCurrentItem];
+export type BreadcrumbItems = readonly [...BreadcrumbAncestorItem[], BreadcrumbCurrentItem];
 
 export interface BreadcrumbLinkRenderProps {
   readonly children: React.ReactNode;

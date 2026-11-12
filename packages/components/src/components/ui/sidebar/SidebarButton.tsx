@@ -48,6 +48,9 @@ export function SidebarButton({
     className
   );
 
+  // Only the selected, enabled item is the current page; omitted otherwise.
+  const currentPage = isSelected && !disabled ? 'page' : undefined;
+
   const content = (
     <>
       <div className="flex items-center gap-2">
@@ -64,14 +67,26 @@ export function SidebarButton({
 
   if (href) {
     return (
-      <a href={href} target={target} rel={rel} className={commonClass} onClick={onClick}>
+      <a
+        href={href}
+        target={target}
+        rel={rel}
+        className={commonClass}
+        onClick={onClick}
+        aria-current={currentPage}
+      >
         {content}
       </a>
     );
   }
 
   return (
-    <button className={commonClass} onClick={disabled ? undefined : onClick} disabled={disabled}>
+    <button
+      className={commonClass}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      aria-current={currentPage}
+    >
       {content}
     </button>
   );
