@@ -121,6 +121,21 @@ export interface FieldSpec {
 const RO: Partial<FieldRenderProps> = { readOnly: true };
 const RO_MODE: Partial<FieldRenderProps> = { readOnly: true, readOnlyMode: 'readonly' };
 
+/**
+ * Allowance: SearchableMultiSelectField's `readOnly` was aligned with the other fields after the
+ * fixture was recorded. By default it now disables the field like TextField (rule skipped, value
+ * dropped), and it gained `readOnlyMode="readonly"` (rule runs, value kept). These are the
+ * records it now shares with TextField; every other field stays pinned to the fixture.
+ */
+export const READ_ONLY_ALIGNED: Readonly<
+  Record<string, Readonly<Record<string, { requiredEmpty: string | true; submitValid: number }>>>
+> = {
+  SearchableMultiSelectField: {
+    [JSON.stringify(RO)]: { requiredEmpty: true, submitValid: 1 },
+    [JSON.stringify(RO_MODE)]: { requiredEmpty: 'This field is required', submitValid: 0 },
+  },
+};
+
 const TEXT_OTHERS = ['a', 'toolongvalue12345', 'UPPER', '5', '150', '1.5'] as const;
 
 /** Every field that takes `validation`; AmountField and EnumField once per branch. */
@@ -355,7 +370,7 @@ export const FIELDS: readonly FieldSpec[] = [
     empties: [[], undefined, null],
     valid: ['ca'],
     others: [['ca', 'fr'], ['de'], ['it']],
-    readOnlyVariants: [RO],
+    readOnlyVariants: [RO, RO_MODE],
   },
   {
     key: 'ObjectField',

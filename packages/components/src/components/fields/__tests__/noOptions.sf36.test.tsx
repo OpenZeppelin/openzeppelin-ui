@@ -23,6 +23,7 @@ import {
   mountField,
   NO_OPTION_VALIDATIONS,
   outcomeOf,
+  READ_ONLY_ALIGNED,
   valueLabel,
   type FieldSpec,
   type Outcome,
@@ -72,6 +73,8 @@ const F1_FIELDS = /^(ArrayField|ArrayObjectField)(\[|$)/;
 const F1_OLD_TEXT = 'This field is invalid';
 
 function expectedNow(key: string, before: FieldRecord): FieldRecord {
+  const aligned = READ_ONLY_ALIGNED[key];
+  if (aligned) return { ...before, readOnly: { ...aligned } };
   if (!F1_FIELDS.test(key)) return before;
   const verdicts: FieldRecord['verdicts'] = {};
   for (const [vKey, row] of Object.entries(before.verdicts)) {

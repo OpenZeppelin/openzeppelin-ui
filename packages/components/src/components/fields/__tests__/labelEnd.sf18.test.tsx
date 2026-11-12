@@ -43,6 +43,10 @@ Element.prototype.scrollIntoView = function scrollIntoView(): void {};
 afterEach(cleanup);
 
 const LABEL = 'Recipient';
+
+/** The label text, plus the control's own value text when it reads one after the label. */
+const expectedName = (spec: { valueText?: string }, label: string): string =>
+  spec.valueText ? `${label} ${spec.valueText}` : label;
 const ID = 'sf18-field';
 const NAME = 'value';
 
@@ -58,6 +62,11 @@ interface CommonProps {
 
 interface Spec {
   name: string;
+  /**
+   * Text the control reads after the label. SearchableMultiSelectField's trigger is a button
+   * named "<label> <selection text>", like a select reads label then value.
+   */
+  valueText?: string;
   render: (p: CommonProps) => React.ReactElement;
   /** The focusable control the label points at. */
   control: () => HTMLElement;
@@ -101,6 +110,7 @@ const SPECS: Spec[] = [
   },
   {
     name: 'SearchableMultiSelectField',
+    valueText: 'Select items',
     render: (p) => (
       <SearchableMultiSelectField
         {...p}
@@ -191,7 +201,7 @@ describe.each(SPECS)('$name', (spec) => {
       <Host spec={spec} labelEnd={<span data-testid="chip">Optional chip</span>} />
     );
     const name = computeAccessibleName(spec.control());
-    expect(name).toBe(LABEL);
+    expect(name).toBe(expectedName(spec, LABEL));
     expect(name).not.toContain('Optional');
     expect(container.querySelector('label')?.textContent?.trim()).toBe(LABEL);
   });
@@ -273,7 +283,7 @@ describe.each(SPECS)('$name', (spec) => {
   it('R5 boundary: no labelEnd leaves the label a direct child of the field wrapper (as before)', () => {
     const { container } = render(<Host spec={spec} />);
     expect(row(container)).toBeNull();
-    expect(computeAccessibleName(spec.control())).toBe(LABEL);
+    expect(computeAccessibleName(spec.control())).toBe(expectedName(spec, LABEL));
   });
 
   it('R6 boundary: with no label, no row and no slot content is rendered', () => {
@@ -297,7 +307,9 @@ describe.each(SPECS)('$name', (spec) => {
         }
       />
     );
-    expect(computeAccessibleName(spec.control())).toBe('A very long label that wraps');
+    expect(computeAccessibleName(spec.control())).toBe(
+      expectedName(spec, 'A very long label that wraps')
+    );
   });
 });
 
