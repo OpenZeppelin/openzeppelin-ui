@@ -7,7 +7,7 @@ export type BannerVariant = 'info' | 'success' | 'warning' | 'error' | 'neutral'
 
 export type BannerSize = 'default' | 'compact';
 
-/** Live-region roles a banner may carry. */
+/** ARIA roles a banner may carry. `alert` and `status` are live regions; `note` is not. */
 export type BannerRole = 'alert' | 'status' | 'note';
 
 export interface BannerProps {
