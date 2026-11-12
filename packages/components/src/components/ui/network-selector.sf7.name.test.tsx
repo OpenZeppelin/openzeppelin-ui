@@ -116,6 +116,15 @@ describe('INV-4: one id for the trigger, and the popup stays labelled by it', ()
     expect(q.listbox().getAttribute('aria-labelledby')).toBe(generated);
   });
 
+  it('an empty id counts as no id: the trigger and the popup label use a generated one', async () => {
+    const user = setup();
+    render(<Single id="" />);
+    const generated = trigger().id;
+    expect(generated).not.toBe('');
+    await user.click(trigger());
+    expect(q.listbox().getAttribute('aria-labelledby')).toBe(generated);
+  });
+
   it('two selectors without ids keep distinct ids', () => {
     render(
       <>

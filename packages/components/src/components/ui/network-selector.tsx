@@ -68,7 +68,7 @@ interface NetworkSelectorBaseProps<T> {
   getNetworkDisabledLabel?: (network: T) => string | undefined;
   className?: string;
   /**
-   * Id for the trigger, so a `<label htmlFor>` can name it. Default: a generated id.
+   * Id for the trigger, so a `<label htmlFor>` can name it. Default, also for `""`: a generated id.
    * The popup stays labelled by the trigger under whichever id is used.
    */
   id?: string;
@@ -168,7 +168,7 @@ export function NetworkSelector<T>({
   // INV-4: one id per instance, the consumer's `id` when given. Every trigger carries it,
   // and the popup is labelled by it.
   const generatedId = React.useId();
-  const triggerId = id ?? generatedId;
+  const triggerId = id || generatedId;
   const listName = React.useMemo<ListName>(() => ({ 'aria-labelledby': triggerId }), [triggerId]);
 
   // INV-2, INV-7: count is the raw length (stale and duplicate ids included); total is never filtered.
