@@ -48,6 +48,7 @@ import {
 } from '@openzeppelin/ui-components';
 
 import { NetworkSwitcher } from './components/NetworkSwitcher';
+import { ThemeToggle } from './components/ThemeToggle';
 
 import {
   AccordionDemo,
@@ -617,6 +618,7 @@ function App(): React.ReactElement {
           rightContent={
             <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
               <NetworkSwitcher />
+              <ThemeToggle />
               <a
                 href={DOCS_UIKIT}
                 target="_blank"

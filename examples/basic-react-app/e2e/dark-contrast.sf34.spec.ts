@@ -18,6 +18,8 @@ import { expect, test, type Locator, type Page } from 'playwright/test';
 
 const evidenceDir = process.env.SF34_EVIDENCE_DIR;
 const mutant = process.env.SF34_MUTANT === '1';
+// SF-35: reach dark by clicking the app's theme control instead of pre-setting the storage key.
+const viaToggle = process.env.SF34_VIA_TOGGLE === '1';
 const evidence: Record<string, unknown> = {};
 
 type Kind = 'text' | 'border' | 'fill' | 'ring';
@@ -108,7 +110,7 @@ async function read(loc: Locator, name: string, kind: Kind, target?: string): Pr
 
 async function openDemo(page: Page, theme: 'light' | 'dark', nav: string): Promise<void> {
   await page.setViewportSize({ width: 1400, height: 1400 });
-  await page.addInitScript((t) => localStorage.setItem('theme', t), theme);
+  if (!viaToggle) await page.addInitScript((t) => localStorage.setItem('theme', t), theme);
   if (mutant) {
     // Pre-fix dark look: the `--input` border token the SF-34 classes replaced.
     await page.addInitScript(() => {
@@ -121,6 +123,19 @@ async function openDemo(page: Page, theme: 'light' | 'dark', nav: string): Promi
     });
   }
   await page.goto('/', { waitUntil: 'networkidle' });
+  if (viaToggle) {
+    const toggle = page.getByTestId('theme-toggle');
+    await toggle.waitFor({ timeout: 90_000 });
+    // The second demo of a run starts from the persisted choice; click only when not yet dark.
+    const alreadyDark = await page.evaluate(() =>
+      document.documentElement.classList.contains('dark')
+    );
+    if (theme === 'dark' && !alreadyDark) await toggle.click();
+    expect(await page.evaluate(() => localStorage.getItem('theme'))).toBe(
+      theme === 'dark' ? 'dark' : null
+    );
+    await page.reload({ waitUntil: 'networkidle' }); // the choice must survive a reload
+  }
   const inputs = page.getByRole('button', { name: 'Inputs' }).first();
   await inputs.waitFor({ timeout: 90_000 });
   const item = page.getByText(nav, { exact: true }).first();
