@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 
 import {
   AmountField,
@@ -132,112 +132,116 @@ export function ValidationMessagesDemo(): React.ReactElement {
         </p>
       </div>
 
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        // Without noValidate the browser's own required prompt preempts the kit messages.
-        noValidate
-        className="space-y-6"
-        data-testid="validation-messages-form"
-      >
-        <div className="grid gap-6 md:grid-cols-2">
-          <TextField
-            id="vmDisplayName"
-            name="displayName"
-            label="Display name"
-            control={form.control}
-            placeholder="e.g. Treasury team"
-            helperText='Letters, digits and spaces, up to 20 characters. "admin" and "root" are reserved.'
-            validation={DISPLAY_NAME_VALIDATION}
-          />
-
-          <div data-testid="vm-amount-field">
-            <AmountField
-              id="vmAmount"
-              name="amount"
-              label="Amount"
+      <FormProvider {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          // Without noValidate the browser's own required prompt preempts the kit messages.
+          noValidate
+          className="space-y-6"
+          data-testid="validation-messages-form"
+        >
+          <div className="grid gap-6 md:grid-cols-2">
+            <TextField
+              id="vmDisplayName"
+              name="displayName"
+              label="Display name"
               control={form.control}
-              placeholder="0.00"
-              helperText="Up to 6 decimals, at most 1000, above zero."
-              decimals={6}
-              max="1000"
-              formatOnBlur={false}
-              validateAmount={(value) => (value.startsWith('-') ? 'Enter a positive amount' : true)}
-              validation={AMOUNT_VALIDATION}
+              placeholder="e.g. Treasury team"
+              helperText='Letters, digits and spaces, up to 20 characters. "admin" and "root" are reserved.'
+              validation={DISPLAY_NAME_VALIDATION}
+            />
+
+            <div data-testid="vm-amount-field">
+              <AmountField
+                id="vmAmount"
+                name="amount"
+                label="Amount"
+                control={form.control}
+                placeholder="0.00"
+                helperText="Up to 6 decimals, at most 1000, above zero."
+                decimals={6}
+                max="1000"
+                formatOnBlur={false}
+                validateAmount={(value) =>
+                  value.startsWith('-') ? 'Enter a positive amount' : true
+                }
+                validation={AMOUNT_VALIDATION}
+              />
+            </div>
+
+            <SearchableMultiSelectField
+              id="vmCountries"
+              name="countries"
+              label="Countries"
+              control={form.control}
+              helperText="Up to three countries. Germany is not available yet."
+              items={COUNTRIES}
+              getItemId={getCountryId}
+              getItemLabel={getCountryLabel}
+              placeholder="Select countries"
+              searchPlaceholder="Search countries..."
+              searchLabel="Search countries"
+              emptyText="No country matches your search."
+              validateSelection={(ids) => ids.length <= 3 || 'Pick at most three countries'}
+              validation={COUNTRIES_VALIDATION}
+            />
+
+            <div data-testid="vm-limits-field">
+              <MapField
+                id="vmLimits"
+                name="limits"
+                label="Limits"
+                control={form.control}
+                helperText='Name each limit in lowercase. "admin" and "root" are reserved.'
+                validation={LIMITS_VALIDATION}
+                renderKeyField={(field, index) => (
+                  <TextField
+                    key={`key-${index}`}
+                    id={field.id}
+                    name={`limits.${index}.key` as `limits.${number}.key`}
+                    label=""
+                    control={form.control}
+                    placeholder="Limit name"
+                    validation={LIMIT_KEY_VALIDATION}
+                  />
+                )}
+                renderValueField={(field, index) => (
+                  <TextField
+                    key={`value-${index}`}
+                    id={field.id}
+                    name={`limits.${index}.value` as `limits.${number}.value`}
+                    label=""
+                    control={form.control}
+                    placeholder="Value"
+                  />
+                )}
+              />
+            </div>
+
+            <TextField
+              id="vmDefaultName"
+              name="defaultName"
+              label="Default field"
+              control={form.control}
+              placeholder="Up to 10 characters"
+              helperText="Required, at most 10 characters, no custom messages."
+              validation={{ required: true, maxLength: 10 }}
             />
           </div>
 
-          <SearchableMultiSelectField
-            id="vmCountries"
-            name="countries"
-            label="Countries"
-            control={form.control}
-            helperText="Up to three countries. Germany is not available yet."
-            items={COUNTRIES}
-            getItemId={getCountryId}
-            getItemLabel={getCountryLabel}
-            placeholder="Select countries"
-            searchPlaceholder="Search countries..."
-            searchLabel="Search countries"
-            emptyText="No country matches your search."
-            validateSelection={(ids) => ids.length <= 3 || 'Pick at most three countries'}
-            validation={COUNTRIES_VALIDATION}
-          />
-
-          <div data-testid="vm-limits-field">
-            <MapField
-              id="vmLimits"
-              name="limits"
-              label="Limits"
-              control={form.control}
-              helperText='Name each limit in lowercase. "admin" and "root" are reserved.'
-              validation={LIMITS_VALIDATION}
-              renderKeyField={(field, index) => (
-                <TextField
-                  key={`key-${index}`}
-                  id={field.id}
-                  name={`limits.${index}.key` as `limits.${number}.key`}
-                  label=""
-                  control={form.control}
-                  placeholder="Limit name"
-                  validation={LIMIT_KEY_VALIDATION}
-                />
-              )}
-              renderValueField={(field, index) => (
-                <TextField
-                  key={`value-${index}`}
-                  id={field.id}
-                  name={`limits.${index}.value` as `limits.${number}.value`}
-                  label=""
-                  control={form.control}
-                  placeholder="Value"
-                />
-              )}
-            />
+          <div className="flex items-center justify-end gap-4">
+            <p
+              className="text-muted-foreground text-sm"
+              data-testid="validation-messages-submit-count"
+            >
+              Submitted {submitCount} {submitCount === 1 ? 'time' : 'times'}
+            </p>
+            <Button type="submit" data-testid="validation-messages-submit">
+              Submit
+            </Button>
           </div>
-
-          <TextField
-            id="vmDefaultName"
-            name="defaultName"
-            label="Default field"
-            control={form.control}
-            placeholder="Up to 10 characters"
-            helperText="Required, at most 10 characters, no custom messages."
-            validation={{ required: true, maxLength: 10 }}
-          />
-        </div>
-
-        <div className="flex items-center justify-end gap-4">
-          <p
-            className="text-muted-foreground text-sm"
-            data-testid="validation-messages-submit-count"
-          >
-            Submitted {submitCount} {submitCount === 1 ? 'time' : 'times'}
-          </p>
-          <Button type="submit" data-testid="validation-messages-submit">
-            Submit
-          </Button>
-        </div>
-      </form>
+        </form>
+      </FormProvider>
 
       <div data-testid="validation-messages-payload">
         <CodeBlock

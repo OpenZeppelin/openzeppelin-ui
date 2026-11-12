@@ -136,6 +136,10 @@ export interface MapFieldProps<TFieldValues extends FieldValues = FieldValues>
  * 4. BaseField provides consistent layout and hook form integration
  * 5. This component handles map-specific rendering and validation
  *
+ * Render it inside a react-hook-form `FormProvider`. Without one it still validates through its
+ * own rule, but it does not mirror its entries' key and value errors into the map's own error,
+ * because that sync needs the form context.
+ *
  * The component stores data in a chain-agnostic format as an array of {key, value} objects.
  * The adapter is responsible for converting this to the chain-specific format (e.g., SorobanMapEntry[])
  * when submitting to the blockchain.

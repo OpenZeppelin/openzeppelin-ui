@@ -4,7 +4,8 @@
  * stage CD-3), a read-only map with a failing check still submits (CD-4, INV-17), and the
  * required text on the effect's child-error path (INV-16).
  */
-import { act, render } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { FormProvider, useForm, type UseFormReturn } from 'react-hook-form';
@@ -12,6 +13,7 @@ import { FormProvider, useForm, type UseFormReturn } from 'react-hook-form';
 import type { FieldValidation, MapEntry } from '@openzeppelin/ui-types';
 
 import { MapField } from '../MapField';
+import { TextField } from '../TextField';
 import { fieldSpec, mountField, type Values } from './fieldValidation.sf36-kit';
 
 const MAP = fieldSpec('MapField');
@@ -324,5 +326,88 @@ describe('SF-36 INV-16 — MapField child-error path uses the required text', ()
     // RHF's field state holds the nested child errors; the parent's own message is what the map shows.
     expect(m.api.getFieldState('v').error?.message).toBeUndefined();
     m.unmount();
+  });
+
+  /**
+   * The real submit path: key cells are validated inputs, and the host never reads
+   * `formState.errors` itself (like a form that only shows field messages).
+   */
+  function SubmitHost(): React.ReactElement {
+    const api = useForm<Values>({
+      defaultValues: { v: [{ key: '', value: '1' }] },
+      mode: 'onTouched',
+    });
+    return (
+      <FormProvider {...api}>
+        <form noValidate onSubmit={api.handleSubmit(() => undefined)}>
+          <MapField
+            id="f"
+            name="v"
+            label="Map"
+            control={api.control}
+            validation={{ required: true, messages: { required: 'Custom req' } }}
+            renderKeyField={(field) => (
+              <TextField
+                id={field.id}
+                name={field.name as `v.${number}.key`}
+                label="key"
+                control={api.control}
+                validation={{
+                  required: true,
+                  pattern: /^[a-z_]+$/,
+                  messages: { pattern: 'Bad key' },
+                  validate: (v) => (v === 'admin' ? 'Reserved' : true),
+                }}
+              />
+            )}
+            renderValueField={(field) => (
+              <TextField
+                id={field.id}
+                name={field.name as `v.${number}.value`}
+                label="value"
+                control={api.control}
+              />
+            )}
+          />
+          <button type="submit">Submit</button>
+        </form>
+      </FormProvider>
+    );
+  }
+
+  it('after a bad key then a valid key and a resubmit, the required text clears', async () => {
+    const user = userEvent.setup();
+    render(<SubmitHost />);
+    await user.type(screen.getAllByRole('textbox')[0]!, 'BAD');
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(await screen.findByText('Custom req')).toBeTruthy();
+
+    const key = screen.getAllByRole('textbox')[0]!;
+    await user.clear(key);
+    await user.type(key, 'admin');
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(await screen.findByText('Reserved')).toBeTruthy();
+    expect(screen.queryByText('Custom req')).toBeTruthy();
+
+    await user.clear(key);
+    await user.type(key, 'daily_cap');
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+    await act(async () => {});
+    expect(screen.queryByText('Custom req')).toBeNull();
+  });
+
+  it('fixing the key clears the required text without another submit', async () => {
+    const user = userEvent.setup();
+    render(<SubmitHost />);
+    const key = screen.getAllByRole('textbox')[0]!;
+    await user.type(key, 'BAD');
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(await screen.findByText('Custom req')).toBeTruthy();
+
+    await user.clear(key);
+    await user.type(key, 'daily_cap');
+    await act(async () => {});
+    expect(screen.queryByText('Bad key')).toBeNull();
+    expect(screen.queryByText('Custom req')).toBeNull();
   });
 });
