@@ -79,9 +79,18 @@ describe('INV-1 / INV-3: shell matrix {label} × {required} × {helper} × {erro
         ...(helper ? [`DIV#${FIELD_ID}-description`] : []),
         ...(error ? [`DIV#${FIELD_ID}-error`] : []),
       ];
-      expect(Array.from(wrapper.children).map((c) => `${c.tagName}#${c.id}`)).toEqual(expected);
+      const children = Array.from(wrapper.children) as HTMLElement[];
+      const visible = children.filter((c) => !c.hidden);
+      const hidden = children.filter((c) => c.hidden);
+      expect(visible.map((c) => `${c.tagName}#${c.id}`)).toEqual(expected);
+      // A button cannot carry aria-required: required is a hidden description text instead.
+      expect(hidden.map((c) => `${c.tagName}:${c.textContent}`)).toEqual(
+        required ? ['SPAN:Required'] : []
+      );
       expect(trigger.getAttribute('data-slot')).toBe('searchable-multi-select-trigger');
-      expect(trigger.getAttribute('role')).toBe('combobox');
+      expect(trigger.hasAttribute('role')).toBe(false);
+      expect(trigger.getAttribute('aria-haspopup')).toBe('dialog');
+      expect(trigger.hasAttribute('aria-required')).toBe(false);
 
       // INV-1: the asterisk iff required (and only with a label).
       const lbl = q.label();
@@ -99,13 +108,17 @@ describe('INV-1 / INV-3: shell matrix {label} × {required} × {helper} × {erro
         expect(q.error()?.textContent).toBe('Boom');
       }
 
-      // INV-3: exactly getAccessibilityProps' value, and every token resolves with text.
+      // INV-3: getAccessibilityProps' value, then the hidden "Required" text when required, and
+      // every token resolves with text.
+      const base = getAccessibilityProps({ id: FIELD_ID, hasError: error, hasHelperText: helper })[
+        'aria-describedby'
+      ];
       expect(trigger.getAttribute('aria-describedby') ?? undefined).toBe(
-        getAccessibilityProps({ id: FIELD_ID, hasError: error, hasHelperText: helper })[
-          'aria-describedby'
-        ]
+        [base, required ? hidden[0]?.id : undefined].filter(Boolean).join(' ') || undefined
       );
-      if (!helper && !error) expect(trigger.hasAttribute('aria-describedby')).toBe(false);
+      if (!helper && !error && !required) {
+        expect(trigger.hasAttribute('aria-describedby')).toBe(false);
+      }
       expect(danglingDescribedBy()).toEqual([]);
     }
   );
@@ -140,12 +153,12 @@ describe('INV-1 / INV-3: shell matrix {label} × {required} × {helper} × {erro
 });
 
 // ── INV-2 ─────────────────────────────────────────────────────────────────────────────────
-describe('INV-2: aria-invalid / aria-required live on the trigger only', () => {
-  it('required: aria-required="true"; invalid only after a failed submit, then cleared', async () => {
+describe('INV-2: aria-invalid / the required description live on the trigger only', () => {
+  it('required: "Required" description; invalid only after a failed submit, then cleared', async () => {
     const user = setup();
     const { handle } = mount({ validation: { required: true } });
     const trigger = q.trigger();
-    expect(trigger.getAttribute('aria-required')).toBe('true');
+    expect(screen.getByRole('button', { description: 'Required' })).toBe(trigger);
     expect(trigger.getAttribute('aria-invalid')).not.toBe('true');
 
     await user.click(screen.getByRole('button', { name: 'Submit' }));
@@ -157,9 +170,10 @@ describe('INV-2: aria-invalid / aria-required live on the trigger only', () => {
     expect(trigger.getAttribute('aria-invalid')).not.toBe('true');
   });
 
-  it('optional: aria-required is never "true"', () => {
+  it('optional: no "Required" description and no aria-required', () => {
     mount();
     expect(q.trigger().getAttribute('aria-required')).not.toBe('true');
+    expect(screen.queryByRole('button', { description: /Required/ })).toBeNull();
   });
 
   it('failure guard: in the error state no popover node carries field aria', async () => {
@@ -202,7 +216,13 @@ describe('INV-6: stray aria-* passed to the field never reach the trigger', () =
     render(<Stray />);
     const trigger = q.trigger();
     expect(trigger.hasAttribute('aria-label')).toBe(false);
-    expect(trigger.getAttribute('aria-labelledby')).toBe(`${FIELD_ID}-label`);
+    // The label, then the trigger's own value text (never the caller's "nowhere").
+    const [labelRef, valueRef, ...rest] = (trigger.getAttribute('aria-labelledby') ?? '').split(
+      ' '
+    );
+    expect(labelRef).toBe(`${FIELD_ID}-label`);
+    expect(document.getElementById(valueRef as string)?.textContent).toBe('Select items');
+    expect(rest).toEqual([]);
     expect(trigger.hasAttribute('aria-describedby')).toBe(false);
     expect(trigger.getAttribute('aria-invalid')).not.toBe('true');
     expect(trigger.getAttribute('aria-required')).not.toBe('true');
@@ -267,9 +287,10 @@ describe('INV-25: trigger, listbox and dialog are named after the label', () => 
   it('required: all three named "Allowed countries *"; search named by searchLabel', async () => {
     const user = setup();
     mount({ validation: { required: true }, searchLabel: 'Search countries' });
-    const trigger = screen.getByRole('combobox', { name: 'Allowed countries *' });
+    // The trigger reads the label, then its value text, like a select.
+    const trigger = screen.getByRole('button', { name: 'Allowed countries * Select items' });
     expect(trigger).toBe(q.trigger());
-    expect(trigger.getAttribute('aria-labelledby')).toBe(`${FIELD_ID}-label`);
+    expect(trigger.getAttribute('aria-labelledby')?.split(' ')[0]).toBe(`${FIELD_ID}-label`);
     await user.click(trigger);
     const dialog = screen.getByRole('dialog', { name: 'Allowed countries *' });
     within(dialog).getByRole('listbox', { name: 'Allowed countries *' });
@@ -278,7 +299,14 @@ describe('INV-25: trigger, listbox and dialog are named after the label', () => 
 
   it('optional: name has no asterisk', () => {
     mount();
-    expect(screen.getByRole('combobox', { name: 'Allowed countries' })).toBe(q.trigger());
+    expect(screen.getByRole('button', { name: 'Allowed countries Select items' })).toBe(
+      q.trigger()
+    );
+  });
+
+  it('the name follows the selection count', () => {
+    mount({}, { countries: ['FR', 'ES'] });
+    expect(screen.getByRole('button', { name: 'Allowed countries 2 selected' })).toBe(q.trigger());
   });
 
   it('boundary: empty label → no <label>, no aria-labelledby; SF-15 warns once across rerenders', () => {
@@ -308,9 +336,9 @@ describe('INV-26: the error is an alert and part of the trigger description', ()
     await user.click(screen.getByRole('button', { name: 'Submit' }));
     expect(screen.getByRole('alert').textContent).toBe('This field is required');
     expect(
-      screen.getByRole('combobox', {
-        name: 'Allowed countries *',
-        description: 'This field is required Pick where investors live.',
+      screen.getByRole('button', {
+        name: 'Allowed countries * Select items',
+        description: 'This field is required Pick where investors live. Required',
       })
     ).toBe(q.trigger());
   });

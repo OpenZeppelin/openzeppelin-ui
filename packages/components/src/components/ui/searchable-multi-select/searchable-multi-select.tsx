@@ -11,7 +11,7 @@ import { cn, logger } from '@openzeppelin/ui-utils';
 
 import { Button } from '../button';
 import { toggleId } from './list-model';
-import { SearchableSelectCore, type ListName, type TriggerState } from './searchable-select-core';
+import { SearchableSelectCore, type ListName } from './searchable-select-core';
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
 const DIAGNOSTIC_SYSTEM = 'SearchableMultiSelect';
@@ -23,6 +23,10 @@ const DEFAULT_SEARCH_LABEL = 'Search';
 const DEFAULT_EMPTY_TEXT = 'No results found.';
 const DEFAULT_CLEAR_ALL_LABEL = 'Clear all';
 const defaultFormatCount = (count: number): string => `${count} selected`;
+// A button cannot carry `aria-required` or `aria-readonly`, so these states are hidden text in
+// the trigger's description. Fixed copy, like SelectField's "Read-only" description.
+const REQUIRED_TEXT = 'Required';
+const READ_ONLY_TEXT = 'Read-only';
 
 /** Props for {@link SearchableMultiSelect}. */
 export interface SearchableMultiSelectProps<T> {
@@ -78,6 +82,12 @@ export interface SearchableMultiSelectProps<T> {
   readonly className?: string;
   /** Disables the trigger; the popover cannot open, and an open one closes. */
   readonly disabled?: boolean;
+  /**
+   * Focusable read-only: the trigger stays enabled and in the tab order, but the popover
+   * cannot open and an open one closes. The trigger gets a read-only look and a hidden
+   * "Read-only" description.
+   */
+  readonly readOnly?: boolean;
   /** Fired when the trigger loses focus, including when opening moves focus to the search box. */
   readonly onBlur?: React.FocusEventHandler<HTMLButtonElement>;
   /**
@@ -88,25 +98,33 @@ export interface SearchableMultiSelectProps<T> {
    * that `disabled` refuses, nor on mount or unmount.
    */
   readonly onOpenChange?: (open: boolean) => void;
-  /** Accessible name. Applied to the trigger, the listbox and the popover dialog. */
+  /**
+   * Accessible name for the listbox and the popover dialog. The trigger reads it followed by
+   * its current text, for example "Countries 2 selected".
+   */
   readonly 'aria-label'?: string;
-  /** Accessible name by reference. Same three targets as `aria-label`; wins over it. */
+  /** Accessible name by reference. Same targets and trigger reading as `aria-label`; wins over it. */
   readonly 'aria-labelledby'?: string;
   /** Applied to the trigger only. */
   readonly 'aria-describedby'?: string;
   /** Applied to the trigger only. */
   readonly 'aria-invalid'?: boolean;
-  /** Applied to the trigger only. */
+  /**
+   * Marks the control required. A button cannot carry `aria-required`, so the trigger gets a
+   * hidden "Required" description instead.
+   */
   readonly 'aria-required'?: boolean;
 }
 
 /**
  * Searchable multi-select for any item type. Controlled: the consumer owns
- * `selectedIds`. Opens a popover with a search box and a multiselectable
- * listbox; focus stays in the search box while the list is navigated.
+ * `selectedIds`. The trigger is a button that opens a dialog with a search box
+ * (a combobox) and a multiselectable listbox; focus stays in the search box
+ * while the list is navigated.
  *
- * Label it with `aria-labelledby` or `aria-label`: a combobox does not take its
- * name from its content.
+ * Label it with `aria-labelledby` or `aria-label`, which name the trigger, the
+ * dialog and the listbox. The trigger reads the label and then its current
+ * text ("Countries 2 selected").
  */
 export function SearchableMultiSelect<T>({
   items,
@@ -126,6 +144,7 @@ export function SearchableMultiSelect<T>({
   id,
   className,
   disabled = false,
+  readOnly = false,
   onBlur,
   onOpenChange,
   'aria-label': ariaLabel,
@@ -159,7 +178,26 @@ export function SearchableMultiSelect<T>({
 
   useDevDiagnostics(items, getItemId, Boolean(ariaLabel || ariaLabelledBy));
 
-  const renderTrigger = ({ triggerAria }: TriggerState): React.ReactElement => (
+  // The trigger is a button, so an aria-labelledby or aria-label alone would replace its text.
+  // Its name is the label followed by the text, the way a select reads label then value. With
+  // no label it keeps the name from its text.
+  const baseId = React.useId();
+  const valueId = `${baseId}value`;
+  const nameTextId = `${baseId}name`;
+  const requiredId = `${baseId}required`;
+  const readOnlyId = `${baseId}readonly`;
+  const useNameText = !ariaLabelledBy && Boolean(ariaLabel);
+  const triggerLabelledBy = ariaLabelledBy
+    ? `${ariaLabelledBy} ${valueId}`
+    : useNameText
+      ? `${nameTextId} ${valueId}`
+      : undefined;
+  const triggerDescribedBy =
+    [ariaDescribedBy, ariaRequired && requiredId, readOnly && readOnlyId]
+      .filter(Boolean)
+      .join(' ') || undefined;
+
+  const renderTrigger = (): React.ReactElement => (
     <Button
       ref={ref}
       id={id}
@@ -167,17 +205,22 @@ export function SearchableMultiSelect<T>({
       variant="outline"
       disabled={disabled}
       onBlur={onBlur}
-      aria-label={ariaLabel}
-      aria-labelledby={ariaLabelledBy}
-      aria-describedby={ariaDescribedBy}
+      // No role or aria-haspopup here: Radix's PopoverTrigger supplies the dialog-button ARIA
+      // (aria-haspopup="dialog", aria-expanded, aria-controls on the open dialog). The search box
+      // inside the dialog is the combobox.
+      aria-labelledby={triggerLabelledBy}
+      aria-describedby={triggerDescribedBy}
       aria-invalid={ariaInvalid}
-      aria-required={ariaRequired}
+      data-readonly={readOnly ? '' : undefined}
       data-slot="searchable-multi-select-trigger"
-      className={cn('w-full justify-between', className)}
-      // Last, so the combobox contract can't be overridden (INV-1).
-      {...triggerAria}
+      className={cn(
+        'w-full justify-between',
+        // The kit's read-only look (muted fill, full-contrast text), as on SelectTrigger.
+        readOnly && 'bg-muted text-foreground hover:bg-muted cursor-default',
+        className
+      )}
     >
-      <span className={cn('truncate', count === 0 && 'text-muted-foreground')}>
+      <span id={valueId} className={cn('truncate', count === 0 && 'text-muted-foreground')}>
         {count > 0 ? formatSelectedCount(count, total) : placeholder}
       </span>
       <ChevronDown aria-hidden="true" className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -212,23 +255,42 @@ export function SearchableMultiSelect<T>({
       : undefined;
 
   return (
-    <SearchableSelectCore
-      items={items}
-      getItemId={getItemId}
-      getItemLabel={getItemLabel}
-      filterItem={filterItem}
-      multiple
-      isSelected={isSelected}
-      onActivate={handleActivate}
-      renderTrigger={renderTrigger}
-      renderListHeader={renderListHeader}
-      searchPlaceholder={searchPlaceholder}
-      searchLabel={searchLabel}
-      emptyText={emptyText}
-      listName={listName}
-      disabled={disabled}
-      onOpenChange={onOpenChange}
-    />
+    <>
+      <SearchableSelectCore
+        items={items}
+        getItemId={getItemId}
+        getItemLabel={getItemLabel}
+        filterItem={filterItem}
+        multiple
+        isSelected={isSelected}
+        onActivate={handleActivate}
+        renderTrigger={renderTrigger}
+        renderListHeader={renderListHeader}
+        searchPlaceholder={searchPlaceholder}
+        searchLabel={searchLabel}
+        emptyText={emptyText}
+        listName={listName}
+        disabled={disabled}
+        readOnly={readOnly}
+        onOpenChange={onOpenChange}
+      />
+      {/* Hidden, so they are read only through the trigger's IDREFs and take no layout space. */}
+      {useNameText && (
+        <span id={nameTextId} hidden>
+          {ariaLabel}
+        </span>
+      )}
+      {ariaRequired && (
+        <span id={requiredId} hidden>
+          {REQUIRED_TEXT}
+        </span>
+      )}
+      {readOnly && (
+        <span id={readOnlyId} hidden>
+          {READ_ONLY_TEXT}
+        </span>
+      )}
+    </>
   );
 }
 
@@ -255,7 +317,7 @@ function useDevDiagnostics<T>(
     if (!hasAccessibleName) {
       warnOnce(
         'no-accessible-name',
-        'No accessible name. Pass `aria-labelledby` or `aria-label`; the combobox trigger is otherwise unnamed.'
+        'No accessible name. Pass `aria-labelledby` or `aria-label`; otherwise the trigger is named only by its text and the list by the placeholder.'
       );
     }
 

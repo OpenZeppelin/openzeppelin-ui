@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  *
- * SF-15 · Render contract — INV-1 (closed trigger), INV-2 (open structure),
+ * SF-15 · Render contract — INV-1 (closed trigger: a button that opens a dialog), INV-2 (open structure),
  * INV-3 (IDREFs), INV-4 (options), INV-5 (summary row), INV-6 (copy),
  * INV-17 (naming).
  * artifacts/005-uikit-requests/sf-15-searchable-multi-select/03-invariants.md
@@ -29,18 +29,20 @@ afterEach(() => vi.restoreAllMocks());
 const follows = (a: Node, b: Node): boolean =>
   Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
 
-describe('INV-1: closed trigger is a non-submitting combobox button', () => {
+describe('INV-1: closed trigger is a non-submitting button that opens a dialog', () => {
   it.each([
     { initial: [], text: 'Select items' },
     { initial: ['FR'], text: '1 selected' },
     { initial: COUNTRIES.map((c) => c.code), text: '6 selected' },
   ])('count=$initial.length → "$text"', ({ initial, text }) => {
     render(<Controlled initial={initial} />);
-    const trigger = screen.getByRole('combobox', { name: 'Countries' });
+    // Named by the label, then its own text (label + value, like a select).
+    const trigger = screen.getByRole('button', { name: `Countries ${text}` });
     expect(trigger).toBe(q.trigger());
     expect(trigger.tagName).toBe('BUTTON');
+    expect(trigger.hasAttribute('role')).toBe(false);
     expect(trigger.getAttribute('type')).toBe('button');
-    expect(trigger.getAttribute('aria-haspopup')).toBe('listbox');
+    expect(trigger.getAttribute('aria-haspopup')).toBe('dialog');
     expect(trigger.getAttribute('aria-expanded')).toBe('false');
     expect(trigger.hasAttribute('aria-controls')).toBe(false);
     expect(trigger.textContent).toBe(text);
@@ -57,7 +59,7 @@ describe('INV-1: closed trigger is a non-submitting combobox button', () => {
 });
 
 describe('INV-2: open structure is dialog → search → summary → listbox → status', () => {
-  it('builds the role tree in DOM order and points aria-controls at the listbox, not the dialog', async () => {
+  it('builds the role tree in DOM order; the trigger controls the dialog, the search box the listbox', async () => {
     const user = userEvent.setup();
     render(<Controlled initial={['FR']} searchPlaceholder="Type a country" />);
     await user.click(q.trigger());
@@ -82,11 +84,12 @@ describe('INV-2: open structure is dialog → search → summary → listbox →
     expect(follows(summary as Node, listbox)).toBe(true);
     expect(follows(listbox, status)).toBe(true);
 
+    // One combobox only: the search box. The trigger is a dialog button.
+    expect(screen.getAllByRole('combobox')).toEqual([search]);
     const trigger = q.trigger();
     expect(trigger.getAttribute('aria-expanded')).toBe('true');
-    expect(trigger.getAttribute('aria-controls')).toBe(listbox.id);
-    expect(trigger.getAttribute('aria-controls')).not.toBe(dialog.id);
-    expect(trigger.getAttribute('aria-haspopup')).toBe('listbox');
+    expect(trigger.getAttribute('aria-controls')).toBe(dialog.id);
+    expect(trigger.getAttribute('aria-haspopup')).toBe('dialog');
   });
 
   it('boundary: no selection → no summary row between search and listbox', async () => {
@@ -141,7 +144,8 @@ describe('INV-3: every IDREF resolves; instances never collide', () => {
         />
       </>
     );
-    const [first, second] = screen.getAllByRole('combobox') as [HTMLElement, HTMLElement];
+    const first = screen.getByRole('button', { name: 'First Select items' });
+    const second = screen.getByRole('button', { name: 'Second Select items' });
 
     await user.click(first);
     await user.type(q.search(), 'g');
@@ -347,23 +351,31 @@ describe('INV-17: naming rule for trigger, listbox and dialog', () => {
   it('aria-labelledby names all three (and wins over aria-label)', async () => {
     const user = userEvent.setup();
     render(<Controlled aria-label="Ignored" />);
-    expect(screen.getByRole('combobox', { name: 'Countries' })).toBe(q.trigger());
+    expect(screen.getByRole('button', { name: 'Countries Select items' })).toBe(q.trigger());
+    expect(q.trigger().getAttribute('aria-labelledby')?.startsWith('sms-label ')).toBe(true);
+    expect(q.trigger().hasAttribute('aria-label')).toBe(false);
     await user.click(q.trigger());
     expect(screen.getByRole('dialog', { name: 'Countries' })).toBe(q.dialog());
     expect(screen.getByRole('listbox', { name: 'Countries' })).toBe(q.listbox());
-    expect(screen.getByRole('combobox', { name: 'Countries', hidden: true })).toBe(q.trigger());
+    expect(screen.getByRole('button', { name: 'Countries Select items', hidden: true })).toBe(
+      q.trigger()
+    );
   });
 
   it('aria-label names all three', async () => {
     const user = userEvent.setup();
     render(<Controlled aria-labelledby={undefined} aria-label="Allowed countries" />);
-    expect(screen.getByRole('combobox', { name: 'Allowed countries' })).toBe(q.trigger());
+    expect(screen.getByRole('button', { name: 'Allowed countries Select items' })).toBe(
+      q.trigger()
+    );
+    // The label text lives in a hidden span the trigger points at; nothing visible is added.
+    expect(q.trigger().hasAttribute('aria-label')).toBe(false);
     await user.click(q.trigger());
     expect(screen.getByRole('dialog', { name: 'Allowed countries' })).toBe(q.dialog());
     expect(screen.getByRole('listbox', { name: 'Allowed countries' })).toBe(q.listbox());
   });
 
-  it('neither: trigger gets no copy-derived aria-label; listbox and dialog use placeholder; one warn', async () => {
+  it('neither: trigger is named by its text; listbox and dialog use placeholder; one warn', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const user = userEvent.setup();
     const { rerender } = render(
@@ -374,6 +386,7 @@ describe('INV-17: naming rule for trigger, listbox and dialog', () => {
     }
     expect(q.trigger().hasAttribute('aria-label')).toBe(false);
     expect(q.trigger().hasAttribute('aria-labelledby')).toBe(false);
+    expect(screen.getByRole('button', { name: 'Pick countries' })).toBe(q.trigger());
     await user.click(q.trigger());
     expect(screen.getByRole('dialog', { name: 'Pick countries' })).toBe(q.dialog());
     expect(screen.getByRole('listbox', { name: 'Pick countries' })).toBe(q.listbox());

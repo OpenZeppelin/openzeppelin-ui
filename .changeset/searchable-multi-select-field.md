@@ -3,3 +3,5 @@
 ---
 
 Add `SearchableMultiSelectField`, a React Hook Form field for `SearchableMultiSelect`. The form value is the selected item ids (`string[]`) in pick order. It has the kit field label, helper text, required rule and error display, plus an optional `validateSelection` rule. The form ref sits on the trigger, so focus-on-first-error lands there. Opening the picker does not mark the field touched.
+
+`readOnly` works as in the other fields. By default it disables the field and leaves its value out of the `handleSubmit` data. With `readOnlyMode="readonly"` the trigger stays focusable, the list does not open, validation still runs, and the value stays in the submitted data.

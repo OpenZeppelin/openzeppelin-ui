@@ -43,6 +43,7 @@ export const ok = (
     clearAllLabel="Clear"
     validateSelection={(ids) => ids.length <= 3 || 'Max 3'}
     readOnly
+    readOnlyMode="readonly"
     helperText="Help"
     width="half"
     validation={{ required: true }}

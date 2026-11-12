@@ -334,8 +334,8 @@ describe('INV-12: rules follow the latest props', () => {
 });
 
 // ── INV-13 ────────────────────────────────────────────────────────────────────────────────
-describe('INV-13: readOnly disables the control, keeps the value and the rules', () => {
-  it('happy: disabled trigger; click / label / keys open nothing; submit carries the value', async () => {
+describe('INV-13: readOnly works as in the other fields (SF-19 readOnlyMode)', () => {
+  it('default mode: disabled trigger; nothing opens; the value is left out of submit data', async () => {
     const user = setup();
     const { handle } = mount({ readOnly: true }, { countries: ['FR', 'DE'] });
     expect(q.trigger().disabled).toBe(true);
@@ -345,17 +345,70 @@ describe('INV-13: readOnly disables the control, keeps the value and the rules',
     await user.keyboard('{Enter}{ArrowDown} ');
     expect(q.dialog()).toBeNull();
     await submit(user);
+    // Same as every sibling field: RHF disables the name, so it is dropped from submit data.
+    expect(handle.submits).toEqual([{}]);
+  });
+
+  it('default mode: rules are skipped, as for any disabled field', async () => {
+    const user = setup();
+    const { handle } = mount({ readOnly: true, validation: { required: true } });
+    await submit(user);
+    expect(handle.submits).toEqual([{}]);
+    expect(q.error()).toBeNull();
+  });
+
+  it('readonly mode: focusable trigger; click / label / keys open nothing; submit keeps the value', async () => {
+    const user = setup();
+    const { handle } = mount(
+      { readOnly: true, readOnlyMode: 'readonly' },
+      { countries: ['FR', 'DE'] }
+    );
+    const trigger = q.trigger();
+    expect(trigger.disabled).toBe(false);
+    expect(trigger.hasAttribute('data-readonly')).toBe(true);
+    expect(screen.getByRole('button', { description: 'Read-only' })).toBe(trigger);
+    await user.click(trigger);
+    await user.click(screen.getByText('Allowed countries'));
+    trigger.focus();
+    await user.keyboard('{Enter}{ArrowDown} ');
+    expect(q.dialog()).toBeNull();
+    expect(document.activeElement).toBe(trigger);
+    await submit(user);
     expect(handle.submits).toEqual([{ countries: ['FR', 'DE'] }]);
     expect(handle.submits[0]?.[FIELD_NAME]).toEqual(value(handle));
   });
 
-  it('rules still run under readOnly (OQ-3 current contract): required + empty blocks submit', async () => {
+  it('readonly mode: rules still run; a failed submit focuses the trigger', async () => {
     const user = setup();
-    const { handle } = mount({ readOnly: true, validation: { required: true } });
+    const { handle } = mount({
+      readOnly: true,
+      readOnlyMode: 'readonly',
+      validation: { required: true },
+    });
     await submit(user);
     expect(handle.submits).toEqual([]);
     expect(q.error()?.textContent).toBe('This field is required');
-    expect(document.activeElement).not.toBe(q.trigger()); // a disabled trigger can't take focus
+    expect(document.activeElement).toBe(q.trigger());
+  });
+
+  it('readonly mode without readOnly: an ordinary editable field', async () => {
+    const user = setup();
+    const { handle } = mount({ readOnlyMode: 'readonly' }, { countries: [] });
+    expect(q.trigger().hasAttribute('data-readonly')).toBe(false);
+    await user.click(q.trigger());
+    await user.click(q.option('Italy'));
+    expect(value(handle)).toEqual(['IT']);
+  });
+
+  it('readonly mode while open: closes and emits nothing', async () => {
+    const user = setup();
+    const { handle, rerender } = mount({}, { countries: ['FR'] });
+    const ref0 = value(handle);
+    await user.click(q.trigger());
+    expect(q.dialog()).not.toBeNull();
+    rerender({ readOnly: true, readOnlyMode: 'readonly' });
+    expect(q.dialog()).toBeNull();
+    expect(value(handle)).toBe(ref0);
   });
 
   it('readOnly while open: closes, emits nothing, value reference kept; off again restores', async () => {

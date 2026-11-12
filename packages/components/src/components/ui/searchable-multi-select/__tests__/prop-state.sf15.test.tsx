@@ -7,7 +7,7 @@
  * INV-18 (diagnostics), INV-20 (filtering never changes selection).
  * artifacts/005-uikit-requests/sf-15-searchable-multi-select/03-invariants.md
  */
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as React from 'react';
@@ -410,8 +410,8 @@ describe('INV-16: only the ten pass-throughs reach the trigger; the ref is the t
         <Plain ref={(el) => void (callbackEl = el)} aria-label="B" />
       </>
     );
-    expect(objectRef.current).toBe(screen.getByRole('combobox', { name: 'A' }));
-    expect(callbackEl).toBe(screen.getByRole('combobox', { name: 'B' }));
+    expect(objectRef.current).toBe(screen.getByRole('button', { name: 'A Select items' }));
+    expect(callbackEl).toBe(screen.getByRole('button', { name: 'B Select items' }));
     objectRef.current?.focus();
     expect(document.activeElement).toBe(objectRef.current);
   });
@@ -426,21 +426,31 @@ describe('INV-16: only the ten pass-throughs reach the trigger; the ref is the t
     );
     const trigger = q.trigger();
     expect(trigger.id).toBe('countries');
-    expect(trigger.getAttribute('aria-describedby')).toBe('h');
     expect(trigger.getAttribute('aria-invalid')).toBe('true');
-    expect(trigger.getAttribute('aria-required')).toBe('true');
+    // A button cannot carry aria-required: it is a hidden "Required" description after the
+    // caller's ids instead.
+    expect(trigger.hasAttribute('aria-required')).toBe(false);
+    const ids = (trigger.getAttribute('aria-describedby') ?? '').split(' ');
+    expect(ids[0]).toBe('h');
+    expect(ids).toHaveLength(2);
+    expect(
+      screen.getByRole('button', { name: 'Countries Select items', description: 'Help Required' })
+    ).toBe(trigger);
     await user.click(trigger);
     for (const el of [q.dialog(), q.search(), q.listbox(), q.status()]) {
       for (const a of ['aria-describedby', 'aria-invalid', 'aria-required']) {
         expect(el?.hasAttribute(a), `${a} on ${el?.getAttribute('data-slot')}`).toBe(false);
       }
     }
-    expect(document.querySelectorAll('[aria-describedby="h"]')).toHaveLength(1);
+    expect(document.querySelectorAll('[aria-describedby^="h"]')).toHaveLength(1);
   });
 
   it('boundary: undefined pass-throughs leave the attribute absent, never ""', () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     render(
       <Plain
+        // With no label at all the trigger is named by its text, so no aria-labelledby.
+        aria-label={undefined}
         id={undefined}
         aria-describedby={undefined}
         aria-invalid={undefined}
@@ -474,6 +484,38 @@ describe('INV-16: only the ten pass-throughs reach the trigger; the ref is the t
   it('disabled reaches the trigger as native disabled', () => {
     render(<Plain disabled />);
     expect(q.trigger().disabled).toBe(true);
+  });
+
+  it('readOnly: focusable trigger, nothing opens, hidden "Read-only" description', async () => {
+    const user = userEvent.setup();
+    const onOpenChange = vi.fn();
+    render(<Plain readOnly onOpenChange={onOpenChange} />);
+    const trigger = q.trigger();
+    expect(trigger.disabled).toBe(false);
+    expect(trigger.hasAttribute('data-readonly')).toBe(true);
+    expect(trigger.hasAttribute('aria-readonly')).toBe(false);
+    expect(screen.getByRole('button', { description: 'Read-only' })).toBe(trigger);
+
+    await user.tab();
+    expect(document.activeElement).toBe(trigger);
+    await user.keyboard('{Enter}');
+    await user.keyboard(' ');
+    await user.keyboard('{ArrowDown}');
+    await user.click(trigger);
+    expect(q.dialog()).toBeNull();
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('readOnly turned on while open closes the popover', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<Plain />);
+    await user.click(q.trigger());
+    expect(q.dialog()).not.toBeNull();
+    rerender(<Plain readOnly />);
+    await waitFor(() => expect(q.dialog()).toBeNull());
+    rerender(<Plain />);
+    expect(q.dialog()).toBeNull();
   });
 
   it('onBlur fires once when opening moves focus to the search box (OQ-3)', async () => {

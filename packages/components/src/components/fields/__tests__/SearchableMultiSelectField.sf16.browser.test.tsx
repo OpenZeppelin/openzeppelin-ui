@@ -292,8 +292,9 @@ describe('INV-17: failed submit focuses the closed trigger (real browser)', () =
       expect(q.dialog()).toBeNull();
       expect(handle.submits).toEqual([]);
       expect(q.trigger().getAttribute('aria-invalid')).toBe('true');
-      expect(q.trigger().getAttribute('aria-describedby')).toBe(
-        'countries-error countries-description'
+      // Error, helper, then the hidden "Required" text (a button has no aria-required).
+      expect(q.trigger().getAttribute('aria-describedby')).toMatch(
+        /^countries-error countries-description \S+required$/
       );
     }
   );
@@ -355,6 +356,11 @@ describe('INV-26: axe-clean in every reachable state', () => {
       ],
     ],
     ['readOnly', { readOnly: true, helperText: 'Help' }, []],
+    [
+      'readOnly, readonly mode',
+      { readOnly: true, readOnlyMode: 'readonly', helperText: 'Help' },
+      [],
+    ],
   ];
 
   it.each(STATES)('%s', async (_name, options, steps) => {
@@ -363,21 +369,20 @@ describe('INV-26: axe-clean in every reachable state', () => {
     expect(await axeViolations()).toEqual([]);
   });
 
-  it('empty label: only the documented unnamed-combobox finding (integrator to fix)', async () => {
+  it('empty label: the button trigger is named by its text, so axe finds nothing', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     mount({ label: '' });
-    const found = await axeViolations();
-    expect(found.length).toBeGreaterThan(0);
-    for (const v of found) expect(v).toMatch(/^(button-name|aria-input-field-name): #countries$/);
+    expect(await axeViolations()).toEqual([]);
+    expect(screen.getByRole('button', { name: 'Select items' })).toBe(q.trigger());
   });
 
   it('INV-25 + INV-26: focused trigger after a failed submit reads name and error', async () => {
     mount({ validation: { required: true } });
     await failSubmit();
     expect(
-      screen.getByRole('combobox', {
-        name: 'Allowed countries *',
-        description: 'This field is required',
+      screen.getByRole('button', {
+        name: 'Allowed countries * Select items',
+        description: 'This field is required Required',
       })
     ).toBe(document.activeElement);
   });

@@ -25,7 +25,11 @@ export interface OptionState {
   readonly active: boolean;
 }
 
-/** Combobox ARIA the trigger must carry. Spread it onto the trigger element. */
+/**
+ * Combobox ARIA for a trigger that should be announced as a combobox (`NetworkSelector`). A
+ * trigger that leaves it out keeps Radix's dialog-button ARIA instead (`aria-haspopup="dialog"`,
+ * `aria-expanded`, `aria-controls` pointing at the open dialog), as `SearchableMultiSelect` does.
+ */
 export interface TriggerAria {
   readonly role: 'combobox';
   readonly 'aria-haspopup': 'listbox';
@@ -73,8 +77,9 @@ export interface SearchableSelectCoreProps<T> {
 
   /**
    * Renders the trigger. Must be one element that forwards its ref and spreads
-   * unknown props onto a focusable `<button>` (Radix `PopoverTrigger asChild`),
-   * with `state.triggerAria` spread onto it.
+   * unknown props onto a focusable `<button>` (Radix `PopoverTrigger asChild`).
+   * Spread `state.triggerAria` onto it for a combobox trigger; leave it out for a
+   * button that opens a dialog.
    */
   readonly renderTrigger: (state: TriggerState) => React.ReactElement;
   /** Rendered between the search box and the listbox. */
@@ -87,9 +92,14 @@ export interface SearchableSelectCoreProps<T> {
   /** Nothing opens; an open popover closes (INV-25). */
   readonly disabled?: boolean;
   /**
+   * Like `disabled`, but the trigger stays enabled and focusable: nothing opens and an open
+   * popover closes. The caller reports the read-only state on its trigger.
+   */
+  readonly readOnly?: boolean;
+  /**
    * Called once per change of the effective open state (SF-16 INV-14). User
    * acts report synchronously in their event, before the popover moves focus;
-   * a `disabled`-forced close reports from a layout effect. Never on mount or unmount.
+   * a `disabled`- or `readOnly`-forced close reports from a layout effect. Never on mount or unmount.
    */
   readonly onOpenChange?: (open: boolean) => void;
 }
@@ -128,6 +138,7 @@ export function SearchableSelectCore<T>({
   emptyText,
   listName,
   disabled = false,
+  readOnly = false,
   onOpenChange,
 }: SearchableSelectCoreProps<T>): React.ReactElement {
   const [openState, setOpenState] = React.useState(false);
@@ -138,9 +149,11 @@ export function SearchableSelectCore<T>({
   const searchRef = React.useRef<HTMLInputElement>(null);
   const listboxId = `${React.useId()}listbox`;
 
-  // INV-25: disabling while open closes for good (not just hidden until re-enabled).
-  if (disabled && openState) setOpenState(false);
-  const open = openState && !disabled;
+  // INV-25: disabling (or turning read-only) while open closes for good, not just hidden until
+  // re-enabled. Read-only blocks opening exactly like disabled; only the trigger stays enabled.
+  const blocked = disabled || readOnly;
+  if (blocked && openState) setOpenState(false);
+  const open = openState && !blocked;
 
   // SF-16 INV-14: the last open state reported to `onOpenChange`. Starts closed, so mount
   // (StrictMode included) reports nothing.
@@ -189,7 +202,7 @@ export function SearchableSelectCore<T>({
   const isEmpty = flat.length === 0;
 
   const handleOpenChange = (next: boolean): void => {
-    if (next && disabled) return;
+    if (next && blocked) return;
     // SF-16 INV-14: report inside the event, before the popover's focus move commits.
     reportOpenChange(next);
     // INV-26: a fresh open starts on the first enabled option.
@@ -241,7 +254,7 @@ export function SearchableSelectCore<T>({
     // Click / Enter / Space open through the native button; arrows open here (Design § Interaction).
     if (!open && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) {
       event.preventDefault();
-      handleOpenChange(true);
+      handleOpenChange(true); // refused while blocked
     }
   };
 

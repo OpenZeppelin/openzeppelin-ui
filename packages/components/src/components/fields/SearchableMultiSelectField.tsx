@@ -4,13 +4,14 @@ import { Controller, FieldValues } from 'react-hook-form';
 import { cn } from '@openzeppelin/ui-utils';
 
 import { FieldLabelRow } from './utils/FieldLabelRow';
+import { getReadOnlyState } from './utils/readOnlyState';
 
 import { Label } from '../ui/label';
 import {
   SearchableMultiSelect,
   type SearchableMultiSelectProps,
 } from '../ui/searchable-multi-select';
-import { BaseFieldProps, LabelEndProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import { ErrorMessage, getAccessibilityProps, getRequiredMessage, runCustomCheck } from './utils';
 
 const INVALID_SELECTION_MESSAGE = 'Invalid selection';
@@ -34,6 +35,7 @@ export interface SearchableMultiSelectFieldProps<
   TFieldValues extends FieldValues = FieldValues,
 > extends BaseFieldProps<TFieldValues>,
     LabelEndProps,
+    ReadOnlyModeProps,
     Pick<
       SearchableMultiSelectProps<TItem>,
       | 'items'
@@ -63,8 +65,13 @@ export interface SearchableMultiSelectFieldProps<
  *
  * The form ref lands on the trigger button, so focus-on-first-error and
  * `setFocus(name)` focus it. Opening the picker does not mark the field
- * touched; leaving the control does. `readOnly` disables the trigger and keeps
- * the value in the submitted data.
+ * touched; leaving the control does.
+ *
+ * Read-only works as in the other fields. By default `readOnly` disables the
+ * field: the trigger is disabled and the value is left out of `handleSubmit`
+ * data. With `readOnlyMode="readonly"` the trigger stays focusable and in the
+ * tab order, the list never opens, the value stays in `handleSubmit` data, and
+ * the trigger has a hidden "Read-only" description.
  */
 export function SearchableMultiSelectField<TItem, TFieldValues extends FieldValues = FieldValues>({
   id,
@@ -76,7 +83,8 @@ export function SearchableMultiSelectField<TItem, TFieldValues extends FieldValu
   name,
   width = 'full',
   validation,
-  readOnly = false,
+  readOnly,
+  readOnlyMode,
   items,
   getItemId,
   getItemLabel,
@@ -95,6 +103,9 @@ export function SearchableMultiSelectField<TItem, TFieldValues extends FieldValu
   const descriptionId = `${id}-description`;
   // INV-25: name the trigger, listbox and dialog after the label, only when there is one (A1).
   const labelledBy = label ? labelId : undefined;
+  // SF-19 pattern: the default mode disables through RHF (value dropped from submit data);
+  // readonly mode keeps the Controller enabled and blocks the list instead.
+  const ro = getReadOnlyState(readOnly, readOnlyMode);
 
   // INV-15, INV-16: mirrors SF-15's effective open state. Opening moves focus from the trigger
   // to the search box, and that blur must not reach RHF. SF-15 reports the open before focus
@@ -126,8 +137,8 @@ export function SearchableMultiSelectField<TItem, TFieldValues extends FieldValu
       <Controller
         control={control}
         name={name}
+        disabled={ro.controllerDisabled}
         // INV-12: rebuilt every render, so a changed `required` or `validateSelection` applies.
-        // `readOnly` never reaches the Controller, so the value stays in the payload (INV-13).
         rules={{
           validate: (value) => {
             const ids = toIds(value);
@@ -170,8 +181,8 @@ export function SearchableMultiSelectField<TItem, TFieldValues extends FieldValu
                 formatSelectedCount={formatSelectedCount}
                 formatSelectionSummary={formatSelectionSummary}
                 clearAllLabel={clearAllLabel}
-                // INV-13 (D7): the component is disabled, never the Controller.
-                disabled={readOnly}
+                disabled={ro.controlProps.disabled}
+                readOnly={ro.isFocusableReadOnly}
                 onOpenChange={(open) => {
                   openRef.current = open;
                 }}
