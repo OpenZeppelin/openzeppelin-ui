@@ -5,7 +5,7 @@ import { cn } from '@openzeppelin/ui-utils';
 import { Button } from '../button';
 import { getSafeStepIndex, useFurthestStepIndex, useScrollableWizardStepTracking } from './hooks';
 import { WizardNavigation } from './WizardNavigation';
-import type { StepStatus, WizardStepDef } from './WizardStepper';
+import type { StepStatus, WizardStepDef, WizardStepLabelInfo } from './WizardStepper';
 import { WizardStepper } from './WizardStepper';
 
 export type { StepStatus, WizardStepDef };
@@ -86,6 +86,8 @@ export interface WizardLayoutProps {
    * section heading (`scrollable` variant only). Defaults to 32 (matches `p-8`).
    */
   scrollPadding?: number;
+  /** Builds each stepper step's accessible name (e.g. for localisation). See `WizardStepper`. */
+  getStepLabel?: (info: WizardStepLabelInfo) => string;
   className?: string;
 }
 
@@ -110,6 +112,7 @@ function PagedLayout({
   navActions,
   header,
   variant,
+  getStepLabel,
   className,
 }: WizardLayoutProps & { variant: 'vertical' | 'horizontal' }) {
   const safeIndex = getSafeStepIndex(steps.length, currentStepIndex);
@@ -183,6 +186,7 @@ function PagedLayout({
             currentStepIndex={safeIndex}
             furthestStepIndex={resolvedFurthestStepIndex}
             onStepClick={onStepChange}
+            getStepLabel={getStepLabel}
             className="h-full"
           />
         </div>
@@ -209,6 +213,7 @@ function PagedLayout({
           currentStepIndex={safeIndex}
           furthestStepIndex={resolvedFurthestStepIndex}
           onStepClick={onStepChange}
+          getStepLabel={getStepLabel}
         />
       </div>
 
@@ -241,6 +246,7 @@ function ScrollableLayout({
   scrollableSecondaryLabel,
   scrollableSecondaryDisabled,
   scrollPadding,
+  getStepLabel,
   className,
 }: Pick<
   WizardLayoutProps,
@@ -255,6 +261,7 @@ function ScrollableLayout({
   | 'scrollableSecondaryLabel'
   | 'scrollableSecondaryDisabled'
   | 'scrollPadding'
+  | 'getStepLabel'
   | 'className'
 >) {
   const instanceId = useId();
@@ -293,6 +300,7 @@ function ScrollableLayout({
           furthestStepIndex={furthestStepIndex}
           onStepClick={scrollToSection}
           freeNavigation
+          getStepLabel={getStepLabel}
           className="h-full"
         />
       </div>
@@ -374,6 +382,7 @@ export function WizardLayout(props: WizardLayoutProps) {
         scrollableSecondaryLabel={rest.scrollableSecondaryLabel}
         scrollableSecondaryDisabled={rest.scrollableSecondaryDisabled}
         scrollPadding={rest.scrollPadding}
+        getStepLabel={rest.getStepLabel}
         className={rest.className}
       />
     );

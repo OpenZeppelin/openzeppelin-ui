@@ -4,6 +4,7 @@ export {
   type WizardStepDef,
   type StepStatus,
   type StepVisualState,
+  type WizardStepLabelInfo,
 } from './WizardStepper';
 export { WizardNavigation, type WizardNavigationProps } from './WizardNavigation';
 export { WizardLayout, type WizardLayoutProps, type WizardStepConfig } from './WizardLayout';
