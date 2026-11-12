@@ -99,6 +99,10 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
   const radioGroupId = `${id}-group`;
+  const labelId = `${id}-label`;
+  // A `<label for>` cannot name a radiogroup (it is not a form control), so the group points
+  // at the label instead.
+  const groupLabelledBy = label ? labelId : undefined;
 
   return (
     <div
@@ -106,7 +110,7 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
     >
       {label && (
         <FieldLabelRow labelEnd={labelEnd}>
-          <Label htmlFor={radioGroupId} className="text-sm font-medium">
+          <Label id={labelId} htmlFor={radioGroupId} className="text-sm font-medium">
             {label} {isRequired && <span className="text-destructive">*</span>}
           </Label>
         </FieldLabelRow>
@@ -144,11 +148,20 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
             hasHelperText: !!helperText,
           });
 
+          // The form ref goes to the radio that takes focus: the checked one, else the first
+          // enabled one. Focus-on-first-error and `setFocus(name)` then land on the group.
+          const checkedIndex = options.findIndex(
+            (option) => option.value === field.value && !option.disabled
+          );
+          const focusIndex =
+            checkedIndex >= 0 ? checkedIndex : options.findIndex((option) => !option.disabled);
+
           if (variant === 'card') {
             return (
               <>
                 <RadioGroup
                   id={radioGroupId}
+                  aria-labelledby={groupLabelledBy}
                   variant="card"
                   value={field.value ?? ''}
                   onValueChange={field.onChange}
@@ -160,9 +173,10 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
                   aria-errormessage={groupAccessibilityProps['aria-errormessage']}
                   className="gap-3 space-y-0"
                 >
-                  {options.map((option) => (
+                  {options.map((option, index) => (
                     <RadioGroupItem
                       key={option.value}
+                      ref={index === focusIndex ? field.ref : undefined}
                       value={option.value}
                       disabled={option.disabled}
                       title={option.label}
@@ -188,11 +202,14 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
               <div
                 id={radioGroupId}
                 role="radiogroup"
+                aria-labelledby={groupLabelledBy}
                 className={`flex ${layout === 'vertical' ? 'flex-col gap-3' : 'flex-row flex-wrap gap-4'}`}
                 {...groupAccessibilityProps}
               >
                 {options.map((option, index) => {
                   const optionId = `${id}-option-${index}`;
+                  const optionLabelId = `${optionId}-label`;
+                  const hasDescription = !!option.description;
                   const isSelected = field.value === option.value;
                   const isDisabled = option.disabled;
 
@@ -200,27 +217,35 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
                     <label
                       key={option.value}
                       htmlFor={optionId}
-                      className={`group relative flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 transition-all duration-150 ${
+                      // The description stacks under the label text, so the radio aligns with the
+                      // first line instead of centring on both.
+                      className={`group relative flex cursor-pointer ${hasDescription ? 'items-start' : 'items-center'} gap-2 rounded-lg px-3 py-2 transition-all duration-150 ${
                         isDisabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-muted/50'
                       } ${isSelected && !hasError ? 'bg-selected/5' : ''}`}
                     >
                       <input
                         type="radio"
+                        ref={index === focusIndex ? field.ref : undefined}
                         id={optionId}
                         value={option.value}
                         disabled={isDisabled}
                         checked={isSelected}
                         onChange={() => field.onChange(option.value)}
                         className="sr-only"
+                        // The name is the label text only; the description sits in the same
+                        // <label> (so clicking it selects) but is the description, not the name.
+                        aria-labelledby={optionLabelId}
                         aria-describedby={
-                          [hasError && errorId, option.description && `${optionId}-description`]
+                          [hasError && errorId, hasDescription && `${optionId}-description`]
                             .filter(Boolean)
                             .join(' ') || undefined
                         }
                       />
 
                       {/* Custom Radio Button */}
-                      <div className="relative flex size-4 items-center justify-center">
+                      <div
+                        className={`relative flex size-4 shrink-0 items-center justify-center ${hasDescription ? 'mt-0.5' : ''}`}
+                      >
                         <div
                           className={`absolute size-4 rounded-full border-2 transition-all duration-150 ${
                             isSelected
@@ -245,29 +270,32 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
                         />
                       </div>
 
-                      {/* Label text */}
-                      <span
-                        className={`text-sm transition-colors duration-150 ${
-                          isDisabled
-                            ? 'text-muted-foreground'
-                            : isSelected
-                              ? hasError
-                                ? 'text-destructive font-medium'
-                                : 'text-foreground font-medium'
-                              : 'text-foreground'
-                        }`}
-                      >
-                        {option.label}
-                      </span>
-
-                      {option.description && (
+                      {/* Label text, with the description stacked under it */}
+                      <span className="flex min-w-0 flex-col gap-0.5">
                         <span
-                          id={`${optionId}-description`}
-                          className="text-sm text-muted-foreground"
+                          id={optionLabelId}
+                          className={`text-sm transition-colors duration-150 ${
+                            isDisabled
+                              ? 'text-muted-foreground'
+                              : isSelected
+                                ? hasError
+                                  ? 'text-destructive font-medium'
+                                  : 'text-foreground font-medium'
+                                : 'text-foreground'
+                          }`}
                         >
-                          {option.description}
+                          {option.label}
                         </span>
-                      )}
+
+                        {hasDescription && (
+                          <span
+                            id={`${optionId}-description`}
+                            className="text-sm text-muted-foreground"
+                          >
+                            {option.description}
+                          </span>
+                        )}
+                      </span>
 
                       {/* Focus ring */}
                       <div

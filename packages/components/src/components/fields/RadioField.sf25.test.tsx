@@ -8,12 +8,13 @@
  *   P3 card and default variants agree on validation and submitted value
  *   P4 options without descriptions render as before (no description nodes, describedby unchanged)
  *   P5 default variant links a description to its radio; disabled options stay inert
+ *   P6 the group is named by the field label; the form ref focuses a radio in both variants
  */
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type UseFormReturn } from 'react-hook-form';
 
 import { RadioField, type RadioFieldProps, type RadioOption } from './RadioField';
 
@@ -50,8 +51,11 @@ type HarnessProps = Partial<Omit<RadioFieldProps<Values>, 'control' | 'name' | '
 // `noValidate` mirrors the renderer's TransactionForm. jsdom enforces native validity on Radix's
 // hidden `required` input and blocks submit before react-hook-form runs; Chromium does not (proved in
 // the running app, see the SF-25 proof folder), so the jsdom suite opts out to test the field contract.
+let lastForm: UseFormReturn<Values> | undefined;
+
 function Harness({ onSubmit = () => undefined, options = described, ...rest }: HarnessProps) {
   const form = useForm<Values>({ defaultValues: { plan: '' }, mode: 'onSubmit' });
+  lastForm = form;
   return (
     <form noValidate onSubmit={form.handleSubmit(onSubmit)}>
       <RadioField<Values>
@@ -242,7 +246,7 @@ describe('RadioField option descriptions and card variant (SF-25)', () => {
         expect(await screen.findByText('This field is required')).toBeTruthy();
         expect(onSubmit).not.toHaveBeenCalled();
 
-        await user.click(screen.getByRole('radio', { name: /^Starter/ }));
+        await user.click(screen.getByRole('radio', { name: 'Starter' }));
         await user.click(screen.getByRole('button', { name: 'Submit' }));
 
         await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
@@ -254,7 +258,7 @@ describe('RadioField option descriptions and card variant (SF-25)', () => {
         const onSubmit = vi.fn();
         render(<Harness variant={variant} onSubmit={onSubmit} validateRadio={() => 'Nope'} />);
 
-        await user.click(screen.getByRole('radio', { name: /^Starter/ }));
+        await user.click(screen.getByRole('radio', { name: 'Starter' }));
         await user.click(screen.getByRole('button', { name: 'Submit' }));
 
         expect(await screen.findByText('Nope')).toBeTruthy();
@@ -320,9 +324,26 @@ describe('RadioField option descriptions and card variant (SF-25)', () => {
   });
 
   describe('P5 default variant with descriptions', () => {
+    it('names the radio by its label only and describes it by its description', () => {
+      render(<Harness />);
+      const starter = screen.getByRole('radio', {
+        name: 'Starter',
+        description: 'For trying things out',
+      });
+      expect(starter.getAttribute('aria-labelledby')).toBe('plan-option-0-label');
+    });
+
+    it('stacks the description under the label text', () => {
+      render(<Harness />);
+      const description = screen.getByText('For trying things out');
+      const labelText = screen.getByText('Starter');
+      expect(description.parentElement).toBe(labelText.parentElement);
+      expect(description.parentElement?.className).toContain('flex-col');
+    });
+
     it('shows each description and links it to its radio', () => {
       render(<Harness />);
-      const starter = screen.getByRole('radio', { name: /Starter/ });
+      const starter = screen.getByRole('radio', { name: 'Starter' });
       const id = starter.getAttribute('aria-describedby') as string;
       expect(document.getElementById(id)?.textContent).toBe('For trying things out');
     });
@@ -347,7 +368,7 @@ describe('RadioField option descriptions and card variant (SF-25)', () => {
       await screen.findByText('This field is required');
 
       const ids = (
-        screen.getByRole('radio', { name: /Starter/ }).getAttribute('aria-describedby') as string
+        screen.getByRole('radio', { name: 'Starter' }).getAttribute('aria-describedby') as string
       ).split(' ');
       expect(ids).toContain('plan-error');
       expect(ids).toHaveLength(2);
@@ -356,10 +377,59 @@ describe('RadioField option descriptions and card variant (SF-25)', () => {
     it('a disabled described option is reported disabled and does not change the value', async () => {
       const user = userEvent.setup();
       render(<Harness />);
-      const enterprise = screen.getByRole('radio', { name: /Enterprise/ });
+      const enterprise = screen.getByRole('radio', { name: 'Enterprise' });
       expect(enterprise.hasAttribute('disabled')).toBe(true);
       await user.click(enterprise);
       expect(checkedValues()).toEqual([]);
     });
+  });
+  describe('P6 group name and form ref', () => {
+    for (const variant of ['default', 'card'] as const) {
+      it(`${variant}: the radiogroup is named by the field label`, () => {
+        render(<Harness variant={variant} validation={{ required: true }} />);
+        const group = screen.getByRole('radiogroup', { name: 'Plan *' });
+        expect(group.getAttribute('aria-labelledby')).toBe('plan-label');
+      });
+
+      it(`${variant}: no label → no aria-labelledby on the group`, () => {
+        render(<Harness variant={variant} label="" />);
+        expect(screen.getByRole('radiogroup').hasAttribute('aria-labelledby')).toBe(false);
+      });
+
+      it(`${variant}: a failed submit focuses the first enabled radio`, async () => {
+        const user = userEvent.setup();
+        render(<Harness variant={variant} validation={{ required: true }} />);
+        await user.click(screen.getByRole('button', { name: 'Submit' }));
+        await screen.findByText('This field is required');
+        await waitFor(() =>
+          expect(document.activeElement).toBe(screen.getByRole('radio', { name: 'Starter' }))
+        );
+      });
+
+      it(`${variant}: setFocus focuses the checked radio`, async () => {
+        const user = userEvent.setup();
+        render(<Harness variant={variant} />);
+        await user.click(screen.getByRole('radio', { name: 'Team' }));
+        (document.activeElement as HTMLElement | null)?.blur();
+        lastForm?.setFocus('plan');
+        await waitFor(() =>
+          expect(document.activeElement).toBe(screen.getByRole('radio', { name: 'Team' }))
+        );
+      });
+
+      it(`${variant}: skips a disabled first option`, async () => {
+        const user = userEvent.setup();
+        const options: RadioOption[] = [
+          { value: 'off', label: 'Off', disabled: true },
+          { value: 'on', label: 'On' },
+        ];
+        render(<Harness variant={variant} options={options} validation={{ required: true }} />);
+        await user.click(screen.getByRole('button', { name: 'Submit' }));
+        await screen.findByText('This field is required');
+        await waitFor(() =>
+          expect(document.activeElement).toBe(screen.getByRole('radio', { name: 'On' }))
+        );
+      });
+    }
   });
 });
