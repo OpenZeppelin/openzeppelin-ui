@@ -25,6 +25,20 @@ describe('Breadcrumb href-less ancestors (SF-5 S2)', () => {
     expect(within(nav).queryByRole('link', { name: 'Section' })).toBeNull();
   });
 
+  it('mutes the link-less ancestor like the linked ones; only the current page is foreground', () => {
+    render(<Breadcrumb items={items} />);
+    const nav = screen.getByRole('navigation', { name: 'Breadcrumb' });
+    const section = within(nav).getByText('Section');
+    expect(section.tagName).toBe('SPAN');
+    expect(section.className).toContain('text-muted-foreground');
+    expect(section.className).not.toContain('text-foreground');
+    const current = within(nav)
+      .getAllByRole('listitem')
+      .find((li) => li.getAttribute('aria-current') === 'page') as HTMLElement;
+    expect(current.textContent).toContain('Page');
+    expect(current.className).toContain('text-foreground');
+  });
+
   it('keeps ancestors that have links as links, in order', () => {
     render(<Breadcrumb items={items} />);
     const links = screen.getAllByRole('link');

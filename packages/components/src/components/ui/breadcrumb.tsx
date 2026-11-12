@@ -71,13 +71,19 @@ export function Breadcrumb({
                   /
                 </span>
               )}
-              {isCurrentPage || typeof item.href !== 'string'
-                ? item.label
-                : renderLink({
-                    children: item.label,
-                    className: linkClassName,
-                    href: item.href,
-                  })}
+              {isCurrentPage ? (
+                item.label
+              ) : typeof item.href !== 'string' ? (
+                // A link-less ancestor is muted like the linked ones; only the current page uses
+                // the foreground colour.
+                <span className="text-muted-foreground">{item.label}</span>
+              ) : (
+                renderLink({
+                  children: item.label,
+                  className: linkClassName,
+                  href: item.href,
+                })
+              )}
             </li>
           );
         })}
