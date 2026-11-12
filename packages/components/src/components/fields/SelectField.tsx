@@ -144,7 +144,7 @@ export function SelectField<TFieldValues extends FieldValues = FieldValues>({
                 onValueChange={handleValueChange}
                 value={field.value}
               >
-                <SelectTrigger id={id} {...accessibilityAttrs}>
+                <SelectTrigger id={id} ref={field.ref} {...accessibilityAttrs}>
                   <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
                 <SelectContent

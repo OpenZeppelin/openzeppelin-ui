@@ -272,12 +272,24 @@ const form = useForm({ defaultValues: { ... } });
                     control={form.control}
                     placeholder="Select an option..."
                     helperText="Dropdown selection from options"
+                    validation={{ required: true }}
                     options={[
                       { label: 'Option A', value: 'a' },
                       { label: 'Option B', value: 'b' },
                       { label: 'Option C', value: 'c' },
                     ]}
                   />
+
+                  <div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      data-testid="focus-select-field"
+                      onClick={() => form.setFocus('selectField')}
+                    >
+                      Focus Select Field
+                    </Button>
+                  </div>
 
                   <SelectGroupedField
                     id="selectGroupedField"
