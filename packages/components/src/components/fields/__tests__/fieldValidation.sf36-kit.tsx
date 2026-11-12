@@ -126,11 +126,23 @@ const RO_MODE: Partial<FieldRenderProps> = { readOnly: true, readOnlyMode: 'read
  * fixture was recorded. By default it now disables the field like TextField (rule skipped, value
  * dropped), and it gained `readOnlyMode="readonly"` (rule runs, value kept). These are the
  * records it now shares with TextField; every other field stays pinned to the fixture.
+ *
+ * 006 SF-2 allowance: AmountField (both branches) now follows the same default. A default
+ * read-only AmountField is disabled, so its rule is skipped and its value dropped. Readonly mode
+ * is unchanged: the rule runs and blocks an empty required value.
  */
 export const READ_ONLY_ALIGNED: Readonly<
   Record<string, Readonly<Record<string, { requiredEmpty: string | true; submitValid: number }>>>
 > = {
   SearchableMultiSelectField: {
+    [JSON.stringify(RO)]: { requiredEmpty: true, submitValid: 1 },
+    [JSON.stringify(RO_MODE)]: { requiredEmpty: 'This field is required', submitValid: 0 },
+  },
+  AmountField: {
+    [JSON.stringify(RO)]: { requiredEmpty: true, submitValid: 1 },
+    [JSON.stringify(RO_MODE)]: { requiredEmpty: 'This field is required', submitValid: 0 },
+  },
+  AmountFieldExact: {
     [JSON.stringify(RO)]: { requiredEmpty: true, submitValid: 1 },
     [JSON.stringify(RO_MODE)]: { requiredEmpty: 'This field is required', submitValid: 0 },
   },

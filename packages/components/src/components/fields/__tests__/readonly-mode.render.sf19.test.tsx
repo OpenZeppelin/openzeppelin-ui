@@ -3,8 +3,8 @@
  *
  * 005 SF-19 · Render contract of the focusable read-only mode.
  * INV-1 (default mode unchanged against the pre-SF-19 baseline), INV-2 (readonly-mode attributes),
- * INV-5 (no write at the switch), INV-7 (controlProps win), INV-10 (AmountField ignores readOnly
- * alone), INV-22 (same DOM nodes across the switch).
+ * INV-5 (no write at the switch), INV-7 (controlProps win), INV-10 (AmountField honours readOnly
+ * in default mode, 006 SF-2), INV-22 (same DOM nodes across the switch).
  *
  * The INV-1 baseline (`readonly-mode.sf19-baseline.6f66ff2eb.json`) was recorded by the Code
  * stage from commit 6f66ff2eb, before any SF-19 source edit, with the harness reproduced in
@@ -87,8 +87,8 @@ function expectOnlyDisabledAdded(gotHtml: string, wantHtml: string): void {
   const parse = (html: string): { control: Element; outside: string } => {
     const host = document.createElement('div');
     host.innerHTML = html;
-    const control = host.querySelector('textarea');
-    if (!control) throw new Error('no <textarea> in rendered HTML');
+    const control = host.querySelector('textarea, input');
+    if (!control) throw new Error('no <textarea> or <input> in rendered HTML');
     return { control, outside: host.innerHTML.replace(control.outerHTML, '<CONTROL/>') };
   };
   const got = parse(gotHtml);
@@ -113,19 +113,27 @@ describe('INV-1: default mode matches the pre-SF-19 baseline (HTML minus look to
         c.mode === 'absent' ? undefined : c.mode
       );
       const want = BASELINE[c.spec.key][c.key];
-      if (c.spec.key === 'TextAreaField' && c.key === 'true') {
-        // 006 SF-3 exception: default read-only TextAreaField is now DOM-disabled like TextField.
-        // The textarea gains `disabled=""` and nothing else; the rest of the HTML is unchanged.
+      const amount = c.spec.key === 'AmountField' || c.spec.key === 'AmountFieldExact';
+      if ((c.spec.key === 'TextAreaField' || amount) && c.key === 'true') {
+        // 006 SF-3 / SF-2 exception: default read-only TextAreaField and AmountField are now
+        // DOM-disabled like TextField. The control gains `disabled=""` and nothing else; the rest
+        // of the HTML is unchanged.
         expectOnlyDisabledAdded(stripLook(got.html), want.html);
       } else {
         expect(stripLook(got.html)).toBe(want.html);
       }
-      expect(got.payload).toStrictEqual(want.payload);
-      expect(got.payloadHasName).toBe(want.payloadHasName);
+      if (amount && c.key === 'true') {
+        // 006 SF-2: the baseline kept the amount in the payload; a disabled field drops it.
+        expect(got.payload).toStrictEqual({});
+        expect(got.payloadHasName).toBe(false);
+      } else {
+        expect(got.payload).toStrictEqual(want.payload);
+        expect(got.payloadHasName).toBe(want.payloadHasName);
+      }
     }
   );
 
-  it('the baseline itself pins today: readOnly drops the value except on AmountField', () => {
+  it('the baseline itself pins the pre-SF-19 state: readOnly dropped the value except on AmountField (006 SF-2 now drops it there too)', () => {
     for (const spec of FIELDS) {
       const amount = spec.key === 'AmountField' || spec.key === 'AmountFieldExact';
       expect(BASELINE[spec.key].true.payloadHasName, spec.key).toBe(amount);
@@ -235,25 +243,54 @@ describe('INV-7: controlProps win over field / accessibility props', () => {
   });
 });
 
-describe('INV-10: AmountField keeps ignoring readOnly alone (provisional, dev OQ-1)', () => {
+describe('INV-10: AmountField honours readOnly in default mode like TextField (006 SF-2)', () => {
   it.each([
     ['AmountField', undefined],
     ['AmountField', 'disabled'],
     ['AmountFieldExact', undefined],
     ['AmountFieldExact', 'disabled'],
   ] as const)(
-    '%s · readOnly + mode %s: editable, typed value lands in payload',
+    '%s · readOnly + mode %s: DOM-disabled, not readonly, value dropped from the payload',
     async (key, mode) => {
       const m = mountField(fieldSpec(key), { readOnly: true, readOnlyMode: mode });
       const c = m.control();
       expect(c.hasAttribute('readonly')).toBe(false);
       expect(c.hasAttribute('data-readonly')).toBe(false);
-      expect(c.disabled).toBe(false);
-      fireEvent.change(c, { target: { value: '2.5' } });
-      expect(c.value).toBe('2.5');
+      expect(c.disabled).toBe(true);
       const r = await m.submit();
       expect(r.valid).toBe(true);
-      expect(r.data?.v).toBe('2.5');
+      expect(r.data).toStrictEqual({});
+    }
+  );
+
+  it.each(['AmountField', 'AmountFieldExact'] as const)(
+    '%s · default read-only has the same disabled/readonly/tabindex state as TextField',
+    (key) => {
+      const state = (el: HTMLInputElement | HTMLTextAreaElement): Record<string, unknown> => ({
+        disabled: el.disabled,
+        readOnly: el.readOnly,
+        tabIndex: el.tabIndex,
+        ariaDisabled: el.getAttribute('aria-disabled'),
+        ariaReadonly: el.getAttribute('aria-readonly'),
+        dataReadonly: el.hasAttribute('data-readonly'),
+      });
+      const amount = mountField(fieldSpec(key), { readOnly: true });
+      const text = mountField(fieldSpec('TextField'), { readOnly: true });
+      expect(state(amount.control())).toStrictEqual(state(text.control()));
+    }
+  );
+
+  it.each(['AmountField', 'AmountFieldExact'] as const)(
+    '%s · readOnly false/absent stays editable and keeps its value in the payload (boundary)',
+    async (key) => {
+      for (const readOnly of [false, undefined]) {
+        const m = mountField(fieldSpec(key), { readOnly });
+        expect(m.control().disabled).toBe(false);
+        fireEvent.change(m.control(), { target: { value: '2.5' } });
+        const r = await m.submit();
+        expect(r.data?.v).toBe('2.5');
+        cleanup();
+      }
     }
   );
 

@@ -37,8 +37,6 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-const isAmount = (key: string): boolean => key === 'AmountField' || key === 'AmountFieldExact';
-
 describe('INV-8: readonly mode never registers the field as disabled', () => {
   it.each(FIELDS.map((s) => [s.key, s] as const))(
     '%s · (a) readonly from mount: name and value in handleSubmit data',
@@ -55,7 +53,7 @@ describe('INV-8: readonly mode never registers the field as disabled', () => {
     async (_k, spec) => {
       const m = mountField(spec, { readOnly: true, readOnlyMode: 'disabled' });
       const before = await m.submit();
-      expect(Object.prototype.hasOwnProperty.call(before.data ?? {}, 'v')).toBe(isAmount(spec.key));
+      expect(Object.prototype.hasOwnProperty.call(before.data ?? {}, 'v')).toBe(false);
 
       m.set({ readOnlyMode: 'readonly' });
       const after = await m.submit();
@@ -63,7 +61,7 @@ describe('INV-8: readonly mode never registers the field as disabled', () => {
     }
   );
 
-  it.each(FIELDS.filter((s) => !isAmount(s.key)).map((s) => [s.key, s] as const))(
+  it.each(FIELDS.map((s) => [s.key, s] as const))(
     "%s · (c) and back: 'readonly' → 'disabled' drops the value again (today's default)",
     async (_k, spec) => {
       const m = mountField(spec, READONLY);
@@ -120,12 +118,12 @@ describe('INV-24: one form with every supported field', () => {
   });
 
   it.each([undefined, 'disabled'] as const)(
-    'default mode (%s): every read-only name is dropped except the two AmountFields',
+    'default mode (%s): every read-only name is dropped, AmountFields included (006 SF-2)',
     async (mode) => {
       const { handle } = mountAll(mode);
       const data = (await submitAll(handle)) ?? {};
       const present = FIELDS.filter((_s, i) => `f${i}` in data).map((s) => s.key);
-      expect(present).toStrictEqual(['AmountField', 'AmountFieldExact']);
+      expect(present).toStrictEqual([]);
     }
   );
 });
@@ -142,11 +140,11 @@ describe('INV-25: validation still runs in readonly mode', () => {
   );
 
   it.each(FIELDS.map((s) => [s.key, s] as const))(
-    "%s · same in default readOnly: today's result (disabled fields skip validation, AmountField doesn't)",
+    '%s · same in default readOnly: disabled fields skip validation, AmountField included (006 SF-2)',
     async (_k, spec) => {
       const m = mountField(spec, { readOnly: true, value: '', validation: { required: true } });
       const r = await m.submit();
-      expect(r.valid).toBe(!isAmount(spec.key));
+      expect(r.valid).toBe(true);
     }
   );
 

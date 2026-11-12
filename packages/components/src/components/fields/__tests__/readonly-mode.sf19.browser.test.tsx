@@ -213,16 +213,15 @@ describe('INV-29: focus, caret and selection survive the switch', () => {
   );
 
   // Sensitivity: the default mode really does drop focus in Chromium, so the test above can fail.
-  it.each(
-    FIELDS.filter((s) => !['AmountField', 'AmountFieldExact'].includes(s.key)).map(
-      (s) => [s.key, s] as const
-    )
-  )("%s: default mode (today's disabled) drops focus to <body>", async (_k, spec) => {
-    const m = mountField(spec, { readOnly: false });
-    await userEvent.click(m.control());
-    m.set({ readOnly: true });
-    expect(document.activeElement).toBe(document.body);
-  });
+  it.each(FIELDS.map((s) => [s.key, s] as const))(
+    "%s: default mode (today's disabled) drops focus to <body>",
+    async (_k, spec) => {
+      const m = mountField(spec, { readOnly: false });
+      await userEvent.click(m.control());
+      m.set({ readOnly: true });
+      expect(document.activeElement).toBe(document.body);
+    }
+  );
 
   it('PasswordField: a focused toggle keeps focus across the switch', async () => {
     const m = mountField(fieldSpec('PasswordField'), EDITABLE_OPTED_IN, (p) => (
@@ -363,11 +362,7 @@ describe('INV-30: assistive tech reports read-only, not disabled', () => {
     }
   );
 
-  it.each(
-    FIELDS.filter((s) => !['AmountField', 'AmountFieldExact'].includes(s.key)).map(
-      (s) => [s.key, s] as const
-    )
-  )(
+  it.each(FIELDS.map((s) => [s.key, s] as const))(
     'sensitivity: %s default readOnly is exposed as disabled (today)',
     async (_k, spec: FieldSpec) => {
       mountField(spec, { readOnly: true });
