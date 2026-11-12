@@ -2,7 +2,8 @@
  * @vitest-environment jsdom
  *
  * 005 SF-20 · SelectField read-only, render contract (jsdom).
- * INV-1 (default mode equals the pre-SF-20 baseline from a66d72dd0: HTML, payload, open, pick),
+ * INV-1 (default mode equals the pre-SF-20 baseline from a66d72dd0: HTML, payload, open, pick;
+ * re-recorded on the Radix select 2.3.3 train by SF-32 with the delta pinned below),
  * INV-2 (read-only trigger attributes; opted-in editable equals editable default on visible
  * nodes), INV-3 (the "Read-only" description and `aria-describedby`), INV-7 (strict resolution
  * table), INV-17 (no residue after either exit route) and INV-19 (same trigger node, `field.ref`).
@@ -11,7 +12,8 @@ import { act, cleanup, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
-import baseline from './selectfield-readonly.sf20-baseline.a66d72dd0.json';
+import baselineA66 from './selectfield-readonly.sf20-baseline.a66d72dd0.json';
+import baseline from './selectfield-readonly.sf20-baseline.a66d72dd0.radix-select-2.3.3.json';
 import {
   attrs,
   captureCase,
@@ -33,6 +35,31 @@ import {
 } from './selectfield-readonly.sf20-kit';
 
 const BASE: Record<string, CaseSnapshot> = baseline.cases;
+/** The original capture on Radix select 2.2.6, kept frozen so the upgrade delta stays reviewable. */
+const BASE_A66: Record<string, CaseSnapshot> = baselineA66.cases;
+
+/**
+ * SF-32 moved @radix-ui/react-select 2.2.6 → 2.3.3. The dev accepted two upstream deltas for the
+ * same pre-SF-20 SelectField (a66d72dd0) on the new release, and nothing else may differ:
+ * - U-10: a closed trigger no longer carries `aria-controls` (it only points at mounted content).
+ * - U-8: with no value, the hidden native select's empty option carries `selected=""`.
+ */
+function withRadixSelect233Delta(base: CaseSnapshot): CaseSnapshot {
+  const noControls = (html: string): string => {
+    const out = html.replace(' aria-controls="radix-ID"', '');
+    if (out === html || out.includes('aria-controls'))
+      throw new Error('U-10 target not found once');
+    return out;
+  };
+  return {
+    ...base,
+    html: noControls(base.html).replace(
+      '<option value=""></option>',
+      '<option value="" selected=""></option>'
+    ),
+    visibleHtml: noControls(base.visibleHtml),
+  };
+}
 
 beforeAll(fillJsdomGaps);
 afterEach(cleanup);
@@ -52,6 +79,22 @@ function visibleHtml(m: Mounted): string {
 describe('INV-1: default mode equals the pre-SF-20 SelectField (a66d72dd0)', () => {
   it('the baseline covers 3 readOnly × 3 default modes × 4 scenarios', () => {
     expect(Object.keys(BASE).sort()).toStrictEqual(INV1_CASES.map((c) => c.key).sort());
+  });
+
+  it('the Radix 2.3.3 re-record equals a66d72dd0 plus exactly U-10 (all cases) and U-8 (no value)', () => {
+    for (const key of Object.keys(BASE_A66)) {
+      expect(BASE[key], key).toStrictEqual(withRadixSelect233Delta(BASE_A66[key] as CaseSnapshot));
+    }
+    // U-8 lands on exactly the no-value cases: `empty`, and `error+helper` (which renders empty).
+    const u8 = Object.keys(BASE).filter((k) =>
+      BASE[k]?.html.includes('<option value="" selected=""></option>')
+    );
+    expect(u8.sort()).toStrictEqual(
+      Object.keys(BASE_A66)
+        .filter((k) => /\|(empty|error\+helper)$/.test(k))
+        .sort()
+    );
+    expect(u8).toHaveLength(18);
   });
 
   it.each(INV1_CASES.map((c) => [c.key, c] as const))(

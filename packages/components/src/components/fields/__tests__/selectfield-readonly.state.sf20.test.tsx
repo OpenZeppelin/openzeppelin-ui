@@ -320,29 +320,24 @@ describe('INV-10 / INV-21: no console noise', () => {
     expect(realMessages(error)).toStrictEqual([]);
   });
 
-  // Code drift note (2), INV-21 narrowing: flipping readOnlyMode at runtime with an empty value
-  // switches Radix's `value` between controlled ('' under the opt-in) and uncontrolled
-  // (`undefined` in default mode), and Radix logs its controlled-state warning. Measured: 3
-  // warnings over 20 flips, in both directions (Code called it one-time). Pinned: only that
-  // warning, only at warn level, never a React render-update error. `open` can't be the source:
-  // it is always a boolean, and the same flips with a value log nothing (first test above).
-  it('narrowed case: runtime readOnlyMode flip with an empty value logs only Radix value-state warnings', () => {
+  // SF-32 lifted SF-20's INV-21 narrowing: the Root is controlled in every mode ('' when empty),
+  // so flipping readOnlyMode at runtime with an empty value no longer switches Radix's `value`
+  // between controlled and uncontrolled, and Radix logs nothing. (SF-20 measured 3 warnings over
+  // 20 flips here before SF-32.)
+  it('runtime readOnlyMode flip with an empty value: no warnings or errors', () => {
     const { warn, error } = consoleSpies();
     const m = mountSelect({});
     for (let i = 0; i < 10; i++) {
       m.rerender(READONLY);
       m.rerender({ readOnly: true, readOnlyMode: 'disabled' });
     }
-    const warnings = realMessages(warn);
-    expect(warnings.length).toBeGreaterThanOrEqual(1);
-    expect(warnings.length).toBeLessThanOrEqual(20);
-    for (const msg of warnings) {
-      expect(msg).toMatch(/^Select is changing from (un)?controlled to (un)?controlled\./);
-    }
+    expect(realMessages(warn)).toStrictEqual([]);
     expect(realMessages(error)).toStrictEqual([]);
   });
 
-  it('reference: default mode already logs the same kind of warning on the first pick from empty', async () => {
+  // SF-32: default mode used to log Radix's uncontrolled-to-controlled warning on the first pick
+  // from empty (its Root got `undefined`). The Root now always gets a value, so nothing is logged.
+  it('default mode: the first pick from empty logs no warnings or errors', async () => {
     const { warn, error } = consoleSpies();
     const m = mountSelect({});
     const user = userEvent.setup();
@@ -354,8 +349,8 @@ describe('INV-10 / INV-21: no console noise', () => {
     if (!gamma) throw new Error('no Gamma option');
     await user.click(gamma);
     expect(m.api().getValues('role')).toBe('gamma');
-    const all = [...realMessages(warn), ...realMessages(error)];
-    expect(all.some((msg) => /uncontrolled to controlled/i.test(msg))).toBe(true);
+    expect(realMessages(warn)).toStrictEqual([]);
+    expect(realMessages(error)).toStrictEqual([]);
   });
 });
 

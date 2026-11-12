@@ -226,16 +226,16 @@ function InDialog(): React.ReactElement {
 }
 
 /**
- * KNOWN DEFECT (SF-15 Tests, 2026-11-12), one root cause: duplicated Radix internals.
- * @radix-ui/react-dialog 1.1.15 resolves react-focus-scope 1.1.7 + react-dismissable-layer
- * 1.1.11; react-popover 1.1.19 resolves focus-scope 1.1.12 + dismissable-layer 1.1.15.
- * Each copy keeps its own module-level layer / focus stacks, so the two never coordinate:
+ * Fixed by SF-32 (2026-11-12). These three tests were pinned with `it.fails` while
+ * @radix-ui/react-dialog and react-popover resolved different copies of
+ * react-focus-scope / react-dismissable-layer / react-focus-guards. Two copies keep two
+ * module-level layer and focus stacks that never coordinate, which caused:
  *   (a) the Dialog's focus trap is never paused → the search box can't hold focus (INV-39);
  *   (b) both layers treat Escape as theirs → one Escape closes popover AND Dialog (INV-33);
  *   (c) the popover's layer records the Dialog's `pointer-events: none` as the body's
  *       original value and restores it → the page stays frozen after both close (INV-36).
- * `it.fails` keeps the suite green while the defect stands and turns red the moment the
- * dependency fix lands; drop `.fails` then. A Dialog-only control is clean.
+ * SF-32 moved every kit Radix layering primitive to the popover's release, and
+ * src/__tests__/radix-layering.sf32.test.ts fails if a second copy comes back.
  * Evidence: artifacts/005-uikit-requests/sf-15-searchable-multi-select/proof/dialog-*-probe.*
  */
 describe('Inside a kit Dialog (Design OQ-2)', () => {
@@ -244,43 +244,34 @@ describe('Inside a kit Dialog (Design OQ-2)', () => {
     document.body.style.pointerEvents = '';
   });
 
-  it.fails(
-    '(a) INV-39: opening puts focus in the search box and the keyboard selects',
-    async () => {
-      render(<InDialog />);
-      await userEvent.click(q.trigger());
-      expect(document.activeElement).toBe(q.search());
-      await userEvent.keyboard('{ArrowDown}{Enter}');
-      expect(screen.getByTestId('dialog-readout').textContent).toBe('C1');
-      expect(document.activeElement).toBe(q.search());
-    }
-  );
+  it('(a) INV-39: opening puts focus in the search box and the keyboard selects', async () => {
+    render(<InDialog />);
+    await userEvent.click(q.trigger());
+    expect(document.activeElement).toBe(q.search());
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    expect(screen.getByTestId('dialog-readout').textContent).toBe('C1');
+    expect(document.activeElement).toBe(q.search());
+  });
 
-  it.fails(
-    '(b) INV-33: the first Escape closes only the popover; the second closes the dialog',
-    async () => {
-      render(<InDialog />);
-      await userEvent.click(q.trigger());
-      await userEvent.keyboard('{Escape}');
-      expect(q.dialog()).toBeNull();
-      expect(screen.getByRole('dialog', { name: 'Add alias' })).toBeTruthy();
-      expect(document.activeElement).toBe(q.trigger());
-      await userEvent.keyboard('{Escape}');
-      expect(screen.queryByRole('dialog', { name: 'Add alias' })).toBeNull();
-    }
-  );
+  it('(b) INV-33: the first Escape closes only the popover; the second closes the dialog', async () => {
+    render(<InDialog />);
+    await userEvent.click(q.trigger());
+    await userEvent.keyboard('{Escape}');
+    expect(q.dialog()).toBeNull();
+    expect(screen.getByRole('dialog', { name: 'Add alias' })).toBeTruthy();
+    expect(document.activeElement).toBe(q.trigger());
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog', { name: 'Add alias' })).toBeNull();
+  });
 
-  it.fails(
-    '(c) INV-36: after the popover and the dialog close, the page takes pointer events again',
-    async () => {
-      render(<InDialog />);
-      await userEvent.click(q.trigger());
-      await userEvent.keyboard('{Escape}');
-      if (screen.queryByRole('dialog', { name: 'Add alias' })) await userEvent.keyboard('{Escape}');
-      expect(screen.queryByRole('dialog', { name: 'Add alias' })).toBeNull();
-      expect(document.body.style.pointerEvents).toBe('');
-    }
-  );
+  it('(c) INV-36: after the popover and the dialog close, the page takes pointer events again', async () => {
+    render(<InDialog />);
+    await userEvent.click(q.trigger());
+    await userEvent.keyboard('{Escape}');
+    if (screen.queryByRole('dialog', { name: 'Add alias' })) await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog', { name: 'Add alias' })).toBeNull();
+    expect(document.body.style.pointerEvents).toBe('');
+  });
 
   it('wheel scrolls the list (the Dialog scroll lock does not swallow it)', async () => {
     cleanupStyle = listboxScrollStyle();

@@ -165,12 +165,17 @@ export function SelectGroupedField<TFieldValues extends FieldValues = FieldValue
             field.onChange(newValue);
           };
 
+          // Keep the Root controlled ('' shows the placeholder, like `undefined`): with `undefined`
+          // Radix Select logs an uncontrolled-to-controlled warning on the first pick (SF-32), and
+          // a form value reset to empty would leave the last picked label on screen.
+          const rootValue = field.value ?? '';
+
           return (
             <>
               <Select
                 defaultValue={field.value}
                 onValueChange={handleValueChange}
-                value={field.value}
+                value={rootValue}
               >
                 <SelectTrigger id={id} {...accessibilityAttrs}>
                   <SelectValue placeholder={placeholder} />

@@ -183,12 +183,12 @@ export function SelectField<TFieldValues extends FieldValues = FieldValues>({
             field.onChange(newValue);
           };
 
-          // SF-20 INV-6: with an `undefined` value Radix keeps its own uncontrolled value, which a
-          // read-only typeahead would change on screen even though `handleValueChange` drops it.
-          // Under the opt-in the Root is always controlled ('' shows the placeholder, like
-          // `undefined`), so the shown text is always the form value. Default mode passes
-          // `field.value` as before.
-          const rootValue = isReadOnlyModeOptIn ? (field.value ?? '') : field.value;
+          // The Root is always controlled ('' shows the placeholder, like `undefined`), so the
+          // shown text is always the form value. With an `undefined` value Radix would keep its
+          // own uncontrolled value: a read-only typeahead could change it on screen even though
+          // `handleValueChange` drops it (SF-20 INV-6), and Radix Select would log an
+          // uncontrolled-to-controlled warning on the first pick in an empty field (SF-32).
+          const rootValue = field.value ?? '';
 
           return (
             <>

@@ -396,11 +396,11 @@ describe('INV-31: the query survives close and reopen', () => {
 });
 
 /**
- * INV-33 needs the real browser: in jsdom the duplicated Radix focus-scope copies
- * (see the KNOWN DEFECT note in searchable-multi-select.sf15.browser.test.tsx) ping-pong
- * focusin until the stack overflows, so this case is asserted in Chromium only.
+ * Fixed by SF-32: this block was skipped while duplicated Radix focus-scope copies
+ * ping-ponged focusin in jsdom until the stack overflowed (see the note in
+ * searchable-multi-select.sf15.browser.test.tsx). With one copy it runs in jsdom too.
  */
-describe.skip('INV-33: Escape closes only the popover inside a kit Dialog (Chromium only, see note)', () => {
+describe('INV-33: Escape closes only the popover inside a kit Dialog', () => {
   function InDialog({ onOpenChange }: { readonly onOpenChange: (o: boolean) => void }) {
     const [open, setOpen] = React.useState(true);
     const [ids, setIds] = React.useState<string[]>(['FR']);
