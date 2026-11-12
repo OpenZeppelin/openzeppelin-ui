@@ -76,7 +76,12 @@ export interface SearchableMultiSelectProps<T> {
   // ── Trigger / field integration ───────────────────────────────────────
   /** Ref to the trigger `<button>`. This is what a form ref focuses. */
   readonly ref?: React.Ref<HTMLButtonElement>;
-  /** Trigger id, so a `<Label htmlFor>` can point at it. */
+  /**
+   * Trigger id. To name the control after a visible label, give the label an id and pass it
+   * as `aria-labelledby`, as `SearchableMultiSelectField` does. A `<Label htmlFor>` alone names
+   * the trigger with the label text only (hiding its selection text) and leaves the dialog and
+   * listbox named by the placeholder, so the missing-name warning still fires.
+   */
   readonly id?: string;
   /** Applied to the trigger button, merged with the kit classes. */
   readonly className?: string;

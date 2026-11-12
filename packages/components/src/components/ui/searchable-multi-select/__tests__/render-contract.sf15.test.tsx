@@ -395,6 +395,23 @@ describe('INV-17: naming rule for trigger, listbox and dialog', () => {
     expect(String(nameWarns[0]?.[0])).toContain('SearchableMultiSelect');
   });
 
+  it('id + <label for> alone: trigger named by the label only, list by the placeholder, one warn', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const user = userEvent.setup();
+    render(
+      <>
+        <label htmlFor="countries">Countries</label>
+        <Controlled id="countries" aria-labelledby={undefined} />
+      </>
+    );
+    // What the `id` docs warn about: the label replaces the selection text in the name.
+    expect(screen.getByRole('button', { name: 'Countries' })).toBe(q.trigger());
+    await user.click(q.trigger());
+    expect(screen.getByRole('listbox', { name: 'Select items' })).toBe(q.listbox());
+    const nameWarns = warn.mock.calls.filter((c) => String(c[0]).includes('No accessible name'));
+    expect(nameWarns).toHaveLength(1);
+  });
+
   it('the search box is always named by searchLabel', async () => {
     const user = userEvent.setup();
     render(<Controlled searchLabel="Find a country" />);
