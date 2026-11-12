@@ -87,6 +87,7 @@ import {
   SearchableMultiSelectDemo,
   SelectDemo,
   SidebarLayoutDemo,
+  SkeletonDemo,
   StepMarkerDemo,
   SwitchDemo,
   TabsDemo,
@@ -159,6 +160,7 @@ type DemoKey =
   | 'form-fields'
   | 'page-header'
   | 'description-list'
+  | 'skeleton'
   | 'address-field'
   | 'address-list-field'
   | 'calendar'
@@ -271,6 +273,7 @@ const galleryCategories: GalleryCategory[] = [
       { key: 'banner', label: 'Banner', icon: <PanelTop className="size-4" /> },
       { key: 'page-header', label: 'PageHeader', icon: <PanelTop className="size-4" /> },
       { key: 'description-list', label: 'DescriptionList', icon: <List className="size-4" /> },
+      { key: 'skeleton', label: 'Skeleton', icon: <LayoutGrid className="size-4" /> },
       {
         key: 'external-link',
         label: 'ExternalLink',
@@ -357,6 +360,7 @@ const demoComponents: Record<
   banner: BannerDemo,
   'page-header': PageHeaderDemo,
   'description-list': DescriptionListDemo,
+  skeleton: SkeletonDemo,
   'external-link': ExternalLinkDemo,
   'loading-button': LoadingButtonDemo,
   // Component Gallery - Forms

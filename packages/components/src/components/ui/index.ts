@@ -42,6 +42,7 @@ export * from './radio-group';
 export * from './searchable-multi-select';
 export * from './select';
 export * from './sidebar';
+export * from './skeleton';
 export * from './spinner';
 export * from './step-marker';
 export * from './switch';

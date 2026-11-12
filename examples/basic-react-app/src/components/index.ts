@@ -18,6 +18,7 @@ export { DialogDemo } from './DialogDemo';
 export { TooltipDemo } from './TooltipDemo';
 export { DescriptionListDemo } from './DescriptionListDemo';
 export { PageHeaderDemo } from './PageHeaderDemo';
+export { SkeletonDemo } from './SkeletonDemo';
 export { PopoverDemo } from './PopoverDemo';
 export { ToastDemo } from './ToastDemo';
 
