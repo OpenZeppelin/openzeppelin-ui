@@ -90,7 +90,7 @@ async function readChips(page: Page, rootSel: string): Promise<ChipRead[]> {
     };
     const root = document.querySelector(sel);
     if (!root) throw new Error(`${sel} not found`);
-    return [...root.querySelectorAll('span')]
+    return Array.from(root.querySelectorAll('span'))
       .filter((s) => /text-\[10px\]/.test(s.className) && s.className.includes('bg-muted'))
       .map((s) => {
         const cs = getComputedStyle(s);
