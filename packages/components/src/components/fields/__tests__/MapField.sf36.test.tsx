@@ -411,3 +411,72 @@ describe('SF-36 INV-16 — MapField child-error path uses the required text', ()
     expect(screen.queryByText('Custom req')).toBeNull();
   });
 });
+
+/**
+ * The renderer names a map inside a struct `struct.prop`, and RHF nests that map's errors
+ * (`errors.struct.prop`). The effect must read its own error by path, or it never sees the
+ * error it set and calls `setError` on every run.
+ */
+describe('MapField with a dotted name settles', () => {
+  function DottedHost({
+    entries,
+    required,
+    renders,
+  }: {
+    entries: MapEntry[];
+    required?: boolean;
+    renders?: { count: number };
+  }): React.ReactElement {
+    const api = useForm({ defaultValues: { outer: { v: entries } } });
+    if (renders) renders.count += 1;
+    return (
+      <FormProvider {...api}>
+        <form noValidate onSubmit={api.handleSubmit(() => undefined)}>
+          <MapField
+            id="f"
+            name="outer.v"
+            label="Map"
+            control={api.control}
+            validation={required ? { required: true, messages: { required: 'Custom req' } } : {}}
+            renderKeyField={(field) => (
+              <TextField
+                id={field.id}
+                name={field.name}
+                label="key"
+                control={api.control}
+                validation={{
+                  required: true,
+                  pattern: /^[a-z_]+$/,
+                  messages: { pattern: 'Bad key' },
+                }}
+              />
+            )}
+            renderValueField={(field) => (
+              <TextField id={field.id} name={field.name} label="value" control={api.control} />
+            )}
+          />
+          <button type="submit">Submit</button>
+        </form>
+      </FormProvider>
+    );
+  }
+
+  it('a key error on submit shows the required text and the form settles', async () => {
+    const user = userEvent.setup();
+    const renders = { count: 0 };
+    render(<DottedHost entries={[{ key: 'BAD', value: '1' }]} required renders={renders} />);
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(await screen.findByText('Bad key')).toBeTruthy();
+    expect(await screen.findByText('Custom req')).toBeTruthy();
+
+    // A map that can't see its own error sets it again on every run and never stops rendering.
+    const settled = renders.count;
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(renders.count, 'no re-renders once the errors are shown').toBe(settled);
+  });
+
+  it('an entry with an empty key shows the structural error on mount and the form settles', async () => {
+    render(<DottedHost entries={[{ key: '', value: '1' }]} />);
+    expect(await screen.findByText('All key-value pairs must be completed')).toBeTruthy();
+  });
+});

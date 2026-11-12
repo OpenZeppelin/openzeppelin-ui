@@ -234,9 +234,11 @@ export function MapField<TFieldValues extends FieldValues = FieldValues>({
       nextMessage = result;
     }
 
-    const currentMessage = ((formContext.formState.errors as Record<string, { message?: string }>)[
-      name as string
-    ]?.message || undefined) as string | undefined;
+    // Read the map's own error by path too: with a dotted `name` a flat read never finds the
+    // error set below, so the effect would set it again on every run.
+    const currentMessage =
+      (get(formContext.formState.errors, name) as { message?: string } | undefined)?.message ||
+      undefined;
 
     if (nextMessage && nextMessage !== currentMessage) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
