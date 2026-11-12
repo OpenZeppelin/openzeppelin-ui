@@ -206,6 +206,20 @@ export function buildGroupedBodyItems<Row>(args: {
 }
 
 /**
+ * One string that changes exactly when the sequence of paint item keys changes, or `null`
+ * when not grouped. Lets the scroller and the diagnostics keep a stable identity across
+ * renders that regroup to the same result. O(items), far cheaper than the grouping itself.
+ */
+export function groupedItemKeySignature<Row>(
+  items: readonly DataTableBodyItem<Row>[] | null
+): string | null {
+  if (items == null) return null;
+  let signature = '';
+  for (const item of items) signature += `${item.itemKey}\u0000`;
+  return signature;
+}
+
+/**
  * INV-23: paint index of the data item whose row key is `key`. Section items are
  * never targets, so their reserved keys resolve to `null` (a no-op scroll).
  */

@@ -16,6 +16,7 @@ import { DataTableScroller } from './data-table-scroller';
 import {
   buildGroupedBodyItems,
   groupDisplayRows,
+  groupedItemKeySignature,
   resolveGroupHeaderContent,
   type DataTableBodyItem,
 } from './grouping';
@@ -243,6 +244,9 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
   // SF-22 INV-15: paint-only list. Never read by selection, pager, empty or activation logic.
   const bodyItems: readonly DataTableBodyItem<Row>[] | null =
     grouped == null ? null : buildGroupedBodyItems({ bodyRows, pageStart, grouped, getRowKey });
+  // Changes only when the painted sections or rows change, unlike `bodyItems`, which is a new
+  // array every render (INV-17 derives grouping per render). The diagnostics key on this.
+  const groupPaintSignature = groupedItemKeySignature(bodyItems);
 
   // SF-22 INV-18: set while the scroller paints a section whose renderer returned empty
   // content; read by the diagnostics effect below (never logged during render).
@@ -540,8 +544,10 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
     sortNameEmpty,
     groupKeyTypeInvalid,
     groupReorderedFeed,
-    // A new paint list means sections were painted again; re-check the empty-header flag.
-    bodyItems,
+    // New painted sections, or a new header renderer, mean the empty-header flag may have
+    // changed; re-check it. Same sections with the same renderer paint the same content.
+    groupPaintSignature,
+    grouping?.renderGroupHeader,
   ]);
 
   const isEmpty = bodyRows.length === 0;

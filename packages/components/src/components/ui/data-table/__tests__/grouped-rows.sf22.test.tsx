@@ -1240,14 +1240,14 @@ describe('INV-14: DataTableGroupHeaderInfo is accurate [continued provisional (c
 });
 
 describe('INV-15: bodyRows stays data-only; counts, selection and empty read it', () => {
-  it('source: bodyItems is consumed only by the scroller props and the diagnostics deps', () => {
+  it('source: bodyItems is consumed only by the scroller props and the diagnostics signature', () => {
     const uses = TABLE_SOURCE.split('\n').filter(
       (line) => /\bbodyItems\b/.test(line) && !/^\s*(\*|\/\/)/.test(line)
     );
     expect(uses.length).toBeGreaterThanOrEqual(3);
     for (const line of uses) {
       expect(line, `INV-15: unexpected bodyItems use: ${line.trim()}`).toMatch(
-        /const bodyItems|bodyItems=\{bodyItems\}|^\s*bodyItems,\s*$|grouped == null \? null : buildGroupedBodyItems|\/\//
+        /const bodyItems|bodyItems=\{bodyItems\}|groupedItemKeySignature\(bodyItems\)|grouped == null \? null : buildGroupedBodyItems|\/\//
       );
     }
     expect(TABLE_SOURCE).toMatch(/applicableRowKeys\(bodyRows, getRowKey\)/);

@@ -383,7 +383,8 @@ export interface DataTableGrouping<Row> {
    * Group identity for a row. Rows with the same string (exact match, no
    * trimming or case folding) share a section. `null`, `undefined` or a blank
    * string put the row in the trailing "no group" section (`key: null`).
-   * Called once per row per render; must be pure.
+   * Called once per row on every render, so a key that changes in place shows on the
+   * next render. Keep it pure and cheap (a field read, not a lookup or a computation).
    */
   readonly getGroupKey: (row: Row) => string | null | undefined;
 

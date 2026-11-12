@@ -25,6 +25,7 @@ import {
 import {
   DATA_TABLE_GROUP_ROW_ESTIMATE_SIZE,
   findPaintIndexByRowKey,
+  groupedItemKeySignature,
   type DataTableBodyItem,
 } from './grouping';
 import { alignClass, resolveAlign } from './helpers';
@@ -345,17 +346,25 @@ function VirtualizedBodyRows<Row>({
     [bodyRows, getRowKey, infiniteHasMore]
   );
   // SF-22 INV-16 / INV-28: grouped item keys come from `bodyItems` (sections use reserved keys).
+  // `bodyItems` is a new array every render (grouping is derived per render, INV-17), so the
+  // callback reads it through the ref and changes identity only when the key sequence changes.
+  // The virtualizer then re-keys its measurements only when the keys really changed.
+  // `bodyItemsRef` (above) always holds this render's list.
+  const groupedKeySignature = groupedItemKeySignature(bodyItems);
   const getGroupedItemKey = useCallback(
     (index: number): string => {
-      if (bodyItems == null) {
+      const items = bodyItemsRef.current;
+      if (items == null) {
         return `__missing:${String(index)}`;
       }
-      if (infiniteHasMore && index === bodyItems.length) {
+      if (infiniteHasMore && index === items.length) {
         return DATA_TABLE_INFINITE_SENTINEL_KEY;
       }
-      return bodyItems[index]?.itemKey ?? `__missing:${String(index)}`;
+      return items[index]?.itemKey ?? `__missing:${String(index)}`;
     },
-    [bodyItems, infiniteHasMore]
+    // groupedKeySignature stands in for bodyItems: same keys, same function.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [groupedKeySignature, infiniteHasMore]
   );
   const initialRect = useMemo(
     () => ({
