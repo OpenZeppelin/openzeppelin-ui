@@ -83,15 +83,19 @@ export interface AmountFieldProps<TFieldValues extends FieldValues = FieldValues
   step?: number;
 
   /**
-   * Custom validation function for amount values
+   * Custom validation function for amount values. Receives the parsed number. A string
+   * result is the error; `true` and `false` both pass. In exact-entry mode `false` fails
+   * instead, so return a message rather than `false` if you may switch modes.
    */
   validateAmount?: (value: number) => boolean | string;
 }
 
 /**
  * AmountField properties in exact-entry mode (`formatOnBlur={false}`). The text is
- * never rewritten, and the form value is a decimal `string` (grouping commas removed)
- * that never passes through a float.
+ * never rewritten. Every value the user types reaches the form as a decimal `string`
+ * (grouping commas removed) that never passes through a float. A `number` or `bigint`
+ * written by `defaultValues`, `reset` or `setValue` is shown exactly but stays as it is
+ * until the user edits the field, so seed the form with strings.
  */
 export interface AmountFieldExactProps<TFieldValues extends FieldValues = FieldValues>
   extends AmountFieldCommonProps<TFieldValues> {
@@ -125,8 +129,9 @@ export interface AmountFieldExactProps<TFieldValues extends FieldValues = FieldV
 
   /**
    * Custom validation. Receives the normalized decimal string after every built-in
-   * check has passed. Return `true` to pass or an error message; any other result
-   * fails with a generic message.
+   * check has passed. Return `true` to pass or an error message. Any other result,
+   * `false` and `''` included, fails with "Enter a valid amount". (In the default mode
+   * `false` passes.)
    */
   validateAmount?: (value: string) => boolean | string;
 }

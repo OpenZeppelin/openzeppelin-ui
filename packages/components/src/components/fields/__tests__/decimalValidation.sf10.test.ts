@@ -266,6 +266,15 @@ describe('INV-12: validateExactAmount is total, ordered, true or a non-empty mes
     expect(validateExactAmount('5', opts({ validateAmount: () => 'nope' }))).toBe('nope'); // 6
   });
 
+  it('a validateAmount returning false fails with the generic text (default mode lets it pass)', () => {
+    expect(validateExactAmount('5', opts({ validateAmount: () => false }))).toBe(
+      AMOUNT_GENERIC_MESSAGE
+    );
+    expect(validateExactAmount('5', opts({ validateAmount: () => '' }))).toBe(
+      AMOUNT_GENERIC_MESSAGE
+    );
+  });
+
   it('two failing steps: the earlier message wins', () => {
     // grammar beats decimals, bounds and validator
     const validator = vi.fn(() => 'validator');
