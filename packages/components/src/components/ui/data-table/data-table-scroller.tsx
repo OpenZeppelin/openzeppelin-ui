@@ -325,6 +325,10 @@ export interface DataTableScrollerProps<Row> {
   infiniteHasMore: boolean;
   infiniteBusy: boolean;
   suppressEmptyChrome: boolean;
+  /** Resolved by DataTable (`isEmpty && !suppressEmptyChrome`). Never recomputed here (SF-7 INV-2). */
+  showEmptyChrome: boolean;
+  /** Resolved by DataTable. `true` → `<thead hidden>`. Never decided here (SF-7 INV-9). */
+  headerHidden: boolean;
   onLoadMore: (() => void) | undefined;
 }
 
@@ -360,6 +364,8 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
     infiniteHasMore,
     infiniteBusy,
     suppressEmptyChrome,
+    showEmptyChrome,
+    headerHidden,
     onLoadMore,
   } = props;
 
@@ -610,7 +616,6 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
     bodyRowCount: bodyRows.length,
   });
 
-  const showEmptyChrome = isEmpty && !suppressEmptyChrome;
   const showEmptyPlaceholder = isEmpty && suppressEmptyChrome;
   const unvirtualizedSentinel = infiniteHasMore && !resolved.active;
 
@@ -639,7 +644,15 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
             {caption}
           </caption>
         ) : null}
-        <thead ref={theadRef} data-slot="data-table-head" className={DATA_TABLE_HEAD_CHROME}>
+        {/* Same mounted <thead> in every state (004 INV-35/279); the `hidden` attribute alone
+            removes it from layout, the a11y tree and tab order. `|| undefined` keeps the
+            attribute absent on the default path (SF-7 INV-3/5/10). */}
+        <thead
+          ref={theadRef}
+          data-slot="data-table-head"
+          className={DATA_TABLE_HEAD_CHROME}
+          hidden={headerHidden || undefined}
+        >
           {headerRow}
         </thead>
         <tbody data-slot="data-table-body">

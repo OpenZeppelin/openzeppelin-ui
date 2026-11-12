@@ -255,7 +255,26 @@ function catalogColumns(sortable: boolean): readonly DataTableColumn<CatalogRow>
 const CATALOG_COLUMNS = catalogColumns(false);
 const CATALOG_COLUMNS_SORTABLE = catalogColumns(true);
 
-function SelectableAccountsTable(): ReactElement {
+interface SelectableAccountsTableProps {
+  readonly title: string;
+  readonly description: string;
+  readonly caption: string;
+  /** Unique per instance so each table's search box has its own label target. */
+  readonly searchInputId: string;
+  readonly hideHeaderWhenEmpty?: boolean;
+  readonly emptyTitle?: string;
+  readonly emptyDescription?: string;
+}
+
+function SelectableAccountsTable({
+  title,
+  description,
+  caption,
+  searchInputId,
+  hideHeaderWhenEmpty,
+  emptyTitle,
+  emptyDescription,
+}: SelectableAccountsTableProps): ReactElement {
   const [selectedKeys, setSelectedKeys] = useState<ReadonlySet<string>>(() => new Set());
   const [query, setQuery] = useState('');
   const [pageIndex, setPageIndex] = useState(0);
@@ -275,27 +294,28 @@ function SelectableAccountsTable(): ReactElement {
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <h3 className="text-sm font-medium">Row selection</h3>
-          <p className="text-muted-foreground text-sm">
-            Role Manager-style controlled selection composed with sortable columns.
-          </p>
+          <h3 className="text-sm font-medium">{title}</h3>
+          <p className="text-muted-foreground text-sm">{description}</p>
         </div>
         <p className="text-muted-foreground text-sm" aria-live="polite">
           {selectedKeys.size} of {SAMPLE_ROWS.length} accounts selected
         </p>
       </div>
       <DataTable
-        caption="Accounts (selectable)"
+        caption={caption}
         columns={COLUMNS}
         rows={visibleRows}
         getRowKey={(row) => row.id}
+        hideHeaderWhenEmpty={hideHeaderWhenEmpty}
+        emptyTitle={emptyTitle}
+        emptyDescription={emptyDescription}
         toolbar={
           <div className="flex flex-wrap items-center gap-3 p-4">
-            <label htmlFor="data-table-account-search" className="text-sm font-medium">
+            <label htmlFor={searchInputId} className="text-sm font-medium">
               Filter accounts
             </label>
             <Input
-              id="data-table-account-search"
+              id={searchInputId}
               className="max-w-sm"
               value={query}
               placeholder="Token or holder address"
@@ -456,7 +476,21 @@ export function DataTableDemo(): ReactElement {
         }
       />
 
-      <SelectableAccountsTable />
+      <SelectableAccountsTable
+        title="Row selection"
+        description="Role Manager-style controlled selection composed with sortable columns."
+        caption="Accounts (selectable)"
+        searchInputId="data-table-account-search"
+      />
+      <SelectableAccountsTable
+        title="Empty results without a header"
+        description="Same table with hideHeaderWhenEmpty: type a query with no match and the column header row gives way to the empty state; clear it and the header, sort and selection come back."
+        caption="Accounts (header hides when empty)"
+        searchInputId="data-table-account-search-hide-header"
+        hideHeaderWhenEmpty
+        emptyTitle="No matching accounts"
+        emptyDescription="Try a different token or holder address."
+      />
       <VirtualizedCatalogTable />
       <PaginatedCatalogTable />
       <InfiniteCatalogTable />

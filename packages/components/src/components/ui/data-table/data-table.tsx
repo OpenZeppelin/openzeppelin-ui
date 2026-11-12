@@ -147,6 +147,7 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
     emptyState,
     emptyTitle,
     emptyDescription,
+    hideHeaderWhenEmpty,
     className,
     tableClassName,
     defaultSort,
@@ -467,6 +468,10 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
 
   const isEmpty = bodyRows.length === 0;
   const suppressEmptyChrome = infiniteActive && isEmpty && (infiniteBusy || infiniteHasMore);
+  // Single definition of "the empty row is painted with content" (SF-7 INV-2); the scroller consumes it.
+  const showEmptyChrome = isEmpty && !suppressEmptyChrome;
+  // Strict `=== true` so untyped truthy values ('true', 1) keep the header (SF-7 INV-8).
+  const headerHidden = hideHeaderWhenEmpty === true && showEmptyChrome;
   const emptyColSpan = Math.max(paintColumns.length, 1);
   const virtualizationActive = resolveVirtualization(virtualized, bodyRows.length).active;
 
@@ -511,6 +516,8 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
       infiniteHasMore={infiniteHasMore}
       infiniteBusy={infiniteBusy}
       suppressEmptyChrome={suppressEmptyChrome}
+      showEmptyChrome={showEmptyChrome}
+      headerHidden={headerHidden}
       onLoadMore={infiniteActive ? infiniteScroll.onLoadMore : undefined}
       headerRow={
         <tr aria-rowindex={virtualizationActive || infiniteHasMore ? 1 : undefined}>

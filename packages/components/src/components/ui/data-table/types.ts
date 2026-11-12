@@ -457,6 +457,22 @@ type DataTablePropsBase<Row> = {
   /** Description for the default kit `EmptyState`. Default `'There are no rows to display.'`. */
   readonly emptyDescription?: string;
 
+  /**
+   * Hide the column header row while the empty state is shown.
+   *
+   * When `true` and the table paints its empty state (`bodyRows.length === 0`
+   * and empty chrome is not suppressed by a pending infinite-scroll first chunk),
+   * `<thead>` stays mounted with the `hidden` attribute: no column headers, sort
+   * buttons, sticky header band or select-all checkbox are shown, focusable or
+   * exposed to assistive tech. The `<table>` keeps its caption / `aria-label` /
+   * `aria-labelledby` name, and the toolbar, empty content and pager are unchanged.
+   * The header returns as soon as there are rows to show.
+   *
+   * Omitted or `false` keeps today's behaviour: the header row stays over the
+   * empty state.
+   */
+  readonly hideHeaderWhenEmpty?: boolean;
+
   /** Classes merged onto the scroll wrapper `<div>` (width, max-height, borders). INV-37. */
   readonly className?: string;
 
