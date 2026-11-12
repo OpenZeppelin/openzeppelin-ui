@@ -295,7 +295,8 @@ const LIGHT: Record<string, string> = {
   'R8 Progress indicator on track': '#5056faff',
   'R9 invalid Checkbox focus ring': '#e6000a33',
   'R11 invalid Textarea focus ring': '#e6000a33',
-  'valid Textarea focus ring': '#a1a1a1ff',
+  // 006 SF-11 darkened the light --ring (oklch(0.708 0 0) #a1a1a1 → oklch(0.53 0 0) #6c6c6c) on purpose.
+  'valid Textarea focus ring': '#6c6c6cff',
 };
 
 const byName = (rows: Row[], pick: (r: Row) => string) =>
