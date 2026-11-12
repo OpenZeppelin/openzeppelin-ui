@@ -1,0 +1,222 @@
+{
+  "absent": {
+    "absent": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><textarea data-slot=\"textarea\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground aria-invalid:ring-destructive/20 aria-invalid:border-destructive dark:aria-invalid:ring-destructive/40 min-h-16 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 data-readonly:read-only:not-disabled:bg-muted data-readonly:read-only:not-disabled:text-foreground data-readonly:read-only:not-disabled:opacity-100 data-readonly:read-only:not-disabled:cursor-default\" name=\"v\" id=\"f\" rows=\"4\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\">multi line</textarea><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "multi line"
+      },
+      "payloadHasName": true,
+      "control": {
+        "disabled": false,
+        "readOnly": false,
+        "tabIndex": 0,
+        "value": "multi line",
+        "attributeNames": [
+          "data-slot",
+          "class",
+          "name",
+          "id",
+          "rows",
+          "aria-invalid",
+          "aria-required",
+          "aria-describedby",
+          "tabindex"
+        ]
+      }
+    },
+    "false": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><textarea data-slot=\"textarea\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground aria-invalid:ring-destructive/20 aria-invalid:border-destructive dark:aria-invalid:ring-destructive/40 min-h-16 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 data-readonly:read-only:not-disabled:bg-muted data-readonly:read-only:not-disabled:text-foreground data-readonly:read-only:not-disabled:opacity-100 data-readonly:read-only:not-disabled:cursor-default\" name=\"v\" id=\"f\" rows=\"4\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\">multi line</textarea><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "multi line"
+      },
+      "payloadHasName": true,
+      "control": {
+        "disabled": false,
+        "readOnly": false,
+        "tabIndex": 0,
+        "value": "multi line",
+        "attributeNames": [
+          "data-slot",
+          "class",
+          "name",
+          "id",
+          "rows",
+          "aria-invalid",
+          "aria-required",
+          "aria-describedby",
+          "tabindex"
+        ]
+      }
+    },
+    "true": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><textarea data-slot=\"textarea\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground aria-invalid:ring-destructive/20 aria-invalid:border-destructive dark:aria-invalid:ring-destructive/40 min-h-16 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 data-readonly:read-only:not-disabled:bg-muted data-readonly:read-only:not-disabled:text-foreground data-readonly:read-only:not-disabled:opacity-100 data-readonly:read-only:not-disabled:cursor-default\" name=\"v\" id=\"f\" rows=\"4\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\">multi line</textarea><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {},
+      "payloadHasName": false,
+      "control": {
+        "disabled": false,
+        "readOnly": false,
+        "tabIndex": 0,
+        "value": "multi line",
+        "attributeNames": [
+          "data-slot",
+          "class",
+          "name",
+          "id",
+          "rows",
+          "aria-invalid",
+          "aria-required",
+          "aria-describedby",
+          "tabindex"
+        ]
+      }
+    }
+  },
+  "disabled": {
+    "absent": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><textarea data-slot=\"textarea\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground aria-invalid:ring-destructive/20 aria-invalid:border-destructive dark:aria-invalid:ring-destructive/40 min-h-16 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 data-readonly:read-only:not-disabled:bg-muted data-readonly:read-only:not-disabled:text-foreground data-readonly:read-only:not-disabled:opacity-100 data-readonly:read-only:not-disabled:cursor-default\" name=\"v\" id=\"f\" rows=\"4\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\">multi line</textarea><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "multi line"
+      },
+      "payloadHasName": true,
+      "control": {
+        "disabled": false,
+        "readOnly": false,
+        "tabIndex": 0,
+        "value": "multi line",
+        "attributeNames": [
+          "data-slot",
+          "class",
+          "name",
+          "id",
+          "rows",
+          "aria-invalid",
+          "aria-required",
+          "aria-describedby",
+          "tabindex"
+        ]
+      }
+    },
+    "false": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><textarea data-slot=\"textarea\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground aria-invalid:ring-destructive/20 aria-invalid:border-destructive dark:aria-invalid:ring-destructive/40 min-h-16 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 data-readonly:read-only:not-disabled:bg-muted data-readonly:read-only:not-disabled:text-foreground data-readonly:read-only:not-disabled:opacity-100 data-readonly:read-only:not-disabled:cursor-default\" name=\"v\" id=\"f\" rows=\"4\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\">multi line</textarea><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "multi line"
+      },
+      "payloadHasName": true,
+      "control": {
+        "disabled": false,
+        "readOnly": false,
+        "tabIndex": 0,
+        "value": "multi line",
+        "attributeNames": [
+          "data-slot",
+          "class",
+          "name",
+          "id",
+          "rows",
+          "aria-invalid",
+          "aria-required",
+          "aria-describedby",
+          "tabindex"
+        ]
+      }
+    },
+    "true": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><textarea data-slot=\"textarea\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground aria-invalid:ring-destructive/20 aria-invalid:border-destructive dark:aria-invalid:ring-destructive/40 min-h-16 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 data-readonly:read-only:not-disabled:bg-muted data-readonly:read-only:not-disabled:text-foreground data-readonly:read-only:not-disabled:opacity-100 data-readonly:read-only:not-disabled:cursor-default\" name=\"v\" id=\"f\" rows=\"4\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\">multi line</textarea><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {},
+      "payloadHasName": false,
+      "control": {
+        "disabled": false,
+        "readOnly": false,
+        "tabIndex": 0,
+        "value": "multi line",
+        "attributeNames": [
+          "data-slot",
+          "class",
+          "name",
+          "id",
+          "rows",
+          "aria-invalid",
+          "aria-required",
+          "aria-describedby",
+          "tabindex"
+        ]
+      }
+    }
+  },
+  "readonly": {
+    "absent": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><textarea data-slot=\"textarea\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground aria-invalid:ring-destructive/20 aria-invalid:border-destructive dark:aria-invalid:ring-destructive/40 min-h-16 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 data-readonly:read-only:not-disabled:bg-muted data-readonly:read-only:not-disabled:text-foreground data-readonly:read-only:not-disabled:opacity-100 data-readonly:read-only:not-disabled:cursor-default\" name=\"v\" id=\"f\" rows=\"4\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\">multi line</textarea><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "multi line"
+      },
+      "payloadHasName": true,
+      "control": {
+        "disabled": false,
+        "readOnly": false,
+        "tabIndex": 0,
+        "value": "multi line",
+        "attributeNames": [
+          "data-slot",
+          "class",
+          "name",
+          "id",
+          "rows",
+          "aria-invalid",
+          "aria-required",
+          "aria-describedby",
+          "tabindex"
+        ]
+      }
+    },
+    "false": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><textarea data-slot=\"textarea\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground aria-invalid:ring-destructive/20 aria-invalid:border-destructive dark:aria-invalid:ring-destructive/40 min-h-16 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 data-readonly:read-only:not-disabled:bg-muted data-readonly:read-only:not-disabled:text-foreground data-readonly:read-only:not-disabled:opacity-100 data-readonly:read-only:not-disabled:cursor-default\" name=\"v\" id=\"f\" rows=\"4\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\">multi line</textarea><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "multi line"
+      },
+      "payloadHasName": true,
+      "control": {
+        "disabled": false,
+        "readOnly": false,
+        "tabIndex": 0,
+        "value": "multi line",
+        "attributeNames": [
+          "data-slot",
+          "class",
+          "name",
+          "id",
+          "rows",
+          "aria-invalid",
+          "aria-required",
+          "aria-describedby",
+          "tabindex"
+        ]
+      }
+    },
+    "true": {
+      "html": "<div class=\"flex flex-col gap-2 w-full\"><label data-slot=\"label\" class=\"text-sm leading-none font-medium\" for=\"f\">Label </label><textarea data-slot=\"textarea\" class=\"border-input bg-background ring-offset-background focus-visible:ring-ring placeholder:text-muted-foreground aria-invalid:ring-destructive/20 aria-invalid:border-destructive dark:aria-invalid:ring-destructive/40 min-h-16 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 data-readonly:read-only:not-disabled:bg-muted data-readonly:read-only:not-disabled:text-foreground data-readonly:read-only:not-disabled:opacity-100 data-readonly:read-only:not-disabled:cursor-default\" name=\"v\" id=\"f\" rows=\"4\" readonly=\"\" data-readonly=\"\" aria-invalid=\"false\" aria-required=\"false\" aria-describedby=\"f-description\" tabindex=\"0\">multi line</textarea><div id=\"f-description\" class=\"text-muted-foreground text-sm\">Help</div></div>",
+      "payload": {
+        "v": "multi line"
+      },
+      "payloadHasName": true,
+      "control": {
+        "disabled": false,
+        "readOnly": true,
+        "tabIndex": 0,
+        "value": "multi line",
+        "attributeNames": [
+          "data-slot",
+          "class",
+          "name",
+          "id",
+          "rows",
+          "readonly",
+          "data-readonly",
+          "aria-invalid",
+          "aria-required",
+          "aria-describedby",
+          "tabindex"
+        ]
+      }
+    }
+  }
+}
