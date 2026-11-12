@@ -7,6 +7,9 @@ export type BannerVariant = 'info' | 'success' | 'warning' | 'error' | 'neutral'
 
 export type BannerSize = 'default' | 'compact';
 
+/** Live-region roles a banner may carry. */
+export type BannerRole = 'alert' | 'status' | 'note';
+
 export interface BannerProps {
   /**
    * The variant/style of the banner
@@ -45,6 +48,13 @@ export interface BannerProps {
    * Icon to display on the left (replaces default based on variant)
    */
   icon?: React.ReactNode;
+
+  /**
+   * ARIA role of the banner. Use `status` or `note` for non-urgent messages so
+   * assistive tech doesn't announce them as alerts.
+   * @default 'alert'
+   */
+  role?: BannerRole;
 
   /**
    * Additional CSS classes
@@ -123,6 +133,7 @@ export const Banner = React.forwardRef<HTMLDivElement, BannerProps>(
       dismissible = true,
       onDismiss,
       icon,
+      role = 'alert',
     },
     ref
   ) => {
@@ -132,7 +143,7 @@ export const Banner = React.forwardRef<HTMLDivElement, BannerProps>(
     return (
       <div
         ref={ref}
-        role="alert"
+        role={role}
         className={cn('rounded-md border', sizing.container, styles.container, className)}
       >
         <div className={cn('flex', sizing.gap)}>
