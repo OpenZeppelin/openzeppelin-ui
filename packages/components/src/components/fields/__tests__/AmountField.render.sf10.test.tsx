@@ -9,7 +9,11 @@ import React from 'react';
 import { useForm, type FieldValues, type UseFormReturn } from 'react-hook-form';
 
 import { AmountField } from '../AmountField';
-import { AMOUNT_TEXT_ISSUE_MESSAGES } from '../utils/decimalValidation';
+import {
+  AMOUNT_TEXT_ISSUE_MESSAGES,
+  formatAmountText,
+  stepAmountText,
+} from '../utils/decimalValidation';
 import { AmountHarness, StrictHarness } from './amount-exact.sf10-harness';
 import {
   createHandle,
@@ -179,7 +183,67 @@ async function trace(
   return out;
 }
 
-describe('INV-2: default mode is unchanged, line for line', () => {
+type TraceStep = { html: string; value: unknown; prevented?: boolean; valid: number };
+
+/** The trace step with its value, and the matching `value="..."` attribute, swapped. */
+function withValue(step: TraceStep, value: unknown): TraceStep {
+  const html =
+    typeof step.value === 'string' && typeof value === 'string'
+      ? step.html.split(`value="${step.value}"`).join(`value="${value}"`)
+      : step.html;
+  return { ...step, html, value };
+}
+
+/**
+ * 006 SF-1 INV-16: the expected default-mode trace, built from the baseline trace. A blur
+ * or arrow step whose baseline write equals the exact helper's result (with the field in
+ * the same state) keeps the baseline step; otherwise the step expects the helper's
+ * result. Other steps keep the baseline, carrying a diverged value forward when the step
+ * did not write.
+ */
+function restateTrace(
+  baseline: TraceStep[],
+  steps: Step[],
+  props: Omit<BaselineAmountFieldProps<FieldValues>, 'control' | 'name' | 'id'>
+): { expected: TraceStep[]; baselineSteps: number; helperSteps: number } {
+  const decimals = props.decimals ?? 2;
+  const expected: TraceStep[] = [baseline[0] as TraceStep];
+  let baselineSteps = 1;
+  let helperSteps = 0;
+  steps.forEach((step, index) => {
+    const prev = expected[index] as TraceStep;
+    const inSync = Object.is(prev.value, (baseline[index] as TraceStep).value);
+    const base = baseline[index + 1] as TraceStep;
+    let exact: unknown = undefined;
+    if (step.kind === 'blur') {
+      const text = prev.value === null || prev.value === undefined ? '' : String(prev.value);
+      exact = formatAmountText(text, decimals) ?? prev.value;
+    } else if (step.kind === 'key' && (step.key === 'ArrowUp' || step.key === 'ArrowDown')) {
+      exact =
+        stepAmountText(prev.value, {
+          direction: step.key === 'ArrowUp' ? 1 : -1,
+          step: props.step ?? 0.01,
+          decimals,
+          min: props.min,
+          max: props.max,
+        }) ?? prev.value;
+    }
+    const isWrite = step.kind === 'blur' || (step.kind === 'key' && step.key !== 'Escape');
+    if (isWrite && !(inSync && Object.is(base.value, exact))) {
+      expected.push(withValue(base, exact));
+      helperSteps += 1;
+    } else if (!isWrite && !inSync && Object.is(base.value, (baseline[index] as TraceStep).value)) {
+      expected.push(withValue(base, prev.value)); // diverged, and this step wrote nothing
+      baselineSteps += 1;
+    } else {
+      expected.push(base);
+      baselineSteps += 1;
+    }
+  });
+  return { expected, baselineSteps, helperSteps };
+}
+
+describe('INV-2: default mode is unchanged, line for line (restated by 006 SF-1 INV-16)', () => {
   const propMatrix: Array<Omit<BaselineAmountFieldProps<FieldValues>, 'control' | 'name' | 'id'>> =
     [];
   for (const symbolPosition of ['prefix', 'suffix'] as const) {
@@ -218,14 +282,26 @@ describe('INV-2: default mode is unchanged, line for line', () => {
     { kind: 'submit' },
   ];
 
+  // 006 SF-1 restated this test (SF-1 INV-16) rather than deleting it: blur and arrow writes
+  // are now exact, so a step equals the baseline wherever the baseline's float write was
+  // already exact, and otherwise equals `formatAmountText` / `stepAmountText` of the same
+  // input, with the rest of the DOM unchanged.
   // ~0.9 s alone, but it has hit the 5 s default under the parallel full suite, and a timed-out
   // loop keeps running and empties the DOM under the next test.
-  it(`${propMatrix.length} prop combinations: DOM and value trace equal the baseline at every step`, async () => {
+  it(`${propMatrix.length} prop combinations: DOM and value trace equal the baseline at every step, or the exact write where the baseline was inexact`, async () => {
+    const paths = { baseline: 0, helper: 0 };
     for (const props of propMatrix) {
-      const expected = await trace(BASELINE, props, script);
+      const baseline = await trace(BASELINE, props, script);
+      const { expected, baselineSteps, helperSteps } = restateTrace(baseline, script, props);
+      paths.baseline += baselineSteps;
+      paths.helper += helperSteps;
       expect(await trace(CURRENT, props, script), JSON.stringify(props)).toEqual(expected);
       expect(await trace(CURRENT_EXPLICIT_TRUE, props, script)).toEqual(expected);
     }
+    // A parity run that silently compares nothing fails: both paths must be taken, and the
+    // helper path only at the three float-inexact steps (blur 0.1, ArrowUp, ArrowDown at 18).
+    expect(paths.helper).toBe(propMatrix.length * 3);
+    expect(paths.baseline).toBe(propMatrix.length * (script.length + 1 - 3));
   }, 30_000);
 
   it('min / max / step / validateAmount traces equal the baseline (stepping, range and validator messages)', async () => {
@@ -266,10 +342,13 @@ describe('INV-2: default mode is unchanged, line for line', () => {
     }
   });
 
-  it('characterization: 0.1 at decimals 18 still blurs to 0.100000000000000006 (not fixed, SC-002)', () => {
-    const { input } = mount({ label: 'Amount', decimals: 18 });
+  // 006 SF-1 restated this pin (SF-1 INV-16): 005 characterized the float artefact
+  // 0.100000000000000006; the default field now blurs to the exact text.
+  it('characterization: 0.1 at decimals 18 blurs to 0.100000000000000000 (006 SF-1; was 0.100000000000000006)', () => {
+    const { input, handle } = mount({ label: 'Amount', decimals: 18 });
     typeAndBlur(input, '0.1');
-    expect(input.value).toBe('0.100000000000000006');
+    expect(input.value).toBe('0.100000000000000000');
+    expect(handle.api?.getValues('amount')).toBe('0.100000000000000000');
   });
 
   it('failure case: default mode still drops a comma keystroke (value unchanged)', () => {

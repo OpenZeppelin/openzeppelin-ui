@@ -7,7 +7,8 @@
  */
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest';
+import type React from 'react';
 
 import * as packageEntry from '../../../index';
 import * as fieldsBarrel from '../index';
@@ -28,9 +29,28 @@ describe('INV-8: no float conversion API in the exact path', () => {
     expect(code).not.toMatch(/parseFloat|\bNumber\(|toFixed|toPrecision/);
   });
 
-  it('boundary: the guard does catch the default branch, which still uses parseFloat/toFixed', () => {
-    expect(source('AmountField.tsx')).toMatch(/parseFloat/);
-    expect(source('AmountField.tsx')).toMatch(/toFixed/);
+  // 006 SF-1 restated this boundary (SF-1 INV-10). 005 pinned that the default branch still
+  // used parseFloat / toFixed to write. Now parseFloat is left only in the default validator
+  // (exactly once, so a second one on a write path fails), and the float write path is gone.
+  it('boundary: AmountField.tsx keeps exactly one parseFloat (the default validator) and none of the removed float write path (006 SF-1)', () => {
+    const code = source('AmountField.tsx');
+    expect(code.match(/parseFloat/g)).toHaveLength(1);
+    expect(code).toMatch(
+      /const numValue = typeof value === 'string' \? parseFloat\(value\) : value;/
+    );
+    for (const name of [
+      'toFixed',
+      'toPrecision',
+      'formatCurrency',
+      'parseAmount',
+      'handleNumericKeys',
+    ]) {
+      expect(code, name).not.toContain(name);
+    }
+  });
+
+  it('006 SF-1: decimalValidation.ts rounds without Math.round / floor / ceil / trunc', () => {
+    expect(source('utils/decimalValidation.ts')).not.toMatch(/Math\.(round|floor|ceil|trunc)\b/);
   });
 });
 
@@ -58,10 +78,12 @@ describe('INV-27: helpers stay internal; AmountFieldExactProps is the only new p
         'PLAIN_AMOUNT_PATTERN',
         'classifyAmountText',
         'compareDecimalStrings',
+        'formatAmountText', // 006 SF-1 (internal, default-mode blur)
         'fractionDigits',
         'isEmptyAmountValue',
         'isValidAmountText',
         'numberToDecimalString',
+        'stepAmountText', // 006 SF-1 (internal, default-mode arrow keys)
         'toAmountDisplayText',
         'toAmountFormValue',
         'validateExactAmount',
@@ -79,6 +101,23 @@ describe('INV-27: helpers stay internal; AmountFieldExactProps is the only new p
       expect(keys.has(name), name).toBe(false);
     }
     if (_l !== 'fields/utils barrel') expect(keys.has('AmountField')).toBe(true);
+  });
+
+  it('006 SF-1: handleNumericKeys stays public on the utils, fields and package barrels with its signature', () => {
+    for (const barrel of [utilsBarrel, fieldsBarrel, packageEntry]) {
+      expect(typeof (barrel as Record<string, unknown>).handleNumericKeys).toBe('function');
+    }
+    // (onChange, value, step?, min?, max?) => (event) => void: two required parameters.
+    expect(utilsBarrel.handleNumericKeys.length).toBe(2);
+    expectTypeOf(utilsBarrel.handleNumericKeys).toEqualTypeOf<
+      (
+        onChange: (value: number) => void,
+        value: number,
+        step?: number,
+        min?: number,
+        max?: number
+      ) => (e: React.KeyboardEvent) => void
+    >();
   });
 
   it('AmountFieldExactProps is exported by name from the fields barrel source', () => {

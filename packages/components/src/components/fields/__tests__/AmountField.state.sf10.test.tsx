@@ -566,12 +566,16 @@ describe('INV-24: switching modes writes nothing and validates with the active m
     expect(handle.api?.formState.errors.amount?.message).toBe(AMOUNT_TEXT_ISSUE_MESSAGES.exponent);
   });
 
-  it('boundary: a value corrupted by default mode is shown as it is after the flip', () => {
-    const { input, rerender } = mount({ label: 'Amount', decimals: 18 });
+  // 006 SF-1 restated this pin (SF-1 INV-16): default mode no longer corrupts 0.1 at 18
+  // decimals, so the value the flip shows as it is is now the exact 0.100000000000000000.
+  it('boundary: the value default mode wrote is shown as it is after the flip (006 SF-1: exact, was 0.100000000000000006)', () => {
+    const { input, handle, rerender } = mount({ label: 'Amount', decimals: 18 });
     type(input(), '0.1');
     fireEvent.blur(input());
+    const writes = handle.changeWrites.length;
     rerender(EXACT);
-    expect(input().value).toBe('0.100000000000000006');
+    expect(input().value).toBe('0.100000000000000000');
+    expect(handle.changeWrites.length).toBe(writes);
   });
 });
 

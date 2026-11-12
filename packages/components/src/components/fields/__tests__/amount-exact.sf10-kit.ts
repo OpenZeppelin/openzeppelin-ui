@@ -1,8 +1,9 @@
 /**
  * 005 SF-10 test kit (no JSX): seeded generators, an independent exact-decimal
- * reference, a vendored copy of viem's `parseUnits`, the SC-003 corpus and the harness
- * handle. Test fixture only; never exported from the package. Kept free of `vitest`
- * imports so the package `typecheck` compiles it.
+ * reference, a vendored copy of viem's `parseUnits`, the SC-003 corpus (re-exported from
+ * `amount-exact.sf10-corpus.ts`) and the harness handle. 006 SF-1 adds digit-string
+ * rounding and addition references. Test fixture only; never exported from the package.
+ * Kept free of `vitest` imports so the package `typecheck` compiles it.
  */
 import type { ComponentProps } from 'react';
 import type { FieldErrors, FieldValues, UseFormReturn } from 'react-hook-form';
@@ -151,6 +152,110 @@ export function refParseUnits(plain: string, decimals: number): bigint {
 }
 
 // ---------------------------------------------------------------------------
+// 006 SF-1: independent digit-string arithmetic (no BigInt, no Number), so a bug shared
+// with decimalValidation.ts's scaled-bigint code or with Intl would still show.
+// ---------------------------------------------------------------------------
+
+/** Digit-string increment by one unit in the last place: '199' → '200', '99' → '100'. */
+function refIncrementDigits(digitsIn: string): string {
+  const out = digitsIn.split('');
+  let i = out.length - 1;
+  while (i >= 0 && out[i] === '9') {
+    out[i] = '0';
+    i -= 1;
+  }
+  if (i < 0) return `1${out.join('')}`;
+  out[i] = String(Number(out[i]) + 1);
+  return out.join('');
+}
+
+function refStripLeadingZeros(digitsIn: string): string {
+  const trimmed = digitsIn.replace(/^0+/, '');
+  return trimmed === '' ? '0' : trimmed;
+}
+
+/**
+ * Reference for the default formatter: `plain` rounded half away from zero to `decimals`
+ * fraction digits (padded when shorter), in canonical form, zero unsigned. Digit-string
+ * arithmetic only.
+ */
+export function refRoundHalfAway(plain: string, decimals: number): string {
+  if (!REF_PLAIN.test(plain)) throw new Error(`refRoundHalfAway: not plain: ${plain}`);
+  const negative = plain.startsWith('-');
+  const body = negative ? plain.slice(1) : plain;
+  const [intPart = '', fracPart = ''] = body.split('.');
+  const kept = `${intPart}${fracPart.slice(0, decimals).padEnd(decimals, '0')}` || '0';
+  const roundsUp = fracPart.length > decimals && Number(fracPart[decimals]) >= 5;
+  const units = refStripLeadingZeros(roundsUp ? refIncrementDigits(kept) : kept);
+  const padded = units.padStart(decimals + 1, '0');
+  const point = padded.length - decimals;
+  const magnitude = decimals === 0 ? padded : `${padded.slice(0, point)}.${padded.slice(point)}`;
+  const isZero = /^0*$/.test(units);
+  return negative && !isZero ? `-${magnitude}` : magnitude;
+}
+
+function refAddMagnitudes(a: string, b: string): string {
+  let out = '';
+  let carry = 0;
+  for (let i = a.length - 1; i >= 0; i -= 1) {
+    const sum = Number(a[i]) + Number(b[i]) + carry;
+    out = String(sum % 10) + out;
+    carry = sum >= 10 ? 1 : 0;
+  }
+  return carry ? `1${out}` : out;
+}
+
+/** a - b for equal-length digit strings with a >= b. */
+function refSubtractMagnitudes(a: string, b: string): string {
+  let out = '';
+  let borrow = 0;
+  for (let i = a.length - 1; i >= 0; i -= 1) {
+    let diff = Number(a[i]) - Number(b[i]) - borrow;
+    borrow = diff < 0 ? 1 : 0;
+    if (diff < 0) diff += 10;
+    out = String(diff) + out;
+  }
+  return out;
+}
+
+/**
+ * Exact decimal sum of two plain texts by digit-string arithmetic, as a plain text with
+ * `max(fraction lengths)` fraction digits (no `.` when that is 0). Zero is unsigned.
+ */
+export function refAddDecimal(a: string, b: string): string {
+  const scale = Math.max(refFractionLength(a), refFractionLength(b));
+  const parts = (plain: string): { neg: boolean; units: string } => {
+    if (!REF_PLAIN.test(plain)) throw new Error(`refAddDecimal: not plain: ${plain}`);
+    const neg = plain.startsWith('-');
+    const body = neg ? plain.slice(1) : plain;
+    const [i = '', f = ''] = body.split('.');
+    return { neg, units: refStripLeadingZeros(`${i}${f.padEnd(scale, '0')}`) };
+  };
+  const x = parts(a);
+  const y = parts(b);
+  const width = Math.max(x.units.length, y.units.length);
+  const xu = x.units.padStart(width, '0');
+  const yu = y.units.padStart(width, '0');
+  let neg: boolean;
+  let units: string;
+  if (x.neg === y.neg) {
+    neg = x.neg;
+    units = refAddMagnitudes(xu, yu);
+  } else if (xu >= yu) {
+    neg = x.neg;
+    units = refSubtractMagnitudes(xu, yu);
+  } else {
+    neg = y.neg;
+    units = refSubtractMagnitudes(yu, xu);
+  }
+  units = refStripLeadingZeros(units);
+  const padded = units.padStart(scale + 1, '0');
+  const point = padded.length - scale;
+  const magnitude = scale === 0 ? padded : `${padded.slice(0, point)}.${padded.slice(point)}`;
+  return neg && units !== '0' ? `-${magnitude}` : magnitude;
+}
+
+// ---------------------------------------------------------------------------
 // Vendored viem `parseUnits` (viem 2.43.5, utils/unit/parseUnits.js, MIT licence,
 // Copyright (c) 2023-present weth, LLC). Verbatim logic; only types and the error
 // class are adapted. The real package is cross-checked in the e2e spec, where the
@@ -191,101 +296,17 @@ export function viemParseUnits(value: string, decimals: number): bigint {
 }
 
 // ---------------------------------------------------------------------------
-// SC-003 precision-hostile corpus at decimals 18 (the e2e spec keeps its own copy).
-// Every text is typed as-is into an exact field with grouping on.
+// SC-003 corpus. The lists live in `amount-exact.sf10-corpus.ts`, which has no imports,
+// so the example app's e2e specs can share them; 006 SF-1 extends them there.
 // ---------------------------------------------------------------------------
 
-export const SC003_VALID_CASES: readonly string[] = [
-  '12,345,678,901,234,567.123456789012345678',
-  '12345678901234567.123456789012345678',
-  '9007199254740993',
-  '9,007,199,254,740,993',
-  '9007199254740992.000000000000000001',
-  '18446744073709551616',
-  '18,446,744,073,709,551,616',
-  '115792089237316195423570985008687907853269984665640564039457584007913129639935',
-  '115,792,089,237,316,195,423,570,985,008,687,907,853,269,984,665,640,564,039,457,584,007,913,129,639,935',
-  '0.1',
-  '0.100000000000000001',
-  '0.123456789012345678',
-  '0.000000000000000001',
-  '.000000000000000001',
-  '1.999999999999999999',
-  '999999999999999999.999999999999999999',
-  '999,999,999,999,999,999.999999999999999999',
-  '1,000',
-  '1,000.5',
-  '1,000.',
-  '1,000.000000000000000000',
-  '1,234,567.89',
-  '123,456,789,012,345,678,901,234,567,890',
-  '100000000000000000000000000000000000000000',
-  '0.30000000000000004',
-  '4.35',
-  '1.005',
-  '2.675',
-  '0.07',
-  '-0',
-  '-0.000000000000000001',
-  '-12,345.678901234567890123',
-  '-9007199254740993',
-  '007',
-  '000123.450',
-  '5.',
-  '.5',
-  '-.5',
-  '1.500',
-  '0.000000000000000000',
-  '123456789.123456789123456789',
-  '3.141592653589793238',
-  '2,718.281828459045235',
-  '1,000,000,000,000,000,000,000',
-  '340282366920938463463374607431768211455',
-  '79228162514264337593543950335.000000000000000001',
-  '12,345.6789012345678901',
-  '1',
-  '0',
-  '10,000,000',
-  '-1,000,000.000001',
-  '42.000000000000000042',
-];
-
-/** Valid texts with more than 18 decimals: kept on screen, flagged, never submitted (decimals 18). */
-export const SC003_OVER_LIMIT_CASES: readonly string[] = [
-  '0.1234567890123456789',
-  '1.2345678901234567890',
-  '0.0000000000000000001',
-  '1,000.0000000000000000000',
-  '9007199254740993.0000000000000000001',
-];
-
-/** Texts that must be flagged and never submitted, in an exact field with grouping on. */
-export const SC003_INVALID_CASES: readonly string[] = [
-  '1e18',
-  '1E18',
-  '1..2',
-  '1.2.3',
-  '1,5',
-  '1,00',
-  '1234,567',
-  ',123',
-  '1,,000',
-  '1,000,',
-  '1,000.5,0',
-  '0,123',
-  ' 1,000 ',
-  '-',
-  '.',
-  '-.',
-  '+1',
-  '1 000',
-  '١٢',
-  '１２',
-  '−1',
-  'NaN',
-  'Infinity',
-  'abc',
-];
+export {
+  DEFAULT_FORMAT_BOTH_MODES_CASES,
+  DEFAULT_FORMAT_OVER_LIMIT_CASES,
+  SC003_INVALID_CASES,
+  SC003_OVER_LIMIT_CASES,
+  SC003_VALID_CASES,
+} from './amount-exact.sf10-corpus';
 
 // ---------------------------------------------------------------------------
 // Harness handle and option types
