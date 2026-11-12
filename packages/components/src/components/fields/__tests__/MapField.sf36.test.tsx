@@ -243,4 +243,86 @@ describe('SF-36 INV-16 — MapField child-error path uses the required text', ()
     });
     expect(handle.api!.getFieldState('v').error?.message).toBe('Custom req');
   });
+
+  const REQ = { required: true, messages: { required: 'Custom req' } };
+  const TWO: MapEntry[] = [
+    { key: 'a', value: '1' },
+    { key: 'b', value: '2' },
+  ];
+
+  async function mountChild(
+    validation: FieldValidation
+  ): Promise<{ api: UseFormReturn<Values>; unmount: () => void }> {
+    const handle: { api: UseFormReturn<Values> | null } = { api: null };
+    const view = render(<ChildHost handle={handle} validation={validation} />);
+    await act(async () => {
+      handle.api!.setValue('v', TWO);
+    });
+    return { api: handle.api!, unmount: view.unmount };
+  }
+
+  // SF-4 scenario 1: the second entry's key fails; the lookup finds index 1.
+  it('SF-4 INV-16 · a key error on the second entry shows the required text', async () => {
+    const m = await mountChild(REQ);
+    await act(async () => {
+      m.api.setError('v.1.key', { type: 'manual', message: 'Bad key' });
+    });
+    await act(async () => {
+      m.api.setValue('v', [...TWO]);
+    });
+    expect(m.api.getFieldState('v').error?.message).toBe('Custom req');
+    m.unmount();
+  });
+
+  it('SF-4 INV-16 · a value error shows the required text', async () => {
+    const m = await mountChild(REQ);
+    await act(async () => {
+      m.api.setError('v.0.value', { type: 'manual', message: 'Bad value' });
+    });
+    await act(async () => {
+      m.api.setValue('v', [...TWO]);
+    });
+    expect(m.api.getFieldState('v').error?.message).toBe('Custom req');
+    m.unmount();
+  });
+
+  it('SF-4 INV-16 · the required text clears once the child error is gone', async () => {
+    const m = await mountChild(REQ);
+    await act(async () => {
+      m.api.setError('v.1.key', { type: 'manual', message: 'Bad key' });
+    });
+    await act(async () => {
+      m.api.setValue('v', [...TWO]);
+    });
+    expect(m.api.getFieldState('v').error?.message).toBe('Custom req');
+    await act(async () => {
+      m.api.clearErrors('v.1.key');
+    });
+    await act(async () => {
+      m.api.setValue('v', [{ key: 'c', value: '3' }, ...TWO]);
+    });
+    expect(m.api.getFieldState('v').error).toBeUndefined();
+    m.unmount();
+  });
+
+  // SF-4 scenario 2 and the not-required boundary: no child error, or a map that is not
+  // required, raises nothing.
+  it('SF-4 INV-16 · no child errors: no parent error', async () => {
+    const m = await mountChild(REQ);
+    expect(m.api.getFieldState('v').error).toBeUndefined();
+    m.unmount();
+  });
+
+  it('SF-4 INV-16 · a child error on a map that is not required raises no parent error', async () => {
+    const m = await mountChild({});
+    await act(async () => {
+      m.api.setError('v.1.key', { type: 'manual', message: 'Bad key' });
+    });
+    await act(async () => {
+      m.api.setValue('v', [...TWO]);
+    });
+    // RHF's field state holds the nested child errors; the parent's own message is what the map shows.
+    expect(m.api.getFieldState('v').error?.message).toBeUndefined();
+    m.unmount();
+  });
 });
