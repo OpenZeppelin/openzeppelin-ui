@@ -32,6 +32,7 @@ const variants = ['filled', 'outline', 'solid'] satisfies BadgeVariant[];
  */
 export function BadgeDemo(): React.ReactElement {
   const [activationCount, setActivationCount] = useState(0);
+  const [selectedFilters, setSelectedFilters] = useState<ReadonlySet<string>>(new Set(['Open']));
 
   return (
     <DemoSection
@@ -46,6 +47,9 @@ export function BadgeDemo(): React.ReactElement {
 
 // Supplying onActivate renders a native button.
 <Badge label="View owner role" variant="outline" onActivate={openRole} />
+
+// Add pressed to make an interactive badge a toggle chip (aria-pressed + selected style).
+<Badge label="Open" variant="outline" pressed={isOpen} onActivate={toggleOpen} />
 
 // Expand an abbreviated visible label for assistive technology.
 <Badge label="P1" tone="danger" aria-label="Priority one: immediate action" />`}
@@ -85,6 +89,32 @@ export function BadgeDemo(): React.ReactElement {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+        </div>
+      </div>
+
+      <div className="space-y-4" data-testid="badge-pressed-demo">
+        <h3 className="text-lg font-medium">Toggle chips</h3>
+        <p className="text-muted-foreground text-sm">
+          Pass <code>pressed</code> to an interactive badge to expose <code>aria-pressed</code> and
+          a selected style. It is ignored on non-interactive badges.
+        </p>
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border p-4">
+          {['Open', 'In review', 'Closed'].map((filter) => (
+            <Badge
+              key={filter}
+              label={filter}
+              variant="outline"
+              pressed={selectedFilters.has(filter)}
+              onActivate={() =>
+                setSelectedFilters((current) => {
+                  const next = new Set(current);
+                  if (next.has(filter)) next.delete(filter);
+                  else next.add(filter);
+                  return next;
+                })
+              }
+            />
+          ))}
         </div>
       </div>
 

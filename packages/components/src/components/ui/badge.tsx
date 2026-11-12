@@ -14,6 +14,8 @@ export interface BadgeProps
   readonly icon?: React.ReactNode;
   readonly iconLabel?: string;
   readonly onActivate?: React.MouseEventHandler<HTMLButtonElement>;
+  /** Toggle state for an interactive badge; sets `aria-pressed` and a selected style. Ignored without `onActivate`. */
+  readonly pressed?: boolean;
   readonly 'aria-label'?: string;
   readonly className?: string;
 }
@@ -52,7 +54,7 @@ type SlotInjectedProps = {
  *
  * The host is a non-interactive span unless `onActivate` is supplied, in which
  * case it is a native button. The forwarded ref and host props support overlay
- * trigger composition.
+ * trigger composition. `pressed` turns the button into a toggle chip.
  */
 export const Badge = React.forwardRef<BadgeElement, BadgeProps>(function Badge(
   {
@@ -62,6 +64,7 @@ export const Badge = React.forwardRef<BadgeElement, BadgeProps>(function Badge(
     icon,
     iconLabel,
     onActivate,
+    pressed,
     'aria-label': ariaLabel,
     className,
     ...rest
@@ -70,6 +73,8 @@ export const Badge = React.forwardRef<BadgeElement, BadgeProps>(function Badge(
 ): React.ReactElement {
   // INV-373/374: only the consumer-owned activation prop changes the host element.
   const isInteractive = typeof onActivate === 'function';
+  // Pressed is meaningful only on the button form; a span must not expose aria-pressed.
+  const isPressed = isInteractive && pressed === true;
   const hasIcon = icon != null && icon !== false;
   // INV-375/380: the graphic stays decorative; non-empty text names it separately.
   const hasIconLabel = hasIcon && typeof iconLabel === 'string' && iconLabel.length > 0;
@@ -90,6 +95,10 @@ export const Badge = React.forwardRef<BadgeElement, BadgeProps>(function Badge(
     isInteractive &&
       'cursor-pointer appearance-none font-inherit transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background',
     isInteractive && (variant === 'solid' ? 'hover:brightness-95' : 'hover:bg-accent/50'),
+    isPressed &&
+      (variant === 'solid'
+        ? 'ring-2 ring-foreground ring-offset-2 ring-offset-background'
+        : 'bg-primary text-primary-foreground border-primary hover:bg-primary/90'),
     className
   );
   const content = hasIcon ? (
@@ -129,6 +138,7 @@ export const Badge = React.forwardRef<BadgeElement, BadgeProps>(function Badge(
       {...hostProps}
       ref={ref as React.Ref<HTMLButtonElement>}
       type="button"
+      {...(typeof pressed === 'boolean' ? { 'aria-pressed': pressed } : {})}
       aria-label={ariaLabel}
       className={hostClassName}
       onClick={handleClick}
