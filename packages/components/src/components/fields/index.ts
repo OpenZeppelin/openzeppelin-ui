@@ -26,6 +26,7 @@ export * from './NumberField';
 export * from './ObjectField';
 export * from './PasswordField';
 export * from './RadioField';
+export * from './SearchableMultiSelectField';
 export * from './SelectField';
 export * from './SelectGroupedField';
 export * from './TextAreaField';

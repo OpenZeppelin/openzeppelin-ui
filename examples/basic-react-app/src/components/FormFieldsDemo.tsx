@@ -34,6 +34,7 @@ import { DemoSection } from './DemoSection';
 import { EcosystemIndicator } from './EcosystemIndicator';
 import { RadioFieldCardDemo } from './RadioFieldCardDemo';
 import { ReadOnlySaveDemo } from './ReadOnlySaveDemo';
+import { SearchableMultiSelectFieldDemo } from './SearchableMultiSelectFieldDemo';
 
 // Form data interface with all field types
 interface FormFieldsData {
@@ -504,6 +505,7 @@ const form = useForm({ defaultValues: { ... } });
 
       <AmountExactEntryDemo />
       <RadioFieldCardDemo />
+      <SearchableMultiSelectFieldDemo />
       <ReadOnlySaveDemo />
     </DemoSection>
   );
