@@ -28,6 +28,7 @@ import {
 } from '@openzeppelin/ui-components';
 
 import { useEcosystem } from '../context';
+import { AmountExactEntryDemo } from './AmountExactEntryDemo';
 import { CodeBlock } from './CodeBlock';
 import { DemoSection } from './DemoSection';
 import { EcosystemIndicator } from './EcosystemIndicator';
@@ -498,6 +499,8 @@ const form = useForm({ defaultValues: { ... } });
           />
         </div>
       )}
+
+      <AmountExactEntryDemo />
     </DemoSection>
   );
 }
