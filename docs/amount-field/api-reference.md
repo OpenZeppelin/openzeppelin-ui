@@ -46,7 +46,7 @@ Both modes take these. They come from `BaseFieldProps`, `ReadOnlyModeProps` and
 | `helperText`     | `string`                      | —            | Rendered below the input and linked through `aria-describedby`. In exact mode, say which separators the field uses.                                 |
 | `width`          | `'full' \| 'half' \| 'third'` | `'full'`     |                                                                                                                                                     |
 | `validation`     | `FieldValidation`             | —            | Only `validation.required` is read. It adds the label asterisk and the "required" check.                                                            |
-| `decimals`       | `number`                      | `2`          | Default mode: places the value is formatted to on blur. Exact mode: the most fraction digits allowed (see [Decimals](#decimals)).                   |
+| `decimals`       | `number`                      | `2`          | Default mode: places the value is formatted to on blur, exactly. Exact mode: the most fraction digits allowed (see [Decimals](#decimals)).          |
 | `symbol`         | `string`                      | `''`         | Shown inside the input. Not part of the value.                                                                                                      |
 | `symbolPosition` | `'prefix' \| 'suffix'`        | `'suffix'`   |                                                                                                                                                     |
 | `readOnly`       | `boolean`                     | `false`      | Ignored by `AmountField` unless `readOnlyMode="readonly"` is also set.                                                                              |
@@ -67,21 +67,35 @@ interface AmountFieldProps<TFieldValues extends FieldValues = FieldValues>
 }
 ```
 
-Unchanged behaviour. Still an `interface` under its old name, so
+Same props as before. Still an `interface` under its old name, so
 `interface MyProps extends AmountFieldProps` compiles as before.
 
-| Prop             | Type                                   | Notes                                                                                                 |
-| ---------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `formatOnBlur`   | `true` (optional)                      | Omit or pass `true`.                                                                                  |
-| `allowGrouping`  | `false` (optional)                     | Grouping exists only in exact mode.                                                                   |
-| `min`, `max`     | `number`                               | Inclusive, compared as floats.                                                                        |
-| `step`           | `number`, default `0.01`               | ArrowUp / ArrowDown step, in floats.                                                                  |
-| `validateAmount` | `(value: number) => boolean \| string` | Receives `parseFloat` of the value. A returned string is the error. `true` **and `false`** both pass. |
+| Prop             | Type                                   | Notes                                                                                                                         |
+| ---------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `formatOnBlur`   | `true` (optional)                      | Omit or pass `true`.                                                                                                          |
+| `allowGrouping`  | `false` (optional)                     | Grouping exists only in exact mode.                                                                                           |
+| `min`, `max`     | `number`                               | Inclusive. Validation compares them as floats. Arrow-key clamping is exact. A `NaN` or infinite bound is ignored by clamping. |
+| `step`           | `number`, default `0.01`               | ArrowUp / ArrowDown step, added as an exact decimal. A `NaN` or infinite `step` makes the arrow keys write nothing.           |
+| `validateAmount` | `(value: number) => boolean \| string` | Receives `parseFloat` of the value. A returned string is the error. `true` **and `false`** both pass.                         |
 
-Behaviour: keystrokes outside `^-?\d*\.?\d*$` are dropped. On blur a non-empty value is
-written back as `parseFloat(value).toFixed(decimals)`. Escape writes `null` when the
-field has a value and blurs when it is empty. The form value is a `string` after any
-edit, or `null` after Escape.
+Behaviour:
+
+- Keystrokes outside `^-?\d*\.?\d*$` are dropped.
+- On blur, a plain decimal (an optional `-`, then digits with at most one `.`, such as
+  `007.5`, `.5` or `5.`) is written back with exactly `decimals` fraction digits. Every
+  digit is kept, leading zeros in the integer part are trimmed, and the fraction is
+  padded, or rounded half away from zero. No float is involved: `0.1` at 18 decimals gives
+  `0.100000000000000000`, `1.005` at 2 gives `1.01`, and an integer past 2^53 keeps every
+  digit. A zero result has no minus sign (`-0.001` at 2 gives `0.00`).
+- Blur leaves anything else as it is: an empty field, `-`, `.`, and text written from
+  outside the field such as `1,000`, `12abc` or `1e3`.
+- ArrowUp / ArrowDown add or subtract `step`, clamp to `min` / `max`, then format the
+  same way. They step from `0` when the field is empty or holds only `-`, `.` or `-.`, and
+  write nothing when it holds other text that is not a plain decimal.
+- A `decimals` that is not a whole number from 0 to 100 turns formatting off. Blur and the
+  arrow keys write nothing, and blur still marks the field as touched.
+- Escape writes `null` when the field has a value and blurs when it is empty.
+- The form value is a `string` after any edit, or `null` after Escape.
 
 ### `AmountFieldExactProps` — exact-entry mode
 
