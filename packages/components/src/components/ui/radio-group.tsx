@@ -42,7 +42,10 @@ RadioGroup.displayName = RadioGroupPrimitive.Root.displayName;
 
 export interface RadioGroupItemProps
   extends Omit<React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>, 'title'> {
-  /** Card variant: the card's title and accessible name. Segmented variant: label fallback when no children. */
+  /**
+   * Card variant: the card's title and accessible name. Segmented variant: label fallback when no
+   * children. Default variant: a string is set as the native `title` attribute (a tooltip), as before.
+   */
   title?: React.ReactNode;
   /** Card variant only: supporting text under the title. It is the item's accessible description. */
   description?: React.ReactNode;
@@ -114,6 +117,8 @@ const RadioGroupItem = React.forwardRef<HTMLButtonElement, RadioGroupItemProps>(
     return (
       <RadioGroupPrimitive.Item
         ref={ref}
+        // The default variant kept the native `title` before `title` became a ReactNode slot.
+        title={typeof title === 'string' ? title : undefined}
         className={cn(
           'border-input bg-background text-selected h-4 w-4 rounded-full border shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
           className

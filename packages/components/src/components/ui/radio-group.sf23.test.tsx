@@ -244,6 +244,19 @@ describe('RadioGroup card variant (SF-23)', () => {
       expect(a.hasAttribute('data-variant')).toBe(false);
       expect(a.hasAttribute('aria-describedby')).toBe(false);
       expect(screen.queryByText('ignored')).toBeNull();
+      // A string title stays the native tooltip, as it was before the card variant existed.
+      expect(a.getAttribute('title')).toBe('ignored');
+    });
+
+    it('default variant: a non-string title sets no title attribute', () => {
+      render(
+        <RadioGroup aria-label="plain">
+          <RadioGroupItem value="a" aria-label="A" title={<b>rich</b>} />
+        </RadioGroup>
+      );
+      const a = screen.getByRole('radio', { name: 'A' });
+      expect(a.hasAttribute('title')).toBe(false);
+      expect(screen.queryByText('rich')).toBeNull();
     });
 
     it('explicit variant="default" behaves like omitting it', () => {
