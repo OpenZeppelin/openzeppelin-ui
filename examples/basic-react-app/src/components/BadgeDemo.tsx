@@ -33,6 +33,7 @@ const variants = ['filled', 'outline', 'solid'] satisfies BadgeVariant[];
 export function BadgeDemo(): React.ReactElement {
   const [activationCount, setActivationCount] = useState(0);
   const [selectedFilters, setSelectedFilters] = useState<ReadonlySet<string>>(new Set(['Open']));
+  const [selectedSolid, setSelectedSolid] = useState<ReadonlySet<string>>(new Set(['Mine']));
 
   return (
     <DemoSection
@@ -107,6 +108,28 @@ export function BadgeDemo(): React.ReactElement {
               pressed={selectedFilters.has(filter)}
               onActivate={() =>
                 setSelectedFilters((current) => {
+                  const next = new Set(current);
+                  if (next.has(filter)) next.delete(filter);
+                  else next.add(filter);
+                  return next;
+                })
+              }
+            />
+          ))}
+        </div>
+        <div
+          className="flex flex-wrap items-center gap-3 rounded-lg border p-4"
+          data-testid="badge-pressed-solid-demo"
+        >
+          {['Mine', 'Team', 'Everyone'].map((filter) => (
+            <Badge
+              key={filter}
+              label={filter}
+              tone="info"
+              variant="solid"
+              pressed={selectedSolid.has(filter)}
+              onActivate={() =>
+                setSelectedSolid((current) => {
                   const next = new Set(current);
                   if (next.has(filter)) next.delete(filter);
                   else next.add(filter);

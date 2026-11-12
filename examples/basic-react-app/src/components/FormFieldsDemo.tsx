@@ -329,8 +329,8 @@ const form = useForm({ defaultValues: { ... } });
                     control={form.control}
                     helperText="Single selection from radio buttons"
                     options={[
-                      { label: 'Low Priority', value: 'low' },
-                      { label: 'Medium Priority', value: 'medium' },
+                      { label: 'Low Priority', value: 'low', description: 'Handled this week' },
+                      { label: 'Medium Priority', value: 'medium', description: 'Handled today' },
                       { label: 'High Priority', value: 'high' },
                     ]}
                   />
