@@ -91,6 +91,7 @@ import {
   SwitchDemo,
   TabsDemo,
   TextareaDemo,
+  TimelineDemo,
   ToastDemo,
   TooltipDemo,
   TypeMappingDemo,
@@ -143,6 +144,7 @@ type DemoKey =
   | 'tabs'
   | 'accordion'
   | 'progress'
+  | 'timeline'
   | 'dropdown-menu'
   // Component Gallery - Data Display
   | 'address-display'
@@ -254,6 +256,7 @@ const galleryCategories: GalleryCategory[] = [
       { key: 'tabs', label: 'Tabs', icon: <LayoutGrid className="size-4" /> },
       { key: 'accordion', label: 'Accordion', icon: <ListCollapse className="size-4" /> },
       { key: 'progress', label: 'Progress', icon: <Loader2 className="size-4" /> },
+      { key: 'timeline', label: 'Timeline', icon: <List className="size-4" /> },
       { key: 'dropdown-menu', label: 'DropdownMenu', icon: <List className="size-4" /> },
     ],
   },
@@ -344,6 +347,7 @@ const demoComponents: Record<
   tabs: TabsDemo,
   accordion: AccordionDemo,
   progress: ProgressDemo,
+  timeline: TimelineDemo,
   'dropdown-menu': DropdownMenuDemo,
   // Component Gallery - Data Display
   'address-display': AddressDisplayDemo,

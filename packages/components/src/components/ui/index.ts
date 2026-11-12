@@ -47,6 +47,7 @@ export * from './step-marker';
 export * from './switch';
 export * from './tabs';
 export * from './textarea';
+export * from './timeline';
 export * from './tooltip';
 export * from './view-contract-state-button';
 export * from './wizard';

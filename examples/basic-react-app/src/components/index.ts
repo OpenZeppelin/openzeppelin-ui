@@ -30,6 +30,7 @@ export { CardDemo } from './CardDemo';
 export { TabsDemo } from './TabsDemo';
 export { AccordionDemo } from './AccordionDemo';
 export { ProgressDemo } from './ProgressDemo';
+export { TimelineDemo } from './TimelineDemo';
 export { DropdownMenuDemo } from './DropdownMenuDemo';
 
 // Data Display Demos
