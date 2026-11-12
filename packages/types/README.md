@@ -104,6 +104,7 @@ Legacy monolithic `ContractAdapter` types are **not** part of the current public
 ### Form types (`./src/forms`)
 
 - `FieldType`, `FormField`, `RenderFormSchema`, `BuilderFormConfig`, `FieldValidation`, `FormValues`.
+- `FieldValidationMessages` and `FieldValidationCheck`: optional custom error text for the built-in rules (`FieldValidation.messages`) and an optional custom check that runs after them (`FieldValidation.validate`). Kit fields also set the native `required` attribute, so give the `<form>` `noValidate` if `messages.required` should show instead of the browser's own prompt.
 
 ### Network types (`./src/networks`)
 
