@@ -55,7 +55,7 @@ This monorepo utilizes a consistent styling approach driven by the consuming app
 - **Tailwind CSS 4.0**: Using the latest Tailwind features including native cascade layers and OKLCH colors
 - **Direct OKLCH color values**: Variables use OKLCH values directly without nested references for simplicity
 - **Unified theming**: Consistent design tokens across all packages
-- **Dark mode support**: Built-in dark mode with proper variable handling
+- **Dark mode support**: Built-in dark mode with proper variable handling. Dark tokens and `dark:` utilities apply on an element with the `dark` class and on everything inside it
 - **Shadcn/ui integration**: Configured for the new-york style
 
 ## CSS Variables

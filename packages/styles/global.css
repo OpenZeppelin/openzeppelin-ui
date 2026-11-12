@@ -1,4 +1,6 @@
-@custom-variant dark (.dark, .dark *);
+/* `dark:` applies on an element with the `dark` class and on everything inside it.
+   `:where()` keeps dark utilities at the same specificity as their light counterparts. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   /* Base colors */
