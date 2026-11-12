@@ -1,6 +1,13 @@
 import { Plus, X } from 'lucide-react';
 import React from 'react';
-import { Controller, FieldValues, useFieldArray, useFormContext, useWatch } from 'react-hook-form';
+import {
+  Controller,
+  FieldValues,
+  get,
+  useFieldArray,
+  useFormContext,
+  useWatch,
+} from 'react-hook-form';
 
 import { isMapEntryArray, type FieldValidation, type FormFieldType } from '@openzeppelin/ui-types';
 import { getDefaultValueForType } from '@openzeppelin/ui-utils';
@@ -195,14 +202,12 @@ export function MapField<TFieldValues extends FieldValues = FieldValues>({
 
     let childHasError = false;
     for (let i = 0; i < mapArray.length; i++) {
-      const keyPath = `${name}.${i}.key`;
-      const valuePath = `${name}.${i}.value`;
-      const keyError = (formContext.formState.errors as Record<string, { message?: string }>)[
-        keyPath
-      ]?.message;
-      const valueError = (formContext.formState.errors as Record<string, { message?: string }>)[
-        valuePath
-      ]?.message;
+      // RHF nests errors (`errors.map[0].key`), so read by path, not as a flat key.
+      const { errors } = formContext.formState;
+      const keyError = (get(errors, `${name}.${i}.key`) as { message?: string } | undefined)
+        ?.message;
+      const valueError = (get(errors, `${name}.${i}.value`) as { message?: string } | undefined)
+        ?.message;
       if (keyError || valueError) {
         childHasError = true;
         break;

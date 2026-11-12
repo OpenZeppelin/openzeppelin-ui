@@ -225,7 +225,9 @@ describe('SF-36 INV-16 — MapField child-error path uses the required text', ()
     );
   }
 
-  it('today: the child error is held nested by RHF, and the map shows no error for it', async () => {
+  // The effect reads child errors by nested path (`errors.v[0].key`), so a child error on a
+  // required map shows the map's required text.
+  it('a child key error on a required map shows the custom required text', async () => {
     const handle: { api: UseFormReturn<Values> | null } = { api: null };
     render(
       <ChildHost
@@ -239,35 +241,6 @@ describe('SF-36 INV-16 — MapField child-error path uses the required text', ()
     await act(async () => {
       handle.api!.setValue('v', [{ key: 'b', value: '1' }]);
     });
-    const errors = handle.api!.formState.errors as Record<string, unknown>;
-    expect(handle.api!.getFieldState('v.0.key').error?.message).toBe('Bad key');
-    expect(errors['v.0.key']).toBeUndefined(); // the flat key the effect reads
-    expect(
-      (handle.api!.getFieldState('v').error as { message?: string } | undefined)?.message
-    ).toBeUndefined();
+    expect(handle.api!.getFieldState('v').error?.message).toBe('Custom req');
   });
-
-  // Pre-existing: the effect looks child errors up by flat path
-  // (`formState.errors['v.0.key']`), but RHF nests them (`errors.v[0].key`), so the child-error
-  // branch never fires and the map shows no required text for a child error. Identical before
-  // SF-36 (same lookup). Pinned so a fix to the lookup flips it.
-  it.fails(
-    'a child key error on a required map shows the custom required text (fails today: lookup never matches)',
-    async () => {
-      const handle: { api: UseFormReturn<Values> | null } = { api: null };
-      render(
-        <ChildHost
-          handle={handle}
-          validation={{ required: true, messages: { required: 'Custom req' } }}
-        />
-      );
-      await act(async () => {
-        handle.api!.setError('v.0.key', { type: 'manual', message: 'Bad key' });
-      });
-      await act(async () => {
-        handle.api!.setValue('v', [{ key: 'b', value: '1' }]);
-      });
-      expect(handle.api!.getFieldState('v').error?.message).toBe('Custom req');
-    }
-  );
 });
