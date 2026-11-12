@@ -26,6 +26,7 @@ export function NetworkDemo(): React.ReactElement {
   const [isLoading, setIsLoading] = useState(false);
   const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
   const [settingsNetworkId, setSettingsNetworkId] = useState<string | null>(null);
+  const [multiNetworkIds, setMultiNetworkIds] = useState<string[]>([]);
 
   // Get networks from the current ecosystem
   const networks = metadata?.networks ?? [];
@@ -236,6 +237,39 @@ import type { NetworkConfig } from '@openzeppelin/ui-types';
               getEcosystem={(n) => (n.isTestnet ? 'Testnets' : 'Mainnets')}
               placeholder="Select a network..."
             />
+          </div>
+
+          {/* Multiple, with copy overrides: the selectors above keep the default copy */}
+          <div className="space-y-2" data-testid="network-multi-demo">
+            <p className="text-muted-foreground text-sm">
+              Multiple selection with custom copy (<code className="text-xs">placeholder</code>,{' '}
+              <code className="text-xs">searchPlaceholder</code>,{' '}
+              <code className="text-xs">emptyText</code>, count and Clear all text)
+            </p>
+            <NetworkSelector
+              multiple
+              networks={networks}
+              selectedNetworkIds={multiNetworkIds}
+              onSelectionChange={setMultiNetworkIds}
+              getNetworkLabel={(n) => n.name}
+              getNetworkId={(n) => n.id}
+              getNetworkIcon={(n) => <NetworkIcon network={n} size={16} />}
+              placeholder="Pick chains"
+              searchPlaceholder="Filter chains…"
+              searchLabel="Filter chains"
+              emptyText="No chain matches."
+              formatSelectedCount={(n, total) =>
+                n === total ? 'All chains' : `${n} of ${total} chains`
+              }
+              formatSelectionSummary={(n) => `${n} picked`}
+              clearAllLabel="Reset"
+            />
+            <div className="text-muted-foreground text-xs">
+              Selected ids:{' '}
+              <output aria-live="polite" data-testid="network-multi-readout">
+                {multiNetworkIds.join(', ') || 'None'}
+              </output>
+            </div>
           </div>
         </div>
       </div>
