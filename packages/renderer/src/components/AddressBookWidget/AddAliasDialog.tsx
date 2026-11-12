@@ -281,6 +281,7 @@ export function AddAliasDialog({
             <div className="space-y-2">
               <Label htmlFor="alias-network">Network</Label>
               <NetworkSelector
+                id="alias-network"
                 networks={networks}
                 selectedNetwork={selectedNetwork}
                 onSelectNetwork={handleNetworkChange}

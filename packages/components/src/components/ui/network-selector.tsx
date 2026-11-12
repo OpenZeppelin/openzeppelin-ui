@@ -67,6 +67,15 @@ interface NetworkSelectorBaseProps<T> {
   /** Optional label for disabled networks (e.g. "Self-host required") */
   getNetworkDisabledLabel?: (network: T) => string | undefined;
   className?: string;
+  /**
+   * Id for the trigger, so a `<label htmlFor>` can name it. Default: a generated id.
+   * The popup stays labelled by the trigger under whichever id is used.
+   */
+  id?: string;
+  /** Accessible name for the trigger. Use it when there is no visible label. */
+  'aria-label'?: string;
+  /** Id of the element that names the trigger. */
+  'aria-labelledby'?: string;
   /** Trigger text when nothing is selected. Default `'Select Network'`. */
   placeholder?: string;
   /** Search box placeholder. Default `'Search network...'`. */
@@ -133,6 +142,9 @@ export function NetworkSelector<T>({
   isNetworkDisabled,
   getNetworkDisabledLabel,
   className,
+  id,
+  'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledBy,
   placeholder = DEFAULT_PLACEHOLDER,
   searchPlaceholder = DEFAULT_SEARCH_PLACEHOLDER,
   searchLabel = DEFAULT_SEARCH_LABEL,
@@ -153,8 +165,10 @@ export function NetworkSelector<T>({
   const selectedNetwork = !isMultiple ? modeProps.selectedNetwork : undefined;
   const onSelectNetwork = !isMultiple ? modeProps.onSelectNetwork : undefined;
 
-  // INV-4: one id per instance. Every trigger carries it, and the popup is labelled by it.
-  const triggerId = React.useId();
+  // INV-4: one id per instance, the consumer's `id` when given. Every trigger carries it,
+  // and the popup is labelled by it.
+  const generatedId = React.useId();
+  const triggerId = id ?? generatedId;
   const listName = React.useMemo<ListName>(() => ({ 'aria-labelledby': triggerId }), [triggerId]);
 
   // INV-2, INV-7: count is the raw length (stale and duplicate ids included); total is never filtered.
@@ -236,6 +250,8 @@ export function NetworkSelector<T>({
         return (
           <Slot
             id={triggerId}
+            aria-label={ariaLabel}
+            aria-labelledby={ariaLabelledBy}
             aria-haspopup={triggerAria['aria-haspopup']}
             aria-expanded={triggerAria['aria-expanded']}
             aria-controls={triggerAria['aria-controls']}
@@ -246,10 +262,13 @@ export function NetworkSelector<T>({
       }
 
       // INV-2: the pre-rebuild trigger markup. `triggerAria` is spread last, so the core's
-      // combobox ARIA wins over Radix's `aria-haspopup="dialog"`. No name is added.
+      // combobox ARIA wins over Radix's `aria-haspopup="dialog"`. A name is added only when the
+      // consumer passes one (INV-2 stays byte-identical without the new props).
       return (
         <Button
           id={triggerId}
+          aria-label={ariaLabel}
+          aria-labelledby={ariaLabelledBy}
           type="button"
           variant="outline"
           data-slot="network-selector-trigger"
@@ -282,6 +301,8 @@ export function NetworkSelector<T>({
     [
       renderCustomTrigger,
       triggerId,
+      ariaLabel,
+      ariaLabelledBy,
       count,
       total,
       className,
