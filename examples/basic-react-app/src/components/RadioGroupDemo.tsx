@@ -11,6 +11,7 @@ export function RadioGroupDemo(): React.ReactElement {
   const [plan, setPlan] = useState('starter');
   const [priority, setPriority] = useState('normal');
   const [network, setNetwork] = useState('');
+  const [productType, setProductType] = useState('spot');
 
   return (
     <DemoSection
@@ -215,9 +216,44 @@ export function RadioGroupDemo(): React.ReactElement {
         </div>
       </div>
 
-      {/* Card Selection Style */}
+      {/* Card Variant */}
       <div className="space-y-4">
-        <h3 className="text-lg font-medium">Card Selection Style</h3>
+        <h3 className="text-lg font-medium">Card Variant</h3>
+        <RadioGroup
+          variant="card"
+          value={productType}
+          onValueChange={setProductType}
+          aria-label="Product type"
+          className="max-w-md space-y-3"
+        >
+          <RadioGroupItem
+            value="spot"
+            title="Spot"
+            description="Buy and sell assets at the current market price."
+          />
+          <RadioGroupItem
+            value="futures"
+            title="Futures"
+            description="Trade contracts that settle at a later date."
+          />
+          <RadioGroupItem
+            value="options"
+            title="Options"
+            description="Not available in your region."
+            disabled
+          />
+        </RadioGroup>
+        <p className="text-muted-foreground text-sm">
+          Selected:{' '}
+          <span className="text-foreground font-medium" data-testid="radio-card-readout">
+            {productType}
+          </span>
+        </p>
+      </div>
+
+      {/* Custom Card Selection Style */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Custom Card Selection Style</h3>
         <RadioGroup defaultValue="monthly" className="grid grid-cols-2 gap-4 max-w-md">
           <Label
             htmlFor="card-monthly"
