@@ -18,7 +18,7 @@ interface AmountExactEntryValues {
  * (`formatOnBlur={false}`, `allowGrouping`), on their own small form so the submitted
  * payload shows every digit each field hands to the form.
  *
- * The `data-testid`s are stable hooks for the SF-10 browser precision check. AmountField
+ * The `data-testid`s are stable hooks for the browser precision check. AmountField
  * does not forward arbitrary attributes, so the field ids sit on wrapper elements.
  */
 export function AmountExactEntryDemo(): React.ReactElement {
