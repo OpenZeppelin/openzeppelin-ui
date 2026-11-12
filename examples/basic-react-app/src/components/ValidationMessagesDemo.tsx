@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import {
   AmountField,
   Button,
+  MapField,
   SearchableMultiSelectField,
   TextField,
 } from '@openzeppelin/ui-components';
@@ -16,6 +17,7 @@ interface ValidationMessagesValues {
   amount: string;
   countries: string[];
   defaultName: string;
+  limits: Array<{ key: string; value: string }>;
 }
 
 interface Country {
@@ -70,6 +72,22 @@ const COUNTRIES_VALIDATION: FieldValidation = {
     Array.isArray(value) && value.includes('DE') ? 'Germany is not available yet' : true,
 };
 
+const LIMITS_VALIDATION: FieldValidation = {
+  required: true,
+  messages: { required: 'Add at least one limit' },
+};
+
+const LIMIT_KEY_VALIDATION: FieldValidation = {
+  required: true,
+  pattern: /^[a-z][a-z0-9_]*$/,
+  messages: {
+    required: 'Enter a limit name',
+    pattern: 'Use lowercase letters, digits and underscores, starting with a letter',
+  },
+  validate: (value) =>
+    typeof value === 'string' && RESERVED_NAMES.has(value) ? 'That limit name is reserved' : true,
+};
+
 /**
  * ValidationMessagesDemo - custom messages and a custom check on `FieldValidation`,
  * next to a field with neither, on one small form.
@@ -86,7 +104,13 @@ export function ValidationMessagesDemo(): React.ReactElement {
   const [submitCount, setSubmitCount] = useState(0);
 
   const form = useForm<ValidationMessagesValues>({
-    defaultValues: { displayName: '', amount: '', countries: [], defaultName: '' },
+    defaultValues: {
+      displayName: '',
+      amount: '',
+      countries: [],
+      defaultName: '',
+      limits: [],
+    },
     mode: 'onTouched',
   });
 
@@ -102,7 +126,7 @@ export function ValidationMessagesDemo(): React.ReactElement {
           Validation messages
         </h3>
         <p className="text-muted-foreground text-sm">
-          The first three fields set custom messages and a custom check in <code>validation</code>.
+          The first four fields set custom messages and a custom check in <code>validation</code>.
           Leave them empty, break each rule, then fix them and submit. The last field sets no
           messages and shows the default wording.
         </p>
@@ -158,6 +182,38 @@ export function ValidationMessagesDemo(): React.ReactElement {
             validateSelection={(ids) => ids.length <= 3 || 'Pick at most three countries'}
             validation={COUNTRIES_VALIDATION}
           />
+
+          <div data-testid="vm-limits-field">
+            <MapField
+              id="vmLimits"
+              name="limits"
+              label="Limits"
+              control={form.control}
+              helperText='Name each limit in lowercase. "admin" and "root" are reserved.'
+              validation={LIMITS_VALIDATION}
+              renderKeyField={(field, index) => (
+                <TextField
+                  key={`key-${index}`}
+                  id={field.id}
+                  name={`limits.${index}.key` as `limits.${number}.key`}
+                  label=""
+                  control={form.control}
+                  placeholder="Limit name"
+                  validation={LIMIT_KEY_VALIDATION}
+                />
+              )}
+              renderValueField={(field, index) => (
+                <TextField
+                  key={`value-${index}`}
+                  id={field.id}
+                  name={`limits.${index}.value` as `limits.${number}.value`}
+                  label=""
+                  control={form.control}
+                  placeholder="Value"
+                />
+              )}
+            />
+          </div>
 
           <TextField
             id="vmDefaultName"
