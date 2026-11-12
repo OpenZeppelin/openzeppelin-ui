@@ -192,12 +192,23 @@ test('scenario 4: readonly save keeps focus, blocks edits, and submits every val
   const todayPayload = JSON.parse(await page.getByTestId('readonly-save-payload').innerText());
   expect(Object.keys(todayPayload)).toStrictEqual(['cap', 'role']);
   expect(todayPayload.role).toBe('operator');
+  // 006 SF-3: the notes textarea is locked like the other text fields: a forced click and
+  // typing reach neither the control nor focus.
+  const notes = page.locator('#roNotes');
+  await expect(notes).toBeDisabled();
+  await notes.click({ force: true });
+  await page.keyboard.type('x');
+  await expect(notes).toHaveValue('Multisig for protocol fees.');
+  expect(await page.evaluate(() => document.activeElement?.tagName)).toBe('BODY');
   await setTheme(page, 'light');
   await shot(demo, 'demo-disabled-saving.light.png');
   await setTheme(page, 'dark');
   await shot(demo, 'demo-disabled-saving.dark.png');
   await setTheme(page, 'light');
   await page.getByTestId('readonly-save-finish').click();
+  // 006 SF-3: after the save the notes textarea is editable again, with the same text.
+  await expect(notes).toBeEnabled();
+  await expect(notes).toHaveValue('Multisig for protocol fees.');
   await page.getByTestId('readonly-save-mode-readonly').click();
 
   evidence.scenario4 = {
