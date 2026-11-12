@@ -84,6 +84,11 @@ jobs:
       - name: Type check all packages
         run: pnpm typecheck
 
+      # The main type check excludes test files, so each suite with type fixtures has its
+      # own tsconfig.*-tests.json. This runs all of them and names any that fail.
+      - name: Type check component suites
+        run: pnpm --filter @openzeppelin/ui-components typecheck:suites
+
       - name: Test
         run: pnpm test
 
