@@ -1,6 +1,16 @@
 import { useState } from 'react';
 
-import { Label, SearchableMultiSelect } from '@openzeppelin/ui-components';
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  Label,
+  SearchableMultiSelect,
+} from '@openzeppelin/ui-components';
 
 import { DemoSection } from './DemoSection';
 
@@ -62,11 +72,13 @@ const formatCountrySummary = (count: number): string => `${count} chosen`;
 
 /**
  * Demonstrates SearchableMultiSelect: a country allow-list with custom copy and
- * a live selection readout, the generic defaults, and the disabled state.
+ * a live selection readout, the generic defaults, the disabled state, and the
+ * list opened inside a Dialog (a nested layer: one Escape closes one layer).
  */
 export function SearchableMultiSelectDemo(): React.ReactElement {
   const [allowed, setAllowed] = useState<string[]>([]);
   const [plain, setPlain] = useState<string[]>([]);
+  const [inDialog, setInDialog] = useState<string[]>([]);
 
   return (
     <DemoSection
@@ -153,6 +165,48 @@ const [allowed, setAllowed] = useState<string[]>([]);
             onSelectionChange={() => {}}
             disabled
           />
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Inside a dialog</h3>
+        <div className="max-w-sm space-y-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline">Edit items in a dialog</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit items</DialogTitle>
+                <DialogDescription>
+                  The list opens on top of this dialog. Escape closes the list first, then the
+                  dialog.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-2">
+                <Label id="sms-dialog-label">Items</Label>
+                <SearchableMultiSelect
+                  aria-labelledby="sms-dialog-label"
+                  items={COUNTRIES}
+                  getItemId={getCountryId}
+                  getItemLabel={getCountryLabel}
+                  filterItem={filterCountry}
+                  selectedIds={inDialog}
+                  onSelectionChange={setInDialog}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
+          <p className="text-muted-foreground text-sm">
+            Selected ids:{' '}
+            <output
+              aria-live="polite"
+              data-testid="sms-dialog-readout"
+              className="text-foreground font-mono"
+            >
+              {inDialog.length > 0 ? inDialog.join(', ') : 'None'}
+            </output>
+          </p>
         </div>
       </div>
     </DemoSection>
