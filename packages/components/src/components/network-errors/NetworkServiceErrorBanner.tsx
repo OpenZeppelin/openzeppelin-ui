@@ -62,8 +62,11 @@ export function NetworkServiceErrorBanner({
     : `This could be due to network congestion, rate limiting, or the service being temporarily down.`;
 
   return (
-    <Alert variant="destructive" className="border-red-500/50 bg-red-50 dark:bg-red-950/20">
-      <CloudOff className="h-4 w-4 text-red-600 dark:text-red-400" />
+    <Alert
+      variant="destructive"
+      className="border-red-500/50 bg-red-50 dark:bg-red-950/20 dark:[&>svg]:text-red-400"
+    >
+      <CloudOff className="h-4 w-4 text-red-600" />
       <AlertTitle className="text-red-900 dark:text-red-100">{title || defaultTitle}</AlertTitle>
       <AlertDescription className="text-red-800 dark:text-red-200">
         <p className="mb-2">
@@ -76,7 +79,7 @@ export function NetworkServiceErrorBanner({
             onClick={handleOpenSettings}
             variant="default"
             size="sm"
-            className="bg-red-600 hover:bg-red-700 text-white dark:bg-red-500 dark:hover:bg-red-600"
+            className="bg-red-600 hover:bg-red-700 text-white"
           >
             <Settings className="mr-2 h-4 w-4" />
             Configure {serviceName} Settings
