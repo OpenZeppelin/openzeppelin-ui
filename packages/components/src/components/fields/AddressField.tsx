@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { FieldValues, useController, useFormState, useWatch } from 'react-hook-form';
 
 import type { AddressingCapability, AddressSuggestion } from '@openzeppelin/ui-types';
@@ -91,7 +91,18 @@ export interface AddressFieldProps<TFieldValues extends FieldValues = FieldValue
    * without a resolver the announcer cell is empty and no `min-h-5` is reserved.
    */
   announcerEndSlot?: React.ReactNode;
+
+  /**
+   * Optional element rendered inside the end of the input (e.g. a paste or
+   * address-book button). Distinct from `announcerEndSlot`, which sits below the
+   * input. The input reserves end padding equal to the slot's measured width so
+   * typed text never runs under it. Absent → the field renders exactly as before.
+   */
+  inputEnd?: React.ReactNode;
 }
+
+/** Gap between the input-end slot and the input's right edge / the text, in px. */
+const INPUT_END_INSET_PX = 4;
 
 /**
  * Non-user-facing gate string returned by the sync validator while a typed name
@@ -177,6 +188,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   showCrossNetworkFallbackDisclaimer = true,
   showForwardResolutionSuccessAnnouncer = true,
   announcerEndSlot,
+  inputEnd,
 }: AddressFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
@@ -555,6 +567,24 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   };
 
   const hasAnnouncerEndSlot = announcerEndSlot != null;
+  const hasInputEnd = inputEnd != null;
+  const inputEndRef = useRef<HTMLDivElement>(null);
+  const [inputEndWidth, setInputEndWidth] = useState(0);
+
+  // Reserve end padding equal to the slot's width so text clears the button.
+  useLayoutEffect(() => {
+    const el = inputEndRef.current;
+    if (!hasInputEnd || !el) {
+      setInputEndWidth(0);
+      return;
+    }
+    const measure = () => setInputEndWidth(el.offsetWidth);
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasInputEnd]);
   const showResolutionAnnouncer = resolver !== null || hasAnnouncerEndSlot;
   const includeResolutionInDescribedBy = resolver !== null || hasAnnouncerEndSlot;
 
@@ -592,6 +622,11 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
         id={id}
         placeholder={placeholder || (resolver !== null ? '0x... or name' : '0x...')}
         className={validationClasses}
+        style={
+          hasInputEnd && inputEndWidth > 0
+            ? { paddingRight: inputEndWidth + INPUT_END_INSET_PX * 2 }
+            : undefined
+        }
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         data-slot="input"
@@ -617,6 +652,17 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
         }
         disabled={readOnly}
       />
+
+      {hasInputEnd && (
+        <div
+          ref={inputEndRef}
+          data-slot="address-field-input-end"
+          className="absolute top-1/2 flex -translate-y-1/2 items-center"
+          style={{ right: INPUT_END_INSET_PX }}
+        >
+          {inputEnd}
+        </div>
+      )}
 
       {hasSuggestions && (
         <AddressSuggestionList
