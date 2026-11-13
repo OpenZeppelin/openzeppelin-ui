@@ -38,7 +38,7 @@ const getCountryLabel = (country: Country): string => country.name;
  * `onTouched` mode on purpose: opening the picker must not flash the required error.
  * The Read-only toggle shows `readOnlyMode="readonly"`: the trigger stays focusable, the list does
  * not open, and the picked ids stay in the payload.
- * The `data-testid`s are stable hooks for the SF-16 browser check.
+ * The `data-testid`s are stable hooks for browser checks against the running app.
  */
 export function SearchableMultiSelectFieldDemo(): React.ReactElement {
   const [submitted, setSubmitted] = useState<SearchableMultiSelectFieldValues | null>(null);

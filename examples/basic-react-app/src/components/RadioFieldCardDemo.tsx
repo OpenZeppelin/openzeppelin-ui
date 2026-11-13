@@ -13,7 +13,7 @@ interface RadioFieldCardValues {
  * RadioFieldCardDemo - a required RadioField in the `card` variant with described options, on its
  * own small form so the submitted payload shows what the field hands to the form.
  *
- * The `data-testid`s are stable hooks for the SF-25 browser check.
+ * The `data-testid`s are stable hooks for browser checks against the running app.
  */
 export function RadioFieldCardDemo(): React.ReactElement {
   const [submitted, setSubmitted] = useState<RadioFieldCardValues | null>(null);

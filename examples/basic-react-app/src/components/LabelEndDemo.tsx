@@ -17,7 +17,7 @@ interface LabelEndValues {
  * Both sit beside the label, so each input's accessible name stays its label text and a click on
  * the label text still focuses the input.
  *
- * The `data-testid`s are stable hooks for the SF-18 running-app check.
+ * The `data-testid`s are stable hooks for browser checks against the running app.
  */
 export function LabelEndDemo(): React.ReactElement {
   const { capabilities, sampleAddresses } = useEcosystem();
