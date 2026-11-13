@@ -26,7 +26,7 @@ const SelectTrigger = React.forwardRef<
     data-slot="select-trigger"
     className={cn(
       'border-input bg-background placeholder:text-muted-foreground flex h-10 w-full items-center justify-between rounded-md border px-3 py-2 text-sm focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
-      // SF-20 INV-4 / INV-5: the read-only look (SF-19's tokens), only on `[data-readonly]:not(:disabled)`.
+      // The read-only look (the input tokens), only on `[data-readonly]:not(:disabled)`.
       'data-readonly:not-disabled:bg-muted data-readonly:not-disabled:text-foreground data-readonly:not-disabled:opacity-100 data-readonly:not-disabled:cursor-default',
       className
     )}

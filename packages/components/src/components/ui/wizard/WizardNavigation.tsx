@@ -119,13 +119,13 @@ export function WizardNavigation({
     lastStepSecondaryLabel !== '' &&
     onLastStepSecondary != null;
 
-  // `undefined` keeps today's icon; `null` / `false` mean no icon (INV-3).
+  // `undefined` keeps today's icon; `null` / `false` mean no icon.
   const resolvedPrimaryIcon =
     primaryIcon === undefined ? !isLastStep && <ChevronRight className="size-4" /> : primaryIcon;
 
   // Keyboard activation of a <button> (Enter, Space) dispatches `click`, so these
   // guards block pointer, keyboard and programmatic activation alike. Blocked
-  // activations are dropped, not queued (INV-11, INV-13).
+  // activations are dropped, not queued.
   const handlePrevious = (event: MouseEvent<HTMLButtonElement>) => {
     if (previousDisabled) return;
     onPrevious(event);
@@ -150,8 +150,8 @@ export function WizardNavigation({
             type="button"
             variant="outline"
             onClick={handlePrevious}
-            // `aria-disabled`, not native `disabled`, keeps focus on Back (INV-21).
-            // Omitted when off so the default markup is unchanged (INV-1, INV-6).
+            // `aria-disabled`, not native `disabled`, keeps focus on Back.
+            // Omitted when off so the default markup is unchanged.
             aria-disabled={previousDisabled || undefined}
             // Icon-only Back: the chevron is aria-hidden, so the button needs its own name.
             aria-label={previousLabel.trim() === '' ? 'Previous' : undefined}
@@ -176,7 +176,7 @@ export function WizardNavigation({
             {lastStepSecondaryLabel}
           </Button>
         )}
-        {/* One stable node in every state, so focus survives pending and step changes (INV-17). */}
+        {/* One stable node in every state, so focus survives pending and step changes. */}
         {showPrimary && (
           <Button
             type="button"
@@ -186,7 +186,7 @@ export function WizardNavigation({
             aria-busy={primaryLoading || undefined}
             className={cn('gap-2', primaryLoading && BLOCKED_LOOK)}
           >
-            {/* Decorative: the label stays the accessible name; busy state is aria-busy (INV-4, INV-23). */}
+            {/* Decorative: the label stays the accessible name; busy state is aria-busy. */}
             {primaryLoading && <Spinner />}
             {isLastStep ? lastStepLabel : nextLabel}
             {resolvedPrimaryIcon}

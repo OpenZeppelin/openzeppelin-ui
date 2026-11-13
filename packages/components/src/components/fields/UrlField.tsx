@@ -95,7 +95,7 @@ export function UrlField<TFieldValues extends FieldValues = FieldValues>({
 
           // Add keyboard accessibility for clearing the field with Escape
           const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-            // INV-12: no Escape-clear (and no preventDefault) in readonly mode.
+            // No Escape-clear (and no preventDefault) in readonly mode.
             if (e.key === 'Escape' && !ro.isFocusableReadOnly) {
               handleEscapeKey(field.onChange, field.value)(e);
 

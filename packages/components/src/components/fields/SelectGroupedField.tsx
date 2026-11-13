@@ -166,7 +166,7 @@ export function SelectGroupedField<TFieldValues extends FieldValues = FieldValue
           };
 
           // Keep the Root controlled ('' shows the placeholder, like `undefined`): with `undefined`
-          // Radix Select logs an uncontrolled-to-controlled warning on the first pick (SF-32), and
+          // Radix Select logs an uncontrolled-to-controlled warning on the first pick, and
           // a form value reset to empty would leave the last picked label on screen.
           const rootValue = field.value ?? '';
 

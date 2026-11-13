@@ -1,5 +1,5 @@
 /**
- * 006 SF-5 INV-2 baseline: `LoadingButton` exactly as it was before SF-5
+ * Baseline: `LoadingButton` exactly as it was before loading stopped setting native `disabled`
  * (`git show 8424e7228:packages/components/src/components/ui/loading-button.tsx`), with only
  * the component and props renamed. Loading set native `disabled` here. Test fixture only;
  * never exported from the package.

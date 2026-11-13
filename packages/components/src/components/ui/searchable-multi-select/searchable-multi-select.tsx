@@ -1,8 +1,8 @@
 /**
- * SearchableMultiSelect (SF-15): the public multi-select over the internal
+ * SearchableMultiSelect: the public multi-select over the internal
  * {@link SearchableSelectCore}. Adds the selection-order rule, the default
  * trigger, the selection summary row, copy defaults and the narrow trigger
- * pass-throughs a form field needs (SF-16).
+ * pass-throughs a form field needs.
  */
 import { ChevronDown } from 'lucide-react';
 import * as React from 'react';
@@ -20,7 +20,7 @@ import {
 const IS_DEV = process.env.NODE_ENV !== 'production';
 const DIAGNOSTIC_SYSTEM = 'SearchableMultiSelect';
 
-// INV-6: the only kit-authored copy. Every string is overridable.
+// The only kit-authored copy. Every string is overridable.
 const DEFAULT_PLACEHOLDER = 'Select items';
 const DEFAULT_SEARCH_PLACEHOLDER = 'Search...';
 const DEFAULT_SEARCH_LABEL = 'Search';
@@ -162,24 +162,24 @@ export function SearchableMultiSelect<T>({
   'aria-invalid': ariaInvalid,
   'aria-required': ariaRequired,
 }: SearchableMultiSelectProps<T>): React.ReactElement {
-  // INV-9: selection is read from the prop on every render; the kit keeps no copy.
+  // Selection is read from the prop on every render; the kit keeps no copy.
   const selectedSet = React.useMemo(() => new Set(selectedIds), [selectedIds]);
   const isSelected = React.useCallback(
     (item: T) => selectedSet.has(getItemId(item)),
     [selectedSet, getItemId]
   );
 
-  // INV-10, INV-11: one emit per activation, by the selection-order rule.
+  // One emit per activation, by the selection-order rule.
   const handleActivate = React.useCallback(
     (item: T) => onSelectionChange(toggleId(selectedIds, getItemId(item))),
     [onSelectionChange, selectedIds, getItemId]
   );
 
-  // INV-6: count is the raw length (stale and duplicate ids included); total is never the filtered length.
+  // Count is the raw length (stale and duplicate ids included); total is never the filtered length.
   const count = selectedIds.length;
   const total = items.length;
 
-  // INV-17: labelledby wins; without either, the listbox and dialog fall back to the placeholder.
+  // Labelledby wins; without either, the listbox and dialog fall back to the placeholder.
   // The trigger never gets a copy-derived aria-label, which would hide the count text (its value).
   const listName: ListName = ariaLabelledBy
     ? { 'aria-labelledby': ariaLabelledBy }
@@ -236,7 +236,7 @@ export function SearchableMultiSelect<T>({
     </Button>
   );
 
-  // INV-5: the core always renders the row; it shows text and Clear all only with a selection.
+  // The core always renders the row; it shows text and Clear all only with a selection.
   const selectionSummary: SelectionSummary = {
     count,
     text: count > 0 ? formatSelectionSummary(count, total) : '',
@@ -285,8 +285,8 @@ export function SearchableMultiSelect<T>({
 }
 
 /**
- * INV-13, INV-17, INV-18: dev-only warnings, at most once each per instance, never thrown.
- * Runs in an effect, so it never adds accessor calls to navigation renders (INV-35).
+ * Dev-only warnings, at most once each per instance, never thrown.
+ * Runs in an effect, so it never adds accessor calls to navigation renders.
  */
 function useDevDiagnostics<T>(
   items: readonly T[],

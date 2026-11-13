@@ -1,5 +1,5 @@
 /**
- * Internal helper for the focusable read-only mode (SF-19).
+ * Internal helper for the focusable read-only mode.
  *
  * Imported by path from the fields that support `readOnlyMode`. Deliberately NOT
  * re-exported from `./index.ts`: `fields/index.ts` re-exports `utils/*`, so adding
@@ -37,13 +37,13 @@ export interface ReadOnlyControlProps {
  *
  * Pure (no hooks), so it is safe in any render branch. The mode comparison is strict: any value
  * other than `'readonly'`, including unknown strings from JS callers, behaves as `'disabled'`
- * (fails closed to today's behaviour). INV-6.
+ * (fails closed to today's behaviour).
  */
 export function getReadOnlyState(
   readOnly: boolean | undefined,
   mode: ReadOnlyMode = 'disabled'
 ): ReadOnlyState {
-  // INV-6 / INV-1: anything but the exact opt-in keeps today's values, `undefined` included.
+  // Anything but the exact opt-in keeps today's values, `undefined` included.
   if (mode !== 'readonly') {
     return {
       controllerDisabled: readOnly,
@@ -52,12 +52,12 @@ export function getReadOnlyState(
     };
   }
 
-  // INV-8: readonly mode never registers the field as disabled with RHF.
+  // Readonly mode never registers the field as disabled with RHF.
   if (readOnly === true) {
     return {
       controllerDisabled: false,
       isFocusableReadOnly: true,
-      // INV-2: native readonly + the data attribute the base Input/Textarea look keys on.
+      // Native readonly + the data attribute the base Input/Textarea look keys on.
       controlProps: { disabled: false, readOnly: true, 'data-readonly': '' },
     };
   }

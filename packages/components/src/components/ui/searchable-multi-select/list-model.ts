@@ -1,9 +1,9 @@
 /**
- * Pure list model for the searchable select core (SF-15). No React.
+ * Pure list model for the searchable select core. No React.
  *
  * Turns `items` + `query` into the rendered option groups and the flat
  * keyboard order, and provides the enabled-option navigation helpers.
- * Internal: not exported from the package barrel (INV-7).
+ * Internal: not exported from the package barrel.
  */
 
 /** One rendered option. */
@@ -13,7 +13,7 @@ export interface ListOption<T> {
   readonly id: string;
   /** `getItemLabel(item)`. */
   readonly label: string;
-  /** Index in `items`. Drives the DOM id, so it is stable across filtering (INV-4). */
+  /** Index in `items`. Drives the DOM id, so it is stable across filtering. */
   readonly sourceIndex: number;
   readonly disabled: boolean;
 }
@@ -28,7 +28,7 @@ export interface ListGroup<T> {
 /** The filtered, grouped list and its keyboard order. */
 export interface ListModel<T> {
   readonly groups: readonly ListGroup<T>[];
-  /** Groups concatenated: both DOM order and keyboard order (INV-21). */
+  /** Groups concatenated: both DOM order and keyboard order. */
   readonly flat: readonly ListOption<T>[];
 }
 
@@ -45,7 +45,7 @@ export interface ListModelInput<T> {
 
 /**
  * Default match: case-insensitive, literal substring of the label. The query is
- * never trimmed and never treated as a pattern (INV-19).
+ * never trimmed and never treated as a pattern.
  */
 function defaultMatches(label: string, query: string): boolean {
   return label.toLowerCase().includes(query.toLowerCase());
@@ -54,10 +54,10 @@ function defaultMatches(label: string, query: string): boolean {
 /**
  * Filter, group and order `items` for the current query.
  *
- * - Empty query keeps every item and never calls `filterItem` (INV-19).
+ * - Empty query keeps every item and never calls `filterItem`.
  * - A non-empty query goes to `filterItem` exactly as typed, else the default match.
  * - Groups appear in the order of their first surviving item; items keep source
- *   order inside a group; empty groups are never produced (INV-21).
+ *   order inside a group; empty groups are never produced.
  *
  * Pure: mutates nothing and returns a fresh model.
  */
@@ -101,14 +101,14 @@ export function buildListModel<T>(input: ListModelInput<T>): ListModel<T> {
   return { groups, flat: groups.flatMap((group) => group.options) };
 }
 
-/** Index of the first enabled option in `flat`, or `-1` if none is enabled (INV-22, INV-26). */
+/** Index of the first enabled option in `flat`, or `-1` if none is enabled. */
 export function firstEnabledIndex<T>(flat: readonly ListOption<T>[]): number {
   return flat.findIndex((option) => !option.disabled);
 }
 
 /**
  * The next (`step = 1`) or previous (`step = -1`) enabled index from `from`,
- * wrapping at both ends and skipping disabled options (INV-27).
+ * wrapping at both ends and skipping disabled options.
  *
  * Returns `-1` when no option is enabled, and `from` itself when it is the only
  * enabled option. A `from` of `-1` starts from the first (down) or last (up) slot.
@@ -129,7 +129,7 @@ export function stepEnabledIndex<T>(
 }
 
 /**
- * The selection-order rule (INV-10). Always returns a new array:
+ * The selection-order rule. Always returns a new array:
  * - `id` not in `prev` → appended at the end.
  * - `id` in `prev` → every copy removed; other ids keep their positions.
  *

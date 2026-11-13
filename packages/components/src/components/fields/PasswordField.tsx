@@ -139,7 +139,7 @@ export function PasswordField<TFieldValues extends FieldValues = FieldValues>({
 
           // Handle keyboard events
           const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-            // INV-12: no Escape-clear (and no preventDefault) in readonly mode.
+            // No Escape-clear (and no preventDefault) in readonly mode.
             if (e.key === 'Escape' && !ro.isFocusableReadOnly) {
               handleEscapeKey(field.onChange, field.value)(e);
 
@@ -175,7 +175,7 @@ export function PasswordField<TFieldValues extends FieldValues = FieldValues>({
                   {...accessibilityProps}
                   {...ro.controlProps}
                 />
-                {/* INV-18: revealing is a read, so the toggle stays in readonly mode (unmounting
+                {/* Revealing is a read, so the toggle stays in readonly mode (unmounting
                     it while focused would drop focus); default-mode readOnly hides it as today. */}
                 {showToggle && !(readOnly && !ro.isFocusableReadOnly) && (
                   <Button

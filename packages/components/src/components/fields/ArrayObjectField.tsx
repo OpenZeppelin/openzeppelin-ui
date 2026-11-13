@@ -198,7 +198,7 @@ export function ArrayObjectField<TFieldValues extends FieldValues = FieldValues>
           if (maxItems && Array.isArray(value) && value.length > maxItems) {
             return `Maximum ${maxItems} item${maxItems > 1 ? 's' : ''} allowed`;
           }
-          // An empty optional value passes; the custom check never sees one (INV-9).
+          // An empty optional value passes; the custom check never sees one.
           if (isEmpty) return true;
           return runCustomCheck(value, validation);
         },
