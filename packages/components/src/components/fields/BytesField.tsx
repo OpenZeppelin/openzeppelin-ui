@@ -3,21 +3,28 @@ import { Controller, FieldValues } from 'react-hook-form';
 
 import { validateBytesSimple } from '@openzeppelin/ui-utils';
 
+import { FieldLabelRow } from './utils/FieldLabelRow';
+import { getReadOnlyState } from './utils/readOnlyState';
+
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
+  runCustomCheck,
 } from './utils';
 
 /**
  * BytesField component properties
  */
 export interface BytesFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    ReadOnlyModeProps,
+    LabelEndProps {
   /**
    * Number of rows for the textarea
    */
@@ -76,6 +83,7 @@ export interface BytesFieldProps<TFieldValues extends FieldValues = FieldValues>
 export function BytesField<TFieldValues extends FieldValues = FieldValues>({
   id,
   label,
+  labelEnd,
   helperText,
   control,
   name,
@@ -89,10 +97,12 @@ export function BytesField<TFieldValues extends FieldValues = FieldValues>({
   autoPrefix = false,
   allowHexPrefix = true,
   readOnly,
+  readOnlyMode,
 }: BytesFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
+  const ro = getReadOnlyState(readOnly, readOnlyMode);
 
   /**
    * Validates bytes input format and encoding using validator.js
@@ -128,24 +138,27 @@ export function BytesField<TFieldValues extends FieldValues = FieldValues>({
       className={`flex flex-col gap-2 ${width === 'full' ? 'w-full' : width === 'half' ? 'w-1/2' : 'w-1/3'}`}
     >
       {label && (
-        <Label htmlFor={id}>
-          {label} {isRequired && <span className="text-destructive">*</span>}
-        </Label>
+        <FieldLabelRow labelEnd={labelEnd}>
+          <Label htmlFor={id}>
+            {label} {isRequired && <span className="text-destructive">*</span>}
+          </Label>
+        </FieldLabelRow>
       )}
 
       <Controller
         control={control}
         name={name}
-        disabled={readOnly}
+        disabled={ro.controllerDisabled}
         rules={{
           validate: (value) => {
             // Handle required validation explicitly
             if (value === undefined || value === null || value === '') {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
 
             // Run bytes-specific validation using validator.js
-            return validateBytesField(value);
+            const bytesResult = validateBytesField(value);
+            return bytesResult === true ? runCustomCheck(value, validation) : bytesResult;
           },
         }}
         render={({ field, fieldState: { error, isTouched } }) => {
@@ -158,7 +171,9 @@ export function BytesField<TFieldValues extends FieldValues = FieldValues>({
             id,
             hasError,
             isRequired,
-            isDisabled: readOnly,
+            // Same value as today in default mode; readonly mode keeps tabIndex 0 (INV-7).
+            isDisabled: !!ro.controllerDisabled,
+            isReadOnly: ro.isFocusableReadOnly,
             hasHelperText: !!helperText,
           });
 
@@ -171,22 +186,29 @@ export function BytesField<TFieldValues extends FieldValues = FieldValues>({
                 placeholder={placeholder}
                 rows={rows}
                 className={validationClasses}
-                disabled={readOnly}
+                // Where `disabled={readOnly}` sat, so default mode stays byte-identical (INV-1).
+                // The accessibility props spread later agree with it in every mode (INV-7).
+                {...ro.controlProps}
                 value={field.value ?? ''}
                 onChange={(e) => {
                   // Only update value without formatting for better performance
                   field.onChange(e.target.value);
                 }}
                 onBlur={(e) => {
-                  // Apply formatting on blur when user finishes typing
-                  const formatted = formatValue(e.target.value);
-                  field.onChange(formatted);
+                  // Apply formatting on blur when user finishes typing.
+                  // INV-14: never in readonly mode; blur still marks touched below.
+                  if (!ro.isFocusableReadOnly) {
+                    const formatted = formatValue(e.target.value);
+                    field.onChange(formatted);
+                  }
                   // Register field as touched with React Hook Form
                   field.onBlur();
                 }}
-                onKeyDown={handleEscapeKey(field.onChange, field.value)}
+                onKeyDown={
+                  // INV-12: no Escape-clear (and no preventDefault) in readonly mode.
+                  ro.isFocusableReadOnly ? undefined : handleEscapeKey(field.onChange, field.value)
+                }
                 {...accessibilityProps}
-                aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`.trim()}
               />
 
               {/* Display helper text with format hint */}

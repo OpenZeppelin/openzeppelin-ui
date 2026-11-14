@@ -28,9 +28,15 @@ import {
 } from '@openzeppelin/ui-components';
 
 import { useEcosystem } from '../context';
+import { AmountExactEntryDemo } from './AmountExactEntryDemo';
 import { CodeBlock } from './CodeBlock';
 import { DemoSection } from './DemoSection';
 import { EcosystemIndicator } from './EcosystemIndicator';
+import { LabelEndDemo } from './LabelEndDemo';
+import { RadioFieldCardDemo } from './RadioFieldCardDemo';
+import { ReadOnlySaveDemo } from './ReadOnlySaveDemo';
+import { SearchableMultiSelectFieldDemo } from './SearchableMultiSelectFieldDemo';
+import { ValidationMessagesDemo } from './ValidationMessagesDemo';
 
 // Form data interface with all field types
 interface FormFieldsData {
@@ -272,12 +278,24 @@ const form = useForm({ defaultValues: { ... } });
                     control={form.control}
                     placeholder="Select an option..."
                     helperText="Dropdown selection from options"
+                    validation={{ required: true }}
                     options={[
                       { label: 'Option A', value: 'a' },
                       { label: 'Option B', value: 'b' },
                       { label: 'Option C', value: 'c' },
                     ]}
                   />
+
+                  <div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      data-testid="focus-select-field"
+                      onClick={() => form.setFocus('selectField')}
+                    >
+                      Focus Select Field
+                    </Button>
+                  </div>
 
                   <SelectGroupedField
                     id="selectGroupedField"
@@ -311,8 +329,8 @@ const form = useForm({ defaultValues: { ... } });
                     control={form.control}
                     helperText="Single selection from radio buttons"
                     options={[
-                      { label: 'Low Priority', value: 'low' },
-                      { label: 'Medium Priority', value: 'medium' },
+                      { label: 'Low Priority', value: 'low', description: 'Handled this week' },
+                      { label: 'Medium Priority', value: 'medium', description: 'Handled today' },
                       { label: 'High Priority', value: 'high' },
                     ]}
                   />
@@ -486,6 +504,13 @@ const form = useForm({ defaultValues: { ... } });
           />
         </div>
       )}
+
+      <AmountExactEntryDemo />
+      <RadioFieldCardDemo />
+      <SearchableMultiSelectFieldDemo />
+      <ValidationMessagesDemo />
+      <ReadOnlySaveDemo />
+      <LabelEndDemo />
     </DemoSection>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { FieldValues, useController, useFormState, useWatch } from 'react-hook-form';
 
 import type { AddressingCapability, AddressSuggestion } from '@openzeppelin/ui-types';
@@ -23,20 +23,26 @@ import {
 } from './name-resolution/useInjectedNameResolution';
 import { useNameResolver } from './name-resolution/useNameResolver';
 import { useResolvingAnnouncerCopy } from './name-resolution/useResolvingAnnouncerCopy';
+import { FieldLabelRow } from './utils/FieldLabelRow';
+import { getReadOnlyState } from './utils/readOnlyState';
 
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
+  runCustomCheck,
   validateField,
 } from './utils';
 
 export interface AddressFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    ReadOnlyModeProps,
+    LabelEndProps {
   addressing?: AddressingCapability;
 
   /**
@@ -91,7 +97,18 @@ export interface AddressFieldProps<TFieldValues extends FieldValues = FieldValue
    * without a resolver the announcer cell is empty and no `min-h-5` is reserved.
    */
   announcerEndSlot?: React.ReactNode;
+
+  /**
+   * Optional element rendered inside the end of the input (e.g. a paste or
+   * address-book button). Distinct from `announcerEndSlot`, which sits below the
+   * input. The input reserves end padding equal to the slot's measured width so
+   * typed text never runs under it. Absent → the field renders exactly as before.
+   */
+  inputEnd?: React.ReactNode;
 }
+
+/** Gap between the input-end slot and the input's right edge / the text, in px. */
+const INPUT_END_INSET_PX = 4;
 
 /**
  * Non-user-facing gate string returned by the sync validator while a typed name
@@ -163,6 +180,7 @@ function normalizeResolvedName(value: string): string {
 export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   id,
   label,
+  labelEnd,
   placeholder,
   helperText,
   control,
@@ -171,17 +189,20 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   validation,
   addressing,
   readOnly,
+  readOnlyMode,
   suggestions: suggestionsProp,
   onSuggestionSelect,
   onResolvedNameChange,
   showCrossNetworkFallbackDisclaimer = true,
   showForwardResolutionSuccessAnnouncer = true,
   announcerEndSlot,
+  inputEnd,
 }: AddressFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
   const resolutionRegionId = `${id}-resolution`;
+  const ro = getReadOnlyState(readOnly, readOnlyMode);
 
   // Injected forward resolver — `null` with no NameResolverProvider mounted,
   // in which case every resolution branch below is dead code (INV-82).
@@ -272,7 +293,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
 
     // Check required field explicitly first
     if (value === undefined || value === null || value === '') {
-      return validationRef.current?.required ? 'This field is required' : true;
+      return validationRef.current?.required ? getRequiredMessage(validationRef.current) : true;
     }
 
     // Perform standard validations (min, max, pattern, etc.) if they exist
@@ -289,15 +310,15 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
       }
     }
 
-    // If all checks pass
-    return true;
+    // The custom check gets the typed text, never a resolved address (INV-12).
+    return runCustomCheck(value, validationRef.current);
   }, []);
 
   const { field, fieldState } = useController({
     control,
     name,
     rules: { validate },
-    disabled: readOnly,
+    disabled: ro.controllerDisabled,
   });
   const fieldOnChange = field.onChange;
 
@@ -365,7 +386,12 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
     closeSuggestions,
     onInputChange,
     onContainerKeyDown,
-  } = useAddressSuggestionField({ inputValue, suggestions: suggestionsProp });
+  } = useAddressSuggestionField({
+    inputValue,
+    // INV-15: readonly mode takes the suggestions-disabled path for this render, so an open
+    // list unmounts and Enter/Escape have nothing to apply. Derived, not latched (INV-20).
+    suggestions: ro.isFocusableReadOnly ? false : suggestionsProp,
+  });
 
   /**
    * The single site for the typed/raw write (the name→hex write lives in the
@@ -427,6 +453,10 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    // INV-12 / INV-21: in readonly mode Escape never clears and nothing is preventDefault-ed,
+    // so Enter still submits the form natively.
+    if (ro.isFocusableReadOnly) return;
+
     if (hasSuggestions && e.key === 'Enter' && highlightedIndex >= 0) {
       e.preventDefault();
       applySuggestion(resolvedSuggestions[highlightedIndex]);
@@ -467,6 +497,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
     id,
     hasError: hasRealError,
     isRequired,
+    isReadOnly: ro.isFocusableReadOnly,
     hasHelperText: !!helperText,
   });
 
@@ -555,6 +586,24 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   };
 
   const hasAnnouncerEndSlot = announcerEndSlot != null;
+  const hasInputEnd = inputEnd != null;
+  const inputEndRef = useRef<HTMLDivElement>(null);
+  const [inputEndWidth, setInputEndWidth] = useState(0);
+
+  // Reserve end padding equal to the slot's width so text clears the button.
+  useLayoutEffect(() => {
+    const el = inputEndRef.current;
+    if (!hasInputEnd || !el) {
+      setInputEndWidth(0);
+      return;
+    }
+    const measure = () => setInputEndWidth(el.offsetWidth);
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasInputEnd]);
   const showResolutionAnnouncer = resolver !== null || hasAnnouncerEndSlot;
   const includeResolutionInDescribedBy = resolver !== null || hasAnnouncerEndSlot;
 
@@ -592,6 +641,11 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
         id={id}
         placeholder={placeholder || (resolver !== null ? '0x... or name' : '0x...')}
         className={validationClasses}
+        style={
+          hasInputEnd && inputEndWidth > 0
+            ? { paddingRight: inputEndWidth + INPUT_END_INSET_PX * 2 }
+            : undefined
+        }
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         data-slot="input"
@@ -599,17 +653,16 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
         // Identical to binding `field.value` when no resolver is mounted (INV-82).
         value={inputValue}
         {...accessibilityProps}
-        // INV-92: preserve the legacy describedby wiring verbatim when no resolver
-        // is mounted; with a resolver, additively associate the dedicated
-        // resolution announcer (never overwriting error/description).
+        // INV-92: without a resolver the helper's describedby is used as-is; with a
+        // resolver, additively associate the dedicated resolution announcer
+        // (never overwriting error/description).
         aria-describedby={
-          !includeResolutionInDescribedBy
-            ? `${helperText ? descriptionId : ''} ${hasRealError ? errorId : ''}`
-            : [helperText ? descriptionId : '', hasRealError ? errorId : '', resolutionRegionId]
-                .filter(Boolean)
-                .join(' ') || undefined
+          includeResolutionInDescribedBy
+            ? [accessibilityProps['aria-describedby'], resolutionRegionId].filter(Boolean).join(' ')
+            : accessibilityProps['aria-describedby']
         }
-        aria-expanded={hasSuggestions}
+        // INV-15: no combobox state at all in readonly mode.
+        aria-expanded={ro.isFocusableReadOnly ? undefined : hasSuggestions}
         aria-autocomplete={suggestionsDisabled ? undefined : 'list'}
         aria-controls={hasSuggestions ? `${id}-suggestions` : undefined}
         aria-activedescendant={
@@ -617,8 +670,19 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
             ? `${id}-suggestion-${highlightedIndex}`
             : undefined
         }
-        disabled={readOnly}
+        {...ro.controlProps}
       />
+
+      {hasInputEnd && (
+        <div
+          ref={inputEndRef}
+          data-slot="address-field-input-end"
+          className="absolute top-1/2 flex -translate-y-1/2 items-center"
+          style={{ right: INPUT_END_INSET_PX }}
+        >
+          {inputEnd}
+        </div>
+      )}
 
       {hasSuggestions && (
         <AddressSuggestionList
@@ -637,9 +701,11 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
       className={`flex flex-col gap-2 ${width === 'full' ? 'w-full' : width === 'half' ? 'w-1/2' : 'w-1/3'}`}
     >
       {label && (
-        <Label htmlFor={id}>
-          {label} {isRequired && <span className="text-destructive">*</span>}
-        </Label>
+        <FieldLabelRow labelEnd={labelEnd}>
+          <Label htmlFor={id}>
+            {label} {isRequired && <span className="text-destructive">*</span>}
+          </Label>
+        </FieldLabelRow>
       )}
 
       {hasAnnouncerEndSlot ? (

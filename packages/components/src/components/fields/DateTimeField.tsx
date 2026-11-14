@@ -1,14 +1,19 @@
 import React from 'react';
 import { Controller, FieldValues } from 'react-hook-form';
 
+import { FieldLabelRow } from './utils/FieldLabelRow';
+import { getReadOnlyState } from './utils/readOnlyState';
+
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
+  runCustomCheck,
   validateField,
 } from './utils';
 
@@ -16,7 +21,9 @@ import {
  * DateTimeField component properties
  */
 export interface DateTimeFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    ReadOnlyModeProps,
+    LabelEndProps {
   /**
    * Placeholder text displayed when the field is empty
    */
@@ -49,6 +56,7 @@ export interface DateTimeFieldProps<TFieldValues extends FieldValues = FieldValu
 export function DateTimeField<TFieldValues extends FieldValues = FieldValues>({
   id,
   label,
+  labelEnd,
   placeholder,
   helperText,
   control,
@@ -56,6 +64,7 @@ export function DateTimeField<TFieldValues extends FieldValues = FieldValues>({
   width = 'full',
   validation,
   readOnly,
+  readOnlyMode,
   clearOnEscape = true,
 }: DateTimeFieldProps<TFieldValues>): React.ReactElement {
   /**
@@ -66,11 +75,14 @@ export function DateTimeField<TFieldValues extends FieldValues = FieldValues>({
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
+  const ro = getReadOnlyState(readOnly, readOnlyMode);
 
   // Validate ISO 8601 string or empty according to validation rules
   const validateDateValue = (value: string): string | true => {
     const validationResult = validateField(value, validation);
-    return validationResult === true ? true : (validationResult as string);
+    return validationResult === true
+      ? runCustomCheck(value, validation)
+      : (validationResult as string);
   };
 
   return (
@@ -78,9 +90,11 @@ export function DateTimeField<TFieldValues extends FieldValues = FieldValues>({
       className={`flex flex-col gap-2 ${width === 'full' ? 'w-full' : width === 'half' ? 'w-1/2' : 'w-1/3'}`}
     >
       {label && (
-        <Label htmlFor={id}>
-          {label} {isRequired && <span className="text-destructive">*</span>}
-        </Label>
+        <FieldLabelRow labelEnd={labelEnd}>
+          <Label htmlFor={id}>
+            {label} {isRequired && <span className="text-destructive">*</span>}
+          </Label>
+        </FieldLabelRow>
       )}
 
       <Controller
@@ -89,15 +103,15 @@ export function DateTimeField<TFieldValues extends FieldValues = FieldValues>({
         rules={{
           validate: (value) => {
             if (value === undefined || value === null || value === '') {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
             if (typeof value === 'string') {
               return validateDateValue(value);
             }
-            return true;
+            return runCustomCheck(value, validation);
           },
         }}
-        disabled={readOnly}
+        disabled={ro.controllerDisabled}
         render={({ field, fieldState: { error, isTouched } }) => {
           const hasError = !!error;
           const shouldShowError = hasError && isTouched;
@@ -122,7 +136,8 @@ export function DateTimeField<TFieldValues extends FieldValues = FieldValues>({
           };
 
           const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-            if (e.key === 'Escape') {
+            // INV-12: in readonly mode Escape neither clears nor blurs, and is not preventDefault-ed.
+            if (e.key === 'Escape' && !ro.isFocusableReadOnly) {
               if (clearOnEscape) {
                 handleEscapeKey(field.onChange as (v: string) => void, field.value)(e);
               } else {
@@ -136,7 +151,9 @@ export function DateTimeField<TFieldValues extends FieldValues = FieldValues>({
             hasError,
             isRequired,
             hasHelperText: !!helperText,
-            isDisabled: !!readOnly,
+            // Same value as today in default mode; readonly mode keeps tabIndex 0 (INV-7).
+            isDisabled: !!ro.controllerDisabled,
+            isReadOnly: ro.isFocusableReadOnly,
           });
 
           const formatDateTimeLocal = (val: unknown): string => {
@@ -172,8 +189,7 @@ export function DateTimeField<TFieldValues extends FieldValues = FieldValues>({
                 value={inputValue}
                 type="datetime-local"
                 {...accessibilityProps}
-                aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
-                disabled={readOnly}
+                {...ro.controlProps}
               />
 
               {helperText && (

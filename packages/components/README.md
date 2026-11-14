@@ -159,7 +159,7 @@ All components are built with React, TypeScript, and styled with Tailwind CSS, f
 Specialized components designed for use within `react-hook-form`:
 
 - `AddressField` - Blockchain address input with validation
-- `AmountField` - Token amount input
+- `AmountField` - Token amount input. Pass `formatOnBlur={false}` for exact-entry mode: the text is never rewritten and the value is a decimal string that never passes through a float ([docs](../../docs/amount-field/README.md))
 - `BaseField` - Foundational component for creating new field types
 - `BooleanField` - Checkbox/toggle inputs
 - `NumberField` - Numeric inputs

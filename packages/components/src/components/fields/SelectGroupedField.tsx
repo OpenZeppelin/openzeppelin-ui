@@ -3,6 +3,8 @@ import { Controller, FieldValues } from 'react-hook-form';
 
 import { cn } from '@openzeppelin/ui-utils';
 
+import { FieldLabelRow } from './utils/FieldLabelRow';
+
 import { Label } from '../ui/label';
 import {
   Select,
@@ -14,8 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-import { BaseFieldProps } from './BaseField';
-import { ErrorMessage } from './utils';
+import { BaseFieldProps, LabelEndProps } from './BaseField';
+import { ErrorMessage, getAccessibilityProps, getRequiredMessage, runCustomCheck } from './utils';
 
 /**
  * Option item for select fields with visual indicators
@@ -61,7 +63,8 @@ export interface OptionGroup {
  * SelectGroupedField component properties
  */
 export interface SelectGroupedFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    LabelEndProps {
   /**
    * Available option groups for selection
    */
@@ -94,6 +97,7 @@ export interface SelectGroupedFieldProps<TFieldValues extends FieldValues = Fiel
 export function SelectGroupedField<TFieldValues extends FieldValues = FieldValues>({
   id,
   label,
+  labelEnd,
   placeholder = 'Select an option',
   helperText,
   control,
@@ -114,9 +118,11 @@ export function SelectGroupedField<TFieldValues extends FieldValues = FieldValue
   return (
     <div className={cn('flex flex-col gap-2', widthClass)} style={{ width: widthPercentage }}>
       {label && (
-        <Label htmlFor={id}>
-          {label} {isRequired && <span className="text-destructive">*</span>}
-        </Label>
+        <FieldLabelRow labelEnd={labelEnd}>
+          <Label htmlFor={id}>
+            {label} {isRequired && <span className="text-destructive">*</span>}
+          </Label>
+        </FieldLabelRow>
       )}
 
       <Controller
@@ -126,7 +132,7 @@ export function SelectGroupedField<TFieldValues extends FieldValues = FieldValue
           validate: (value) => {
             // Handle required validation explicitly
             if (value === undefined || value === null || value === '') {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
 
             // Run custom validation if provided
@@ -137,7 +143,7 @@ export function SelectGroupedField<TFieldValues extends FieldValues = FieldValue
               }
             }
 
-            return true;
+            return runCustomCheck(value, validation);
           },
         }}
         render={({ field, fieldState: { error } }) => {
@@ -147,8 +153,11 @@ export function SelectGroupedField<TFieldValues extends FieldValues = FieldValue
           const accessibilityAttrs = {
             'aria-invalid': hasError,
             'aria-required': isRequired,
-            'aria-describedby':
-              `${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`.trim(),
+            'aria-describedby': getAccessibilityProps({
+              id,
+              hasError,
+              hasHelperText: !!helperText,
+            })['aria-describedby'],
           };
 
           // Ensure we properly handle the onValueChange event
@@ -156,14 +165,24 @@ export function SelectGroupedField<TFieldValues extends FieldValues = FieldValue
             field.onChange(newValue);
           };
 
+          // Keep the Root controlled ('' shows the placeholder, like `undefined`): with `undefined`
+          // Radix Select logs an uncontrolled-to-controlled warning on the first pick (SF-32), and
+          // a form value reset to empty would leave the last picked label on screen.
+          const rootValue = field.value ?? '';
+
           return (
             <>
               <Select
                 defaultValue={field.value}
                 onValueChange={handleValueChange}
-                value={field.value}
+                value={rootValue}
               >
-                <SelectTrigger id={id} {...accessibilityAttrs}>
+                <SelectTrigger
+                  id={id}
+                  // The form ref lands on the trigger, so focus-on-first-error and `setFocus` work.
+                  ref={field.ref}
+                  {...accessibilityAttrs}
+                >
                   <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
                 <SelectContent

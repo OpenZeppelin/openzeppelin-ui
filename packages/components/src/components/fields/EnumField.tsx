@@ -12,7 +12,9 @@ import { BaseFieldProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getRequiredMessage,
   getValidationStateClasses,
+  runCustomCheck,
   validateField,
 } from './utils';
 
@@ -148,7 +150,10 @@ export function EnumField<TFieldValues extends FieldValues = FieldValues>({
                 }
               }
 
-              return true;
+              // This exit also passes an empty optional value; the custom check
+              // must never see one (INV-9).
+              if (value === undefined || value === null) return true;
+              return runCustomCheck(value, validation);
             },
           }}
           render={({ field, fieldState: { error, isTouched } }) => {
@@ -238,7 +243,7 @@ export function EnumField<TFieldValues extends FieldValues = FieldValues>({
 
             // Handle enum-specific validation
             if (!value || !value.tag) {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
 
             // Run custom validation if provided
@@ -249,7 +254,7 @@ export function EnumField<TFieldValues extends FieldValues = FieldValues>({
               }
             }
 
-            return true;
+            return runCustomCheck(value, validation);
           },
         }}
         render={({ field, fieldState: { error } }) => {

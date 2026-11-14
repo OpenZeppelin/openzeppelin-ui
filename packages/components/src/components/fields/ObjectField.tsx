@@ -14,7 +14,7 @@ import type {
 import { Card } from '../ui/card';
 import { Label } from '../ui/label';
 import { BaseFieldProps } from './BaseField';
-import { ErrorMessage, getAccessibilityProps } from './utils';
+import { ErrorMessage, getAccessibilityProps, getRequiredMessage, runCustomCheck } from './utils';
 
 /**
  * ObjectField component properties
@@ -100,20 +100,22 @@ export function ObjectField<TFieldValues extends FieldValues = FieldValues>({
       name={name}
       rules={{
         // TODO: Expand validation capabilities for objects.
-        // Current validation only checks if the object itself is required.
-        // Future: Allow schema-level validation for individual properties within the object,
-        // or a custom validate function that receives the whole object value.
+        // Current validation checks if the object itself is required, then runs
+        // `validation.validate` on the whole object.
+        // Future: Allow schema-level validation for individual properties within the object.
         validate: (value) => {
+          const isEmpty = !value || typeof value !== 'object' || Array.isArray(value);
+
           // Validate object constraints
-          if (
-            validation?.required &&
-            (!value || typeof value !== 'object' || Array.isArray(value))
-          ) {
-            return 'This field is required';
+          if (validation?.required && isEmpty) {
+            return getRequiredMessage(validation);
           }
 
+          // An empty optional value passes; the custom check never sees one (INV-9).
+          if (isEmpty) return true;
+
           // Additional object validation can be added here (e.g., based on `components` schema)
-          return true;
+          return runCustomCheck(value, validation);
         },
       }}
       render={({ fieldState: { error } }) => {
@@ -208,7 +210,6 @@ export function ObjectField<TFieldValues extends FieldValues = FieldValues>({
           <div
             className={`flex flex-col gap-2 ${width === 'full' ? 'w-full' : width === 'half' ? 'w-1/2' : 'w-1/3'}`}
             {...accessibilityProps}
-            aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
           >
             {/* Label for the entire object */}
             {label && (

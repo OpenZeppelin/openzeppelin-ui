@@ -1,18 +1,25 @@
 import { isMapEntryArray, MapEntry } from '@openzeppelin/ui-types';
 
-import { validateMapEntries } from '../../utils/validation';
+import { REQUIRED_MESSAGE, validateMapEntries } from '../../utils/validation';
 
 interface ValidateArgs {
   value: unknown;
   required: boolean;
   minItems?: number;
+  /** Text for an empty required map. Defaults to `REQUIRED_MESSAGE`. */
+  requiredMessage?: string;
 }
 
 /** Validates a map field's structure including duplicates and required entries. */
-export function validateMapStructure({ value, required, minItems }: ValidateArgs): string | true {
+export function validateMapStructure({
+  value,
+  required,
+  minItems,
+  requiredMessage = REQUIRED_MESSAGE,
+}: ValidateArgs): string | true {
   // Validate that the value is actually an array of MapEntry objects
   if (!isMapEntryArray(value)) {
-    if (required) return 'This field is required';
+    if (required) return requiredMessage;
     return true;
   }
 
@@ -36,7 +43,7 @@ export function validateMapStructure({ value, required, minItems }: ValidateArgs
     return key !== '' && key != null && val !== '' && val != null;
   });
 
-  if (required && validEntries.length === 0) return 'This field is required';
+  if (required && validEntries.length === 0) return requiredMessage;
 
   if (minItems && validEntries.length < minItems) {
     return `At least ${minItems} item${minItems > 1 ? 's' : ''} required`;

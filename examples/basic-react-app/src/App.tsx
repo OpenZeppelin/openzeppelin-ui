@@ -19,6 +19,7 @@ import {
   Layers,
   LayoutGrid,
   List,
+  ListChecks,
   ListCollapse,
   Loader,
   Loader2,
@@ -30,6 +31,7 @@ import {
   Table2,
   Tag,
   TextCursorInput,
+  ToggleRight,
   Type,
   Wallet,
   Wand2,
@@ -46,6 +48,7 @@ import {
 } from '@openzeppelin/ui-components';
 
 import { NetworkSwitcher } from './components/NetworkSwitcher';
+import { ThemeToggle } from './components/ThemeToggle';
 
 import {
   AccordionDemo,
@@ -65,6 +68,7 @@ import {
   ContractInteractionsDemo,
   DataTableDemo,
   DateRangePickerDemo,
+  DescriptionListDemo,
   DialogDemo,
   DropdownMenuDemo,
   EmptyStateDemo,
@@ -76,14 +80,20 @@ import {
   InputDemo,
   LoadingButtonDemo,
   NetworkDemo,
+  PageHeaderDemo,
   PopoverDemo,
   ProgressDemo,
   RadioGroupDemo,
   RendererDemo,
+  SearchableMultiSelectDemo,
   SelectDemo,
   SidebarLayoutDemo,
+  SkeletonDemo,
+  StepMarkerDemo,
+  SwitchDemo,
   TabsDemo,
   TextareaDemo,
+  TimelineDemo,
   ToastDemo,
   TooltipDemo,
   TypeMappingDemo,
@@ -116,8 +126,10 @@ type DemoKey =
   | 'button'
   | 'input'
   | 'select'
+  | 'searchable-multi-select'
   | 'textarea'
   | 'checkbox'
+  | 'switch'
   | 'radio-group'
   // Component Gallery - Feedback
   | 'alert'
@@ -129,10 +141,12 @@ type DemoKey =
   | 'breadcrumb'
   | 'sidebar-layout'
   | 'wizard'
+  | 'step-marker'
   | 'card'
   | 'tabs'
   | 'accordion'
   | 'progress'
+  | 'timeline'
   | 'dropdown-menu'
   // Component Gallery - Data Display
   | 'address-display'
@@ -145,6 +159,9 @@ type DemoKey =
   // Component Gallery - Forms
   | 'form'
   | 'form-fields'
+  | 'page-header'
+  | 'description-list'
+  | 'skeleton'
   | 'address-field'
   | 'address-list-field'
   | 'calendar'
@@ -208,8 +225,14 @@ const galleryCategories: GalleryCategory[] = [
       { key: 'button', label: 'Button', icon: <MousePointerClick className="size-4" /> },
       { key: 'input', label: 'Input', icon: <TextCursorInput className="size-4" /> },
       { key: 'select', label: 'Select', icon: <List className="size-4" /> },
+      {
+        key: 'searchable-multi-select',
+        label: 'SearchableMultiSelect',
+        icon: <ListChecks className="size-4" />,
+      },
       { key: 'textarea', label: 'Textarea', icon: <Type className="size-4" /> },
       { key: 'checkbox', label: 'Checkbox', icon: <CheckSquare className="size-4" /> },
+      { key: 'switch', label: 'Switch', icon: <ToggleRight className="size-4" /> },
       { key: 'radio-group', label: 'RadioGroup', icon: <CircleDot className="size-4" /> },
     ],
   },
@@ -231,10 +254,12 @@ const galleryCategories: GalleryCategory[] = [
       { key: 'breadcrumb', label: 'Breadcrumb', icon: <List className="size-4" /> },
       { key: 'sidebar-layout', label: 'Scaffold', icon: <PanelLeft className="size-4" /> },
       { key: 'wizard', label: 'Wizard', icon: <Wand2 className="size-4" /> },
+      { key: 'step-marker', label: 'StepMarker', icon: <ListChecks className="size-4" /> },
       { key: 'card', label: 'Card', icon: <CreditCard className="size-4" /> },
       { key: 'tabs', label: 'Tabs', icon: <LayoutGrid className="size-4" /> },
       { key: 'accordion', label: 'Accordion', icon: <ListCollapse className="size-4" /> },
       { key: 'progress', label: 'Progress', icon: <Loader2 className="size-4" /> },
+      { key: 'timeline', label: 'Timeline', icon: <List className="size-4" /> },
       { key: 'dropdown-menu', label: 'DropdownMenu', icon: <List className="size-4" /> },
     ],
   },
@@ -247,6 +272,9 @@ const galleryCategories: GalleryCategory[] = [
       { key: 'data-table', label: 'DataTable', icon: <Table2 className="size-4" /> },
       { key: 'empty-state', label: 'EmptyState', icon: <LayoutGrid className="size-4" /> },
       { key: 'banner', label: 'Banner', icon: <PanelTop className="size-4" /> },
+      { key: 'page-header', label: 'PageHeader', icon: <PanelTop className="size-4" /> },
+      { key: 'description-list', label: 'DescriptionList', icon: <List className="size-4" /> },
+      { key: 'skeleton', label: 'Skeleton', icon: <LayoutGrid className="size-4" /> },
       {
         key: 'external-link',
         label: 'ExternalLink',
@@ -303,8 +331,10 @@ const demoComponents: Record<
   button: ButtonDemo,
   input: InputDemo,
   select: SelectDemo,
+  'searchable-multi-select': SearchableMultiSelectDemo,
   textarea: TextareaDemo,
   checkbox: CheckboxDemo,
+  switch: SwitchDemo,
   'radio-group': RadioGroupDemo,
   // Component Gallery - Feedback
   alert: AlertDemo,
@@ -316,10 +346,12 @@ const demoComponents: Record<
   breadcrumb: BreadcrumbDemo,
   'sidebar-layout': SidebarLayoutDemo,
   wizard: WizardDemo,
+  'step-marker': StepMarkerDemo,
   card: CardDemo,
   tabs: TabsDemo,
   accordion: AccordionDemo,
   progress: ProgressDemo,
+  timeline: TimelineDemo,
   'dropdown-menu': DropdownMenuDemo,
   // Component Gallery - Data Display
   'address-display': AddressDisplayDemo,
@@ -327,6 +359,9 @@ const demoComponents: Record<
   'data-table': DataTableDemo,
   'empty-state': EmptyStateDemo,
   banner: BannerDemo,
+  'page-header': PageHeaderDemo,
+  'description-list': DescriptionListDemo,
+  skeleton: SkeletonDemo,
   'external-link': ExternalLinkDemo,
   'loading-button': LoadingButtonDemo,
   // Component Gallery - Forms
@@ -583,6 +618,7 @@ function App(): React.ReactElement {
           rightContent={
             <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
               <NetworkSwitcher />
+              <ThemeToggle />
               <a
                 href={DOCS_UIKIT}
                 target="_blank"

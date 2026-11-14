@@ -1,14 +1,19 @@
 import React from 'react';
 import { Controller, FieldValues } from 'react-hook-form';
 
+import { FieldLabelRow } from './utils/FieldLabelRow';
+import { getReadOnlyState } from './utils/readOnlyState';
+
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
+  runCustomCheck,
   validateField,
 } from './utils';
 
@@ -16,7 +21,9 @@ import {
  * TextField component properties
  */
 export interface TextFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    ReadOnlyModeProps,
+    LabelEndProps {
   /**
    * Placeholder text displayed when the field is empty
    */
@@ -54,6 +61,7 @@ export interface TextFieldProps<TFieldValues extends FieldValues = FieldValues>
 export function TextField<TFieldValues extends FieldValues = FieldValues>({
   id,
   label,
+  labelEnd,
   placeholder,
   helperText,
   control,
@@ -61,16 +69,20 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
   width = 'full',
   validation,
   readOnly,
+  readOnlyMode,
   onUserEdit,
 }: TextFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
+  const ro = getReadOnlyState(readOnly, readOnlyMode);
 
   // Function for validating text values
   const validateTextValue = (value: string): string | true => {
     const validationResult = validateField(value, validation);
-    return validationResult === true ? true : (validationResult as string);
+    return validationResult === true
+      ? runCustomCheck(value, validation)
+      : (validationResult as string);
   };
 
   return (
@@ -78,9 +90,11 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
       className={`flex flex-col gap-2 ${width === 'full' ? 'w-full' : width === 'half' ? 'w-1/2' : 'w-1/3'}`}
     >
       {label && (
-        <Label htmlFor={id}>
-          {label} {isRequired && <span className="text-destructive">*</span>}
-        </Label>
+        <FieldLabelRow labelEnd={labelEnd}>
+          <Label htmlFor={id}>
+            {label} {isRequired && <span className="text-destructive">*</span>}
+          </Label>
+        </FieldLabelRow>
       )}
 
       <Controller
@@ -90,7 +104,7 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
           validate: (value) => {
             // Handle required validation explicitly
             if (value === undefined || value === null || value === '') {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
 
             // Validate text values
@@ -98,10 +112,10 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
               return validateTextValue(value);
             }
 
-            return true;
+            return runCustomCheck(value, validation);
           },
         }}
-        disabled={readOnly}
+        disabled={ro.controllerDisabled}
         render={({ field, fieldState: { error, isTouched } }) => {
           const hasError = !!error;
           const shouldShowError = hasError && isTouched;
@@ -118,7 +132,8 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
 
           // Handle keyboard events
           const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-            if (e.key === 'Escape') {
+            // INV-12: no Escape-clear (and no preventDefault) in readonly mode.
+            if (e.key === 'Escape' && !ro.isFocusableReadOnly) {
               // Escape-clear is a user edit too — notify with the cleared value.
               handleEscapeKey((value) => {
                 field.onChange(value);
@@ -134,6 +149,7 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
             id,
             hasError,
             isRequired,
+            isReadOnly: ro.isFocusableReadOnly,
             hasHelperText: !!helperText,
           });
 
@@ -149,8 +165,7 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
                 data-slot="input"
                 value={field.value ?? ''}
                 {...accessibilityProps}
-                aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
-                disabled={readOnly}
+                {...ro.controlProps}
               />
 
               {/* Display helper text */}

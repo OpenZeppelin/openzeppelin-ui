@@ -347,6 +347,60 @@ export interface DataTableSelection<Row> {
   readonly columnClassName?: string;
 }
 
+/** What a group header renderer receives. One call per painted section row. */
+export interface DataTableGroupHeaderInfo<Row> {
+  /**
+   * The group's key as returned by `getGroupKey`, or `null` for the group of rows
+   * whose key is missing (`null`, `undefined`, or a blank string).
+   */
+  readonly key: string | null;
+
+  /**
+   * Every row of this group, in display order. For client-held rows (no
+   * pagination, or `kind: 'client'`) this spans all pages, so `rows.length` is
+   * the group's full size. For server pages and infinite feeds it is the group's
+   * rows in the current `rows` array.
+   */
+  readonly rows: readonly Row[];
+
+  /**
+   * `true` when this section row repeats a group that started on an earlier
+   * client page. Always `false` without client pagination.
+   */
+  readonly continued: boolean;
+}
+
+/**
+ * Opt-in section rows under the single column header. The kit groups, orders and
+ * paints; the app owns the key, the header content and the group copy.
+ * Presentational only: no expand, collapse or group state.
+ *
+ * Row keys starting with `__data-table-group` are reserved for section rows,
+ * in the same way as `DATA_TABLE_SELECT_COLUMN_ID`.
+ */
+export interface DataTableGrouping<Row> {
+  /**
+   * Group identity for a row. Rows with the same string (exact match, no
+   * trimming or case folding) share a section. `null`, `undefined` or a blank
+   * string put the row in the trailing "no group" section (`key: null`).
+   * Called once per row on every render, so a key that changes in place shows on the
+   * next render. Keep it pure and cheap (a field read, not a lookup or a computation).
+   */
+  readonly getGroupKey: (row: Row) => string | null | undefined;
+
+  /**
+   * Content of the section row's header cell. The kit owns the `<tr>` and the
+   * `<th scope="row" colSpan>`; this owns what goes inside. Omitted, or returning
+   * `null` / `undefined` / a boolean / a blank string, renders the default label:
+   * `key`, or `ungroupedLabel` for `key: null`. It becomes the section's
+   * accessible name, so keep a text label in it.
+   */
+  readonly renderGroupHeader?: (info: DataTableGroupHeaderInfo<Row>) => ReactNode;
+
+  /** Default label for the `key: null` section. Default `'Other'`. */
+  readonly ungroupedLabel?: string;
+}
+
 /** Kit default estimate: SF-9 `p-4` composed rows are approximately 64px. INV-140 */
 export const DATA_TABLE_DEFAULT_ESTIMATE_SIZE = 64;
 
@@ -436,6 +490,14 @@ type DataTablePropsBase<Row> = {
   readonly selection?: DataTableSelection<Row>;
 
   /**
+   * Opt-in section rows under the single column header. Omitted → the flat table.
+   * Groups keep first-appearance order in `rows` (missing keys last); client sort
+   * reorders rows within each group only. Section rows are not data rows: they are
+   * never selectable, never counted by pagination, and never passed to `cell`.
+   */
+  readonly grouping?: DataTableGrouping<Row>;
+
+  /**
    * Opaque integrator content hosted inside the bordered frame above the table.
    * The kit does not inspect or own this content.
    */
@@ -456,6 +518,22 @@ type DataTablePropsBase<Row> = {
 
   /** Description for the default kit `EmptyState`. Default `'There are no rows to display.'`. */
   readonly emptyDescription?: string;
+
+  /**
+   * Hide the column header row while the empty state is shown.
+   *
+   * When `true` and the table paints its empty state (`bodyRows.length === 0`
+   * and empty chrome is not suppressed by a pending infinite-scroll first chunk),
+   * `<thead>` stays mounted with the `hidden` attribute: no column headers, sort
+   * buttons, sticky header band or select-all checkbox are shown, focusable or
+   * exposed to assistive tech. The `<table>` keeps its caption / `aria-label` /
+   * `aria-labelledby` name, and the toolbar, empty content and pager are unchanged.
+   * The header returns as soon as there are rows to show.
+   *
+   * Omitted or `false` keeps today's behaviour: the header row stays over the
+   * empty state.
+   */
+  readonly hideHeaderWhenEmpty?: boolean;
 
   /** Classes merged onto the scroll wrapper `<div>` (width, max-height, borders). INV-37. */
   readonly className?: string;

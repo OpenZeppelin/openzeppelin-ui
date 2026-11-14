@@ -136,6 +136,8 @@ export function AddressFieldDemo(): React.ReactElement {
 
       <ValidationSection networkName={metadata.name} />
 
+      <InputEndSection networkName={metadata.name} />
+
       <SuggestionsNote />
 
       <NameResolutionSection />
@@ -207,6 +209,61 @@ function ValidationSection({ networkName }: { networkName: string }): React.Reac
           <p className="font-mono text-sm break-all">{submitted}</p>
         </div>
       )}
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// Input-end slot (an element inside the end of the input)
+// ----------------------------------------------------------------------------
+
+/** Long demo value so the overflow clearance under the button is visible. */
+const INPUT_END_DEMO_ADDRESS = '0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed';
+
+function InputEndSection({ networkName }: { networkName: string }): React.ReactElement {
+  const { capabilities } = useEcosystem();
+  const { control, setValue } = useForm<ValidationForm>({
+    mode: 'onChange',
+    defaultValues: { recipient: '' },
+  });
+
+  return (
+    <div className="space-y-4 border-t border-border/60 pt-6">
+      <div>
+        <h3 className="text-lg font-medium">Input-end slot</h3>
+        <p className="text-muted-foreground text-sm">
+          <code className="bg-muted rounded px-1">inputEnd</code> places an element inside the end
+          of the input (a paste or address-book button). The input reserves room for it, so long{' '}
+          {networkName} addresses never run under the button. It is separate from{' '}
+          <code className="bg-muted rounded px-1">announcerEndSlot</code>, which sits below the
+          input.
+        </p>
+      </div>
+
+      <div className="max-w-md">
+        <AddressField
+          id="input-end-recipient"
+          name="recipient"
+          label="Recipient"
+          placeholder="Paste or type an address"
+          control={control}
+          addressing={capabilities ?? undefined}
+          inputEnd={
+            <button
+              type="button"
+              onClick={() =>
+                setValue('recipient', INPUT_END_DEMO_ADDRESS, {
+                  shouldValidate: true,
+                  shouldTouch: true,
+                })
+              }
+              className="bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded px-2 py-1 text-xs font-medium"
+            >
+              Paste
+            </button>
+          }
+        />
+      </div>
     </div>
   );
 }

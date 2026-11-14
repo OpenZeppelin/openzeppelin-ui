@@ -15,9 +15,23 @@ function selectableWrap(container: HTMLElement): HTMLElement {
   return wrap;
 }
 
+/**
+ * The demo has two selectable tables (SF-7 added a header-hides variant), each
+ * with its own count line, so queries are scoped to the first one's section.
+ */
+function selectableSection(container: HTMLElement): HTMLElement {
+  const frame = selectableWrap(container).closest('[data-slot="data-table-frame"]');
+  const section = frame?.parentElement;
+  if (!(section instanceof HTMLElement)) {
+    throw new Error('SF-8 demo: expected selectable table section');
+  }
+  return section;
+}
+
 describe('SF-8 demo: app-owned row selection', () => {
   it('renders kit selection chrome and an app-owned selected count', () => {
-    const { container, getByRole, getByText } = renderDemo();
+    const { container } = renderDemo();
+    const { getByRole, getByText } = within(selectableSection(container));
     const wrap = selectableWrap(container);
 
     expect(wrap.querySelectorAll(SLOT.headerCell)).toHaveLength(6);
@@ -27,7 +41,8 @@ describe('SF-8 demo: app-owned row selection', () => {
   });
 
   it('updates row and select-all state through the controlled selection prop', () => {
-    const { getByRole, getByText } = renderDemo();
+    const { container } = renderDemo();
+    const { getByRole, getByText } = within(selectableSection(container));
     const selectAll = getByRole('checkbox', { name: 'Select all accounts' });
 
     fireEvent.click(selectAll);
@@ -43,7 +58,8 @@ describe('SF-8 demo: app-owned row selection', () => {
   });
 
   it('keeps selected identity while sorting the composed table', () => {
-    const { container, getByRole } = renderDemo();
+    const { container } = renderDemo();
+    const { getByRole } = within(selectableSection(container));
     const wrap = selectableWrap(container);
     const wethCheckbox = getByRole('checkbox', { name: 'Select WETH account' });
     fireEvent.click(wethCheckbox);

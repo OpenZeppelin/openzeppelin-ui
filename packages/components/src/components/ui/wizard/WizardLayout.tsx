@@ -5,7 +5,7 @@ import { cn } from '@openzeppelin/ui-utils';
 import { Button } from '../button';
 import { getSafeStepIndex, useFurthestStepIndex, useScrollableWizardStepTracking } from './hooks';
 import { WizardNavigation } from './WizardNavigation';
-import type { StepStatus, WizardStepDef } from './WizardStepper';
+import type { StepStatus, WizardStepDef, WizardStepLabelInfo } from './WizardStepper';
 import { WizardStepper } from './WizardStepper';
 
 export type { StepStatus, WizardStepDef };
@@ -86,6 +86,20 @@ export interface WizardLayoutProps {
    * section heading (`scrollable` variant only). Defaults to 32 (matches `p-8`).
    */
   scrollPadding?: number;
+  /** Builds each stepper step's accessible name (e.g. for localisation). See `WizardStepper`. */
+  getStepLabel?: (info: WizardStepLabelInfo) => string;
+  /** Label of the Back button (paged variants only). See `WizardNavigation`. @default "Previous" */
+  previousLabel?: string;
+  /** Back can't be activated but stays focusable (paged variants only). See `WizardNavigation`. @default false */
+  previousDisabled?: boolean;
+  /**
+   * The primary (Next/Finish) is pending (paged variants only): spinner, `aria-busy`,
+   * activation ignored, focus kept. Set it synchronously, before your handler's
+   * first `await`. See `WizardNavigation`. @default false
+   */
+  primaryLoading?: boolean;
+  /** Trailing icon of the primary (paged variants only). See `WizardNavigation`. */
+  primaryIcon?: ReactNode;
   className?: string;
 }
 
@@ -110,6 +124,11 @@ function PagedLayout({
   navActions,
   header,
   variant,
+  getStepLabel,
+  previousLabel,
+  previousDisabled,
+  primaryLoading,
+  primaryIcon,
   className,
 }: WizardLayoutProps & { variant: 'vertical' | 'horizontal' }) {
   const safeIndex = getSafeStepIndex(steps.length, currentStepIndex);
@@ -164,6 +183,10 @@ function PagedLayout({
       lastStepSecondaryLabel={lastStepSecondaryLabel}
       lastStepSecondaryDisabled={lastStepSecondaryDisabled}
       showLastStepPrimary={!hideLastStepPrimary}
+      previousLabel={previousLabel}
+      previousDisabled={previousDisabled}
+      primaryLoading={primaryLoading}
+      primaryIcon={primaryIcon}
     />
   );
 
@@ -183,6 +206,7 @@ function PagedLayout({
             currentStepIndex={safeIndex}
             furthestStepIndex={resolvedFurthestStepIndex}
             onStepClick={onStepChange}
+            getStepLabel={getStepLabel}
             className="h-full"
           />
         </div>
@@ -209,6 +233,7 @@ function PagedLayout({
           currentStepIndex={safeIndex}
           furthestStepIndex={resolvedFurthestStepIndex}
           onStepClick={onStepChange}
+          getStepLabel={getStepLabel}
         />
       </div>
 
@@ -241,6 +266,7 @@ function ScrollableLayout({
   scrollableSecondaryLabel,
   scrollableSecondaryDisabled,
   scrollPadding,
+  getStepLabel,
   className,
 }: Pick<
   WizardLayoutProps,
@@ -255,6 +281,7 @@ function ScrollableLayout({
   | 'scrollableSecondaryLabel'
   | 'scrollableSecondaryDisabled'
   | 'scrollPadding'
+  | 'getStepLabel'
   | 'className'
 >) {
   const instanceId = useId();
@@ -293,6 +320,7 @@ function ScrollableLayout({
           furthestStepIndex={furthestStepIndex}
           onStepClick={scrollToSection}
           freeNavigation
+          getStepLabel={getStepLabel}
           className="h-full"
         />
       </div>
@@ -374,6 +402,7 @@ export function WizardLayout(props: WizardLayoutProps) {
         scrollableSecondaryLabel={rest.scrollableSecondaryLabel}
         scrollableSecondaryDisabled={rest.scrollableSecondaryDisabled}
         scrollPadding={rest.scrollPadding}
+        getStepLabel={rest.getStepLabel}
         className={rest.className}
       />
     );

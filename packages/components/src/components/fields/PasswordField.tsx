@@ -2,15 +2,20 @@ import { Eye, EyeOff } from 'lucide-react';
 import React, { useState } from 'react';
 import { Controller, FieldValues } from 'react-hook-form';
 
+import { FieldLabelRow } from './utils/FieldLabelRow';
+import { getReadOnlyState } from './utils/readOnlyState';
+
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
+  runCustomCheck,
   validateField,
 } from './utils';
 
@@ -18,7 +23,9 @@ import {
  * PasswordField component properties
  */
 export interface PasswordFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    ReadOnlyModeProps,
+    LabelEndProps {
   /**
    * Placeholder text displayed when the field is empty
    */
@@ -53,6 +60,7 @@ export interface PasswordFieldProps<TFieldValues extends FieldValues = FieldValu
 export function PasswordField<TFieldValues extends FieldValues = FieldValues>({
   id,
   label,
+  labelEnd,
   placeholder,
   helperText,
   control,
@@ -60,17 +68,21 @@ export function PasswordField<TFieldValues extends FieldValues = FieldValues>({
   width = 'full',
   validation,
   readOnly,
+  readOnlyMode,
   showToggle = true,
 }: PasswordFieldProps<TFieldValues>): React.ReactElement {
   const [showPassword, setShowPassword] = useState(false);
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
+  const ro = getReadOnlyState(readOnly, readOnlyMode);
 
   // Function for validating password values
   const validatePasswordValue = (value: string): string | true => {
     const validationResult = validateField(value, validation);
-    return validationResult === true ? true : (validationResult as string);
+    return validationResult === true
+      ? runCustomCheck(value, validation)
+      : (validationResult as string);
   };
 
   // Toggle password visibility
@@ -83,9 +95,11 @@ export function PasswordField<TFieldValues extends FieldValues = FieldValues>({
       className={`flex flex-col gap-2 ${width === 'full' ? 'w-full' : width === 'half' ? 'w-1/2' : 'w-1/3'}`}
     >
       {label && (
-        <Label htmlFor={id}>
-          {label} {isRequired && <span className="text-destructive">*</span>}
-        </Label>
+        <FieldLabelRow labelEnd={labelEnd}>
+          <Label htmlFor={id}>
+            {label} {isRequired && <span className="text-destructive">*</span>}
+          </Label>
+        </FieldLabelRow>
       )}
 
       <Controller
@@ -95,7 +109,7 @@ export function PasswordField<TFieldValues extends FieldValues = FieldValues>({
           validate: (value) => {
             // Handle required validation explicitly
             if (value === undefined || value === null || value === '') {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
 
             // Validate password values
@@ -103,10 +117,10 @@ export function PasswordField<TFieldValues extends FieldValues = FieldValues>({
               return validatePasswordValue(value);
             }
 
-            return true;
+            return runCustomCheck(value, validation);
           },
         }}
-        disabled={readOnly}
+        disabled={ro.controllerDisabled}
         render={({ field, fieldState: { error, isTouched } }) => {
           const hasError = !!error;
           const shouldShowError = hasError && isTouched;
@@ -125,7 +139,8 @@ export function PasswordField<TFieldValues extends FieldValues = FieldValues>({
 
           // Handle keyboard events
           const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-            if (e.key === 'Escape') {
+            // INV-12: no Escape-clear (and no preventDefault) in readonly mode.
+            if (e.key === 'Escape' && !ro.isFocusableReadOnly) {
               handleEscapeKey(field.onChange, field.value)(e);
 
               // If required, trigger validation after clearing
@@ -140,6 +155,7 @@ export function PasswordField<TFieldValues extends FieldValues = FieldValues>({
             id,
             hasError,
             isRequired,
+            isReadOnly: ro.isFocusableReadOnly,
             hasHelperText: !!helperText,
           });
 
@@ -157,10 +173,11 @@ export function PasswordField<TFieldValues extends FieldValues = FieldValues>({
                   data-slot="input"
                   value={field.value ?? ''}
                   {...accessibilityProps}
-                  aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
-                  disabled={readOnly}
+                  {...ro.controlProps}
                 />
-                {showToggle && !readOnly && (
+                {/* INV-18: revealing is a read, so the toggle stays in readonly mode (unmounting
+                    it while focused would drop focus); default-mode readOnly hides it as today. */}
+                {showToggle && !(readOnly && !ro.isFocusableReadOnly) && (
                   <Button
                     type="button"
                     variant="ghost"

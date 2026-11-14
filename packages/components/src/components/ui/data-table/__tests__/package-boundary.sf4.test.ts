@@ -71,6 +71,8 @@ describe('INV-136 / INV-148: TanStack is a regular dependency; helpers stay off 
       '../empty-state',
       './chrome',
       './data-table-scroller',
+      // 005 SF-22: internal grouping pipeline (SF-22 INV-9; not barrel-exported).
+      './grouping',
       './helpers',
       './pagination-controls',
       './selection',

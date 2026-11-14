@@ -1,17 +1,23 @@
 import React from 'react';
 import { Controller, FieldValues } from 'react-hook-form';
 
+import { FieldLabelRow } from './utils/FieldLabelRow';
+import { getReadOnlyState } from './utils/readOnlyState';
+
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getActiveMessages,
+  getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
   INTEGER_HTML_PATTERN,
   INTEGER_INPUT_PATTERN,
   INTEGER_PATTERN,
+  runCustomCheck,
   validateField,
 } from './utils';
 
@@ -19,7 +25,9 @@ import {
  * BigIntField component properties
  */
 export interface BigIntFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    ReadOnlyModeProps,
+    LabelEndProps {
   /**
    * Custom validation function for big integer string values
    */
@@ -50,6 +58,7 @@ export interface BigIntFieldProps<TFieldValues extends FieldValues = FieldValues
 export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
   id,
   label,
+  labelEnd,
   placeholder,
   helperText,
   control,
@@ -58,10 +67,12 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
   validation,
   validateBigInt,
   readOnly,
+  readOnlyMode,
 }: BigIntFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
+  const ro = getReadOnlyState(readOnly, readOnlyMode);
 
   // Ensure validation includes integer-only pattern
   // This will be handled by validateField utility, avoiding duplication
@@ -70,10 +81,17 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
     pattern: validation?.pattern || INTEGER_PATTERN,
   };
 
-  // Validation function for big integer strings
-  const validateBigIntValue = (value: string): string | true => {
-    // Run standard validation with integer pattern (includes pattern validation)
-    const standardValidation = validateField(value, enhancedValidation);
+  // Validation function for big integer strings. `storedValue` is what the form
+  // holds, passed to the custom check unchanged (INV-12).
+  const validateBigIntValue = (value: string, storedValue: unknown): string | true => {
+    // Run standard validation with integer pattern (includes pattern validation).
+    // Messages come from the consumer's own rules, so the injected integer
+    // pattern keeps its wording unless the consumer set `pattern` (INV-13).
+    const standardValidation = validateField(
+      value,
+      enhancedValidation,
+      getActiveMessages(validation)
+    );
     if (standardValidation !== true) return standardValidation as string;
 
     // Run custom validator if provided
@@ -84,7 +102,7 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
       }
     }
 
-    return true;
+    return runCustomCheck(storedValue, validation);
   };
 
   return (
@@ -92,9 +110,11 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
       className={`flex flex-col gap-2 ${width === 'full' ? 'w-full' : width === 'half' ? 'w-1/2' : 'w-1/3'}`}
     >
       {label && (
-        <Label htmlFor={id}>
-          {label} {isRequired && <span className="text-destructive">*</span>}
-        </Label>
+        <FieldLabelRow labelEnd={labelEnd}>
+          <Label htmlFor={id}>
+            {label} {isRequired && <span className="text-destructive">*</span>}
+          </Label>
+        </FieldLabelRow>
       )}
 
       <Controller
@@ -104,7 +124,7 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
           validate: (value) => {
             // Skip validation if empty and check required separately
             if (value === undefined || value === null || value === '') {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
 
             // Handle incomplete inputs
@@ -114,18 +134,18 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
 
             // For string values, validate as big integer
             if (typeof value === 'string') {
-              return validateBigIntValue(value);
+              return validateBigIntValue(value, value);
             }
 
             // Convert numbers to strings (in case value is accidentally a number)
             if (typeof value === 'number') {
-              return validateBigIntValue(value.toString());
+              return validateBigIntValue(value.toString(), value);
             }
 
-            return true;
+            return runCustomCheck(value, validation);
           },
         }}
-        disabled={readOnly}
+        disabled={ro.controllerDisabled}
         render={({ field, fieldState: { error, isTouched } }) => {
           const hasError = !!error;
           const shouldShowError = hasError && isTouched;
@@ -193,8 +213,8 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
               e.preventDefault();
             }
 
-            // Handle escape key to clear input
-            if (e.key === 'Escape') {
+            // Handle escape key to clear input (INV-12: not in readonly mode, no preventDefault)
+            if (e.key === 'Escape' && !ro.isFocusableReadOnly) {
               handleEscapeKey(field.onChange, field.value)(e);
               return;
             }
@@ -205,6 +225,7 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
             id,
             hasError,
             isRequired,
+            isReadOnly: ro.isFocusableReadOnly,
             hasHelperText: !!helperText,
           });
 
@@ -223,8 +244,7 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
                 inputMode="numeric"
                 pattern={INTEGER_HTML_PATTERN}
                 {...accessibilityProps}
-                aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
-                disabled={readOnly}
+                {...ro.controlProps}
               />
 
               {/* Display helper text */}

@@ -3,6 +3,7 @@ import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 
 import { type FieldValidation } from '@openzeppelin/ui-types';
 
+import { FieldLabelRow } from './utils/FieldLabelRow';
 import { getWidthClasses } from './utils/layout';
 
 import {
@@ -68,6 +69,36 @@ export interface BaseFieldProps<TFieldValues extends FieldValues = FieldValues> 
 }
 
 /**
+ * How a field renders when `readOnly` is true.
+ * - `'disabled'` (default): today's behaviour. The control is disabled, leaves the tab order,
+ *   and react-hook-form leaves its value out of `handleSubmit` data.
+ * - `'readonly'`: the control stays focusable and selectable, gets the native `readonly`
+ *   attribute and the kit's read-only look, ignores user edits, and keeps its value in
+ *   `handleSubmit` data. Validation still runs.
+ */
+export type ReadOnlyMode = 'disabled' | 'readonly';
+
+/** Mixed into the props of fields that support the focusable read-only mode. */
+export interface ReadOnlyModeProps {
+  /**
+   * Has an effect only when `readOnly` is true. See {@link ReadOnlyMode}.
+   * @default 'disabled'
+   */
+  readOnlyMode?: ReadOnlyMode;
+}
+
+/** Mixed into the props of fields that accept content at the end of the label row. */
+export interface LabelEndProps {
+  /**
+   * Content placed at the end of the label row, such as an "Optional" chip or a small action
+   * ("Address book"). It sits beside the label, not inside it, so the control's accessible name
+   * stays the label text and clicking the label still focuses the input. Shown only when the
+   * field has a `label`.
+   */
+  labelEnd?: ReactNode;
+}
+
+/**
  * BaseField component to provide a consistent layout for form fields
  *
  * @important This component is the foundation of the app rendering architecture and should
@@ -96,21 +127,27 @@ export function BaseField<TFieldValues extends FieldValues = FieldValues>({
   control,
   name,
   width = 'full',
+  labelEnd,
   renderInput,
-}: BaseFieldProps<TFieldValues> & {
-  renderInput: (
-    field: Record<string, unknown>,
-    props: { id: string; ref?: ForwardedRef<HTMLElement> }
-  ) => ReactNode;
-  ref?: ForwardedRef<HTMLElement>;
-}): ReactElement {
+}: BaseFieldProps<TFieldValues> &
+  LabelEndProps & {
+    renderInput: (
+      field: Record<string, unknown>,
+      props: { id: string; ref?: ForwardedRef<HTMLElement> }
+    ) => ReactNode;
+    ref?: ForwardedRef<HTMLElement>;
+  }): ReactElement {
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => (
         <FormItem className={getWidthClasses(width)}>
-          <FormLabel htmlFor={id}>{label}</FormLabel>
+          {label && (
+            <FieldLabelRow labelEnd={labelEnd}>
+              <FormLabel htmlFor={id}>{label}</FormLabel>
+            </FieldLabelRow>
+          )}
           <FormControl>{renderInput(field, { id })}</FormControl>
           {helperText && <FormDescription id={`${id}-description`}>{helperText}</FormDescription>}
           <FormMessage id={`${id}-error`} />

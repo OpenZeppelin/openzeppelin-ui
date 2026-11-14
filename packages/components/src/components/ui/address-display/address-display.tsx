@@ -115,6 +115,20 @@ export interface AddressDisplayProps extends React.HTMLAttributes<HTMLDivElement
   showCopyButtonOnHover?: boolean;
 
   /**
+   * Accessible name of the copy button. Lets the same component serve values
+   * other than addresses (e.g. a transaction hash) and tells several copy
+   * buttons in one row apart.
+   * @default "Copy address"
+   */
+  copyLabel?: string;
+
+  /**
+   * Accessible name of the copy button right after a copy.
+   * @default "Copied"
+   */
+  copiedLabel?: string;
+
+  /**
    * Optional explorer URL to make the address clickable
    */
   explorerUrl?: string;
@@ -284,6 +298,8 @@ export function AddressDisplay({
   endChars = 4,
   showCopyButton = false,
   showCopyButtonOnHover = false,
+  copyLabel = 'Copy address',
+  copiedLabel = 'Copied',
   explorerUrl,
   label: labelProp,
   onLabelEdit: onLabelEditProp,
@@ -446,7 +462,7 @@ export function AddressDisplay({
               ? 'ml-0 w-0 overflow-hidden opacity-0 transition-all duration-150 group-hover:ml-1.5 group-hover:w-3.5 group-hover:opacity-100 focus:ml-1.5 focus:w-3.5 focus:opacity-100'
               : 'ml-1.5 transition-colors'
           )}
-          aria-label={copied ? 'Copied' : 'Copy address'}
+          aria-label={copied ? copiedLabel : copyLabel}
         >
           {copied ? (
             <Check className="h-3.5 w-3.5 text-emerald-600" />

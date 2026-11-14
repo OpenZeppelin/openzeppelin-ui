@@ -1,4 +1,5 @@
-import { useState, type ReactElement } from 'react';
+import { ArrowRight } from 'lucide-react';
+import { useEffect, useRef, useState, type ReactElement, type RefObject } from 'react';
 
 import { Input, Label, WizardLayout, type WizardStepConfig } from '@openzeppelin/ui-components';
 
@@ -129,6 +130,136 @@ function ScrollableDemo() {
 }
 
 // ---------------------------------------------------------------------------
+// Async save: pending primary, disabled Back, guarded step form
+// ---------------------------------------------------------------------------
+
+const SAVE_DELAY_MS = 1500;
+
+const ASYNC_STEPS = [
+  { id: 'profile', title: 'Profile', field: 'Display name' },
+  { id: 'details', title: 'Details', field: 'Organisation' },
+  { id: 'confirm', title: 'Confirm', field: 'Note for reviewers' },
+] as const;
+
+function simulateSave(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, SAVE_DELAY_MS));
+}
+
+function AsyncStepForm({
+  id,
+  title,
+  field,
+  fieldRef,
+  onSubmit,
+}: {
+  id: string;
+  title: string;
+  field: string;
+  fieldRef: RefObject<HTMLInputElement | null>;
+  onSubmit: () => void;
+}) {
+  return (
+    <form
+      className="max-w-sm space-y-2"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit();
+      }}
+    >
+      <h2 className="text-lg font-semibold">{title}</h2>
+      <Label htmlFor={`async-save-${id}`}>{field}</Label>
+      <Input id={`async-save-${id}`} ref={fieldRef} placeholder="Press Enter to save" />
+    </form>
+  );
+}
+
+function AsyncSaveDemo() {
+  const [step, setStep] = useState(0);
+  const [saving, setSaving] = useState(false);
+  const [savesCompleted, setSavesCompleted] = useState(0);
+  const [finished, setFinished] = useState(false);
+  // The kit holds no pending state. This ref is the demo's own in-flight guard, so the
+  // primary, the stepper and Enter in the step form all share one save per cycle.
+  const inFlightRef = useRef(false);
+  const fieldRef = useRef<HTMLInputElement>(null);
+  // A save started from the step form moves focus to the next step's field once it renders.
+  // A save started from the primary needs no restore: the primary is one stable node.
+  const focusFieldAfterAdvanceRef = useRef(false);
+  const lastIndex = ASYNC_STEPS.length - 1;
+
+  useEffect(() => {
+    if (!focusFieldAfterAdvanceRef.current) return;
+    focusFieldAfterAdvanceRef.current = false;
+    fieldRef.current?.focus();
+  }, [step]);
+
+  const saveAndAdvance = async (source: 'primary' | 'form') => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
+    // Set synchronously, before the first await, so a second activation already sees pending.
+    setSaving(true);
+    try {
+      await simulateSave();
+      setSavesCompleted((n) => n + 1);
+      if (step === lastIndex) {
+        setFinished(true);
+      } else {
+        focusFieldAfterAdvanceRef.current = source === 'form';
+        setStep(step + 1);
+      }
+    } finally {
+      inFlightRef.current = false;
+      setSaving(false);
+    }
+  };
+
+  const steps: WizardStepConfig[] = ASYNC_STEPS.map((s) => ({
+    id: s.id,
+    title: s.title,
+    component: (
+      <AsyncStepForm
+        key={s.id}
+        id={s.id}
+        title={s.title}
+        field={s.field}
+        fieldRef={fieldRef}
+        onSubmit={() => void saveAndAdvance('form')}
+      />
+    ),
+  }));
+
+  return (
+    <div className="space-y-2">
+      <div className="h-[360px] overflow-hidden rounded-lg border">
+        <WizardLayout
+          variant="horizontal"
+          steps={steps}
+          currentStepIndex={step}
+          onStepChange={(next) => {
+            // Ignore every step change while a save is in flight, stepper clicks included.
+            if (inFlightRef.current) return;
+            setFinished(false);
+            if (next === step + 1) void saveAndAdvance('primary');
+            else setStep(next);
+          }}
+          onComplete={() => void saveAndAdvance('primary')}
+          nextLabel="Save & continue"
+          lastStepLabel="Save & finish"
+          previousLabel="Back"
+          previousDisabled={saving}
+          primaryLoading={saving}
+          primaryIcon={<ArrowRight className="size-4" />}
+        />
+      </div>
+      <p className="text-sm text-muted-foreground" data-testid="async-save-status">
+        {saving ? 'Saving…' : finished ? 'Finished' : 'Idle'} · Saves completed:{' '}
+        <span data-testid="async-save-count">{savesCompleted}</span>
+      </p>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Public demo
 // ---------------------------------------------------------------------------
 
@@ -190,6 +321,18 @@ function MyWizard() {
           position and clicking a step scrolls to that section.
         </p>
         <ScrollableDemo />
+      </div>
+
+      {/* Async save: pending primary and disabled Back */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Async save (Paged)</h3>
+        <p className="text-sm text-muted-foreground">
+          Each step saves before advancing (simulated, about 1.5 s). During the save, Back is
+          disabled and the primary shows a spinner and ignores clicks, Enter and Space, while
+          keeping focus. Pressing Enter in the step field runs the same guarded save, so the counter
+          goes up once per save however often you press.
+        </p>
+        <AsyncSaveDemo />
       </div>
     </DemoSection>
   );

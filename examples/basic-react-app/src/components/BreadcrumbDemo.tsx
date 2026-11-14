@@ -55,6 +55,23 @@ export function BreadcrumbDemo(): React.ReactElement {
       </div>
 
       <div className="space-y-4">
+        <h3 className="text-lg font-medium">Link-less section</h3>
+        <p className="text-muted-foreground text-sm">
+          An ancestor may omit href, for a grouping with no page of its own. It renders as plain
+          text, not a link.
+        </p>
+        <div className="rounded-lg border p-4" data-testid="breadcrumb-linkless">
+          <Breadcrumb
+            items={[
+              { label: 'Contracts', href: '#contracts' },
+              { label: 'Settings' },
+              { label: 'Access control' },
+            ]}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4">
         <h3 className="text-lg font-medium">Smallest valid trail</h3>
         <p className="text-muted-foreground text-sm">
           A breadcrumb always has a current page, so the smallest valid state still communicates

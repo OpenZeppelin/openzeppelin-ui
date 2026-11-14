@@ -43,10 +43,10 @@ describe('INV-82 part 1: no provider → the ENS surface does not exist', () => 
     expect(h.input().placeholder).toBe('0x...');
   });
 
-  it('keeps the legacy aria-describedby wiring verbatim (helperText only)', () => {
+  it('describes the field by the helper text only, with no trailing whitespace (SF-1)', () => {
     const h = renderAddressField({ helperText: 'Recipient address' });
-    // legacy template: `${descriptionId} ${errorId-or-empty}` — including its trailing space
-    expect(h.input().getAttribute('aria-describedby')).toBe('recipient-description ');
+    // SF-1: the shared helper emits only ids that exist; the legacy template's trailing space is gone
+    expect(h.input().getAttribute('aria-describedby')).toBe('recipient-description');
   });
 
   it('valid hex paste: raw passthrough, valid form, no resolution attempt possible', async () => {

@@ -1,0 +1,1587 @@
+{
+  "single-ungrouped": [
+    {
+      "step": "closed, nothing selected",
+      "open": false,
+      "triggerText": "Select Network",
+      "triggerName": "",
+      "emits": [],
+      "submits": 0,
+      "focusAfterClose": "body"
+    },
+    {
+      "step": "open",
+      "open": true,
+      "triggerText": "Select Network",
+      "triggerName": "",
+      "emits": [],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "",
+      "rows": [
+        {
+          "kind": "item",
+          "text": "Ethereummainnet",
+          "name": "Ethereum mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellarmainnet",
+          "name": "Stellar mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellar TestnettestnetSelf-host required",
+          "name": "Stellar Testnet testnet Self-host required",
+          "disabled": true,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Midnightdevnet",
+          "name": "Midnight devnet",
+          "disabled": true,
+          "checked": false
+        }
+      ],
+      "selectionRow": null,
+      "clearAllName": null,
+      "popupText": "EthereummainnetEthereum SepoliatestnetStellarmainnetStellar TestnettestnetSelf-host requiredBase SepoliaMidnightdevnet",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "popup"
+      }
+    },
+    {
+      "step": "query \"sep\"",
+      "open": true,
+      "triggerText": "Select Network",
+      "triggerName": "",
+      "emits": [],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "sep",
+      "rows": [
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": false
+        }
+      ],
+      "selectionRow": null,
+      "clearAllName": null,
+      "popupText": "Ethereum SepoliatestnetBase Sepolia",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "search"
+      }
+    },
+    {
+      "step": "picked Ethereum Sepolia",
+      "open": false,
+      "triggerText": "Ethereum Sepoliatestnet",
+      "triggerName": "",
+      "emits": ["sep"],
+      "submits": 0,
+      "focusAfterClose": "trigger"
+    },
+    {
+      "step": "reopen keeps query",
+      "open": true,
+      "triggerText": "Ethereum Sepoliatestnet",
+      "triggerName": "",
+      "emits": ["sep"],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "sep",
+      "rows": [
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": true
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": false
+        }
+      ],
+      "selectionRow": null,
+      "clearAllName": null,
+      "popupText": "Ethereum SepoliatestnetBase Sepolia",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "popup"
+      }
+    },
+    {
+      "step": "query cleared, selection checked",
+      "open": true,
+      "triggerText": "Ethereum Sepoliatestnet",
+      "triggerName": "",
+      "emits": ["sep"],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "",
+      "rows": [
+        {
+          "kind": "item",
+          "text": "Ethereummainnet",
+          "name": "Ethereum mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": true
+        },
+        {
+          "kind": "item",
+          "text": "Stellarmainnet",
+          "name": "Stellar mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellar TestnettestnetSelf-host required",
+          "name": "Stellar Testnet testnet Self-host required",
+          "disabled": true,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Midnightdevnet",
+          "name": "Midnight devnet",
+          "disabled": true,
+          "checked": false
+        }
+      ],
+      "selectionRow": null,
+      "clearAllName": null,
+      "popupText": "EthereummainnetEthereum SepoliatestnetStellarmainnetStellar TestnettestnetSelf-host requiredBase SepoliaMidnightdevnet",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "search"
+      }
+    },
+    {
+      "step": "click disabled network",
+      "open": true,
+      "triggerText": "Ethereum Sepoliatestnet",
+      "triggerName": "",
+      "emits": ["sep"],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "",
+      "rows": [
+        {
+          "kind": "item",
+          "text": "Ethereummainnet",
+          "name": "Ethereum mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": true
+        },
+        {
+          "kind": "item",
+          "text": "Stellarmainnet",
+          "name": "Stellar mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellar TestnettestnetSelf-host required",
+          "name": "Stellar Testnet testnet Self-host required",
+          "disabled": true,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Midnightdevnet",
+          "name": "Midnight devnet",
+          "disabled": true,
+          "checked": false
+        }
+      ],
+      "selectionRow": null,
+      "clearAllName": null,
+      "popupText": "EthereummainnetEthereum SepoliatestnetStellarmainnetStellar TestnettestnetSelf-host requiredBase SepoliaMidnightdevnet",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "popup"
+      }
+    },
+    {
+      "step": "query \"zzz\" (no match)",
+      "open": true,
+      "triggerText": "Ethereum Sepoliatestnet",
+      "triggerName": "",
+      "emits": ["sep"],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "zzz",
+      "rows": [],
+      "selectionRow": null,
+      "clearAllName": null,
+      "popupText": "",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": [],
+        "groups": 1,
+        "focusOnOpen": "search"
+      }
+    },
+    {
+      "step": "Escape",
+      "open": false,
+      "triggerText": "Ethereum Sepoliatestnet",
+      "triggerName": "",
+      "emits": ["sep"],
+      "submits": 0,
+      "focusAfterClose": "trigger"
+    },
+    {
+      "step": "re-pick Ethereum Sepolia",
+      "open": false,
+      "triggerText": "Ethereum Sepoliatestnet",
+      "triggerName": "",
+      "emits": ["sep", "sep"],
+      "submits": 0,
+      "focusAfterClose": "trigger"
+    }
+  ],
+  "single-grouped-in-form": [
+    {
+      "step": "closed",
+      "open": false,
+      "triggerText": "Select network…",
+      "triggerName": "",
+      "emits": [],
+      "submits": 0,
+      "focusAfterClose": "body"
+    },
+    {
+      "step": "open",
+      "open": true,
+      "triggerText": "Select network…",
+      "triggerName": "",
+      "emits": [],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "",
+      "rows": [
+        {
+          "kind": "header",
+          "text": "EVM"
+        },
+        {
+          "kind": "item",
+          "text": "Ethereummainnet",
+          "name": "Ethereum mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "header",
+          "text": "STELLAR"
+        },
+        {
+          "kind": "item",
+          "text": "Stellarmainnet",
+          "name": "Stellar mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellar TestnettestnetSelf-host required",
+          "name": "Stellar Testnet testnet Self-host required",
+          "disabled": true,
+          "checked": false
+        },
+        {
+          "kind": "header",
+          "text": "MIDNIGHT"
+        },
+        {
+          "kind": "item",
+          "text": "Midnightdevnet",
+          "name": "Midnight devnet",
+          "disabled": true,
+          "checked": false
+        }
+      ],
+      "selectionRow": null,
+      "clearAllName": null,
+      "popupText": "EVMEthereummainnetEthereum SepoliatestnetBase SepoliaSTELLARStellarmainnetStellar TestnettestnetSelf-host requiredMIDNIGHTMidnightdevnet",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 3,
+        "focusOnOpen": "popup"
+      }
+    },
+    {
+      "step": "picked Base Sepolia (type undefined)",
+      "open": false,
+      "triggerText": "Base Sepolia",
+      "triggerName": "",
+      "emits": ["base"],
+      "submits": 0,
+      "focusAfterClose": "trigger"
+    },
+    {
+      "step": "picked Stellar",
+      "open": false,
+      "triggerText": "Stellarmainnet",
+      "triggerName": "",
+      "emits": ["base", "xlm"],
+      "submits": 0,
+      "focusAfterClose": "trigger"
+    },
+    {
+      "step": "query \"zzz\" (no match)",
+      "open": true,
+      "triggerText": "Stellarmainnet",
+      "triggerName": "",
+      "emits": ["base", "xlm"],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "zzz",
+      "rows": [],
+      "selectionRow": null,
+      "clearAllName": null,
+      "popupText": "No network found.",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": [],
+        "groups": 0,
+        "focusOnOpen": "search"
+      }
+    },
+    {
+      "step": "query \"sepolia\"",
+      "open": true,
+      "triggerText": "Stellarmainnet",
+      "triggerName": "",
+      "emits": ["base", "xlm"],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "sepolia",
+      "rows": [
+        {
+          "kind": "header",
+          "text": "EVM"
+        },
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": false
+        }
+      ],
+      "selectionRow": null,
+      "clearAllName": null,
+      "popupText": "EVMEthereum SepoliatestnetBase Sepolia",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "search"
+      }
+    },
+    {
+      "step": "Escape",
+      "open": false,
+      "triggerText": "Stellarmainnet",
+      "triggerName": "",
+      "emits": ["base", "xlm"],
+      "submits": 0,
+      "focusAfterClose": "trigger"
+    }
+  ],
+  "single-grouped-all": [
+    {
+      "step": "open",
+      "open": true,
+      "triggerText": "Select Network",
+      "triggerName": "",
+      "emits": [],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "",
+      "rows": [
+        {
+          "kind": "header",
+          "text": "All"
+        },
+        {
+          "kind": "item",
+          "text": "Ethereummainnet",
+          "name": "Ethereum mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellarmainnet",
+          "name": "Stellar mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellar TestnettestnetSelf-host required",
+          "name": "Stellar Testnet testnet Self-host required",
+          "disabled": true,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Midnightdevnet",
+          "name": "Midnight devnet",
+          "disabled": true,
+          "checked": false
+        }
+      ],
+      "selectionRow": null,
+      "clearAllName": null,
+      "popupText": "AllEthereummainnetEthereum SepoliatestnetStellarmainnetStellar TestnettestnetSelf-host requiredBase SepoliaMidnightdevnet",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "popup"
+      }
+    },
+    {
+      "step": "query \"zzz\" (no match)",
+      "open": true,
+      "triggerText": "Select Network",
+      "triggerName": "",
+      "emits": [],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "zzz",
+      "rows": [
+        {
+          "kind": "header",
+          "text": "All"
+        }
+      ],
+      "selectionRow": null,
+      "clearAllName": null,
+      "popupText": "All",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": [],
+        "groups": 1,
+        "focusOnOpen": "search"
+      }
+    },
+    {
+      "step": "Escape",
+      "open": false,
+      "triggerText": "Select Network",
+      "triggerName": "",
+      "emits": [],
+      "submits": 0,
+      "focusAfterClose": "trigger"
+    }
+  ],
+  "single-no-networks": [
+    {
+      "step": "closed",
+      "open": false,
+      "triggerText": "Select Network",
+      "triggerName": "",
+      "emits": [],
+      "submits": 0,
+      "focusAfterClose": "body"
+    },
+    {
+      "step": "open",
+      "open": true,
+      "triggerText": "Select Network",
+      "triggerName": "",
+      "emits": [],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "",
+      "rows": [],
+      "selectionRow": null,
+      "clearAllName": null,
+      "popupText": "",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": [],
+        "groups": 1,
+        "focusOnOpen": "popup"
+      }
+    }
+  ],
+  "multi-default": [
+    {
+      "step": "closed, zero",
+      "open": false,
+      "triggerText": "Select Network",
+      "triggerName": "",
+      "emits": [],
+      "submits": 0,
+      "focusAfterClose": "body"
+    },
+    {
+      "step": "open",
+      "open": true,
+      "triggerText": "Select Network",
+      "triggerName": "",
+      "emits": [],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "",
+      "rows": [
+        {
+          "kind": "item",
+          "text": "Ethereummainnet",
+          "name": "Ethereum mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellarmainnet",
+          "name": "Stellar mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellar TestnettestnetSelf-host required",
+          "name": "Stellar Testnet testnet Self-host required",
+          "disabled": true,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Midnightdevnet",
+          "name": "Midnight devnet",
+          "disabled": true,
+          "checked": false
+        }
+      ],
+      "selectionRow": null,
+      "clearAllName": null,
+      "popupText": "EthereummainnetEthereum SepoliatestnetStellarmainnetStellar TestnettestnetSelf-host requiredBase SepoliaMidnightdevnet",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "popup"
+      }
+    },
+    {
+      "step": "pick Ethereum",
+      "open": true,
+      "triggerText": "1 network selected",
+      "triggerName": "",
+      "emits": ["[\"eth\"]"],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "",
+      "rows": [
+        {
+          "kind": "item",
+          "text": "Ethereummainnet",
+          "name": "Ethereum mainnet",
+          "disabled": false,
+          "checked": true
+        },
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellarmainnet",
+          "name": "Stellar mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellar TestnettestnetSelf-host required",
+          "name": "Stellar Testnet testnet Self-host required",
+          "disabled": true,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Midnightdevnet",
+          "name": "Midnight devnet",
+          "disabled": true,
+          "checked": false
+        }
+      ],
+      "selectionRow": "1 selectedClear all",
+      "clearAllName": "Clear all",
+      "popupText": "1 selectedClear allEthereummainnetEthereum SepoliatestnetStellarmainnetStellar TestnettestnetSelf-host requiredBase SepoliaMidnightdevnet",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "popup"
+      }
+    },
+    {
+      "step": "pick Base Sepolia",
+      "open": true,
+      "triggerText": "2 networks selected",
+      "triggerName": "",
+      "emits": ["[\"eth\"]", "[\"eth\",\"base\"]"],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "",
+      "rows": [
+        {
+          "kind": "item",
+          "text": "Ethereummainnet",
+          "name": "Ethereum mainnet",
+          "disabled": false,
+          "checked": true
+        },
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellarmainnet",
+          "name": "Stellar mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellar TestnettestnetSelf-host required",
+          "name": "Stellar Testnet testnet Self-host required",
+          "disabled": true,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": true
+        },
+        {
+          "kind": "item",
+          "text": "Midnightdevnet",
+          "name": "Midnight devnet",
+          "disabled": true,
+          "checked": false
+        }
+      ],
+      "selectionRow": "2 selectedClear all",
+      "clearAllName": "Clear all",
+      "popupText": "2 selectedClear allEthereummainnetEthereum SepoliatestnetStellarmainnetStellar TestnettestnetSelf-host requiredBase SepoliaMidnightdevnet",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "popup"
+      }
+    },
+    {
+      "step": "click disabled Midnight",
+      "open": true,
+      "triggerText": "2 networks selected",
+      "triggerName": "",
+      "emits": ["[\"eth\"]", "[\"eth\",\"base\"]"],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "",
+      "rows": [
+        {
+          "kind": "item",
+          "text": "Ethereummainnet",
+          "name": "Ethereum mainnet",
+          "disabled": false,
+          "checked": true
+        },
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellarmainnet",
+          "name": "Stellar mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellar TestnettestnetSelf-host required",
+          "name": "Stellar Testnet testnet Self-host required",
+          "disabled": true,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": true
+        },
+        {
+          "kind": "item",
+          "text": "Midnightdevnet",
+          "name": "Midnight devnet",
+          "disabled": true,
+          "checked": false
+        }
+      ],
+      "selectionRow": "2 selectedClear all",
+      "clearAllName": "Clear all",
+      "popupText": "2 selectedClear allEthereummainnetEthereum SepoliatestnetStellarmainnetStellar TestnettestnetSelf-host requiredBase SepoliaMidnightdevnet",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "popup"
+      }
+    },
+    {
+      "step": "deselect Ethereum",
+      "open": true,
+      "triggerText": "1 network selected",
+      "triggerName": "",
+      "emits": ["[\"eth\"]", "[\"eth\",\"base\"]", "[\"base\"]"],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "",
+      "rows": [
+        {
+          "kind": "item",
+          "text": "Ethereummainnet",
+          "name": "Ethereum mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellarmainnet",
+          "name": "Stellar mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellar TestnettestnetSelf-host required",
+          "name": "Stellar Testnet testnet Self-host required",
+          "disabled": true,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": true
+        },
+        {
+          "kind": "item",
+          "text": "Midnightdevnet",
+          "name": "Midnight devnet",
+          "disabled": true,
+          "checked": false
+        }
+      ],
+      "selectionRow": "1 selectedClear all",
+      "clearAllName": "Clear all",
+      "popupText": "1 selectedClear allEthereummainnetEthereum SepoliatestnetStellarmainnetStellar TestnettestnetSelf-host requiredBase SepoliaMidnightdevnet",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "popup"
+      }
+    },
+    {
+      "step": "re-pick Ethereum",
+      "open": true,
+      "triggerText": "2 networks selected",
+      "triggerName": "",
+      "emits": ["[\"eth\"]", "[\"eth\",\"base\"]", "[\"base\"]", "[\"base\",\"eth\"]"],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "",
+      "rows": [
+        {
+          "kind": "item",
+          "text": "Ethereummainnet",
+          "name": "Ethereum mainnet",
+          "disabled": false,
+          "checked": true
+        },
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellarmainnet",
+          "name": "Stellar mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellar TestnettestnetSelf-host required",
+          "name": "Stellar Testnet testnet Self-host required",
+          "disabled": true,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": true
+        },
+        {
+          "kind": "item",
+          "text": "Midnightdevnet",
+          "name": "Midnight devnet",
+          "disabled": true,
+          "checked": false
+        }
+      ],
+      "selectionRow": "2 selectedClear all",
+      "clearAllName": "Clear all",
+      "popupText": "2 selectedClear allEthereummainnetEthereum SepoliatestnetStellarmainnetStellar TestnettestnetSelf-host requiredBase SepoliaMidnightdevnet",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "popup"
+      }
+    },
+    {
+      "step": "query \"zzz\" (no match)",
+      "open": true,
+      "triggerText": "2 networks selected",
+      "triggerName": "",
+      "emits": ["[\"eth\"]", "[\"eth\",\"base\"]", "[\"base\"]", "[\"base\",\"eth\"]"],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "zzz",
+      "rows": [],
+      "selectionRow": "2 selectedClear all",
+      "clearAllName": "Clear all",
+      "popupText": "2 selectedClear all",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": [],
+        "groups": 1,
+        "focusOnOpen": "search"
+      }
+    },
+    {
+      "step": "query \"stell\" hides selected",
+      "open": true,
+      "triggerText": "2 networks selected",
+      "triggerName": "",
+      "emits": ["[\"eth\"]", "[\"eth\",\"base\"]", "[\"base\"]", "[\"base\",\"eth\"]"],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "stell",
+      "rows": [
+        {
+          "kind": "item",
+          "text": "Stellarmainnet",
+          "name": "Stellar mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellar TestnettestnetSelf-host required",
+          "name": "Stellar Testnet testnet Self-host required",
+          "disabled": true,
+          "checked": false
+        }
+      ],
+      "selectionRow": "2 selectedClear all",
+      "clearAllName": "Clear all",
+      "popupText": "2 selectedClear allStellarmainnetStellar TestnettestnetSelf-host required",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "search"
+      }
+    },
+    {
+      "step": "Clear all with hidden selection",
+      "open": true,
+      "triggerText": "Select Network",
+      "triggerName": "",
+      "emits": ["[\"eth\"]", "[\"eth\",\"base\"]", "[\"base\"]", "[\"base\",\"eth\"]", "[]"],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "stell",
+      "rows": [
+        {
+          "kind": "item",
+          "text": "Stellarmainnet",
+          "name": "Stellar mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellar TestnettestnetSelf-host required",
+          "name": "Stellar Testnet testnet Self-host required",
+          "disabled": true,
+          "checked": false
+        }
+      ],
+      "selectionRow": null,
+      "clearAllName": null,
+      "popupText": "StellarmainnetStellar TestnettestnetSelf-host required",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "popup"
+      }
+    },
+    {
+      "step": "Escape",
+      "open": false,
+      "triggerText": "Select Network",
+      "triggerName": "",
+      "emits": ["[\"eth\"]", "[\"eth\",\"base\"]", "[\"base\"]", "[\"base\",\"eth\"]", "[]"],
+      "submits": 0,
+      "focusAfterClose": "trigger"
+    }
+  ],
+  "multi-stale-duplicate": [
+    {
+      "step": "closed, three raw ids",
+      "open": false,
+      "triggerText": "3 networks selected",
+      "triggerName": "",
+      "emits": [],
+      "submits": 0,
+      "focusAfterClose": "body"
+    },
+    {
+      "step": "open",
+      "open": true,
+      "triggerText": "3 networks selected",
+      "triggerName": "",
+      "emits": [],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "",
+      "rows": [
+        {
+          "kind": "item",
+          "text": "Ethereummainnet",
+          "name": "Ethereum mainnet",
+          "disabled": false,
+          "checked": true
+        },
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellarmainnet",
+          "name": "Stellar mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellar TestnettestnetSelf-host required",
+          "name": "Stellar Testnet testnet Self-host required",
+          "disabled": true,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Midnightdevnet",
+          "name": "Midnight devnet",
+          "disabled": true,
+          "checked": false
+        }
+      ],
+      "selectionRow": "3 selectedClear all",
+      "clearAllName": "Clear all",
+      "popupText": "3 selectedClear allEthereummainnetEthereum SepoliatestnetStellarmainnetStellar TestnettestnetSelf-host requiredBase SepoliaMidnightdevnet",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "popup"
+      }
+    },
+    {
+      "step": "toggle Ethereum removes both copies",
+      "open": true,
+      "triggerText": "1 network selected",
+      "triggerName": "",
+      "emits": ["[\"gone\"]"],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "",
+      "rows": [
+        {
+          "kind": "item",
+          "text": "Ethereummainnet",
+          "name": "Ethereum mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellarmainnet",
+          "name": "Stellar mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellar TestnettestnetSelf-host required",
+          "name": "Stellar Testnet testnet Self-host required",
+          "disabled": true,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Midnightdevnet",
+          "name": "Midnight devnet",
+          "disabled": true,
+          "checked": false
+        }
+      ],
+      "selectionRow": "1 selectedClear all",
+      "clearAllName": "Clear all",
+      "popupText": "1 selectedClear allEthereummainnetEthereum SepoliatestnetStellarmainnetStellar TestnettestnetSelf-host requiredBase SepoliaMidnightdevnet",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "popup"
+      }
+    },
+    {
+      "step": "Clear all with only a stale id",
+      "open": true,
+      "triggerText": "Select Network",
+      "triggerName": "",
+      "emits": ["[\"gone\"]", "[]"],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "",
+      "rows": [
+        {
+          "kind": "item",
+          "text": "Ethereummainnet",
+          "name": "Ethereum mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellarmainnet",
+          "name": "Stellar mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellar TestnettestnetSelf-host required",
+          "name": "Stellar Testnet testnet Self-host required",
+          "disabled": true,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Midnightdevnet",
+          "name": "Midnight devnet",
+          "disabled": true,
+          "checked": false
+        }
+      ],
+      "selectionRow": null,
+      "clearAllName": null,
+      "popupText": "EthereummainnetEthereum SepoliatestnetStellarmainnetStellar TestnettestnetSelf-host requiredBase SepoliaMidnightdevnet",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "popup"
+      }
+    }
+  ],
+  "multi-custom-grouped": [
+    {
+      "step": "closed, zero",
+      "open": false,
+      "triggerText": "",
+      "triggerName": "",
+      "emits": [],
+      "submits": 0,
+      "focusAfterClose": "body"
+    },
+    {
+      "step": "open",
+      "open": true,
+      "triggerText": "",
+      "triggerName": "",
+      "emits": [],
+      "submits": 0,
+      "popupName": "",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "",
+      "rows": [
+        {
+          "kind": "header",
+          "text": "EVM"
+        },
+        {
+          "kind": "item",
+          "text": "Ethereummainnet",
+          "name": "Ethereum mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "header",
+          "text": "STELLAR"
+        },
+        {
+          "kind": "item",
+          "text": "Stellarmainnet",
+          "name": "Stellar mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Stellar TestnettestnetSelf-host required",
+          "name": "Stellar Testnet testnet Self-host required",
+          "disabled": true,
+          "checked": false
+        },
+        {
+          "kind": "header",
+          "text": "MIDNIGHT"
+        },
+        {
+          "kind": "item",
+          "text": "Midnightdevnet",
+          "name": "Midnight devnet",
+          "disabled": true,
+          "checked": false
+        }
+      ],
+      "selectionRow": null,
+      "clearAllName": null,
+      "popupText": "EVMEthereummainnetEthereum SepoliatestnetBase SepoliaSTELLARStellarmainnetStellar TestnettestnetSelf-host requiredMIDNIGHTMidnightdevnet",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 3,
+        "focusOnOpen": "popup"
+      }
+    },
+    {
+      "step": "two picked",
+      "open": true,
+      "triggerText": "2",
+      "triggerName": "2",
+      "emits": ["[\"xlm\"]", "[\"xlm\",\"sep\"]"],
+      "submits": 0,
+      "popupName": "2",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "",
+      "rows": [
+        {
+          "kind": "header",
+          "text": "EVM"
+        },
+        {
+          "kind": "item",
+          "text": "Ethereummainnet",
+          "name": "Ethereum mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": true
+        },
+        {
+          "kind": "item",
+          "text": "Base Sepolia",
+          "name": "Base Sepolia",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "header",
+          "text": "STELLAR"
+        },
+        {
+          "kind": "item",
+          "text": "Stellarmainnet",
+          "name": "Stellar mainnet",
+          "disabled": false,
+          "checked": true
+        },
+        {
+          "kind": "item",
+          "text": "Stellar TestnettestnetSelf-host required",
+          "name": "Stellar Testnet testnet Self-host required",
+          "disabled": true,
+          "checked": false
+        },
+        {
+          "kind": "header",
+          "text": "MIDNIGHT"
+        },
+        {
+          "kind": "item",
+          "text": "Midnightdevnet",
+          "name": "Midnight devnet",
+          "disabled": true,
+          "checked": false
+        }
+      ],
+      "selectionRow": "2 selectedClear all",
+      "clearAllName": "Clear all",
+      "popupText": "2 selectedClear allEVMEthereummainnetEthereum SepoliatestnetBase SepoliaSTELLARStellarmainnetStellar TestnettestnetSelf-host requiredMIDNIGHTMidnightdevnet",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 3,
+        "focusOnOpen": "popup"
+      }
+    },
+    {
+      "step": "Escape",
+      "open": false,
+      "triggerText": "2",
+      "triggerName": "2",
+      "emits": ["[\"xlm\"]", "[\"xlm\",\"sep\"]"],
+      "submits": 0,
+      "focusAfterClose": "trigger"
+    },
+    {
+      "step": "reopen, query \"eth\"",
+      "open": true,
+      "triggerText": "2",
+      "triggerName": "2",
+      "emits": ["[\"xlm\"]", "[\"xlm\",\"sep\"]"],
+      "submits": 0,
+      "popupName": "2",
+      "searchName": "Search networks",
+      "searchPlaceholder": "Search network...",
+      "searchValue": "eth",
+      "rows": [
+        {
+          "kind": "header",
+          "text": "EVM"
+        },
+        {
+          "kind": "item",
+          "text": "Ethereummainnet",
+          "name": "Ethereum mainnet",
+          "disabled": false,
+          "checked": false
+        },
+        {
+          "kind": "item",
+          "text": "Ethereum Sepoliatestnet",
+          "name": "Ethereum Sepolia testnet",
+          "disabled": false,
+          "checked": true
+        }
+      ],
+      "selectionRow": "2 selectedClear all",
+      "clearAllName": "Clear all",
+      "popupText": "2 selectedClear allEVMEthereummainnetEthereum Sepoliatestnet",
+      "rk": {
+        "popupRole": "menu",
+        "itemRoles": ["menuitem"],
+        "groups": 1,
+        "focusOnOpen": "search"
+      }
+    }
+  ],
+  "multi-all-selected": [
+    {
+      "step": "closed, every network selected",
+      "open": false,
+      "triggerText": "6 networks selected",
+      "triggerName": "",
+      "emits": [],
+      "submits": 0,
+      "focusAfterClose": "body"
+    }
+  ]
+}

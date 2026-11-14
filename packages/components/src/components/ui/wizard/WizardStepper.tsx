@@ -1,12 +1,13 @@
-import { AlertCircle, Check, Pencil } from 'lucide-react';
 import type { ReactNode } from 'react';
 import React from 'react';
 
 import { cn } from '@openzeppelin/ui-utils';
 
+import { StepMarker, type StepMarkerState } from '../step-marker';
+
 export type StepStatus = 'pending' | 'completed' | 'skipped';
 
-export type StepVisualState = 'completed' | 'current' | 'visited' | 'invalid' | 'upcoming';
+export type StepVisualState = StepMarkerState;
 
 export interface WizardStepDef {
   id: string;
@@ -14,6 +15,18 @@ export interface WizardStepDef {
   status?: StepStatus;
   /** When true the step is highlighted with an error indicator. */
   isInvalid?: boolean;
+}
+
+/** Input to {@link WizardStepperProps.getStepLabel}. */
+export interface WizardStepLabelInfo {
+  /** Zero-based index of the step. */
+  index: number;
+  /** Total number of steps. */
+  total: number;
+  title: string;
+  state: StepVisualState;
+  /** True when the step was skipped (its `state` is then `'completed'`). */
+  skipped: boolean;
 }
 
 export interface WizardStepperProps {
@@ -25,7 +38,34 @@ export interface WizardStepperProps {
   variant?: 'vertical' | 'horizontal';
   /** When true all steps are clickable regardless of their state (used by scrollable layout). */
   freeNavigation?: boolean;
+  /**
+   * Builds each step button's accessible name, e.g. for localisation. An empty
+   * result falls back to the default, `"Step 2: Title, completed"`. The current step's
+   * default name has no state (`"Step 3: Title"`): `aria-current="step"` already says it.
+   */
+  getStepLabel?: (info: WizardStepLabelInfo) => string;
   className?: string;
+}
+
+// No 'current': the current step carries aria-current="step", so naming it too reads it twice.
+const STATE_LABEL: Record<Exclude<StepVisualState, 'current'>, string> = {
+  completed: 'completed',
+  visited: 'visited',
+  invalid: 'invalid',
+  upcoming: 'upcoming',
+};
+
+function defaultStepLabel({ index, title, state, skipped }: WizardStepLabelInfo): string {
+  const base = `Step ${index + 1}: ${title}`;
+  if (skipped) return `${base}, skipped`;
+  return state === 'current' ? base : `${base}, ${STATE_LABEL[state]}`;
+}
+
+function resolveStepLabel(
+  info: WizardStepLabelInfo,
+  getStepLabel: WizardStepperProps['getStepLabel']
+): string {
+  return getStepLabel?.(info) || defaultStepLabel(info);
 }
 
 function resolveState(
@@ -45,31 +85,6 @@ function resolveState(
 function canClick(state: StepVisualState, freeNavigation = false): boolean {
   if (freeNavigation) return true;
   return state !== 'upcoming';
-}
-
-function StepCircle({ state, index }: { state: StepVisualState; index: number }) {
-  return (
-    <span
-      className={cn(
-        'flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-all',
-        state === 'completed' && 'bg-selected text-selected-foreground',
-        state === 'current' && 'bg-selected text-selected-foreground ring-2 ring-selected/30',
-        state === 'visited' && 'bg-selected/10 text-selected ring-1 ring-selected/40',
-        state === 'invalid' && 'bg-destructive/10 text-destructive ring-1 ring-destructive/40',
-        state === 'upcoming' && 'bg-muted text-muted-foreground'
-      )}
-    >
-      {state === 'completed' ? (
-        <Check className="size-3.5" />
-      ) : state === 'visited' ? (
-        <Pencil className="size-3" />
-      ) : state === 'invalid' ? (
-        <AlertCircle className="size-3.5" />
-      ) : (
-        index + 1
-      )}
-    </span>
-  );
 }
 
 function StepLabel({
@@ -110,6 +125,7 @@ function VerticalStepper({
   furthestStepIndex = currentStepIndex,
   onStepClick,
   freeNavigation,
+  getStepLabel,
   className,
 }: WizardStepperProps) {
   return (
@@ -139,8 +155,18 @@ function VerticalStepper({
                 state === 'upcoming' && 'bg-card'
               )}
               aria-current={state === 'current' ? 'step' : undefined}
+              aria-label={resolveStepLabel(
+                {
+                  index,
+                  total: steps.length,
+                  title: step.title,
+                  state,
+                  skipped: step.status === 'skipped',
+                },
+                getStepLabel
+              )}
             >
-              <StepCircle state={state} index={index} />
+              <StepMarker state={state} number={index + 1} />
               <StepLabel title={step.title} state={state} isSkipped={step.status === 'skipped'} />
             </button>
           );
@@ -160,6 +186,7 @@ function HorizontalStepper({
   furthestStepIndex = currentStepIndex,
   onStepClick,
   freeNavigation,
+  getStepLabel,
   className,
 }: WizardStepperProps) {
   return (
@@ -190,9 +217,18 @@ function HorizontalStepper({
                   state === 'upcoming' && 'bg-card'
                 )}
                 aria-current={state === 'current' ? 'step' : undefined}
-                aria-label={`Step ${index + 1}: ${step.title}`}
+                aria-label={resolveStepLabel(
+                  {
+                    index,
+                    total: steps.length,
+                    title: step.title,
+                    state,
+                    skipped: step.status === 'skipped',
+                  },
+                  getStepLabel
+                )}
               >
-                <StepCircle state={state} index={index} />
+                <StepMarker state={state} number={index + 1} />
                 <div className="hidden sm:block">
                   <StepLabel
                     title={step.title}

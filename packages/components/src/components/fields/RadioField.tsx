@@ -1,9 +1,12 @@
 import React from 'react';
 import { Controller, FieldValues } from 'react-hook-form';
 
+import { FieldLabelRow } from './utils/FieldLabelRow';
+
 import { Label } from '../ui/label';
-import { BaseFieldProps } from './BaseField';
-import { ErrorMessage, getAccessibilityProps } from './utils';
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
+import { BaseFieldProps, LabelEndProps } from './BaseField';
+import { ErrorMessage, getAccessibilityProps, getRequiredMessage, runCustomCheck } from './utils';
 
 /**
  * Option item for radio fields
@@ -20,6 +23,11 @@ export interface RadioOption {
   label: string;
 
   /**
+   * Optional supporting text shown under the label. It is the option's accessible description.
+   */
+  description?: string;
+
+  /**
    * Whether this option is disabled
    */
   disabled?: boolean;
@@ -29,16 +37,24 @@ export interface RadioOption {
  * RadioField component properties
  */
 export interface RadioFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    LabelEndProps {
   /**
    * Available options for selection
    */
   options?: RadioOption[];
 
   /**
-   * Direction of radio options layout
+   * Direction of radio options layout. Ignored by the `card` variant, which always stacks.
    */
   layout?: 'horizontal' | 'vertical';
+
+  /**
+   * Option presentation. `card` renders each option as a selectable card (see RadioGroup).
+   * Validation, required state and the submitted value are the same for both variants.
+   * @default 'default'
+   */
+  variant?: 'default' | 'card';
 
   /**
    * Custom validation function for radio values
@@ -59,7 +75,8 @@ export interface RadioFieldProps<TFieldValues extends FieldValues = FieldValues>
  * The component includes:
  * - Integration with React Hook Form
  * - Customizable options list
- * - Horizontal or vertical layout options
+ * - Horizontal or vertical layout options, or a selectable-card variant
+ * - Optional per-option descriptions
  * - Customizable validation through adapter integration
  * - Automatic error handling and reporting
  * - Full accessibility support with ARIA attributes
@@ -67,6 +84,7 @@ export interface RadioFieldProps<TFieldValues extends FieldValues = FieldValues>
 export function RadioField<TFieldValues extends FieldValues = FieldValues>({
   id,
   label,
+  labelEnd,
   helperText,
   control,
   name,
@@ -74,21 +92,28 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
   validation,
   options = [],
   layout = 'vertical',
+  variant = 'default',
   validateRadio,
 }: RadioFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
   const radioGroupId = `${id}-group`;
+  const labelId = `${id}-label`;
+  // A `<label for>` cannot name a radiogroup (it is not a form control), so the group points
+  // at the label instead.
+  const groupLabelledBy = label ? labelId : undefined;
 
   return (
     <div
       className={`flex flex-col gap-2 ${width === 'full' ? 'w-full' : width === 'half' ? 'w-1/2' : 'w-1/3'}`}
     >
       {label && (
-        <Label htmlFor={radioGroupId} className="text-sm font-medium">
-          {label} {isRequired && <span className="text-destructive">*</span>}
-        </Label>
+        <FieldLabelRow labelEnd={labelEnd}>
+          <Label id={labelId} htmlFor={radioGroupId} className="text-sm font-medium">
+            {label} {isRequired && <span className="text-destructive">*</span>}
+          </Label>
+        </FieldLabelRow>
       )}
 
       <Controller
@@ -98,7 +123,7 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
           validate: (value) => {
             // Handle required validation explicitly
             if (value === undefined || value === null || value === '') {
-              return validation?.required ? 'This field is required' : true;
+              return validation?.required ? getRequiredMessage(validation) : true;
             }
 
             // Run custom validation if provided
@@ -109,7 +134,7 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
               }
             }
 
-            return true;
+            return runCustomCheck(value, validation);
           },
         }}
         render={({ field, fieldState: { error } }) => {
@@ -117,23 +142,74 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
 
           // Group accessibility attributes
           const groupAccessibilityProps = getAccessibilityProps({
-            id: radioGroupId,
+            id, // description/error elements are `${id}-description` / `${id}-error`, not group-scoped
             hasError,
             isRequired,
             hasHelperText: !!helperText,
           });
+
+          // The form ref goes to the radio that takes focus: the checked one, else the first
+          // enabled one. Focus-on-first-error and `setFocus(name)` then land on the group.
+          const checkedIndex = options.findIndex(
+            (option) => option.value === field.value && !option.disabled
+          );
+          const focusIndex =
+            checkedIndex >= 0 ? checkedIndex : options.findIndex((option) => !option.disabled);
+
+          if (variant === 'card') {
+            return (
+              <>
+                <RadioGroup
+                  id={radioGroupId}
+                  aria-labelledby={groupLabelledBy}
+                  variant="card"
+                  value={field.value ?? ''}
+                  onValueChange={field.onChange}
+                  onBlur={field.onBlur}
+                  required={isRequired}
+                  aria-invalid={hasError}
+                  aria-required={isRequired}
+                  aria-describedby={groupAccessibilityProps['aria-describedby']}
+                  aria-errormessage={groupAccessibilityProps['aria-errormessage']}
+                  className="gap-3 space-y-0"
+                >
+                  {options.map((option, index) => (
+                    <RadioGroupItem
+                      key={option.value}
+                      ref={index === focusIndex ? field.ref : undefined}
+                      value={option.value}
+                      disabled={option.disabled}
+                      title={option.label}
+                      description={option.description}
+                      className={hasError ? 'border-destructive/50' : undefined}
+                    />
+                  ))}
+                </RadioGroup>
+
+                {helperText && (
+                  <div id={descriptionId} className="text-sm text-muted-foreground">
+                    {helperText}
+                  </div>
+                )}
+
+                <ErrorMessage error={error} id={errorId} />
+              </>
+            );
+          }
 
           return (
             <>
               <div
                 id={radioGroupId}
                 role="radiogroup"
+                aria-labelledby={groupLabelledBy}
                 className={`flex ${layout === 'vertical' ? 'flex-col gap-3' : 'flex-row flex-wrap gap-4'}`}
-                aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
                 {...groupAccessibilityProps}
               >
                 {options.map((option, index) => {
                   const optionId = `${id}-option-${index}`;
+                  const optionLabelId = `${optionId}-label`;
+                  const hasDescription = !!option.description;
                   const isSelected = field.value === option.value;
                   const isDisabled = option.disabled;
 
@@ -141,23 +217,35 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
                     <label
                       key={option.value}
                       htmlFor={optionId}
-                      className={`group relative flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 transition-all duration-150 ${
+                      // The description stacks under the label text, so the radio aligns with the
+                      // first line instead of centring on both.
+                      className={`group relative flex cursor-pointer ${hasDescription ? 'items-start' : 'items-center'} gap-2 rounded-lg px-3 py-2 transition-all duration-150 ${
                         isDisabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-muted/50'
                       } ${isSelected && !hasError ? 'bg-selected/5' : ''}`}
                     >
                       <input
                         type="radio"
+                        ref={index === focusIndex ? field.ref : undefined}
                         id={optionId}
                         value={option.value}
                         disabled={isDisabled}
                         checked={isSelected}
                         onChange={() => field.onChange(option.value)}
                         className="sr-only"
-                        aria-describedby={hasError ? errorId : undefined}
+                        // The name is the label text only; the description sits in the same
+                        // <label> (so clicking it selects) but is the description, not the name.
+                        aria-labelledby={optionLabelId}
+                        aria-describedby={
+                          [hasError && errorId, hasDescription && `${optionId}-description`]
+                            .filter(Boolean)
+                            .join(' ') || undefined
+                        }
                       />
 
                       {/* Custom Radio Button */}
-                      <div className="relative flex size-4 items-center justify-center">
+                      <div
+                        className={`relative flex size-4 shrink-0 items-center justify-center ${hasDescription ? 'mt-0.5' : ''}`}
+                      >
                         <div
                           className={`absolute size-4 rounded-full border-2 transition-all duration-150 ${
                             isSelected
@@ -182,19 +270,31 @@ export function RadioField<TFieldValues extends FieldValues = FieldValues>({
                         />
                       </div>
 
-                      {/* Label text */}
-                      <span
-                        className={`text-sm transition-colors duration-150 ${
-                          isDisabled
-                            ? 'text-muted-foreground'
-                            : isSelected
-                              ? hasError
-                                ? 'text-destructive font-medium'
-                                : 'text-foreground font-medium'
-                              : 'text-foreground'
-                        }`}
-                      >
-                        {option.label}
+                      {/* Label text, with the description stacked under it */}
+                      <span className="flex min-w-0 flex-col gap-0.5">
+                        <span
+                          id={optionLabelId}
+                          className={`text-sm transition-colors duration-150 ${
+                            isDisabled
+                              ? 'text-muted-foreground'
+                              : isSelected
+                                ? hasError
+                                  ? 'text-destructive font-medium'
+                                  : 'text-foreground font-medium'
+                                : 'text-foreground'
+                          }`}
+                        >
+                          {option.label}
+                        </span>
+
+                        {hasDescription && (
+                          <span
+                            id={`${optionId}-description`}
+                            className="text-sm text-muted-foreground"
+                          >
+                            {option.description}
+                          </span>
+                        )}
                       </span>
 
                       {/* Focus ring */}

@@ -5,12 +5,18 @@ export interface BreadcrumbLinkItem {
   readonly href: string;
 }
 
+/** An ancestor that may omit its link; it then renders as plain text. */
+export interface BreadcrumbAncestorItem {
+  readonly label: string;
+  readonly href?: string;
+}
+
 export interface BreadcrumbCurrentItem {
   readonly label: string;
   readonly href?: never;
 }
 
-export type BreadcrumbItems = readonly [...BreadcrumbLinkItem[], BreadcrumbCurrentItem];
+export type BreadcrumbItems = readonly [...BreadcrumbAncestorItem[], BreadcrumbCurrentItem];
 
 export interface BreadcrumbLinkRenderProps {
   readonly children: React.ReactNode;
@@ -65,13 +71,19 @@ export function Breadcrumb({
                   /
                 </span>
               )}
-              {isCurrentPage || typeof item.href !== 'string'
-                ? item.label
-                : renderLink({
-                    children: item.label,
-                    className: linkClassName,
-                    href: item.href,
-                  })}
+              {isCurrentPage ? (
+                item.label
+              ) : typeof item.href !== 'string' ? (
+                // A link-less ancestor is muted like the linked ones; only the current page uses
+                // the foreground colour.
+                <span className="text-muted-foreground">{item.label}</span>
+              ) : (
+                renderLink({
+                  children: item.label,
+                  className: linkClassName,
+                  href: item.href,
+                })
+              )}
             </li>
           );
         })}

@@ -1,17 +1,39 @@
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
-import type { ReactNode } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 
 import { cn } from '@openzeppelin/ui-utils';
 
 import { Button } from '../button';
+import { Spinner } from '../spinner';
+
+/**
+ * Click handler for a navigation button. Receives the React click event (pointer
+ * or keyboard activation), so `event.currentTarget` is the activated button.
+ * Zero-argument handlers are still accepted.
+ *
+ * In an async handler, read `event.currentTarget` before the first `await`:
+ * React clears it once the event has been dispatched.
+ */
+type NavigationClickHandler = (event: MouseEvent<HTMLButtonElement>) => void;
+
+/**
+ * Dimmed like a natively disabled kit button. Applied only while a blocked state is on,
+ * so the default class string is unchanged. Unlike `buttonVariants`' `disabled:` pair it
+ * leaves out `pointer-events-none`: a click would then fall through to the container and
+ * its mousedown would drop focus to the body. The button keeps the click and the
+ * click guard ignores it.
+ */
+const BLOCKED_LOOK = 'opacity-50';
 
 export interface WizardNavigationProps {
   isFirstStep: boolean;
   isLastStep: boolean;
   canProceed?: boolean;
-  onPrevious: () => void;
-  onNext: () => void;
-  onCancel?: () => void;
+  /** Called when Back is activated. Not called while `previousDisabled` is set. */
+  onPrevious: NavigationClickHandler;
+  /** Called when the primary (Next/Finish) is activated. Not called while `primaryLoading` is set. */
+  onNext: NavigationClickHandler;
+  onCancel?: NavigationClickHandler;
   /** Extra actions rendered between Cancel/Previous and Next (e.g. Show Code) */
   extraActions?: ReactNode;
   nextLabel?: string;
@@ -21,7 +43,7 @@ export interface WizardNavigationProps {
    * primary control with a less prominent (outline) style. Omitted when either
    * `lastStepSecondaryLabel` or `onLastStepSecondary` is missing.
    */
-  onLastStepSecondary?: () => void;
+  onLastStepSecondary?: NavigationClickHandler;
   lastStepSecondaryLabel?: string;
   lastStepSecondaryDisabled?: boolean;
   /**
@@ -31,6 +53,37 @@ export interface WizardNavigationProps {
    */
   showLastStepPrimary?: boolean;
   className?: string;
+  /**
+   * Label of the Back button, rendered as given. An empty (or whitespace-only) string leaves
+   * Back icon-only; it is then named "Previous" for assistive technology, since the chevron
+   * icon is hidden from it.
+   * @default "Previous"
+   */
+  previousLabel?: string;
+  /**
+   * Back can't be activated. Exposed as `aria-disabled="true"` rather than native
+   * `disabled`, so Back stays focusable: a focused button that becomes natively
+   * disabled drops focus to the document body.
+   * @default false
+   */
+  previousDisabled?: boolean;
+  /**
+   * The primary (Next/Finish) is pending: it shows a spinner, sets `aria-busy` and
+   * `aria-disabled`, and ignores activation. It stays focusable and remains the same
+   * DOM node, so focus survives the pending state.
+   *
+   * The component holds no pending state of its own. To block a double activation,
+   * set this from your handler synchronously, before its first `await`.
+   * @default false
+   */
+  primaryLoading?: boolean;
+  /**
+   * Trailing icon of the primary.
+   * - `undefined` (default): a chevron on non-last steps, no icon on the last step.
+   * - `null` or `false`: no icon on any step.
+   * - any other node: rendered on every step where the primary shows.
+   */
+  primaryIcon?: ReactNode;
 }
 
 /**
@@ -54,6 +107,10 @@ export function WizardNavigation({
   lastStepSecondaryDisabled,
   showLastStepPrimary = true,
   className,
+  previousLabel = 'Previous',
+  previousDisabled = false,
+  primaryLoading = false,
+  primaryIcon,
 }: WizardNavigationProps) {
   const showPrimary = !isLastStep || showLastStepPrimary;
   const showSecondary =
@@ -61,6 +118,23 @@ export function WizardNavigation({
     lastStepSecondaryLabel != null &&
     lastStepSecondaryLabel !== '' &&
     onLastStepSecondary != null;
+
+  // `undefined` keeps today's icon; `null` / `false` mean no icon (INV-3).
+  const resolvedPrimaryIcon =
+    primaryIcon === undefined ? !isLastStep && <ChevronRight className="size-4" /> : primaryIcon;
+
+  // Keyboard activation of a <button> (Enter, Space) dispatches `click`, so these
+  // guards block pointer, keyboard and programmatic activation alike. Blocked
+  // activations are dropped, not queued (INV-11, INV-13).
+  const handlePrevious = (event: MouseEvent<HTMLButtonElement>) => {
+    if (previousDisabled) return;
+    onPrevious(event);
+  };
+
+  const handleNext = (event: MouseEvent<HTMLButtonElement>) => {
+    if (primaryLoading) return;
+    onNext(event);
+  };
 
   return (
     <div className={cn('flex items-center justify-between', className)}>
@@ -72,9 +146,19 @@ export function WizardNavigation({
           </Button>
         )}
         {!isFirstStep && (
-          <Button type="button" variant="outline" onClick={onPrevious} className="gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handlePrevious}
+            // `aria-disabled`, not native `disabled`, keeps focus on Back (INV-21).
+            // Omitted when off so the default markup is unchanged (INV-1, INV-6).
+            aria-disabled={previousDisabled || undefined}
+            // Icon-only Back: the chevron is aria-hidden, so the button needs its own name.
+            aria-label={previousLabel.trim() === '' ? 'Previous' : undefined}
+            className={cn('gap-2', previousDisabled && BLOCKED_LOOK)}
+          >
             <ChevronLeft className="size-4" />
-            Previous
+            {previousLabel}
           </Button>
         )}
       </div>
@@ -92,10 +176,20 @@ export function WizardNavigation({
             {lastStepSecondaryLabel}
           </Button>
         )}
+        {/* One stable node in every state, so focus survives pending and step changes (INV-17). */}
         {showPrimary && (
-          <Button type="button" onClick={onNext} disabled={!canProceed} className="gap-2">
+          <Button
+            type="button"
+            onClick={handleNext}
+            disabled={!canProceed}
+            aria-disabled={primaryLoading || undefined}
+            aria-busy={primaryLoading || undefined}
+            className={cn('gap-2', primaryLoading && BLOCKED_LOOK)}
+          >
+            {/* Decorative: the label stays the accessible name; busy state is aria-busy (INV-4, INV-23). */}
+            {primaryLoading && <Spinner />}
             {isLastStep ? lastStepLabel : nextLabel}
-            {!isLastStep && <ChevronRight className="size-4" />}
+            {resolvedPrimaryIcon}
           </Button>
         )}
       </div>

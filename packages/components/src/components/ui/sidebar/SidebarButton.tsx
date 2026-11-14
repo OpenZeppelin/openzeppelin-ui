@@ -8,6 +8,11 @@ export interface SidebarButtonProps {
   onClick?: () => void;
   size?: 'default' | 'small';
   badge?: string;
+  /**
+   * Arbitrary element (status dot, small chip) rendered at the end of the row, after the badge.
+   * It contributes to the accessible name only through its own text or label.
+   */
+  trailing?: ReactNode;
   disabled?: boolean;
   isSelected?: boolean;
   /** When provided, renders as an anchor element instead of a button */
@@ -27,6 +32,7 @@ export function SidebarButton({
   onClick,
   size = 'default',
   badge,
+  trailing,
   disabled = false,
   isSelected = false,
   href,
@@ -38,7 +44,7 @@ export function SidebarButton({
 
   const commonClass = cn(
     'group relative flex flex-wrap items-center gap-x-2 gap-y-0.5 px-3 py-2 rounded-lg font-semibold text-sm transition-colors',
-    badge ? 'justify-between' : 'justify-start',
+    badge || trailing ? 'justify-between' : 'justify-start',
     disabled
       ? 'text-muted-foreground/60 cursor-not-allowed'
       : isSelected
@@ -48,30 +54,60 @@ export function SidebarButton({
     className
   );
 
+  // Only the selected, enabled item is the current page; omitted otherwise.
+  const currentPage = isSelected && !disabled ? 'page' : undefined;
+
+  const hasTrailing = trailing != null && trailing !== false;
+  const badgeElement = badge ? (
+    <span className="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded-full font-medium">
+      {badge}
+    </span>
+  ) : null;
+
   const content = (
     <>
       <div className="flex items-center gap-2">
         {icon}
         {children}
       </div>
-      {badge && (
-        <span className="text-xs px-2 py-0.5 bg-muted text-muted-foreground rounded-full font-medium">
-          {badge}
+      {badge && hasTrailing ? (
+        // One end group: an auto margin on the trailing slot alone would take the free space
+        // and leave the badge right after the label.
+        <span className="ml-auto flex shrink-0 items-center gap-2">
+          {badgeElement}
+          <span className="flex shrink-0 items-center">{trailing}</span>
         </span>
+      ) : (
+        <>
+          {badgeElement}
+          {hasTrailing && <span className="ml-auto flex shrink-0 items-center">{trailing}</span>}
+        </>
       )}
     </>
   );
 
   if (href) {
     return (
-      <a href={href} target={target} rel={rel} className={commonClass} onClick={onClick}>
+      <a
+        href={href}
+        target={target}
+        rel={rel}
+        className={commonClass}
+        onClick={onClick}
+        aria-current={currentPage}
+      >
         {content}
       </a>
     );
   }
 
   return (
-    <button className={commonClass} onClick={disabled ? undefined : onClick} disabled={disabled}>
+    <button
+      className={commonClass}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      aria-current={currentPage}
+    >
       {content}
     </button>
   );

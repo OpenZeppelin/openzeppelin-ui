@@ -1,14 +1,20 @@
 import React from 'react';
 import { Controller, FieldValues } from 'react-hook-form';
 
+import { FieldLabelRow } from './utils/FieldLabelRow';
+import { getReadOnlyState } from './utils/readOnlyState';
+
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getActiveMessages,
+  getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
+  runCustomCheck,
   validateField,
 } from './utils';
 
@@ -16,7 +22,9 @@ import {
  * NumberField component properties
  */
 export interface NumberFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    ReadOnlyModeProps,
+    LabelEndProps {
   /**
    * Minimum value validation
    */
@@ -59,6 +67,7 @@ export interface NumberFieldProps<TFieldValues extends FieldValues = FieldValues
 export function NumberField<TFieldValues extends FieldValues = FieldValues>({
   id,
   label,
+  labelEnd,
   placeholder,
   helperText,
   control,
@@ -70,10 +79,12 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
   step = 1,
   validateNumber,
   readOnly,
+  readOnlyMode,
 }: NumberFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
+  const ro = getReadOnlyState(readOnly, readOnlyMode);
 
   // Create merged validation that includes min/max from props
   const mergedValidation = {
@@ -90,10 +101,16 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
     COMPLETE_NUMBER: /^-?\d+\.?\d*$/,
   };
 
-  // Common validation for numeric values
-  const validateNumericValue = (value: number): string | true => {
-    // Run standard validation
-    const standardValidation = validateField(value, mergedValidation);
+  // Common validation for numeric values. `storedValue` is what the form holds,
+  // passed to the custom check unchanged rather than the parsed number (INV-12).
+  const validateNumericValue = (value: number, storedValue: unknown): string | true => {
+    // Run standard validation. Messages come from the consumer's own rules, so a
+    // bound taken from the `min`/`max` props keeps its wording (INV-13).
+    const standardValidation = validateField(
+      value,
+      mergedValidation,
+      getActiveMessages(validation)
+    );
     if (standardValidation !== true) return standardValidation as string;
 
     // Run custom validator if provided
@@ -104,7 +121,7 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
       }
     }
 
-    return true;
+    return runCustomCheck(storedValue, validation);
   };
 
   return (
@@ -112,9 +129,11 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
       className={`flex flex-col gap-2 ${width === 'full' ? 'w-full' : width === 'half' ? 'w-1/2' : 'w-1/3'}`}
     >
       {label && (
-        <Label htmlFor={id}>
-          {label} {isRequired && <span className="text-destructive">*</span>}
-        </Label>
+        <FieldLabelRow labelEnd={labelEnd}>
+          <Label htmlFor={id}>
+            {label} {isRequired && <span className="text-destructive">*</span>}
+          </Label>
+        </FieldLabelRow>
       )}
 
       <Controller
@@ -124,7 +143,7 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
           validate: (value) => {
             // Skip validation if empty and check required separately
             if (value === undefined || value === null || value === '') {
-              return mergedValidation?.required ? 'This field is required' : true;
+              return mergedValidation?.required ? getRequiredMessage(validation) : true;
             }
 
             // Handle incomplete number inputs
@@ -144,18 +163,18 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
               if (isNaN(parsedNum)) {
                 return 'Invalid number'; // Explicitly return error for NaN
               }
-              return validateNumericValue(parsedNum);
+              return validateNumericValue(parsedNum, value);
             }
 
             // For already numeric values
             if (typeof value === 'number') {
-              return validateNumericValue(value);
+              return validateNumericValue(value, value);
             }
 
-            return true;
+            return runCustomCheck(value, validation);
           },
         }}
-        disabled={readOnly}
+        disabled={ro.controllerDisabled}
         render={({ field, fieldState: { error, isTouched } }) => {
           const hasError = !!error;
           const shouldShowError = hasError && isTouched;
@@ -234,6 +253,15 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
               e.preventDefault();
             }
 
+            // INV-12 / INV-13: in readonly mode Escape and the arrows never write and are not
+            // preventDefault-ed, so native caret movement and ancestor Escape handlers apply.
+            if (
+              ro.isFocusableReadOnly &&
+              (e.key === 'Escape' || e.key === 'ArrowUp' || e.key === 'ArrowDown')
+            ) {
+              return;
+            }
+
             // Handle escape key to clear input
             if (e.key === 'Escape') {
               handleEscapeKey(field.onChange, field.value)(e);
@@ -273,6 +301,7 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
             id,
             hasError,
             isRequired,
+            isReadOnly: ro.isFocusableReadOnly,
             hasHelperText: !!helperText,
           });
 
@@ -294,8 +323,7 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
                 inputMode="decimal"
                 pattern="-?[0-9]*\.?[0-9]*"
                 {...accessibilityProps}
-                aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
-                disabled={readOnly}
+                {...ro.controlProps}
               />
 
               {/* Display helper text */}

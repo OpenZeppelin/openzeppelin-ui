@@ -11,8 +11,8 @@ describe('INV-231: demo proves the Role Manager-shaped default contract', () => 
     const wraps = [...container.querySelectorAll(SLOT.wrap)];
     expect(
       wraps,
-      'INV-231: standard, selectable, virtualized, paginated, and infinite tables'
-    ).toHaveLength(5);
+      'INV-231: standard, two selectable, grouped (virtualized + paginated), virtualized, paginated, and infinite tables'
+    ).toHaveLength(8);
     for (const wrap of wraps) {
       const frame = wrap.closest('[data-slot="data-table-frame"]');
       const card = frame ?? wrap;
@@ -31,9 +31,16 @@ describe('INV-231: demo proves the Role Manager-shaped default contract', () => 
 
   it('uses five dense columns including an accessible trailing text action', () => {
     const { container } = renderDemo();
-    for (const wrap of container.querySelectorAll(SLOT.wrap)) {
-      const selectionColumnCount =
-        wrap.querySelector(SLOT.caption)?.textContent === 'Accounts (selectable)' ? 1 : 0;
+    const recipeWraps = [...container.querySelectorAll(SLOT.wrap)].filter(
+      // The grouped-rows tables (SF-22) carry the role in a section row and
+      // use their own three-column recipe.
+      (wrap) => !(wrap.querySelector(SLOT.caption)?.textContent ?? '').startsWith('Keys by role')
+    );
+    expect(recipeWraps, 'INV-231: six tables reuse the holdings recipe').toHaveLength(6);
+    for (const wrap of recipeWraps) {
+      const selectionColumnCount = wrap.querySelector(`${SLOT.headerCell} [role="checkbox"]`)
+        ? 1
+        : 0;
       expect(
         wrap.querySelectorAll(SLOT.headerCell),
         'INV-231: every strategy reuses the holdings recipe'

@@ -13,7 +13,7 @@ import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Label } from '../ui/label';
 import { BaseFieldProps } from './BaseField';
-import { ErrorMessage, getAccessibilityProps } from './utils';
+import { ErrorMessage, getAccessibilityProps, getRequiredMessage, runCustomCheck } from './utils';
 
 /**
  * ArrayObjectField component properties
@@ -187,10 +187,10 @@ export function ArrayObjectField<TFieldValues extends FieldValues = FieldValues>
       control={effectiveControl}
       name={name}
       rules={{
-        // TODO: Similar to ArrayField, consider integration of custom validation functions.
         validate: (value) => {
-          if (validation?.required && (!value || !Array.isArray(value) || value.length === 0)) {
-            return 'At least one item is required';
+          const isEmpty = !value || !Array.isArray(value) || value.length === 0;
+          if (validation?.required && isEmpty) {
+            return getRequiredMessage(validation, 'At least one item is required');
           }
           if (minItems && Array.isArray(value) && value.length < minItems) {
             return `Minimum ${minItems} item${minItems > 1 ? 's' : ''} required`;
@@ -198,7 +198,9 @@ export function ArrayObjectField<TFieldValues extends FieldValues = FieldValues>
           if (maxItems && Array.isArray(value) && value.length > maxItems) {
             return `Maximum ${maxItems} item${maxItems > 1 ? 's' : ''} allowed`;
           }
-          return true;
+          // An empty optional value passes; the custom check never sees one (INV-9).
+          if (isEmpty) return true;
+          return runCustomCheck(value, validation);
         },
       }}
       render={({ fieldState: { error } }) => {
@@ -215,7 +217,6 @@ export function ArrayObjectField<TFieldValues extends FieldValues = FieldValues>
           <div
             className={`flex flex-col gap-4 ${width === 'full' ? 'w-full' : width === 'half' ? 'w-1/2' : 'w-1/3'}`}
             {...accessibilityProps}
-            aria-describedby={`${helperText ? descriptionId : ''} ${hasError ? errorId : ''}`}
           >
             {label && (
               <div className="flex items-center justify-between">
@@ -362,7 +363,12 @@ export function ArrayObjectField<TFieldValues extends FieldValues = FieldValues>
                 {helperText}
               </div>
             )}
-            <ErrorMessage error={error} id={errorId} />
+            {/* RHF keeps a field array's own rule error at `error.root`. */}
+            <ErrorMessage
+              error={error}
+              id={errorId}
+              message={error?.root?.message ?? error?.message}
+            />
           </div>
         );
       }}

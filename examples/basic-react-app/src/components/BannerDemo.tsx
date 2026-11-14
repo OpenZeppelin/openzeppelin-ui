@@ -51,6 +51,11 @@ import { Info } from 'lucide-react';
 // Non-dismissible
 <Banner variant="error" dismissible={false}>
   Critical error occurred.
+</Banner>
+
+// Non-urgent note: announced as a status region instead of an alert
+<Banner role="status" dismissible={false}>
+  Draft saved.
 </Banner>`}
     >
       {/* Variants */}
@@ -127,6 +132,25 @@ import { Info } from 'lucide-react';
                 Check the box below to confirm your deploy signer controls this address.
               </p>
             </div>
+          </Banner>
+        </div>
+      </div>
+
+      {/* Live-region role */}
+      <div className="space-y-4" data-testid="banner-role-demo">
+        <h3 className="text-lg font-medium">Live-region Role</h3>
+        <p className="text-muted-foreground text-sm">
+          Banners announce as <code className="text-xs">alert</code> by default. Pass{' '}
+          <code className="text-xs">{'role="status"'}</code> (or{' '}
+          <code className="text-xs">{'role="note"'}</code>) for non-urgent messages so assistive
+          tech doesn&apos;t interrupt the user.
+        </p>
+        <div className="space-y-4">
+          <Banner variant="info" role="status" title="Status banner" dismissible={false}>
+            Draft saved. Announced politely as a status region.
+          </Banner>
+          <Banner variant="info" title="Default banner" dismissible={false}>
+            No role passed. Announced as an alert, exactly as before.
           </Banner>
         </div>
       </div>

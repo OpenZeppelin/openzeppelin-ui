@@ -2,13 +2,13 @@ import { Plus, X } from 'lucide-react';
 import React from 'react';
 import { Controller, FieldValues, useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 
-import type { FormFieldType } from '@openzeppelin/ui-types';
+import { isMapEntryArray, type FieldValidation, type FormFieldType } from '@openzeppelin/ui-types';
 import { getDefaultValueForType } from '@openzeppelin/ui-utils';
 
 import { Button } from '../../ui/button';
 import { Label } from '../../ui/label';
 import { BaseFieldProps } from '../BaseField';
-import { ErrorMessage, getAccessibilityProps } from '../utils';
+import { ErrorMessage, getAccessibilityProps, getRequiredMessage, runCustomCheck } from '../utils';
 import {
   computeChildTouched,
   MapEntryRow,
@@ -25,6 +25,39 @@ function formatLabeledType(baseLabel: string, typeHint?: string): string {
     return baseLabel;
   }
   return `${baseLabel} (${typeHint})`;
+}
+
+/**
+ * The map's whole rule: structure first, then the custom check for a map with at
+ * least one complete entry. The Controller rule and the error effect both call
+ * it, so a custom-check error is never cleared behind the rule's back (INV-21).
+ * `runCheck: false` gives the structural result alone.
+ */
+function validateMapValue(
+  value: unknown,
+  validation: FieldValidation | undefined,
+  minItems: number,
+  runCheck = true
+): string | true {
+  const structural = validateMapStructure({
+    value,
+    required: !!validation?.required,
+    minItems,
+    requiredMessage: getRequiredMessage(validation),
+  });
+  if (structural !== true || !runCheck) return structural;
+
+  // Same "complete entry" test as validateMapStructure's required rule: a map
+  // without one is empty, and the custom check never sees an empty map (INV-9).
+  const hasCompleteEntry =
+    isMapEntryArray(value) &&
+    value.some(
+      ({ key, value: entryValue }) =>
+        key !== '' && key != null && entryValue !== '' && entryValue != null
+    );
+  if (!hasCompleteEntry) return true;
+
+  return runCustomCheck(value, validation);
 }
 
 /**
@@ -143,9 +176,15 @@ export function MapField<TFieldValues extends FieldValues = FieldValues>({
   /*
    * Keep the parent MapField error in sync without calling trigger:
    * - If any child has an error and the parent is required -> set a parent error
-   * - Else use the structural validation result
+   * - Else use the same result the Controller rule returns (structure, then the custom check)
    * This avoids re-entrancy loops that can happen when calling trigger during Preview.
+   *
+   * The effect depends on the `validation` members it uses, not on the object, so a
+   * parent passing `validation` inline doesn't re-run it on every render. Of `messages` it
+   * reads only the required text, so it depends on that string, not on the `messages` object.
    */
+  const { required: mapRequired, messages: mapMessages, validate: mapCheck } = validation ?? {};
+  const mapRequiredMessage = mapMessages?.required;
   React.useEffect(() => {
     if (!formContext) return;
     if (isReplacingRef.current) return;
@@ -170,17 +209,20 @@ export function MapField<TFieldValues extends FieldValues = FieldValues>({
       }
     }
 
-    const structural = validateMapStructure({
-      value: watchedValue,
-      required: !!validation?.required,
-      minItems,
-    });
+    // A read-only map skips its Controller rule, so the effect must not raise a
+    // custom-check error the rule would never clear (INV-17).
+    const effectValidation: FieldValidation = {
+      required: mapRequired,
+      messages: mapRequiredMessage !== undefined ? { required: mapRequiredMessage } : undefined,
+      validate: mapCheck,
+    };
+    const result = validateMapValue(watchedValue, effectValidation, minItems, !readOnly);
 
     let nextMessage: string | undefined;
-    if (childHasError && validation?.required) {
-      nextMessage = 'This field is required';
-    } else if (structural !== true) {
-      nextMessage = structural;
+    if (childHasError && mapRequired) {
+      nextMessage = getRequiredMessage(effectValidation);
+    } else if (result !== true) {
+      nextMessage = result;
     }
 
     const currentMessage = ((formContext.formState.errors as Record<string, { message?: string }>)[
@@ -199,8 +241,11 @@ export function MapField<TFieldValues extends FieldValues = FieldValues>({
     name,
     watchedValue,
     watchedValueKey,
-    validation?.required,
+    mapRequired,
+    mapRequiredMessage,
+    mapCheck,
     minItems,
+    readOnly,
     isReplacingRef,
   ]);
 
@@ -221,8 +266,7 @@ export function MapField<TFieldValues extends FieldValues = FieldValues>({
         name={name}
         disabled={readOnly}
         rules={{
-          validate: (value) =>
-            validateMapStructure({ value, required: !!validation?.required, minItems }),
+          validate: (value) => validateMapValue(value, validation, minItems),
         }}
         render={({ fieldState: { error, isTouched } }) => {
           // Check if any child fields have been touched to correctly determine
