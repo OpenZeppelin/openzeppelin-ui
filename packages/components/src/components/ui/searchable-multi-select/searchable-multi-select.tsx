@@ -1,8 +1,8 @@
 /**
  * SearchableMultiSelect: the public multi-select over the internal
  * {@link SearchableSelectCore}. Adds the selection-order rule, the default
- * trigger, the selection summary row, copy defaults and the narrow trigger
- * pass-throughs a form field needs.
+ * trigger, the selection summary row, copy defaults, the optional chip list
+ * and the narrow trigger pass-throughs a form field needs.
  */
 import { ChevronDown } from 'lucide-react';
 import * as React from 'react';
@@ -10,12 +10,18 @@ import * as React from 'react';
 import { cn, logger } from '@openzeppelin/ui-utils';
 
 import { Button } from '../button';
-import { toggleId } from './list-model';
+import { resolveSelectedItems, toggleId } from './list-model';
 import {
   SearchableSelectCore,
   type ListName,
   type SelectionSummary,
 } from './searchable-select-core';
+import {
+  SelectedChips,
+  type PendingRemoval,
+  type SelectedChipsMode,
+  type SelectedEntry,
+} from './selected-chips';
 
 const IS_DEV = process.env.NODE_ENV !== 'production';
 const DIAGNOSTIC_SYSTEM = 'SearchableMultiSelect';
@@ -27,10 +33,13 @@ const DEFAULT_SEARCH_LABEL = 'Search';
 const DEFAULT_EMPTY_TEXT = 'No results found.';
 const DEFAULT_CLEAR_ALL_LABEL = 'Clear all';
 const defaultFormatCount = (count: number): string => `${count} selected`;
+const defaultFormatRemoveLabel = (label: string): string => `Remove ${label}`;
+const defaultFormatRemovedAnnouncement = (label: string): string => `${label} removed`;
 // A button cannot carry `aria-required` or `aria-readonly`, so these states are hidden text in
 // the trigger's description. Fixed copy, like SelectField's "Read-only" description.
 const REQUIRED_TEXT = 'Required';
 const READ_ONLY_TEXT = 'Read-only';
+const TRIGGER_SELECTOR = '[data-slot="searchable-multi-select-trigger"]';
 
 /** Props for {@link SearchableMultiSelect}. */
 export interface SearchableMultiSelectProps<T> {
@@ -67,15 +76,58 @@ export interface SearchableMultiSelectProps<T> {
   /** Shown (and announced) when the query matches nothing. Default `'No results found.'`. */
   readonly emptyText?: string;
   /**
-   * Trigger text when one or more ids are selected. `total` is `items.length`,
-   * so a consumer can say "All countries" when `count === total`.
+   * Trigger text when one or more ids are selected. `count` is `selectedIds.length`
+   * and `total` is `items.length`, so a consumer can say "All countries" when
+   * `count === total`. `selectedItems` holds the items whose id is selected, in
+   * selection order and once each, so the text can name the picks ("France,
+   * Spain and 3 more"). Ids that match no current item are left out of
+   * `selectedItems` but still counted in `count`.
    * Default: `(count) => \`${count} selected\``.
    */
-  readonly formatSelectedCount?: (count: number, total: number) => string;
-  /** Text in the popover's selection row. Default: `(count) => \`${count} selected\``. */
-  readonly formatSelectionSummary?: (count: number, total: number) => string;
+  readonly formatSelectedCount?: (
+    count: number,
+    total: number,
+    selectedItems: readonly T[]
+  ) => string;
+  /**
+   * Text in the popover's selection row. Gets the same arguments as `formatSelectedCount`.
+   * Default: `(count) => \`${count} selected\``.
+   */
+  readonly formatSelectionSummary?: (
+    count: number,
+    total: number,
+    selectedItems: readonly T[]
+  ) => string;
   /** The selection row's clear button text. Default `'Clear all'`. */
   readonly clearAllLabel?: string;
+
+  // ── Closed display ────────────────────────────────────────────────────
+  /**
+   * How the closed control shows the selection.
+   * - `'count'` (default): the trigger text only.
+   * - `'chips'`: the trigger text, plus a chip per selected item below the trigger, each
+   *   with a remove button. Chips follow selection order. Ids that match no current item
+   *   get no chip; they are still counted, kept and emitted, and Clear all removes them.
+   *   After a removal is applied, focus moves to the next chip, else the previous one,
+   *   else the trigger, and the removal is announced. Read-only and disabled show the
+   *   chips without remove buttons.
+   */
+  readonly showSelected?: 'count' | 'chips';
+  /**
+   * Accessible name of a chip's remove button. Chips mode only.
+   * Default: `(label) => \`Remove ${label}\``.
+   */
+  readonly formatRemoveLabel?: (label: string, item: T) => string;
+  /**
+   * Text announced (politely) once a chip removal has been applied. Chips mode only.
+   * Default: `(label) => \`${label} removed\``.
+   */
+  readonly formatRemovedAnnouncement?: (label: string, item: T) => string;
+  /**
+   * Extra classes on each selected chip. Chips mode only. Merged after the kit
+   * chrome, so a consumer can override the border or fill. Ignored in count mode.
+   */
+  readonly chipClassName?: string;
 
   // ── Trigger / field integration ───────────────────────────────────────
   /** Ref to the trigger `<button>`. This is what a form ref focuses. */
@@ -149,6 +201,10 @@ export function SearchableMultiSelect<T>({
   formatSelectedCount = defaultFormatCount,
   formatSelectionSummary = defaultFormatCount,
   clearAllLabel = DEFAULT_CLEAR_ALL_LABEL,
+  showSelected = 'count',
+  formatRemoveLabel = defaultFormatRemoveLabel,
+  formatRemovedAnnouncement = defaultFormatRemovedAnnouncement,
+  chipClassName,
   ref,
   id,
   className,
@@ -169,15 +225,35 @@ export function SearchableMultiSelect<T>({
     [selectedSet, getItemId]
   );
 
+  // A chip removal waiting to be applied. Every other emit drops it, so a removal the
+  // consumer refused is never announced when a later change drops that id another way.
+  const pendingRemovalRef = React.useRef<PendingRemoval<T> | null>(null);
+
   // One emit per activation, by the selection-order rule.
   const handleActivate = React.useCallback(
-    (item: T) => onSelectionChange(toggleId(selectedIds, getItemId(item))),
+    (item: T) => {
+      pendingRemovalRef.current = null;
+      onSelectionChange(toggleId(selectedIds, getItemId(item)));
+    },
     [onSelectionChange, selectedIds, getItemId]
   );
 
   // Count is the raw length (stale and duplicate ids included); total is never the filtered length.
   const count = selectedIds.length;
   const total = items.length;
+  // Memoised: moving through the list must not call an accessor, so the walk reruns only when
+  // the items, the selection or the id accessor change.
+  const selectedItems = React.useMemo(
+    () => resolveSelectedItems(items, selectedIds, getItemId),
+    [items, selectedIds, getItemId]
+  );
+  const showChips = showSelected === 'chips';
+  // The chips are built from the same resolved list the formatters get, so the trigger text
+  // and the chips never disagree. Empty (and never walked) in count mode.
+  const chipEntries = React.useMemo<readonly SelectedEntry<T>[]>(
+    () => (showChips ? selectedItems.map((item) => ({ id: getItemId(item), item })) : []),
+    [showChips, selectedItems, getItemId]
+  );
 
   // Labelledby wins; without either, the listbox and dialog fall back to the placeholder.
   // The trigger never gets a copy-derived aria-label, which would hide the count text (its value).
@@ -230,7 +306,7 @@ export function SearchableMultiSelect<T>({
       )}
     >
       <span id={valueId} className={cn('truncate', count === 0 && 'text-muted-foreground')}>
-        {count > 0 ? formatSelectedCount(count, total) : placeholder}
+        {count > 0 ? formatSelectedCount(count, total, selectedItems) : placeholder}
       </span>
       <ChevronDown aria-hidden="true" className="ml-2 h-4 w-4 shrink-0 opacity-50" />
     </Button>
@@ -239,32 +315,59 @@ export function SearchableMultiSelect<T>({
   // The core always renders the row; it shows text and Clear all only with a selection.
   const selectionSummary: SelectionSummary = {
     count,
-    text: count > 0 ? formatSelectionSummary(count, total) : '',
+    text: count > 0 ? formatSelectionSummary(count, total, selectedItems) : '',
     clearLabel: clearAllLabel,
-    onClear: () => onSelectionChange([]),
+    onClear: () => {
+      pendingRemovalRef.current = null;
+      onSelectionChange([]);
+    },
   };
 
-  return (
+  // A chip removal follows the same selection-order rule as unpicking in the list.
+  const handleRemove = React.useCallback(
+    (removedId: string) => onSelectionChange(toggleId(selectedIds, removedId)),
+    [onSelectionChange, selectedIds]
+  );
+
+  // Scoped to this instance's root, so two instances never focus each other's trigger.
+  // The consumer's `ref` stays on the trigger untouched.
+  const rootRef = React.useRef<HTMLDivElement>(null);
+  const getTrigger = React.useCallback(
+    () => rootRef.current?.querySelector<HTMLButtonElement>(TRIGGER_SELECTOR) ?? null,
+    []
+  );
+
+  // Disabled wins over read-only, as it does for the trigger.
+  const chipsMode: SelectedChipsMode = disabled
+    ? 'disabled'
+    : readOnly
+      ? 'readonly'
+      : 'interactive';
+
+  const core = (
+    <SearchableSelectCore
+      items={items}
+      getItemId={getItemId}
+      getItemLabel={getItemLabel}
+      filterItem={filterItem}
+      multiple
+      isSelected={isSelected}
+      onActivate={handleActivate}
+      renderTrigger={renderTrigger}
+      selectionSummary={selectionSummary}
+      searchPlaceholder={searchPlaceholder}
+      searchLabel={searchLabel}
+      emptyText={emptyText}
+      listName={listName}
+      disabled={disabled}
+      readOnly={readOnly}
+      onOpenChange={onOpenChange}
+    />
+  );
+
+  // Hidden, so they are read only through the trigger's IDREFs and take no layout space.
+  const hiddenText = (
     <>
-      <SearchableSelectCore
-        items={items}
-        getItemId={getItemId}
-        getItemLabel={getItemLabel}
-        filterItem={filterItem}
-        multiple
-        isSelected={isSelected}
-        onActivate={handleActivate}
-        renderTrigger={renderTrigger}
-        selectionSummary={selectionSummary}
-        searchPlaceholder={searchPlaceholder}
-        searchLabel={searchLabel}
-        emptyText={emptyText}
-        listName={listName}
-        disabled={disabled}
-        readOnly={readOnly}
-        onOpenChange={onOpenChange}
-      />
-      {/* Hidden, so they are read only through the trigger's IDREFs and take no layout space. */}
       {useNameText && (
         <span id={nameTextId} hidden>
           {ariaLabel}
@@ -280,6 +383,39 @@ export function SearchableMultiSelect<T>({
           {READ_ONLY_TEXT}
         </span>
       )}
+    </>
+  );
+
+  // Count mode keeps its original DOM: no wrapper, no list, no status region.
+  if (!showChips) {
+    return (
+      <>
+        {core}
+        {hiddenText}
+      </>
+    );
+  }
+
+  // Chips sit below the trigger as its sibling, never inside the button. The root keeps the
+  // two together in any parent layout.
+  return (
+    <>
+      <div ref={rootRef} data-slot="searchable-multi-select" className="flex flex-col gap-2">
+        {core}
+        <SelectedChips
+          entries={chipEntries}
+          getItemLabel={getItemLabel}
+          onRemove={handleRemove}
+          formatRemoveLabel={formatRemoveLabel}
+          formatRemovedAnnouncement={formatRemovedAnnouncement}
+          mode={chipsMode}
+          labelledBy={ariaLabelledBy ?? (useNameText ? nameTextId : undefined)}
+          getTrigger={getTrigger}
+          pendingRef={pendingRemovalRef}
+          chipClassName={chipClassName}
+        />
+      </div>
+      {hiddenText}
     </>
   );
 }

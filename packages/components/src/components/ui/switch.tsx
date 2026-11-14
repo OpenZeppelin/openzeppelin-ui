@@ -3,15 +3,33 @@ import * as React from 'react';
 
 import { cn } from '@openzeppelin/ui-utils';
 
+type SwitchProps = React.ComponentProps<typeof SwitchPrimitive.Root> & {
+  /**
+   * Read-only: the switch stays focusable and in full colour, exposes `aria-readonly="true"`,
+   * and ignores click, Space, Enter and label clicks, so `onCheckedChange` never fires. Its
+   * value still submits with a native form, and `required` is dropped so it can't block
+   * submission. `disabled` wins when both are set.
+   */
+  readonly readOnly?: boolean;
+};
+
 /**
  * Switch component wrapping the Radix UI Switch primitive.
  * Exposes `role="switch"` with `aria-checked`, toggles on click and Space, and
- * ignores input when `disabled`. Name it with a `<Label htmlFor>` or `aria-label`.
+ * ignores input when `disabled`. With `readOnly` it stays focusable and in full
+ * colour, reports `aria-readonly`, and ignores input. Name it with a
+ * `<Label htmlFor>` or `aria-label`.
  */
-function Switch({
-  className,
-  ...props
-}: React.ComponentProps<typeof SwitchPrimitive.Root>): React.ReactElement {
+function Switch({ className, readOnly, onClick, ...props }: SwitchProps): React.ReactElement {
+  // Disabled wins: a disabled switch is reported disabled only, never read-only.
+  const isReadOnly = readOnly === true && props.disabled !== true;
+  const handleClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    onClick?.(event);
+    // Click, Space, Enter and label clicks all arrive here as one click. Radix composes this
+    // handler before its toggle and skips the toggle when the event is default-prevented.
+    if (isReadOnly) event.preventDefault();
+  };
+
   return (
     <SwitchPrimitive.Root
       data-slot="switch"
@@ -20,6 +38,13 @@ function Switch({
         className
       )}
       {...props}
+      // Set after the spread so only `readOnly` decides these; a consumer's own
+      // aria-readonly can't announce a state that doesn't block input.
+      aria-readonly={isReadOnly || undefined}
+      // A read-only control is barred from constraint validation, as in HTML: a required,
+      // unchecked read-only switch must not block a form the user can't fix.
+      required={isReadOnly ? undefined : props.required}
+      onClick={handleClick}
     >
       <SwitchPrimitive.Thumb
         data-slot="switch-thumb"

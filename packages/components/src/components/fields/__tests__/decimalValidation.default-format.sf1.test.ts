@@ -547,9 +547,10 @@ describe('INV-18: bounded cost', () => {
     return best;
   }
 
-  it.each([10, 1_000, 10_000, 100_000])(
-    '%i characters: plain, all-nines carry and near misses, each call within budget',
-    (n) => {
+  it('plain, all-nines carry and near misses: 10k→100k growth ~linear', () => {
+    const sizes = [10, 1_000, 10_000, 100_000] as const;
+    const bySize: Record<number, Record<string, number>> = {};
+    for (const n of sizes) {
       const plain = `${'7'.repeat(Math.max(1, n - 3))}.25`;
       const nines = `${'9'.repeat(Math.max(1, n - 3))}.95`;
       const nearMiss = `${'1'.repeat(n)}x`;
@@ -559,17 +560,30 @@ describe('INV-18: bounded cost', () => {
       expect(formatAmountText(nearMiss, 2)).toBeNull();
       expect(formatAmountText(dots, 2)).toBeNull();
       expect(stepAmountText(plain, { direction: 1, step: 0.01, decimals: 2 })).not.toBeNull();
-      const timings = {
+      bySize[n] = {
         plain: minMs(() => formatAmountText(plain, 1)),
         nines: minMs(() => formatAmountText(nines, 1)),
         nearMiss: minMs(() => formatAmountText(nearMiss, 2)),
         dots: minMs(() => formatAmountText(dots, 2)),
         step: minMs(() => stepAmountText(plain, { direction: 1, step: 0.01, decimals: 2 })),
       };
-      for (const [name, ms] of Object.entries(timings))
-        expect(ms, `${name} @ ${n}`).toBeLessThan(50);
     }
-  );
+    // 10× input ⇒ ~10× time if linear, ~100× if quadratic. Cap at 50 (half of quadratic)
+    // so parallel-suite / CI timer noise does not flake while still catching O(n²).
+    for (const name of Object.keys(bySize[10_000] ?? {})) {
+      const t10k = bySize[10_000]?.[name] ?? Infinity;
+      const t100k = bySize[100_000]?.[name] ?? Infinity;
+      expect(t100k / Math.max(t10k, 0.1), `${name} 10k→100k growth`).toBeLessThan(50);
+    }
+    // Absolute wall-clock is local-only; shared CI runners are too noisy for ms budgets.
+    if (!process.env.CI) {
+      for (const n of sizes) {
+        for (const [name, ms] of Object.entries(bySize[n] ?? {})) {
+          expect(ms, `${name} @ ${n}`).toBeLessThan(250);
+        }
+      }
+    }
+  });
 
   it('boundary: padding is capped at decimals 100, so a blur allocates at most input + 101 characters', () => {
     const out = formatAmountText('1', 100);

@@ -74,6 +74,21 @@ text.
   roundings. A misconfigured `decimals`, `min` or `max` fails every non-empty value.
 - `min` / `max` accept strings in exact mode, compared exactly digit by digit, so bounds
   beyond 2^53 stay exact.
+- `groupedDisplay` (exact mode, with `allowGrouping`): the field shows the value with `,`
+  thousands groups while it is not focused (`250,000.00`) and plain while it is being
+  edited (`250000.00`). Display only: the form value stays the plain string, and focus and
+  blur never write it. Off by default, so an exact field without the prop is unchanged.
+  On that grouped input, `restrictInput` refuses inserts that break the amount grammar or
+  exceed `decimals` (deletes always apply), and `padDecimals` pads the unfocused display
+  to `decimals` places; both default off.
+  - A correctly grouped string from `defaultValues`, `reset` or `setValue` is accepted on
+    an editable field and stored plain right away. That write marks the form dirty, so
+    seed plain strings to stay pristine.
+  - A read-only or disabled field stays grouped on focus and is never written. Seed
+    read-only amounts plain: a grouped string there blocks submit.
+  - Known limits (a second writer in the same render, `reset` followed by an immediate
+    submit, the approximate first mouse click) are listed in the
+    [API reference](./api-reference.md#known-limits).
 - Exported type `AmountFieldExactProps`.
 
 ### Changed

@@ -34,6 +34,8 @@ export function BadgeDemo(): React.ReactElement {
   const [activationCount, setActivationCount] = useState(0);
   const [selectedFilters, setSelectedFilters] = useState<ReadonlySet<string>>(new Set(['Open']));
   const [selectedSolid, setSelectedSolid] = useState<ReadonlySet<string>>(new Set(['Mine']));
+  const [disabledActivations, setDisabledActivations] = useState(0);
+  const [readOnlyActivations, setReadOnlyActivations] = useState(0);
 
   return (
     <DemoSection
@@ -51,6 +53,12 @@ export function BadgeDemo(): React.ReactElement {
 
 // Add pressed to make an interactive badge a toggle chip (aria-pressed + selected style).
 <Badge label="Open" variant="outline" pressed={isOpen} onActivate={toggleOpen} />
+
+// disabled turns off an interactive badge; aria-pressed stays exposed.
+<Badge label="Open" pressed={isOpen} onActivate={toggleOpen} disabled />
+
+// readOnly keeps a held chip focusable and full-colour; activation is blocked.
+<Badge label="Open" pressed onActivate={toggleOpen} readOnly />
 
 // Expand an abbreviated visible label for assistive technology.
 <Badge label="P1" tone="danger" aria-label="Priority one: immediate action" />`}
@@ -139,6 +147,75 @@ export function BadgeDemo(): React.ReactElement {
             />
           ))}
         </div>
+      </div>
+
+      <div className="space-y-4" data-testid="badge-disabled-demo">
+        <h3 className="text-lg font-medium">Disabled</h3>
+        <p className="text-muted-foreground text-sm">
+          Pass <code>disabled</code> to an interactive badge to stop activation. The button leaves
+          the tab order and dims, and a toggle chip still exposes its pressed state. A static badge
+          ignores it.
+        </p>
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border p-4">
+          <Badge
+            label="Open"
+            variant="outline"
+            pressed
+            disabled
+            onActivate={() => setDisabledActivations((count) => count + 1)}
+          />
+          <Badge
+            label="Closed"
+            variant="outline"
+            pressed={false}
+            disabled
+            onActivate={() => setDisabledActivations((count) => count + 1)}
+          />
+          <Badge label="Static" variant="outline" disabled />
+        </div>
+        <p className="text-muted-foreground text-sm" data-testid="badge-disabled-count">
+          Activations: {disabledActivations}
+        </p>
+      </div>
+
+      <div className="space-y-4" data-testid="badge-readonly-demo">
+        <h3 className="text-lg font-medium">Read-only</h3>
+        <p className="text-muted-foreground text-sm">
+          Pass <code>readOnly</code> to keep a held interactive badge in the tab order and full
+          colour. It stays focusable with <code>aria-pressed</code>, announces &quot;Read-only&quot;
+          via <code>aria-describedby</code>, and ignores click, Enter and Space.{' '}
+          <code>disabled</code> wins when both are set. A static badge ignores it.
+        </p>
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border p-4">
+          <Badge
+            label="Held open"
+            variant="outline"
+            pressed
+            readOnly
+            onActivate={() => setReadOnlyActivations((count) => count + 1)}
+          />
+          <Badge
+            label="Held closed"
+            // Solid neutral keeps AA contrast in dark; outline muted fails axe on this surface.
+            variant="solid"
+            tone="neutral"
+            pressed={false}
+            readOnly
+            onActivate={() => setReadOnlyActivations((count) => count + 1)}
+          />
+          <Badge
+            label="Held + disabled"
+            variant="outline"
+            pressed
+            readOnly
+            disabled
+            onActivate={() => setReadOnlyActivations((count) => count + 1)}
+          />
+          <Badge label="Static" variant="outline" readOnly />
+        </div>
+        <p className="text-muted-foreground text-sm" data-testid="badge-readonly-count">
+          Activations: {readOnlyActivations}
+        </p>
       </div>
 
       <div className="space-y-4">

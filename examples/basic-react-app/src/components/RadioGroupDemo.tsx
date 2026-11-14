@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Label, RadioGroup, RadioGroupItem } from '@openzeppelin/ui-components';
+import { Badge, Label, RadioGroup, RadioGroupItem } from '@openzeppelin/ui-components';
 
 import { DemoSection } from './DemoSection';
 
@@ -220,6 +220,10 @@ export function RadioGroupDemo(): React.ReactElement {
       {/* Card Variant */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Card Variant</h3>
+        <p className="text-muted-foreground text-sm">
+          A title can hold a chip such as a Badge. It sits level with the radio and doesn&apos;t
+          change the card&apos;s height.
+        </p>
         <RadioGroup
           variant="card"
           value={productType}
@@ -234,8 +238,21 @@ export function RadioGroupDemo(): React.ReactElement {
           />
           <RadioGroupItem
             value="futures"
-            title="Futures"
+            title={
+              <>
+                Futures <Badge label="Popular" />
+              </>
+            }
             description="Trade contracts that settle at a later date."
+          />
+          <RadioGroupItem
+            value="perpetuals"
+            title={
+              <>
+                Perpetuals <Badge label="Beta" variant="outline" />
+              </>
+            }
+            description="Trade contracts that never expire."
           />
           <RadioGroupItem
             value="options"

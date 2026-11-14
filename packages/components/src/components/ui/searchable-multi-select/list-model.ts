@@ -138,3 +138,29 @@ export function stepEnabledIndex<T>(
 export function toggleId(prev: readonly string[], id: string): string[] {
   return prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
 }
+
+// One shared empty list, so an empty selection yields the same reference on every call.
+const NO_ITEMS: readonly never[] = Object.freeze([]);
+
+/**
+ * The items whose id is in `selectedIds`, in selection order (the order of the ids). A
+ * repeated id yields its item once; an id with no item yields nothing. When several items
+ * share an id (a dev warning), the first one in `items` stands for it.
+ */
+export function resolveSelectedItems<T>(
+  items: readonly T[],
+  selectedIds: readonly string[],
+  getItemId: (item: T) => string
+): readonly T[] {
+  if (selectedIds.length === 0) return NO_ITEMS;
+  const itemById = new Map<string, T>();
+  for (const item of items) {
+    const itemId = getItemId(item);
+    if (!itemById.has(itemId)) itemById.set(itemId, item);
+  }
+  const picked: T[] = [];
+  for (const selectedId of new Set(selectedIds)) {
+    if (itemById.has(selectedId)) picked.push(itemById.get(selectedId) as T);
+  }
+  return picked;
+}

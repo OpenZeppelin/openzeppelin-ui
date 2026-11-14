@@ -48,6 +48,10 @@ export interface SearchableMultiSelectFieldProps<
       | 'formatSelectedCount'
       | 'formatSelectionSummary'
       | 'clearAllLabel'
+      | 'showSelected'
+      | 'formatRemoveLabel'
+      | 'formatRemovedAnnouncement'
+      | 'chipClassName'
     > {
   /**
    * Extra rule, run after the required check and only for a non-empty selection.
@@ -72,6 +76,11 @@ export interface SearchableMultiSelectFieldProps<
  * data. With `readOnlyMode="readonly"` the trigger stays focusable and in the
  * tab order, the list never opens, the value stays in `handleSubmit` data, and
  * the trigger has a hidden "Read-only" description.
+ *
+ * With `showSelected="chips"` the picks also show as chips below the trigger.
+ * Removing a chip changes the form value the same way unpicking does. In
+ * either read-only mode the chips have no remove buttons. `chipClassName`
+ * passes through to restyle the chip chrome.
  */
 export function SearchableMultiSelectField<TItem, TFieldValues extends FieldValues = FieldValues>({
   id,
@@ -95,6 +104,10 @@ export function SearchableMultiSelectField<TItem, TFieldValues extends FieldValu
   formatSelectedCount,
   formatSelectionSummary,
   clearAllLabel,
+  showSelected,
+  formatRemoveLabel,
+  formatRemovedAnnouncement,
+  chipClassName,
   validateSelection,
 }: SearchableMultiSelectFieldProps<TItem, TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
@@ -181,6 +194,12 @@ export function SearchableMultiSelectField<TItem, TFieldValues extends FieldValu
                 formatSelectedCount={formatSelectedCount}
                 formatSelectionSummary={formatSelectionSummary}
                 clearAllLabel={clearAllLabel}
+                // A chip removal emits through onSelectionChange like a list pick, so it is a
+                // normal change of the form value.
+                showSelected={showSelected}
+                formatRemoveLabel={formatRemoveLabel}
+                formatRemovedAnnouncement={formatRemovedAnnouncement}
+                chipClassName={chipClassName}
                 disabled={ro.controlProps.disabled}
                 readOnly={ro.isFocusableReadOnly}
                 onOpenChange={(open) => {

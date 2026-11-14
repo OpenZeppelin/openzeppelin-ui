@@ -10,7 +10,11 @@ Each example is one `.tsx` file whose imports are React, `react-hook-form`, `vie
 kit. Drop it into `src/`, render it from a page, and make sure your Tailwind build scans
 the kit (see the package README's _Styling_ section). The running example app has a live
 version under Forms → "Amount Field: exact entry", which puts a default field next to an
-exact one and prints the submitted payload.
+exact one and prints the submitted payload. Below it, "Amount Field: grouped display
+(exact entry)" shows `groupedDisplay` on an editable and a read-only field, with buttons
+that seed a plain and a grouped value and a readout of the form value and `isDirty`. A
+further section, "Amount Field: grouped restrictInput and padDecimals", turns both
+opt-ins on with `decimals={2}`.
 
 ## 1. Transfer form — `TransferAmountForm.tsx`
 
@@ -221,3 +225,96 @@ export function LotSizeAmountField({
 
 Return `true` to pass. Returning `false` fails with the generic `Enter a valid amount`, so
 return a message instead.
+
+## 4. Grouped display with a review step — `GroupedDepositForm.tsx`
+
+Pattern 5: `groupedDisplay` shows thousands separators while the field is not being
+edited. The same field turns read-only for the review step and stays grouped. The stored
+amount is seeded as a plain string, so the form starts pristine.
+
+```tsx
+import { formatUnits, parseUnits } from 'viem';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+
+import { AmountField, Button } from '@openzeppelin/ui-components';
+
+interface DepositValues {
+  amount: string;
+}
+
+export function GroupedDepositForm({
+  symbol,
+  decimals,
+  suggested,
+  onDeposit,
+}: {
+  symbol: string;
+  decimals: number;
+  /** Base units. Shown grouped, stored plain. */
+  suggested: bigint;
+  onDeposit: (raw: bigint) => void;
+}): React.ReactElement {
+  const [reviewing, setReviewing] = useState(false);
+  const form = useForm<DepositValues>({
+    // `formatUnits` gives a plain string ('250000'), which the field shows as 250,000.
+    defaultValues: { amount: formatUnits(suggested, decimals) },
+    mode: 'onChange',
+  });
+  const amount = form.watch('amount');
+
+  const submit = ({ amount }: DepositValues): void => {
+    if (!reviewing) {
+      setReviewing(true);
+      return;
+    }
+    onDeposit(parseUnits(amount, decimals)); // `amount` never has a comma
+    setReviewing(false);
+  };
+
+  return (
+    <form onSubmit={form.handleSubmit(submit)} className="space-y-4">
+      <AmountField
+        id="deposit-amount"
+        name="amount"
+        label={reviewing ? 'Confirm amount' : 'Amount'}
+        control={form.control}
+        validation={{ required: true }}
+        formatOnBlur={false}
+        allowGrouping
+        groupedDisplay
+        decimals={decimals}
+        min="0"
+        symbol={symbol}
+        readOnly={reviewing}
+        readOnlyMode="readonly"
+      />
+      <p>
+        Form value: <code>{JSON.stringify(amount)}</code>
+        {form.formState.isDirty ? ' (edited)' : ' (as loaded)'}
+      </p>
+      <div className="flex gap-2">
+        {reviewing && (
+          <Button type="button" variant="outline" onClick={() => setReviewing(false)}>
+            Edit
+          </Button>
+        )}
+        <Button type="submit">{reviewing ? 'Confirm deposit' : 'Review'}</Button>
+      </div>
+    </form>
+  );
+}
+```
+
+Try, with `suggested={250000000000n}` and `decimals={6}`:
+
+- The field opens showing `250,000` and the line below reads `"250000" (as loaded)`.
+- Tab into the field: it shows `250000`, all selected. Type `1250000.5` and tab out: it
+  shows `1,250,000.5`, and the form value is `"1250000.5"`.
+- Press Review: the field is read-only and still shows `1,250,000.5` when you click into
+  it. Confirm calls `onDeposit(1250000500000n)`.
+
+If your stored amount is already a grouped string, strip it before seeding
+(`stored.replaceAll(',', '')`). A grouped seed on the editable field would be accepted
+and stored plain, but the form would start as `(edited)`, and on the read-only step it
+would block submit.

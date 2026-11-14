@@ -399,6 +399,13 @@ export interface DataTableGrouping<Row> {
 
   /** Default label for the `key: null` section. Default `'Other'`. */
   readonly ungroupedLabel?: string;
+
+  /**
+   * Classes merged onto every section row's `<tr>` after the kit default, so a
+   * conflicting utility (for example a `bg-*` fill) replaces the default.
+   * Display, position and sticky utilities are not supported here.
+   */
+  readonly groupRowClassName?: string;
 }
 
 /** Kit default estimate: SF-9 `p-4` composed rows are approximately 64px. INV-140 */

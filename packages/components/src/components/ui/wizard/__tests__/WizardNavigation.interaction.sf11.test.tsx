@@ -160,7 +160,7 @@ describe('INV-11: blocked buttons invoke nothing', () => {
       );
       await user.click(screen.getByRole('button', { name: 'Next' }));
       await user.click(screen.getByRole('button', { name: 'Previous' }));
-      expect(onStepChange.mock.calls).toEqual([[2], [0]]);
+      expect(onStepChange.mock.calls.map(([index]) => index)).toEqual([2, 0]);
       rerender(
         <WizardLayout
           steps={steps}

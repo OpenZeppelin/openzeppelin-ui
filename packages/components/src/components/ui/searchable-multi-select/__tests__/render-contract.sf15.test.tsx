@@ -333,12 +333,12 @@ describe('INV-6: every user-facing string comes from a prop or its documented de
     await user.click(q.trigger());
     await user.type(q.search(), 'fr');
     await user.keyboard('{Enter}');
-    expect(formatSelectedCount).toHaveBeenLastCalledWith(1, 6);
-    expect(formatSelectionSummary).toHaveBeenLastCalledWith(1, 6);
+    expect(formatSelectedCount).toHaveBeenLastCalledWith(1, 6, [COUNTRIES[0]]);
+    expect(formatSelectionSummary).toHaveBeenLastCalledWith(1, 6, [COUNTRIES[0]]);
     unmount();
 
     render(<Controlled {...props} initial={COUNTRIES.map((c) => c.code)} />);
-    expect(formatSelectedCount).toHaveBeenLastCalledWith(6, 6);
+    expect(formatSelectedCount).toHaveBeenLastCalledWith(6, 6, COUNTRIES);
     expect(q.trigger().textContent).toBe('6/6');
   });
 
@@ -350,7 +350,7 @@ describe('INV-6: every user-facing string comes from a prop or its documented de
         initial={['FR', 'FR', 'X', 'Y', 'Z', 'W', 'V']}
       />
     );
-    expect(formatSelectedCount).toHaveBeenLastCalledWith(7, 6);
+    expect(formatSelectedCount).toHaveBeenLastCalledWith(7, 6, [COUNTRIES[0]]);
   });
 
   it('formatter output is rendered verbatim, including "" and surrounding spaces (A2)', () => {

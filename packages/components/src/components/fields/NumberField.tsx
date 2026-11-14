@@ -6,7 +6,7 @@ import { getReadOnlyState } from './utils/readOnlyState';
 
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps, ValidStateProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
@@ -24,7 +24,8 @@ import {
 export interface NumberFieldProps<TFieldValues extends FieldValues = FieldValues>
   extends BaseFieldProps<TFieldValues>,
     ReadOnlyModeProps,
-    LabelEndProps {
+    LabelEndProps,
+    ValidStateProps {
   /**
    * Minimum value validation
    */
@@ -80,6 +81,7 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
   validateNumber,
   readOnly,
   readOnlyMode,
+  showValidState,
 }: NumberFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
@@ -178,7 +180,7 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
         render={({ field, fieldState: { error, isTouched } }) => {
           const hasError = !!error;
           const shouldShowError = hasError && isTouched;
-          const validationClasses = getValidationStateClasses(error, isTouched);
+          const validationClasses = getValidationStateClasses(error, isTouched, showValidState);
 
           // Handle input change
           const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {

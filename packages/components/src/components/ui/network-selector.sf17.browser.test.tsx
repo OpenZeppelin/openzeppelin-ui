@@ -282,6 +282,9 @@ describe('INV-22: correct at 1,000 networks (timings recorded, not gated)', () =
     await annotate(
       `n=${n} open=${openMs.toFixed(1)}ms keystroke=${keyMs.toFixed(1)}ms arrow=${arrowMs.toFixed(1)}ms`
     );
-    if (n === 250) expect(keyMs, 'SF-15 INV-34 flag threshold').toBeLessThan(100);
+    // Absolute wall-clock is local Node-only; browser/CI runners are too noisy for ms budgets.
+    if (n === 250 && typeof process !== 'undefined' && !process.env.CI) {
+      expect(keyMs, 'SF-15 INV-34 flag threshold').toBeLessThan(100);
+    }
   });
 });

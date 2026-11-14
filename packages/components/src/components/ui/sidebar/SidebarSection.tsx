@@ -29,7 +29,12 @@ export function SidebarSection({
   return (
     <div className={cn('flex flex-col w-full', grow && 'flex-1', className)}>
       {title && (
-        <div className={cn('text-[#5e5e5e] text-xs font-semibold leading-4 mb-1', titleClassName)}>
+        <div
+          className={cn(
+            'text-muted-foreground text-xs font-semibold leading-4 mb-1',
+            titleClassName
+          )}
+        >
           {title}
         </div>
       )}

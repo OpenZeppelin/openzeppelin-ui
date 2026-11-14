@@ -65,25 +65,41 @@ const filterCountry = (country: Country, query: string): boolean => {
   return country.name.toLowerCase().includes(q) || country.code.toLowerCase() === q;
 };
 
-const formatCountryCount = (count: number, total: number): string =>
-  count === total ? 'All countries' : `${count} ${count === 1 ? 'country' : 'countries'} selected`;
+/**
+ * Name the first two picks, then how many more: "France, Spain and 3 more".
+ * The picks arrive in selection order.
+ */
+const formatCountryCount = (count: number, total: number, picked: readonly Country[]): string => {
+  if (count === total) return 'All countries';
+  const [first, second, ...rest] = picked.map(getCountryLabel);
+  if (!first) return `${count} selected`;
+  if (!second) return first;
+  return rest.length === 0
+    ? `${first} and ${second}`
+    : `${first}, ${second} and ${rest.length} more`;
+};
 
 const formatCountrySummary = (count: number): string => `${count} chosen`;
 
+/** Enough picks to wrap onto several lines in the narrow chips example. */
+const CHIPS_SEED = ['FR', 'ES', 'DE', 'IT', 'NL', 'PT', 'SE', 'GB'];
+
 /**
  * Demonstrates SearchableMultiSelect: a country allow-list with custom copy and
- * a live selection readout, the generic defaults, the disabled state, and the
- * list opened inside a Dialog (a nested layer: one Escape closes one layer).
+ * a live selection readout, removable chips, the generic defaults, the disabled
+ * state, and the list opened inside a Dialog (a nested layer: one Escape closes
+ * one layer).
  */
 export function SearchableMultiSelectDemo(): React.ReactElement {
   const [allowed, setAllowed] = useState<string[]>([]);
+  const [chips, setChips] = useState<string[]>(CHIPS_SEED);
   const [plain, setPlain] = useState<string[]>([]);
   const [inDialog, setInDialog] = useState<string[]>([]);
 
   return (
     <DemoSection
       title="SearchableMultiSelect"
-      description="Pick many items of any type from a searchable list. Type to filter, use the arrow keys and Enter (or the pointer) to toggle. Selection is controlled and every piece of copy can be overridden."
+      description="Pick many items of any type from a searchable list. Type to filter, use the arrow keys and Enter (or the pointer) to toggle. Selection is controlled and every piece of copy can be overridden. The count formatter also gets the picked items, so the closed list below names them."
       codeExample={`import { Label, SearchableMultiSelect } from '@openzeppelin/ui-components';
 
 const [allowed, setAllowed] = useState<string[]>([]);
@@ -100,8 +116,9 @@ const [allowed, setAllowed] = useState<string[]>([]);
   searchPlaceholder="Search countries..."
   searchLabel="Search countries"
   emptyText="No country matches your search."
-  formatSelectedCount={(n, total) =>
-    n === total ? 'All countries' : \`\${n} countries selected\`}
+  // The third argument is the picked items, in selection order.
+  formatSelectedCount={(n, total, picked) =>
+    n === total ? 'All countries' : nameFirstTwo(picked)} // "France, Spain and 3 more"
 />`}
     >
       <div className="space-y-4">
@@ -134,6 +151,64 @@ const [allowed, setAllowed] = useState<string[]>([]);
               {allowed.length > 0 ? allowed.join(', ') : 'None'}
             </output>
           </p>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Chips</h3>
+        <p className="text-muted-foreground text-sm">
+          <code>showSelected=&quot;chips&quot;</code> also lists the picks below the trigger, in
+          pick order. Each chip has a remove button; after a removal, focus moves to the next chip
+          and the removal is announced. Chips wrap in a narrow field. The default chrome is a
+          bordered background so chips stay visible on a muted panel; <code>chipClassName</code> can
+          override that edge.
+        </p>
+        <div
+          className="bg-muted max-w-xs space-y-3 rounded-md p-3"
+          data-testid="sms-chips-tinted-panel"
+        >
+          <div className="space-y-2">
+            <Label id="sms-chips-label">Shipping countries</Label>
+            <SearchableMultiSelect
+              aria-labelledby="sms-chips-label"
+              items={COUNTRIES}
+              getItemId={getCountryId}
+              getItemLabel={getCountryLabel}
+              filterItem={filterCountry}
+              selectedIds={chips}
+              onSelectionChange={setChips}
+              placeholder="Select countries"
+              searchPlaceholder="Search countries..."
+              searchLabel="Search countries"
+              emptyText="No country matches your search."
+              showSelected="chips"
+            />
+            <p className="text-muted-foreground text-sm">
+              Selected ids:{' '}
+              <output
+                aria-live="polite"
+                data-testid="sms-chips-readout"
+                className="text-foreground font-mono"
+              >
+                {chips.length > 0 ? chips.join(', ') : 'None'}
+              </output>
+            </p>
+          </div>
+          <div className="space-y-2" data-testid="sms-chips-override">
+            <Label id="sms-chips-override-label">Custom chip border</Label>
+            <SearchableMultiSelect
+              aria-labelledby="sms-chips-override-label"
+              items={COUNTRIES}
+              getItemId={getCountryId}
+              getItemLabel={getCountryLabel}
+              filterItem={filterCountry}
+              selectedIds={chips}
+              onSelectionChange={setChips}
+              placeholder="Select countries"
+              showSelected="chips"
+              chipClassName="border-primary"
+            />
+          </div>
         </div>
       </div>
 

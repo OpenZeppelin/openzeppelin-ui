@@ -8,7 +8,7 @@ import {
 } from './utils/decimalValidation';
 import type { ReadOnlyState } from './utils/readOnlyState';
 
-import { Input } from '../ui/input';
+import { Input, type InputProps } from '../ui/input';
 
 /**
  * The parts of react-hook-form's `field` the exact input uses. `Controller`'s
@@ -29,12 +29,16 @@ export interface AmountFieldExactInputProps {
   readonly placeholder?: string;
   /** Effective grouping flag, already reduced to a boolean by AmountField. */
   readonly allowGrouping: boolean;
-  /** Validation and symbol padding classes, computed by AmountField. */
+  /** Validation classes, computed by AmountField. */
   readonly className: string;
-  /** `getAccessibilityProps` output, computed by AmountField. */
+  /** Accessibility attributes (the symbol id included), computed by AmountField. */
   readonly accessibilityProps: AccessibilityProps;
   /** `getReadOnlyState` output, computed by AmountField. */
   readonly readOnlyState: ReadOnlyState;
+  /** AmountField's prefix symbol node, or undefined. Forwarded to Input as is. */
+  readonly startAdornment?: InputProps['startAdornment'];
+  /** AmountField's suffix symbol node, or undefined. Forwarded to Input as is. */
+  readonly endAdornment?: InputProps['endAdornment'];
 }
 
 interface ExactInputState {
@@ -80,6 +84,8 @@ export function AmountFieldExactInput({
   className,
   accessibilityProps,
   readOnlyState,
+  startAdornment,
+  endAdornment,
 }: AmountFieldExactInputProps): React.ReactElement {
   const [state, setState] = useState<ExactInputState>(() => stateFromValue(field.value));
 
@@ -137,6 +143,8 @@ export function AmountFieldExactInput({
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       {...readOnlyState.controlProps}
+      startAdornment={startAdornment}
+      endAdornment={endAdornment}
     />
   );
 }

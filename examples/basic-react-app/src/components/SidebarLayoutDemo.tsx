@@ -148,6 +148,32 @@ function AppLayout() {
                     >
                       Users
                     </SidebarButton>
+                    <SidebarButton
+                      icon={<FileText className="size-4" />}
+                      trailing={
+                        <span
+                          aria-hidden="true"
+                          data-testid="sidebar-long-label-dot"
+                          className="bg-primary size-2 rounded-full"
+                        />
+                      }
+                    >
+                      A very long contract label that does not fit the sidebar
+                    </SidebarButton>
+                    <SidebarButton
+                      icon={<FileText className="size-4" />}
+                      badge="DEMO-CHK"
+                      isSelected={activeItem === 'compliance'}
+                      onClick={() => setActiveItem('compliance')}
+                    >
+                      Compliance checklist with a long label that should truncate
+                    </SidebarButton>
+                    <SidebarButton
+                      icon={<FileText className="size-4" />}
+                      badge="VERY-LONG-BADGE-CODE-THAT-EXCEEDS-NARROW-SIDEBAR"
+                    >
+                      Short
+                    </SidebarButton>
                   </nav>
                 </SidebarSection>
 

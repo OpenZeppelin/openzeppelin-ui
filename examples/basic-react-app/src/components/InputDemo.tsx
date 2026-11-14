@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Search } from 'lucide-react';
+import { Eye, EyeOff, Lock, Search } from 'lucide-react';
 import { useState } from 'react';
 
 import { Input, Label } from '@openzeppelin/ui-components';
@@ -82,9 +82,57 @@ export function InputDemo(): React.ReactElement {
       {/* With Search Icon */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">With Icon</h3>
-        <div className="relative max-w-md">
-          <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
-          <Input type="search" placeholder="Search..." className="pl-10" />
+        <div className="max-w-md" data-testid="input-demo-start-icon">
+          <Input
+            type="search"
+            placeholder="Search..."
+            aria-label="Search"
+            startAdornment={<Search aria-hidden className="h-4 w-4" />}
+          />
+        </div>
+      </div>
+
+      {/* Adornments */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Adornments</h3>
+        <p className="text-muted-foreground text-sm">
+          <code className="bg-muted rounded px-1">startAdornment</code> and{' '}
+          <code className="bg-muted rounded px-1">endAdornment</code> place an icon or short text
+          inside the border. The text is padded clear of each one by its measured width, and a click
+          on an adornment focuses the input.
+        </p>
+        <div className="grid max-w-md gap-4">
+          <div className="space-y-2" data-testid="input-demo-end-text">
+            <Label htmlFor="adornment-end">Price</Label>
+            <Input
+              id="adornment-end"
+              inputMode="decimal"
+              placeholder="0.00"
+              defaultValue="1234567890123456789012345678901234567890.55"
+              endAdornment="USD"
+            />
+          </div>
+          <div className="space-y-2" data-testid="input-demo-both">
+            <Label htmlFor="adornment-both">Amount</Label>
+            <Input
+              id="adornment-both"
+              inputMode="decimal"
+              placeholder="0.00"
+              defaultValue="9876543210987654321098765432109876543210.01"
+              startAdornment="$"
+              endAdornment="USDC"
+            />
+          </div>
+          <div className="space-y-2" data-testid="input-demo-read-only-lock">
+            <Label htmlFor="adornment-locked">Owner</Label>
+            <Input
+              id="adornment-locked"
+              readOnly
+              data-readonly
+              defaultValue="0x742d35Cc6634C0532925a3b844Bc9e7595f2bD54"
+              startAdornment={<Lock aria-hidden className="h-4 w-4" />}
+            />
+          </div>
         </div>
       </div>
 
@@ -169,7 +217,11 @@ export function InputDemo(): React.ReactElement {
 <div className="space-y-2">
   <Label htmlFor="email">Email</Label>
   <Input id="email" type="email" placeholder="name@example.com" />
-</div>`}
+</div>
+
+// Icon or short text inside the border
+<Input startAdornment={<Search aria-hidden className="h-4 w-4" />} aria-label="Search" />
+<Input inputMode="decimal" endAdornment="USD" />`}
           language="tsx"
         />
       </div>

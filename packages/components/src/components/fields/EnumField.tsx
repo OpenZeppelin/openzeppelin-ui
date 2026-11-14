@@ -8,7 +8,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Textarea } from '../ui/textarea';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, ValidStateProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
@@ -57,7 +57,8 @@ export type EnumFieldValue = EnumValue;
  * EnumField component properties
  */
 export interface EnumFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    ValidStateProps {
   /**
    * Enum metadata containing variant information
    */
@@ -100,6 +101,7 @@ export function EnumField<TFieldValues extends FieldValues = FieldValues>({
   validateEnum,
   renderPayloadField,
   readOnly,
+  showValidState,
 }: EnumFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
@@ -158,7 +160,7 @@ export function EnumField<TFieldValues extends FieldValues = FieldValues>({
           }}
           render={({ field, fieldState: { error, isTouched } }) => {
             const hasError = !!error;
-            const validationClasses = getValidationStateClasses(error, isTouched);
+            const validationClasses = getValidationStateClasses(error, isTouched, showValidState);
 
             // Get accessibility attributes
             const accessibilityProps = getAccessibilityProps({
