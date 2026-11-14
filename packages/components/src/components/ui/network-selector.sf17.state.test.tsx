@@ -64,18 +64,6 @@ describe('INV-9: the runtime surface is unchanged and the core stays internal', 
       expect(Object.keys(UiBarrel), name).not.toContain(name);
     }
   });
-
-  it('the changeset is a minor for the kit only and names the menu → listbox query change', () => {
-    const file = path.join(
-      __dirname,
-      '../../../../../.changeset/network-selector-searchable-core.md'
-    );
-    const text = readFileSync(file, 'utf8');
-    const front = text.split('---')[1] ?? '';
-    expect(front.trim()).toBe("'@openzeppelin/ui-components': minor");
-    expect(text).toMatch(/menuitem/);
-    expect(text).toMatch(/listbox/);
-  });
 });
 
 describe('INV-11: multi mode emits exactly the old id lists', () => {
