@@ -106,8 +106,8 @@ function DataTableRowCells<Row>({
 type RowMeasureRef = ((node: HTMLTableRowElement | null) => void) | undefined;
 
 /**
- * Data row for both grouped body paths (SF-22 INV-3). Same attributes, order and
- * cells as the ungrouped rows below, which stay textually as shipped (SF-22 INV-5);
+ * Data row for both grouped body paths. Same attributes, order and
+ * cells as the ungrouped rows below, which stay textually as shipped;
  * `undefined` props emit no attribute, so plain and virtualized markup match.
  */
 function renderGroupedDataRow<Row>(args: {
@@ -149,9 +149,9 @@ function renderGroupedDataRow<Row>(args: {
 }
 
 /**
- * The one section-row JSX site for both body paths (SF-22 INV-1). `<th scope="row">`
+ * The one section-row JSX site for both body paths. `<th scope="row">`
  * maps to `rowheader` and adds no `columnheader` (Design probe). No `role`, no row
- * key, no selection attributes, no `cell` call (SF-22 INV-1 / INV-21).
+ * key, no selection attributes, no `cell` call.
  */
 function renderGroupRow<Row>(args: {
   itemKey: string;
@@ -185,7 +185,7 @@ function renderGroupRow<Row>(args: {
   );
 }
 
-/** Paints one `bodyItems` entry: a section row or a data row (SF-22). */
+/** Paints one `bodyItems` entry: a section row or a data row. */
 function renderBodyItem<Row>(args: {
   item: DataTableBodyItem<Row>;
   columns: readonly DataTableColumn<Row>[];
@@ -261,7 +261,7 @@ function InfiniteSentinelRow({
 
 interface VirtualizedBodyRowsProps<Row> {
   bodyRows: readonly Row[];
-  /** SF-22: non-null → the virtualizer windows these paint items instead of `bodyRows`. */
+  /** Non-null → the virtualizer windows these paint items instead of `bodyRows`. */
   bodyItems: readonly DataTableBodyItem<Row>[] | null;
   renderGroupHeaderContent: ((info: DataTableGroupHeaderInfo<Row>) => ReactNode) | undefined;
   columns: readonly DataTableColumn<Row>[];
@@ -299,7 +299,7 @@ function VirtualizedBodyRows<Row>({
   sentinelRef,
   onVirtualEndEligible,
 }: VirtualizedBodyRowsProps<Row>): ReactElement {
-  // SF-22 INV-28 / INV-32: grouped → virtual indices are paint indices over `bodyItems`.
+  // Grouped → virtual indices are paint indices over `bodyItems`.
   const paintCount = bodyItems?.length ?? bodyRows.length;
   const sentinelIndex = paintCount;
   const count = infiniteHasMore ? paintCount + 1 : paintCount;
@@ -327,7 +327,7 @@ function VirtualizedBodyRows<Row>({
     if (items == null) {
       return typeof estimate === 'function' ? estimate(index) : estimate;
     }
-    // SF-22 INV-28: sections use the kit estimate; the integrator's function only ever
+    // Sections use the kit estimate; the integrator's function only ever
     // receives data-row (`bodyRows`) indices.
     const item = items[index];
     if (item === undefined || item.kind === 'group') {
@@ -345,8 +345,8 @@ function VirtualizedBodyRows<Row>({
     },
     [bodyRows, getRowKey, infiniteHasMore]
   );
-  // SF-22 INV-16 / INV-28: grouped item keys come from `bodyItems` (sections use reserved keys).
-  // `bodyItems` is a new array every render (grouping is derived per render, INV-17), so the
+  // Grouped item keys come from `bodyItems` (sections use reserved keys).
+  // `bodyItems` is a new array every render (grouping is derived per render), so the
   // callback reads it through the ref and changes identity only when the key sequence changes.
   // The virtualizer then re-keys its measurements only when the keys really changed.
   // `bodyItemsRef` (above) always holds this render's list.
@@ -448,7 +448,7 @@ function VirtualizedBodyRows<Row>({
           if (bodyItem === undefined) {
             return null;
           }
-          // SF-22 INV-35: every painted item, sections included, is indexed by paint position.
+          // Every painted item, sections included, is indexed by paint position.
           return renderBodyItem({
             item: bodyItem,
             columns,
@@ -500,12 +500,12 @@ export interface DataTableScrollerProps<Row> {
   columns: readonly DataTableColumn<Row>[];
   bodyRows: readonly Row[];
   /**
-   * SF-22 paint list (section + data rows), built by DataTable. `null` selects the
-   * ungrouped path verbatim (SF-22 INV-5). Never used for selection, counts or
-   * empty decisions, which stay on `bodyRows` (SF-22 INV-15).
+   * Paint list (section + data rows), built by DataTable. `null` selects the
+   * ungrouped path verbatim. Never used for selection, counts or
+   * empty decisions, which stay on `bodyRows`.
    */
   bodyItems: readonly DataTableBodyItem<Row>[] | null;
-  /** Resolves a section's header content (SF-22 INV-4). Set iff `bodyItems` is. */
+  /** Resolves a section's header content. Set iff `bodyItems` is. */
   renderGroupHeaderContent: ((info: DataTableGroupHeaderInfo<Row>) => ReactNode) | undefined;
   getRowKey: (row: Row) => string;
   getRowClassName: ((row: Row) => string | undefined) | undefined;
@@ -521,9 +521,9 @@ export interface DataTableScrollerProps<Row> {
   infiniteHasMore: boolean;
   infiniteBusy: boolean;
   suppressEmptyChrome: boolean;
-  /** Resolved by DataTable (`isEmpty && !suppressEmptyChrome`). Never recomputed here (SF-7 INV-2). */
+  /** Resolved by DataTable (`isEmpty && !suppressEmptyChrome`). Never recomputed here. */
   showEmptyChrome: boolean;
-  /** Resolved by DataTable. `true` → `<thead hidden>`. Never decided here (SF-7 INV-9). */
+  /** Resolved by DataTable. `true` → `<thead hidden>`. Never decided here. */
   headerHidden: boolean;
   onLoadMore: (() => void) | undefined;
 }
@@ -808,7 +808,7 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
     ? { maxHeight: `${String(resolved.maxHeight)}px` }
     : undefined;
 
-  // SF-22 INV-35: section rows are real rows, so the grouped count covers `bodyItems`.
+  // Section rows are real rows, so the grouped count covers `bodyItems`.
   const tableAriaRowCount = resolveAriaRowCount({
     virtualizedActive: resolved.active,
     infiniteHasMore,
@@ -843,9 +843,9 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
             {caption}
           </caption>
         ) : null}
-        {/* Same mounted <thead> in every state (004 INV-35/279); the `hidden` attribute alone
+        {/* Same mounted <thead> in every state; the `hidden` attribute alone
             removes it from layout, the a11y tree and tab order. `|| undefined` keeps the
-            attribute absent on the default path (SF-7 INV-3/5/10). */}
+            attribute absent on the default path. */}
         <thead
           ref={theadRef}
           data-slot="data-table-head"

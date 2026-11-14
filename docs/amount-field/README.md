@@ -7,11 +7,12 @@
 
 `AmountField` is the kit's amount input for `react-hook-form`. It has two modes:
 
-- **Default mode** (no new props). This is the field as it has always been. It accepts
-  plain decimals and formats the text to `decimals` places on blur. The formatting goes
-  through `parseFloat` and `toFixed`, so large amounts and long fractions can change.
-  With `decimals={18}`, typing `0.1` and leaving the field shows
-  `0.100000000000000006`.
+- **Default mode** (no new props). It accepts plain decimals and formats the text to
+  `decimals` places on blur and on the arrow keys. The formatting is exact decimal
+  arithmetic, with no float: every typed digit is kept, and the fraction is padded, or
+  rounded half away from zero, to `decimals`. With `decimals={18}`, typing `0.1` and
+  leaving the field shows `0.100000000000000000`. Extra decimals are rounded, not
+  reported: `1.005` at 2 decimals becomes `1.01`.
 - **Exact-entry mode** (`formatOnBlur={false}`). Use this one for money. The text is
   never rewritten. The form value is a decimal **string** with any `,` grouping removed,
   and it never passes through a float. Too many decimals, out-of-range amounts and
@@ -21,7 +22,7 @@
 **It is for** teams building token transfer, mint, deposit or payment forms by hand with
 `react-hook-form`. **It does not** convert to base units (that is your `parseUnits` call
 at submit), parse locale separators (`,` is grouping, `.` is the decimal point), or
-change the default mode in any way.
+change how a field in default mode behaves.
 
 The one thing to remember: in exact mode, **the submitted value is a string you pass
 straight to `parseUnits(value, tokenDecimals)`**. Set `decimals` to the token's decimals
@@ -135,11 +136,17 @@ Copy-paste modules are in [examples/](./examples/README.md).
 - **Seed with strings.** `defaultValues`, `setValue` and `reset` should write ungrouped
   decimal strings. A `number` default is shown exactly as JavaScript holds it and is
   submitted unchanged, still a `number`, until the user edits it.
-- **Default mode is not exact.** It keeps its float formatting so existing forms don't
-  change. Don't use it for token amounts with many decimals.
+- **Default mode rounds extra decimals.** Its formatting keeps every digit, but a user who
+  types more fraction digits than `decimals` gets a rounded amount, with no message. Use
+  exact mode for money when that rounding is not acceptable. If you use default mode for
+  token amounts, set `decimals` to the token's decimals. The text then always has exactly
+  that many fraction digits, so `parseUnits(value, decimals)` converts it without
+  rounding anything itself.
 - **The dynamic form renderer uses default mode.** `@openzeppelin/ui-renderer`'s `amount`
-  field type converts with `Number()`. Exact mode is only available when you render
-  `AmountField` yourself.
+  field type shows the exact text, but its submit transform still converts the value with
+  `Number()`, so amounts past about 15 significant digits lose precision at submit. This
+  is tracked in [#262](https://github.com/OpenZeppelin/openzeppelin-ui/issues/262). Exact
+  mode is only available when you render `AmountField` yourself.
 
 ## Behaviour pending review
 

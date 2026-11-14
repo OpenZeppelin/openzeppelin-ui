@@ -163,8 +163,9 @@ const [saving, setSaving] = useState(false);
 />;
 ```
 
-`AmountField` ignores `readOnly` on its own (with the default `readOnlyMode="disabled"`),
-as it always has.
+With `readOnly` alone (the default `readOnlyMode="disabled"`), `AmountField` is disabled,
+like the other text fields: it can't be focused, and its value is left out of the
+`handleSubmit` data.
 
 ## Pattern 4: Moving an existing default-mode field to exact mode
 
@@ -173,14 +174,14 @@ behaviour:
 
 | What                       | Default mode                           | Exact mode                                    |
 | -------------------------- | -------------------------------------- | --------------------------------------------- |
-| Text after blur            | `parseFloat(...).toFixed(decimals)`    | unchanged                                     |
+| Text after blur            | padded or rounded to `decimals`        | unchanged                                     |
 | Keystrokes                 | anything outside `-?\d*\.?\d*` dropped | all kept; invalid text gets a message         |
 | Value type                 | `string`, or `null` after Escape       | always `string` (`''` when empty)             |
 | `min` / `max`              | `number`                               | `number` or `string`                          |
-| `step` / arrow keys        | float stepping                         | removed; arrows move the caret                |
+| `step` / arrow keys        | exact decimal stepping                 | removed; arrows move the caret                |
 | `validateAmount` argument  | `number` (`parseFloat`)                | comma-free `string`                           |
 | `validateAmount` → `false` | passes                                 | fails (`Enter a valid amount`)                |
-| Extra decimals             | rounded on blur                        | `Use at most N decimal places`, blocks submit |
+| Extra decimals             | rounded half away from zero on blur    | `Use at most N decimal places`, blocks submit |
 | Escape on a value          | writes `null`                          | writes `''`                                   |
 
 Checklist:
@@ -195,8 +196,10 @@ Checklist:
 6. Say in `helperText` which separators the field takes.
 
 If you build `AmountField` through `@openzeppelin/ui-renderer`'s dynamic forms, there is
-nothing to switch: the renderer's `amount` field type uses default mode and converts with
-`Number()`. Render `AmountField` yourself to get exact entry.
+nothing to switch: the renderer's `amount` field type uses default mode. The field shows
+the exact text, but the renderer converts the value with `Number()` on submit
+([#262](https://github.com/OpenZeppelin/openzeppelin-ui/issues/262)). Render
+`AmountField` yourself to get exact entry.
 
 ## Common mistakes
 

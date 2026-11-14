@@ -16,12 +16,12 @@ import { ErrorMessage, getAccessibilityProps, getRequiredMessage, runCustomCheck
 
 const INVALID_SELECTION_MESSAGE = 'Invalid selection';
 
-// INV-9, INV-22: one frozen empty list, so a non-array form value always maps to the same
-// reference and SF-15's selection memo is not rebuilt on every render. It never enters form
-// state: the field only writes arrays SF-15 emits, and those are always fresh.
+// One frozen empty list, so a non-array form value always maps to the same
+// reference and the selection memo is not rebuilt on every render. It never enters form
+// state: the field only writes arrays the picker emits, and those are always fresh.
 const EMPTY_IDS: readonly string[] = Object.freeze([]);
 
-/** INV-9: the only reading of the form value, shared by the display and the rules. */
+/** The only reading of the form value, shared by the display and the rules. */
 function toIds(value: unknown): readonly string[] {
   return Array.isArray(value) ? (value as string[]) : EMPTY_IDS;
 }
@@ -101,18 +101,18 @@ export function SearchableMultiSelectField<TItem, TFieldValues extends FieldValu
   const labelId = `${id}-label`;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
-  // INV-25: name the trigger, listbox and dialog after the label, only when there is one (A1).
+  // Name the trigger, listbox and dialog after the label, only when there is one (A1).
   const labelledBy = label ? labelId : undefined;
-  // SF-19 pattern: the default mode disables through RHF (value dropped from submit data);
+  // Read-only pattern: the default mode disables through RHF (value dropped from submit data);
   // readonly mode keeps the Controller enabled and blocks the list instead.
   const ro = getReadOnlyState(readOnly, readOnlyMode);
 
-  // INV-15, INV-16: mirrors SF-15's effective open state. Opening moves focus from the trigger
-  // to the search box, and that blur must not reach RHF. SF-15 reports the open before focus
+  // Mirrors the picker's effective open state. Opening moves focus from the trigger
+  // to the search box, and that blur must not reach RHF. The picker reports the open before focus
   // moves, and reports every close (forced ones after commit), so this is never stale.
   const openRef = React.useRef(false);
 
-  // INV-15 (Tests F1): a label mousedown blurs a focused trigger before the label's click
+  // A label mousedown blurs a focused trigger before the label's click
   // reopens it, so that blur would pass the gate while it is still closed. Keeping focus on the
   // trigger removes the blur; the click still activates the trigger through `htmlFor`.
   const handleLabelMouseDown = (event: React.MouseEvent<HTMLLabelElement>): void => {
@@ -138,14 +138,14 @@ export function SearchableMultiSelectField<TItem, TFieldValues extends FieldValu
         control={control}
         name={name}
         disabled={ro.controllerDisabled}
-        // INV-12: rebuilt every render, so a changed `required` or `validateSelection` applies.
+        // Rebuilt every render, so a changed `required` or `validateSelection` applies.
         rules={{
           validate: (value) => {
             const ids = toIds(value);
-            // INV-10: empty, nullish and non-array values all fail required.
+            // Empty, nullish and non-array values all fail required.
             if (ids.length === 0) return isRequired ? getRequiredMessage(validation) : true;
             if (validateSelection) {
-              // INV-11: checks the array that will be submitted; never an empty message (A3).
+              // Checks the array that will be submitted; never an empty message (A3).
               const result = validateSelection(ids);
               if (result !== true) {
                 return typeof result === 'string' && result !== ''
@@ -163,16 +163,16 @@ export function SearchableMultiSelectField<TItem, TFieldValues extends FieldValu
           return (
             <>
               <SearchableMultiSelect
-                // INV-17: the form ref focuses the trigger.
+                // The form ref focuses the trigger.
                 ref={field.ref}
                 id={id}
                 items={items}
                 getItemId={getItemId}
                 getItemLabel={getItemLabel}
                 filterItem={filterItem}
-                // INV-4, INV-9: display reads the same normalised ids the rules read.
+                // Display reads the same normalised ids the rules read.
                 selectedIds={toIds(field.value)}
-                // INV-7, INV-8: the emitted array goes to the form as is. No other write path.
+                // The emitted array goes to the form as is. No other write path.
                 onSelectionChange={field.onChange}
                 placeholder={placeholder}
                 searchPlaceholder={searchPlaceholder}
@@ -186,11 +186,11 @@ export function SearchableMultiSelectField<TItem, TFieldValues extends FieldValu
                 onOpenChange={(open) => {
                   openRef.current = open;
                 }}
-                // INV-15, INV-16: touched means focus left the control, not that the picker opened.
+                // Touched means focus left the control, not that the picker opened.
                 onBlur={() => {
                   if (!openRef.current) field.onBlur();
                 }}
-                // INV-2, INV-3, D10: field state goes on the trigger only.
+                // Field state goes on the trigger only.
                 aria-labelledby={labelledBy}
                 aria-invalid={hasError}
                 aria-required={isRequired}

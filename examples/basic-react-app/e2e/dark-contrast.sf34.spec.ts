@@ -5,7 +5,8 @@
  * - Scenario 1: in dark (html.dark set by next-themes from its persisted `theme` key; the example
  *   app has no toggle control) every non-exempt state meets 4.5:1 for text and 3:1 for essential
  *   non-text indicators (borders, dot ring, check mark, selected fill, active cue).
- * - Scenario 2: the light computed colours of the same elements equal the pinned pre-fix values.
+ * - Scenario 2: the light computed colours of the same elements equal the pinned values (SF-34 left
+ *   light unchanged; 006 SF-11 later moved the unchecked borders and muted text, see LIGHT_PINNED).
  * - Disabled card is measured and reported only (WCAG-exempt).
  *
  * Set SF34_MUTANT=1 to inject the pre-fix dark colours (the `--input` token); the dark test must
@@ -204,18 +205,21 @@ async function measureOptions(page: Page): Promise<Reading[]> {
 }
 
 const EXEMPT = /^disabled:/;
+// Light values SF-34 left unchanged. 006 SF-11 then moved the unchecked borders and the muted
+// text to the light --muted-foreground (oklch(0.53 0 0), #6c6c6c) for WCAG AA; was #e5e5e5 (borders,
+// --input) and #737373 (description). The checked and selected brand-blue values are unchanged.
 const LIGHT_PINNED: Record<string, string> = {
-  'unchecked: card border': '#e5e5e5',
-  'unchecked: radio dot ring': '#e5e5e5',
+  'unchecked: card border': '#6c6c6c',
+  'unchecked: radio dot ring': '#6c6c6c',
   'checked: card border': '#5056fa',
-  'checked: radio dot ring': '#e5e5e5',
+  'checked: radio dot ring': '#6c6c6c',
   'unchecked: title text': '#0a0a0a',
-  'unchecked: description text': '#737373',
-  'disabled: card border': '#e5e5e5',
+  'unchecked: description text': '#6c6c6c',
+  'disabled: card border': '#6c6c6c',
   'selected: checkbox border': '#5056fa',
   'selected: checkbox fill': '#5056fa',
-  'unselected: checkbox border': '#e5e5e5',
-  'active: checkbox border': '#e5e5e5',
+  'unselected: checkbox border': '#6c6c6c',
+  'active: checkbox border': '#6c6c6c',
 };
 
 async function all(page: Page, theme: 'light' | 'dark'): Promise<Reading[]> {

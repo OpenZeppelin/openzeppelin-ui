@@ -151,7 +151,7 @@ export function EnumField<TFieldValues extends FieldValues = FieldValues>({
               }
 
               // This exit also passes an empty optional value; the custom check
-              // must never see one (INV-9).
+              // must never see one.
               if (value === undefined || value === null) return true;
               return runCustomCheck(value, validation);
             },
@@ -182,6 +182,7 @@ export function EnumField<TFieldValues extends FieldValues = FieldValues>({
 
                   <Textarea
                     id={id}
+                    ref={field.ref}
                     {...accessibilityProps}
                     className={cn('min-h-[80px]', validationClasses)}
                     placeholder={`{"tag":"One"} or {"tag":"Two","values":[42]}`}
@@ -307,7 +308,7 @@ export function EnumField<TFieldValues extends FieldValues = FieldValues>({
                 onValueChange={handleVariantChange}
                 disabled={readOnly}
               >
-                <SelectTrigger id={id} {...accessibilityProps}>
+                <SelectTrigger id={id} ref={field.ref} {...accessibilityProps}>
                   <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
                 <SelectContent>

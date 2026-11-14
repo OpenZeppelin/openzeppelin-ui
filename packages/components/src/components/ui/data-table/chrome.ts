@@ -24,8 +24,8 @@ export const DATA_TABLE_ROW_CHROME =
   'border-b last:border-b-0 transition-colors hover:bg-accent/50 data-[state=selected]:bg-accent/30';
 
 /**
- * Section row and its spanning header cell (SF-22). Plain `table-row` / `table-cell`:
- * no display, position or sticky tokens (004 INV-36, SF-22 INV-7).
+ * Section row and its spanning header cell. Plain `table-row` / `table-cell`:
+ * no display, position or sticky tokens.
  */
 export const DATA_TABLE_GROUP_ROW_CHROME = 'border-b bg-muted/30';
 

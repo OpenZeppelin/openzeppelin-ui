@@ -1,7 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- test-only harness; Fast Refresh does not apply */
 /**
- * SF-17 · Shared fixtures, harnesses and DOM lookups for the NetworkSelector suites.
- * Stage artifact: sf-17-network-selector-rebuild/03-invariants.md
+ * Shared fixtures, harnesses and DOM lookups for the NetworkSelector suites.
  */
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import * as React from 'react';
@@ -35,7 +34,7 @@ export const NETS: readonly Net[] = Object.freeze([
   { id: 'mid', name: 'Midnight', type: 'devnet', eco: 'MIDNIGHT', off: true },
 ]);
 
-// Module-level accessors, so they are referentially stable across renders (INV-22).
+// Module-level accessors, so they are referentially stable across renders.
 export const label = (n: Net): string => n.name;
 export const netId = (n: Net): string => n.id;
 export const netType = (n: Net): NetworkType | undefined => n.type;
@@ -96,7 +95,7 @@ export type MultiExtra = Pick<
   'renderTrigger' | 'formatSelectedCount' | 'formatSelectionSummary' | 'clearAllLabel'
 >;
 
-/** Stateful multi-mode consumer. Every list it passes is frozen, so a mutation throws (INV-11). */
+/** Stateful multi-mode consumer. Every list it passes is frozen, so a mutation throws. */
 export function Multi({
   networks = NETS,
   initial = [],
@@ -191,7 +190,7 @@ export const q = {
   },
 };
 
-/** INV-23: what a modal layer may leave on the page. */
+/** What a modal layer may leave on the page. */
 export function pageResidue(): { bodyStyle: string; ariaHidden: number; dataAriaHidden: number } {
   return {
     bodyStyle: document.body.style.cssText,
@@ -201,7 +200,7 @@ export function pageResidue(): { bodyStyle: string; ariaHidden: number; dataAria
   };
 }
 
-/** Deterministic PRNG (mulberry32) for the seeded event-sequence test (INV-19). */
+/** Deterministic PRNG (mulberry32) for the seeded event-sequence test. */
 export function seeded(seed: number): () => number {
   let a = seed >>> 0;
   return () => {

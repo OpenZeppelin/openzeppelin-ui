@@ -4,7 +4,8 @@
  * stage CD-3), a read-only map with a failing check still submits (CD-4, INV-17), and the
  * required text on the effect's child-error path (INV-16).
  */
-import { act, render } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import React from 'react';
 import { FormProvider, useForm, type UseFormReturn } from 'react-hook-form';
@@ -12,6 +13,7 @@ import { FormProvider, useForm, type UseFormReturn } from 'react-hook-form';
 import type { FieldValidation, MapEntry } from '@openzeppelin/ui-types';
 
 import { MapField } from '../MapField';
+import { TextField } from '../TextField';
 import { fieldSpec, mountField, type Values } from './fieldValidation.sf36-kit';
 
 const MAP = fieldSpec('MapField');
@@ -225,7 +227,9 @@ describe('SF-36 INV-16 — MapField child-error path uses the required text', ()
     );
   }
 
-  it('today: the child error is held nested by RHF, and the map shows no error for it', async () => {
+  // The effect reads child errors by nested path (`errors.v[0].key`), so a child error on a
+  // required map shows the map's required text.
+  it('a child key error on a required map shows the custom required text', async () => {
     const handle: { api: UseFormReturn<Values> | null } = { api: null };
     render(
       <ChildHost
@@ -239,35 +243,245 @@ describe('SF-36 INV-16 — MapField child-error path uses the required text', ()
     await act(async () => {
       handle.api!.setValue('v', [{ key: 'b', value: '1' }]);
     });
-    const errors = handle.api!.formState.errors as Record<string, unknown>;
-    expect(handle.api!.getFieldState('v.0.key').error?.message).toBe('Bad key');
-    expect(errors['v.0.key']).toBeUndefined(); // the flat key the effect reads
-    expect(
-      (handle.api!.getFieldState('v').error as { message?: string } | undefined)?.message
-    ).toBeUndefined();
+    expect(handle.api!.getFieldState('v').error?.message).toBe('Custom req');
   });
 
-  // Pre-existing: the effect looks child errors up by flat path
-  // (`formState.errors['v.0.key']`), but RHF nests them (`errors.v[0].key`), so the child-error
-  // branch never fires and the map shows no required text for a child error. Identical before
-  // SF-36 (same lookup). Pinned so a fix to the lookup flips it.
-  it.fails(
-    'a child key error on a required map shows the custom required text (fails today: lookup never matches)',
-    async () => {
-      const handle: { api: UseFormReturn<Values> | null } = { api: null };
-      render(
-        <ChildHost
-          handle={handle}
-          validation={{ required: true, messages: { required: 'Custom req' } }}
-        />
-      );
-      await act(async () => {
-        handle.api!.setError('v.0.key', { type: 'manual', message: 'Bad key' });
-      });
-      await act(async () => {
-        handle.api!.setValue('v', [{ key: 'b', value: '1' }]);
-      });
-      expect(handle.api!.getFieldState('v').error?.message).toBe('Custom req');
-    }
-  );
+  const REQ = { required: true, messages: { required: 'Custom req' } };
+  const TWO: MapEntry[] = [
+    { key: 'a', value: '1' },
+    { key: 'b', value: '2' },
+  ];
+
+  async function mountChild(
+    validation: FieldValidation
+  ): Promise<{ api: UseFormReturn<Values>; unmount: () => void }> {
+    const handle: { api: UseFormReturn<Values> | null } = { api: null };
+    const view = render(<ChildHost handle={handle} validation={validation} />);
+    await act(async () => {
+      handle.api!.setValue('v', TWO);
+    });
+    return { api: handle.api!, unmount: view.unmount };
+  }
+
+  // SF-4 scenario 1: the second entry's key fails; the lookup finds index 1.
+  it('SF-4 INV-16 · a key error on the second entry shows the required text', async () => {
+    const m = await mountChild(REQ);
+    await act(async () => {
+      m.api.setError('v.1.key', { type: 'manual', message: 'Bad key' });
+    });
+    await act(async () => {
+      m.api.setValue('v', [...TWO]);
+    });
+    expect(m.api.getFieldState('v').error?.message).toBe('Custom req');
+    m.unmount();
+  });
+
+  it('SF-4 INV-16 · a value error shows the required text', async () => {
+    const m = await mountChild(REQ);
+    await act(async () => {
+      m.api.setError('v.0.value', { type: 'manual', message: 'Bad value' });
+    });
+    await act(async () => {
+      m.api.setValue('v', [...TWO]);
+    });
+    expect(m.api.getFieldState('v').error?.message).toBe('Custom req');
+    m.unmount();
+  });
+
+  it('SF-4 INV-16 · the required text clears once the child error is gone', async () => {
+    const m = await mountChild(REQ);
+    await act(async () => {
+      m.api.setError('v.1.key', { type: 'manual', message: 'Bad key' });
+    });
+    await act(async () => {
+      m.api.setValue('v', [...TWO]);
+    });
+    expect(m.api.getFieldState('v').error?.message).toBe('Custom req');
+    await act(async () => {
+      m.api.clearErrors('v.1.key');
+    });
+    await act(async () => {
+      m.api.setValue('v', [{ key: 'c', value: '3' }, ...TWO]);
+    });
+    expect(m.api.getFieldState('v').error).toBeUndefined();
+    m.unmount();
+  });
+
+  // SF-4 scenario 2 and the not-required boundary: no child error, or a map that is not
+  // required, raises nothing.
+  it('SF-4 INV-16 · no child errors: no parent error', async () => {
+    const m = await mountChild(REQ);
+    expect(m.api.getFieldState('v').error).toBeUndefined();
+    m.unmount();
+  });
+
+  it('SF-4 INV-16 · a child error on a map that is not required raises no parent error', async () => {
+    const m = await mountChild({});
+    await act(async () => {
+      m.api.setError('v.1.key', { type: 'manual', message: 'Bad key' });
+    });
+    await act(async () => {
+      m.api.setValue('v', [...TWO]);
+    });
+    // RHF's field state holds the nested child errors; the parent's own message is what the map shows.
+    expect(m.api.getFieldState('v').error?.message).toBeUndefined();
+    m.unmount();
+  });
+
+  /**
+   * The real submit path: key cells are validated inputs, and the host never reads
+   * `formState.errors` itself (like a form that only shows field messages).
+   */
+  function SubmitHost(): React.ReactElement {
+    const api = useForm<Values>({
+      defaultValues: { v: [{ key: '', value: '1' }] },
+      mode: 'onTouched',
+    });
+    return (
+      <FormProvider {...api}>
+        <form noValidate onSubmit={api.handleSubmit(() => undefined)}>
+          <MapField
+            id="f"
+            name="v"
+            label="Map"
+            control={api.control}
+            validation={{ required: true, messages: { required: 'Custom req' } }}
+            renderKeyField={(field) => (
+              <TextField
+                id={field.id}
+                name={field.name as `v.${number}.key`}
+                label="key"
+                control={api.control}
+                validation={{
+                  required: true,
+                  pattern: /^[a-z_]+$/,
+                  messages: { pattern: 'Bad key' },
+                  validate: (v) => (v === 'admin' ? 'Reserved' : true),
+                }}
+              />
+            )}
+            renderValueField={(field) => (
+              <TextField
+                id={field.id}
+                name={field.name as `v.${number}.value`}
+                label="value"
+                control={api.control}
+              />
+            )}
+          />
+          <button type="submit">Submit</button>
+        </form>
+      </FormProvider>
+    );
+  }
+
+  it('after a bad key then a valid key and a resubmit, the required text clears', async () => {
+    const user = userEvent.setup();
+    render(<SubmitHost />);
+    await user.type(screen.getAllByRole('textbox')[0]!, 'BAD');
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(await screen.findByText('Custom req')).toBeTruthy();
+
+    const key = screen.getAllByRole('textbox')[0]!;
+    await user.clear(key);
+    await user.type(key, 'admin');
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(await screen.findByText('Reserved')).toBeTruthy();
+    expect(screen.queryByText('Custom req')).toBeTruthy();
+
+    await user.clear(key);
+    await user.type(key, 'daily_cap');
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+    await act(async () => {});
+    expect(screen.queryByText('Custom req')).toBeNull();
+  });
+
+  it('fixing the key clears the required text without another submit', async () => {
+    const user = userEvent.setup();
+    render(<SubmitHost />);
+    const key = screen.getAllByRole('textbox')[0]!;
+    await user.type(key, 'BAD');
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(await screen.findByText('Custom req')).toBeTruthy();
+
+    await user.clear(key);
+    await user.type(key, 'daily_cap');
+    await act(async () => {});
+    expect(screen.queryByText('Bad key')).toBeNull();
+    expect(screen.queryByText('Custom req')).toBeNull();
+  });
+});
+
+/**
+ * The renderer names a map inside a struct `struct.prop`, and RHF nests that map's errors
+ * (`errors.struct.prop`). The effect must read its own error by path, or it never sees the
+ * error it set and calls `setError` on every run.
+ */
+describe('MapField with a dotted name settles', () => {
+  function DottedHost({
+    entries,
+    required,
+    renders,
+  }: {
+    entries: MapEntry[];
+    required?: boolean;
+    renders?: { count: number };
+  }): React.ReactElement {
+    const api = useForm({ defaultValues: { outer: { v: entries } } });
+    if (renders) renders.count += 1;
+    return (
+      <FormProvider {...api}>
+        <form noValidate onSubmit={api.handleSubmit(() => undefined)}>
+          <MapField
+            id="f"
+            name="outer.v"
+            label="Map"
+            control={api.control}
+            validation={required ? { required: true, messages: { required: 'Custom req' } } : {}}
+            renderKeyField={(field) => (
+              <TextField
+                id={field.id}
+                name={field.name as `outer.v.${number}.key`}
+                label="key"
+                control={api.control}
+                validation={{
+                  required: true,
+                  pattern: /^[a-z_]+$/,
+                  messages: { pattern: 'Bad key' },
+                }}
+              />
+            )}
+            renderValueField={(field) => (
+              <TextField
+                id={field.id}
+                name={field.name as `outer.v.${number}.value`}
+                label="value"
+                control={api.control}
+              />
+            )}
+          />
+          <button type="submit">Submit</button>
+        </form>
+      </FormProvider>
+    );
+  }
+
+  it('a key error on submit shows the required text and the form settles', async () => {
+    const user = userEvent.setup();
+    const renders = { count: 0 };
+    render(<DottedHost entries={[{ key: 'BAD', value: '1' }]} required renders={renders} />);
+    await user.click(screen.getByRole('button', { name: 'Submit' }));
+    expect(await screen.findByText('Bad key')).toBeTruthy();
+    expect(await screen.findByText('Custom req')).toBeTruthy();
+
+    // A map that can't see its own error sets it again on every run and never stops rendering.
+    const settled = renders.count;
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(renders.count, 'no re-renders once the errors are shown').toBe(settled);
+  });
+
+  it('an entry with an empty key shows the structural error on mount and the form settles', async () => {
+    render(<DottedHost entries={[{ key: '', value: '1' }]} />);
+    expect(await screen.findByText('All key-value pairs must be completed')).toBeTruthy();
+  });
 });

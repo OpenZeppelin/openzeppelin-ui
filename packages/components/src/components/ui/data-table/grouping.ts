@@ -10,27 +10,27 @@ import type {
 } from './types';
 
 /**
- * SF-22 grouped rows: pure grouping pipeline and the paint-item list.
- * Internal, not barrel-exported (INV-9).
+ * Grouped rows: pure grouping pipeline and the paint-item list.
+ * Internal, not barrel-exported.
  */
 
-/** Reserved React / virtual-item key prefix for keyed section rows (INV-16). */
+/** Reserved React / virtual-item key prefix for keyed section rows. */
 export const DATA_TABLE_GROUP_ITEM_KEY_PREFIX = '__data-table-group:';
 
-/** Item key of the `key: null` section. Differs from every prefixed key (INV-16). */
+/** Item key of the `key: null` section. Differs from every prefixed key. */
 export const DATA_TABLE_UNGROUPED_ITEM_KEY = '__data-table-group-none';
 
-/** Virtualizer estimate for a section row, in px. Measured afterwards except on Firefox (INV-28). */
+/** Virtualizer estimate for a section row, in px. Measured afterwards except on Firefox. */
 export const DATA_TABLE_GROUP_ROW_ESTIMATE_SIZE = 40;
 
-/** The only kit-authored string SF-22 adds; overridable via `ungroupedLabel` (INV-4). */
+/** The only kit-authored string grouping adds; overridable via `ungroupedLabel`. */
 export const DATA_TABLE_DEFAULT_UNGROUPED_LABEL = 'Other';
 
 /**
  * One painted body item. `bodyRows` stays data-only; this list exists only for
- * painting, virtual counts, item keys and ARIA indices (INV-15). The `'group'`
+ * painting, virtual counts, item keys and ARIA indices. The `'group'`
  * branch carries no `Row`, so a section can never reach `cell`, selection or
- * `getRowClassName` (INV-1, INV-21).
+ * `getRowClassName`.
  */
 export type DataTableBodyItem<Row> =
   | {
@@ -40,7 +40,7 @@ export type DataTableBodyItem<Row> =
     }
   | {
       readonly kind: 'row';
-      /** `getRowKey(row)`, unchanged (004 INV-120). */
+      /** `getRowKey(row)`, unchanged. */
       readonly itemKey: string;
       readonly row: Row;
       /** Index into `bodyRows`: what selection, `estimateSize(fn)` and `scrollToRowKey` use. */
@@ -68,13 +68,13 @@ export interface GroupedDisplay<Row> {
   readonly invalidKeySeen: boolean;
 }
 
-/** A non-string, non-nullish value from an untyped `getGroupKey` (INV-10). */
+/** A non-string, non-nullish value from an untyped `getGroupKey`. */
 export function isInvalidGroupKey(raw: unknown): boolean {
   return raw != null && typeof raw !== 'string';
 }
 
 /**
- * INV-10: a non-blank string is returned verbatim (no trim, no case folding);
+ * A non-blank string is returned verbatim (no trim, no case folding);
  * everything else is `null`. Never throws and never stringifies objects.
  */
 export function resolveGroupKey(raw: unknown): string | null {
@@ -82,7 +82,7 @@ export function resolveGroupKey(raw: unknown): string | null {
 }
 
 /**
- * INV-11 / INV-12 / INV-13 / INV-17:
+ * Grouping steps:
  * 1. Partition `rows` by resolved key, groups in first-appearance order, the `null`
  *    group last, input order kept inside each group (stable).
  * 2. With `clientSort`, apply the shipped `applyClientSort` to each group, so sort
@@ -95,7 +95,7 @@ export function groupDisplayRows<Row>(args: {
   readonly getGroupKey: (row: Row) => string | null | undefined;
   readonly columns: readonly DataTableColumn<Row>[];
   readonly sort: DataTableSortState | null;
-  /** `false` for server pagination and active infinite feeds (004 INV-97 / INV-155). */
+  /** `false` for server pagination and active infinite feeds. */
   readonly clientSort: boolean;
 }): GroupedDisplay<Row> {
   const { rows, getGroupKey, columns, sort, clientSort } = args;
@@ -137,7 +137,7 @@ export function groupDisplayRows<Row>(args: {
 
   partitions.forEach((partition, groupIndex) => {
     const start = displayRows.length;
-    // `reordered` compares the partition (pre-sort) order with the input (INV-11).
+    // `reordered` compares the partition (pre-sort) order with the input.
     partition.rows.forEach((row, offset) => {
       if (rows[start + offset] !== row) {
         reordered = true;
@@ -157,7 +157,7 @@ export function groupDisplayRows<Row>(args: {
 }
 
 /**
- * INV-2 / INV-14 / INV-16 / INV-22: interleave one section item before each group's
+ * Interleave one section item before each group's
  * run of rows inside the page window. `bodyRows` is `displayRows` sliced at
  * `pageStart` (0 when unpaged), so groups that do not overlap the window paint
  * nothing, a section never ends the list, and no group appears twice. A section
@@ -185,7 +185,7 @@ export function buildGroupedBodyItems<Row>(args: {
         group.key == null
           ? DATA_TABLE_UNGROUPED_ITEM_KEY
           : `${DATA_TABLE_GROUP_ITEM_KEY_PREFIX}${group.key}`,
-      // Fresh per render and frozen so a renderer cannot mutate kit state (INV-14).
+      // Fresh per render and frozen so a renderer cannot mutate kit state.
       info: Object.freeze({
         key: group.key,
         rows: group.rows,
@@ -220,7 +220,7 @@ export function groupedItemKeySignature<Row>(
 }
 
 /**
- * INV-23: paint index of the data item whose row key is `key`. Section items are
+ * Paint index of the data item whose row key is `key`. Section items are
  * never targets, so their reserved keys resolve to `null` (a no-op scroll).
  */
 export function findPaintIndexByRowKey<Row>(
@@ -231,7 +231,7 @@ export function findPaintIndexByRowKey<Row>(
   return index === -1 ? null : index;
 }
 
-/** INV-4 / A2: content React paints as nothing visible, which would leave an unnamed `rowheader`. */
+/** Content React paints as nothing visible, which would leave an unnamed `rowheader`. */
 export function isEmptyGroupHeaderContent(content: ReactNode): boolean {
   return (
     content == null ||
@@ -240,7 +240,7 @@ export function isEmptyGroupHeaderContent(content: ReactNode): boolean {
   );
 }
 
-/** INV-4 steps 2–3: the key, else a non-blank `ungroupedLabel`, else `'Other'` (A3). */
+/** The key, else a non-blank `ungroupedLabel`, else `'Other'`. */
 export function defaultGroupLabel(key: string | null, ungroupedLabel: string | undefined): string {
   if (key != null) {
     return key;
@@ -249,9 +249,9 @@ export function defaultGroupLabel(key: string | null, ungroupedLabel: string | u
 }
 
 /**
- * INV-4: the section header cell's content. Calls `renderGroupHeader` once; falls
+ * The section header cell's content. Calls `renderGroupHeader` once; falls
  * back to the default label when it is omitted or returns empty content.
- * `rendererReturnedEmpty` feeds the `group:empty-header` diagnostic (INV-18).
+ * `rendererReturnedEmpty` feeds the `group:empty-header` diagnostic.
  */
 export function resolveGroupHeaderContent<Row>(
   info: DataTableGroupHeaderInfo<Row>,

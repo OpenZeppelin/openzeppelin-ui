@@ -34,7 +34,8 @@ test('standalone Spinner renders and animates; LoadingButton demo still shows it
   await expect(decorative).toHaveCSS('animation-name', 'spin');
 
   await page.getByRole('button', { name: 'Click to Load' }).click();
-  const buttonSpinner = page.locator('button:disabled svg.animate-spin').first();
+  // 006 SF-5: a loading button is aria-busy, not natively disabled.
+  const buttonSpinner = page.locator('button[aria-busy="true"] svg.animate-spin').first();
   await expect(buttonSpinner).toBeVisible();
   await expect(buttonSpinner).toHaveCSS('margin-right', '8px');
   await expect(buttonSpinner).toHaveCSS('width', '16px');

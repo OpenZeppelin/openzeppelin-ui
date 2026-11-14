@@ -69,7 +69,7 @@ export function EcosystemDropdown({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-[--radix-dropdown-menu-trigger-width] min-w-[200px]"
+        className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-[200px]"
         align="start"
       >
         {options.map((option) => (

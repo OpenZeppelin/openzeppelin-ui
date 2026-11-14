@@ -155,13 +155,13 @@ export function TextAreaField<TFieldValues extends FieldValues = FieldValues>({
                 hasHelperEndSlot ? `relative z-10 ${validationClasses}` : validationClasses
               }
               value={field.value ?? ''}
-              // Kept before the accessibility props, where `disabled={readOnly}` sat, so the
-              // default mode stays byte-identical (INV-1): today the accessibility props'
-              // `disabled: false` wins here. In readonly mode both agree (INV-7).
-              {...ro.controlProps}
+              // `controlProps` go after the accessibility props so their `disabled`/`readOnly`
+              // win, as in TextField. Otherwise the accessibility props' `disabled: false`
+              // leaves a default read-only textarea editable.
               {...accessibilityProps}
+              {...ro.controlProps}
               onKeyDown={
-                // INV-12: no Escape-clear (and no preventDefault) in readonly mode.
+                // No Escape-clear (and no preventDefault) in readonly mode.
                 ro.isFocusableReadOnly
                   ? undefined
                   : handleEscapeKey((value) => {

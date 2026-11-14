@@ -1,12 +1,12 @@
 /**
- * NetworkSelector (SF-17): the network picker, built on the kit's internal
- * searchable select core (SF-15). The core owns the popover, the search
+ * NetworkSelector: the network picker, built on the kit's internal
+ * searchable select core. The core owns the popover, the search
  * combobox, the listbox, filtering and the keyboard model. This file adapts
  * the network props onto it and keeps today's copy, trigger markup, option
- * text, group headers and emitted values (INV-1).
+ * text, group headers and emitted values.
  *
- * Stateless apart from `useId` (INV-16), with no effects (INV-23), no throws
- * and no console output (INV-15).
+ * Stateless apart from `useId`, with no effects, no throws
+ * and no console output.
  */
 import { Slot } from '@radix-ui/react-slot';
 import { Check, ChevronDown } from 'lucide-react';
@@ -26,7 +26,7 @@ import {
 
 import { Button } from './button';
 
-// INV-10: the pre-rebuild network copy, character for character. Every string is overridable.
+// The pre-rebuild network copy, character for character. Every string is overridable.
 const DEFAULT_PLACEHOLDER = 'Select Network';
 const DEFAULT_SEARCH_PLACEHOLDER = 'Search network...';
 const DEFAULT_SEARCH_LABEL = 'Search networks';
@@ -37,8 +37,8 @@ const defaultFormatSelectedCount = (count: number): string =>
 const defaultFormatSelectionSummary = (count: number): string => `${count} selected`;
 
 /**
- * INV-6: the group key when grouping is on without `getEcosystem`, which keeps
- * the visible "All" header. Module-level so the adapter keeps its identity (INV-22).
+ * The group key when grouping is on without `getEcosystem`, which keeps
+ * the visible "All" header. Module-level so the adapter keeps its identity.
  */
 const UNGROUPED_KEY = 'All';
 const groupAsAll = (): string => UNGROUPED_KEY;
@@ -67,6 +67,15 @@ interface NetworkSelectorBaseProps<T> {
   /** Optional label for disabled networks (e.g. "Self-host required") */
   getNetworkDisabledLabel?: (network: T) => string | undefined;
   className?: string;
+  /**
+   * Id for the trigger, so a `<label htmlFor>` can name it. Default, also for `""`: a generated id.
+   * The popup stays labelled by the trigger under whichever id is used.
+   */
+  id?: string;
+  /** Accessible name for the trigger. Use it when there is no visible label. */
+  'aria-label'?: string;
+  /** Id of the element that names the trigger. */
+  'aria-labelledby'?: string;
   /** Trigger text when nothing is selected. Default `'Select Network'`. */
   placeholder?: string;
   /** Search box placeholder. Default `'Search network...'`. */
@@ -133,6 +142,9 @@ export function NetworkSelector<T>({
   isNetworkDisabled,
   getNetworkDisabledLabel,
   className,
+  id,
+  'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledBy,
   placeholder = DEFAULT_PLACEHOLDER,
   searchPlaceholder = DEFAULT_SEARCH_PLACEHOLDER,
   searchLabel = DEFAULT_SEARCH_LABEL,
@@ -153,22 +165,24 @@ export function NetworkSelector<T>({
   const selectedNetwork = !isMultiple ? modeProps.selectedNetwork : undefined;
   const onSelectNetwork = !isMultiple ? modeProps.onSelectNetwork : undefined;
 
-  // INV-4: one id per instance. Every trigger carries it, and the popup is labelled by it.
-  const triggerId = React.useId();
+  // One id per instance, the consumer's `id` when given. Every trigger carries it,
+  // and the popup is labelled by it.
+  const generatedId = React.useId();
+  const triggerId = id || generatedId;
   const listName = React.useMemo<ListName>(() => ({ 'aria-labelledby': triggerId }), [triggerId]);
 
-  // INV-2, INV-7: count is the raw length (stale and duplicate ids included); total is never filtered.
+  // Count is the raw length (stale and duplicate ids included); total is never filtered.
   const count = selectedNetworkIds?.length ?? 0;
   const total = networks.length;
 
-  // INV-6: no grouping → no groups; grouping without `getEcosystem` → one "All" group.
+  // No grouping → no groups; grouping without `getEcosystem` → one "All" group.
   const getItemGroup = React.useMemo(
     () => (groupByEcosystem ? (getEcosystem ?? groupAsAll) : undefined),
     [groupByEcosystem, getEcosystem]
   );
 
-  // INV-14, INV-16: identity is always `getNetworkId`, read from the props on every render.
-  // INV-22: the multi set is rebuilt only when `selectedNetworkIds` changes identity.
+  // Identity is always `getNetworkId`, read from the props on every render.
+  // The multi set is rebuilt only when `selectedNetworkIds` changes identity.
   const selectedIdSet = React.useMemo(() => new Set(selectedNetworkIds), [selectedNetworkIds]);
   // Truthiness, as before the rebuild: a falsy `selectedNetwork` means nothing is selected.
   const selectedNetworkId = selectedNetwork ? getNetworkId(selectedNetwork) : null;
@@ -180,22 +194,22 @@ export function NetworkSelector<T>({
     [isMultiple, selectedIdSet, selectedNetworkId, getNetworkId]
   );
 
-  // INV-13: the core never calls this for a disabled network (SF-15 INV-22).
+  // The core never calls this for a disabled network.
   const onActivate = React.useCallback(
     (network: T): void => {
       if (selectedNetworkIds && onSelectionChange) {
-        // INV-11: append, or remove every copy in place. Never mutates the prop. Stays open.
+        // Append, or remove every copy in place. Never mutates the prop. Stays open.
         onSelectionChange(toggleId(selectedNetworkIds, getNetworkId(network)));
       } else if (onSelectNetwork) {
-        // INV-12: the object from `networks`, by reference, on every pick (re-picks included).
-        // The core closes single mode (SF-15 INV-32).
+        // The object from `networks`, by reference, on every pick (re-picks included).
+        // The core closes single mode.
         onSelectNetwork(network);
       }
     },
     [selectedNetworkIds, onSelectionChange, onSelectNetwork, getNetworkId]
   );
 
-  // INV-5: the pre-rebuild option text nodes, in the same order. The core owns the option
+  // The pre-rebuild option text nodes, in the same order. The core owns the option
   // element, its ARIA and the multi checkbox.
   const renderItemContent = React.useCallback(
     (network: T, state: OptionState): React.ReactNode => {
@@ -215,7 +229,7 @@ export function NetworkSelector<T>({
     [isMultiple, getNetworkIcon, getNetworkLabel, getNetworkType, getNetworkDisabledLabel]
   );
 
-  // INV-7: the selection row exists only in multi mode; the core shows its text and Clear all
+  // The selection row exists only in multi mode; the core shows its text and Clear all
   // only with a selection, and keeps its height at zero.
   const selectionSummary = React.useMemo<SelectionSummary | undefined>(() => {
     if (!onSelectionChange) return undefined;
@@ -223,19 +237,21 @@ export function NetworkSelector<T>({
       count,
       text: count > 0 ? formatSelectionSummary(count, total) : '',
       clearLabel: clearAllLabel,
-      onClear: () => onSelectionChange([]), // INV-11
+      onClear: () => onSelectionChange([]),
     };
   }, [onSelectionChange, count, total, formatSelectionSummary, clearAllLabel]);
 
   const renderTrigger = React.useCallback(
     ({ open, triggerAria }: TriggerState): React.ReactElement => {
       if (renderCustomTrigger) {
-        // INV-3: the consumer's element keeps its own role and name. `role="combobox"` would
+        // The consumer's element keeps its own role and name. `role="combobox"` would
         // drop the name an icon button takes from its content, so it is not forwarded.
         // Slot merges these onto the consumer's element; the consumer's own props win (A1, A2).
         return (
           <Slot
             id={triggerId}
+            aria-label={ariaLabel}
+            aria-labelledby={ariaLabelledBy}
             aria-haspopup={triggerAria['aria-haspopup']}
             aria-expanded={triggerAria['aria-expanded']}
             aria-controls={triggerAria['aria-controls']}
@@ -245,11 +261,14 @@ export function NetworkSelector<T>({
         );
       }
 
-      // INV-2: the pre-rebuild trigger markup. `triggerAria` is spread last, so the core's
-      // combobox ARIA wins over Radix's `aria-haspopup="dialog"`. No name is added.
+      // The pre-rebuild trigger markup. `triggerAria` is spread last, so the core's
+      // combobox ARIA wins over Radix's `aria-haspopup="dialog"`. A name is added only when the
+      // consumer passes one (the trigger markup stays byte-identical without the new props).
       return (
         <Button
           id={triggerId}
+          aria-label={ariaLabel}
+          aria-labelledby={ariaLabelledBy}
           type="button"
           variant="outline"
           data-slot="network-selector-trigger"
@@ -282,6 +301,8 @@ export function NetworkSelector<T>({
     [
       renderCustomTrigger,
       triggerId,
+      ariaLabel,
+      ariaLabelledBy,
       count,
       total,
       className,
@@ -311,7 +332,7 @@ export function NetworkSelector<T>({
       selectionSummary={selectionSummary}
       searchPlaceholder={searchPlaceholder}
       searchLabel={searchLabel}
-      // INV-24 (P-1): shown and announced in every mode; no grouped-only fallback.
+      // Shown and announced in every mode; no grouped-only fallback.
       emptyText={emptyText}
       listName={listName}
       // Its own slot names, so CSS or tests aimed at SearchableMultiSelect don't hit it.

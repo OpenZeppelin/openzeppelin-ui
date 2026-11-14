@@ -171,7 +171,7 @@ export function BytesField<TFieldValues extends FieldValues = FieldValues>({
             id,
             hasError,
             isRequired,
-            // Same value as today in default mode; readonly mode keeps tabIndex 0 (INV-7).
+            // Same value as today in default mode; readonly mode keeps tabIndex 0.
             isDisabled: !!ro.controllerDisabled,
             isReadOnly: ro.isFocusableReadOnly,
             hasHelperText: !!helperText,
@@ -186,8 +186,8 @@ export function BytesField<TFieldValues extends FieldValues = FieldValues>({
                 placeholder={placeholder}
                 rows={rows}
                 className={validationClasses}
-                // Where `disabled={readOnly}` sat, so default mode stays byte-identical (INV-1).
-                // The accessibility props spread later agree with it in every mode (INV-7).
+                // Where `disabled={readOnly}` sat, so default mode stays byte-identical.
+                // The accessibility props spread later agree with it in every mode.
                 {...ro.controlProps}
                 value={field.value ?? ''}
                 onChange={(e) => {
@@ -196,7 +196,7 @@ export function BytesField<TFieldValues extends FieldValues = FieldValues>({
                 }}
                 onBlur={(e) => {
                   // Apply formatting on blur when user finishes typing.
-                  // INV-14: never in readonly mode; blur still marks touched below.
+                  // Never in readonly mode; blur still marks touched below.
                   if (!ro.isFocusableReadOnly) {
                     const formatted = formatValue(e.target.value);
                     field.onChange(formatted);
@@ -205,7 +205,7 @@ export function BytesField<TFieldValues extends FieldValues = FieldValues>({
                   field.onBlur();
                 }}
                 onKeyDown={
-                  // INV-12: no Escape-clear (and no preventDefault) in readonly mode.
+                  // No Escape-clear (and no preventDefault) in readonly mode.
                   ro.isFocusableReadOnly ? undefined : handleEscapeKey(field.onChange, field.value)
                 }
                 {...accessibilityProps}

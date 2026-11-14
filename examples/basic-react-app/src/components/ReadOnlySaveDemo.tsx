@@ -44,7 +44,7 @@ const MODES: ReadonlyArray<{ value: ReadOnlyMode; label: string }> = [
  * fields and their read-only values drop out of the payload. SelectField ignores `readOnly` in
  * that mode, as it always has, so it stays editable and its value stays in the payload.
  *
- * The `data-testid`s are stable hooks for the SF-19 running-app check.
+ * The `data-testid`s are stable hooks for browser checks against the running app.
  */
 export function ReadOnlySaveDemo(): React.ReactElement {
   const { capabilities, sampleAddresses, ecosystem } = useEcosystem();

@@ -1,28 +1,30 @@
 /**
- * Exact decimal helpers for AmountField's exact-entry mode (`formatOnBlur={false}`).
+ * AmountField's exact decimal helpers, for both modes: exact-entry validation
+ * (`formatOnBlur={false}`) and default-mode blur formatting and arrow-key stepping.
  *
  * Internal module: deliberately NOT re-exported from `utils/index.ts`, because
  * `fields/index.ts` re-exports `utils/*` and every helper here would become public
- * API (SF-10 Design D-9, INV-27).
+ * API.
  *
  * Nothing in this file converts user text to a JS number. Values stay strings, and
- * comparisons work digit by digit, so no amount passes through a float (INV-8, INV-17).
+ * comparisons work digit by digit, so no amount passes through a float.
+ * Default-mode rounding and stepping use scaled `bigint` integers, which are exact.
  */
 
 /**
  * Plain grammar: the same language as viem's `Value.from` input. Accepts `007`, `.5`,
- * `5.`, `-0`, `-.5`. No `u`/`i` flag, so `[0-9]` stays ASCII-only (INV-11).
+ * `5.`, `-0`, `-.5`. No `u`/`i` flag, so `[0-9]` stays ASCII-only.
  */
 export const PLAIN_AMOUNT_PATTERN = /^-?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)$/;
 
 /**
  * Grouped grammar, used only when grouping is allowed: at least one `,`, a first group
  * of 1–3 digits not starting with `0`, later groups of exactly 3 digits, and an
- * optional fraction without commas. Linear, so no catastrophic backtracking (INV-11, INV-25).
+ * optional fraction without commas. Linear, so no catastrophic backtracking.
  */
 export const GROUPED_AMOUNT_PATTERN = /^-?[1-9][0-9]{0,2}(?:,[0-9]{3})+(?:\.[0-9]*)?$/;
 
-/** Why a value is not a plain amount. Each kind has its own message (INV-12, INV-30). */
+/** Why a value is not a plain amount. Each kind has its own message. */
 export type AmountTextIssue =
   | 'incomplete' // '-', '.', '-.'
   | 'exponent' // a number written with e / E
@@ -44,20 +46,20 @@ export const AMOUNT_TEXT_ISSUE_MESSAGES: Readonly<Record<AmountTextIssue, string
 };
 
 export const AMOUNT_REQUIRED_MESSAGE = 'This field is required';
-/** Unknown value types and validator results other than `true` / a message (INV-15, INV-16). */
+/** Unknown value types and validator results other than `true` / a message. */
 export const AMOUNT_GENERIC_MESSAGE = 'Enter a valid amount';
-/** A `decimals`, `min` or `max` the field cannot use. Fails closed (D-7, INV-13, INV-14). */
+/** A `decimals`, `min` or `max` the field cannot use. Fails closed. */
 export const AMOUNT_MISCONFIGURED_MESSAGE = 'Amount limit is misconfigured';
 
 const INCOMPLETE_TEXTS: ReadonlySet<string> = new Set(['-', '.', '-.']);
 /**
  * A number written in exponent form (`1e18`, `-1.5E-7`, `1,000e3`): at least one digit
  * before one e / E. The lookahead keeps it linear: a single anchored scan, no nested
- * or adjacent overlapping quantifiers (INV-25).
+ * or adjacent overlapping quantifiers.
  */
 const EXPONENT_SHAPE = /^[-+]?(?=[0-9.,]*[0-9])[0-9.,]*[eE][-+]?[0-9]*$/;
 
-/** True when `text` is a valid amount: plain, or grouped when grouping is on (INV-11). */
+/** True when `text` is a valid amount: plain, or grouped when grouping is on. */
 export function isValidAmountText(text: string, allowGrouping: boolean): boolean {
   return PLAIN_AMOUNT_PATTERN.test(text) || (allowGrouping && GROUPED_AMOUNT_PATTERN.test(text));
 }
@@ -65,7 +67,7 @@ export function isValidAmountText(text: string, allowGrouping: boolean): boolean
 /**
  * Form value for a display text: `''` for `''`, the text with commas removed when it
  * is valid, and the raw text otherwise. Only commas are ever removed, and only from
- * valid text, so `isValidAmountText(t) ⇔ PLAIN_AMOUNT_PATTERN.test(result)` (INV-9, INV-10).
+ * valid text, so `isValidAmountText(t) ⇔ PLAIN_AMOUNT_PATTERN.test(result)`.
  */
 export function toAmountFormValue(text: string, allowGrouping: boolean): string {
   if (text === '') return '';
@@ -74,7 +76,7 @@ export function toAmountFormValue(text: string, allowGrouping: boolean): string 
 
 /**
  * Classifies a non-empty value that fails `PLAIN_AMOUNT_PATTERN`. Total: returns one
- * issue for any string and never throws. Precedence (INV-12 / A-6): incomplete →
+ * issue for any string and never throws. Precedence: incomplete →
  * exponent → multiple-points → grouping → invalid.
  */
 export function classifyAmountText(text: string, allowGrouping: boolean): AmountTextIssue {
@@ -154,7 +156,7 @@ function compareDigits(a: string, b: string): -1 | 0 | 1 {
 /**
  * Exact comparison of two plain decimal strings: the sign of `a - b`. Works on the
  * digits (integer length, then lexicographic order with zeros trimmed), so it never
- * goes through a float and stays linear in the input length (INV-14, INV-25).
+ * goes through a float and stays linear in the input length.
  */
 export function compareDecimalStrings(a: string, b: string): -1 | 0 | 1 {
   const x = toDecimalParts(a);
@@ -174,7 +176,7 @@ export function compareDecimalStrings(a: string, b: string): -1 | 0 | 1 {
 
 /**
  * How exact mode reads a form value. Display and validation share this one switch,
- * so a value from outside is shown and judged the same way (INV-16).
+ * so a value from outside is shown and judged the same way.
  */
 type CoercedAmount =
   | { readonly kind: 'empty' }
@@ -239,8 +241,8 @@ function boundToDecimalString(bound: unknown): string | null {
 
 /**
  * The whole exact-mode rule. Returns `true` or a non-empty message, and never throws
- * (a throwing `validateAmount` propagates, as in default mode). First failure wins
- * (INV-12): empty → value type → grammar → decimals → bounds → `validateAmount`.
+ * (a throwing `validateAmount` propagates, as in default mode). First failure wins:
+ * empty → value type → grammar → decimals → bounds → `validateAmount`.
  */
 export function validateExactAmount(
   value: unknown,
@@ -252,21 +254,21 @@ export function validateExactAmount(
     return opts.required ? (opts.requiredMessage ?? AMOUNT_REQUIRED_MESSAGE) : true;
   }
 
-  // 2. Value type (INV-16): unknown types never pass and never read as empty.
+  // 2. Value type: unknown types never pass and never read as empty.
   if (coerced.kind === 'unsupported') return AMOUNT_GENERIC_MESSAGE;
   const amount = coerced.text;
 
-  // 3. Grammar. The form value is plain whenever the on-screen text was valid (INV-10).
+  // 3. Grammar. The form value is plain whenever the on-screen text was valid.
   if (!PLAIN_AMOUNT_PATTERN.test(amount)) {
     return AMOUNT_TEXT_ISSUE_MESSAGES[classifyAmountText(amount, opts.allowGrouping)];
   }
 
-  // 4. Decimals, counted as typed; a limit, never a rounding (INV-13).
+  // 4. Decimals, counted as typed; a limit, never a rounding.
   const { decimals } = opts;
   if (!Number.isSafeInteger(decimals) || decimals < 0) return AMOUNT_MISCONFIGURED_MESSAGE;
   if (fractionDigits(amount) > decimals) return `Use at most ${decimals} decimal places`;
 
-  // 5. Bounds: inclusive, exact, and fail closed on a bound that cannot be read (INV-14).
+  // 5. Bounds: inclusive, exact, and fail closed on a bound that cannot be read.
   if (opts.min !== undefined) {
     const min = boundToDecimalString(opts.min);
     if (min === null) return AMOUNT_MISCONFIGURED_MESSAGE;
@@ -278,11 +280,148 @@ export function validateExactAmount(
     if (compareDecimalStrings(amount, max) > 0) return `Value must be at most ${max}`;
   }
 
-  // 6. Consumer validator: only `true` passes, a non-empty string is the error (INV-15).
+  // 6. Consumer validator: only `true` passes, a non-empty string is the error.
   if (opts.validateAmount) {
     const result: unknown = opts.validateAmount(amount);
     if (result === true) return true;
     return typeof result === 'string' && result !== '' ? result : AMOUNT_GENERIC_MESSAGE;
   }
   return true;
+}
+
+// ---------------------------------------------------------------------------------------
+// Default mode: exact blur formatting and arrow-key stepping.
+// ---------------------------------------------------------------------------------------
+
+/**
+ * Largest `decimals` the default formatter pads to. It was the float formatter's own
+ * limit, and it caps the padding a blur can allocate.
+ */
+const MAX_FORMAT_DECIMALS = 100;
+
+/** An integer from 0 to 100. Anything else leaves the text unformatted. */
+function isFormattableDecimals(decimals: number): boolean {
+  return Number.isInteger(decimals) && decimals >= 0 && decimals <= MAX_FORMAT_DECIMALS;
+}
+
+interface PlainSplit {
+  readonly negative: boolean;
+  /** Integer digits as typed, possibly empty (`.5`). */
+  readonly int: string;
+  /** Fraction digits as typed, possibly empty (`5.`, `5`). */
+  readonly frac: string;
+}
+
+/** Splits a string that passed `PLAIN_AMOUNT_PATTERN`. Keeps every digit as typed. */
+function splitPlain(plain: string): PlainSplit {
+  const negative = plain.startsWith('-');
+  const body = negative ? plain.slice(1) : plain;
+  const point = body.indexOf('.');
+  return {
+    negative,
+    int: point === -1 ? body : body.slice(0, point),
+    frac: point === -1 ? '' : body.slice(point + 1),
+  };
+}
+
+/**
+ * Plain text as an integer count of 10^-scale units. Precondition: `plain` passed
+ * `PLAIN_AMOUNT_PATTERN` and `fractionDigits(plain) <= scale`, so nothing is dropped.
+ */
+function toScaled(plain: string, scale: number): bigint {
+  const { negative, int, frac } = splitPlain(plain);
+  const magnitude = BigInt(`${int}${frac.padEnd(scale, '0')}` || '0');
+  return negative ? -magnitude : magnitude;
+}
+
+/**
+ * Inverse of `toScaled`: `-`? integer part, then `.` and exactly `scale` digits (no `.`
+ * when `scale` is 0). A `bigint` has no negative zero, so a zero result is unsigned.
+ */
+function fromScaled(scaled: bigint, scale: number): string {
+  const sign = scaled < 0n ? '-' : '';
+  const digits = (scaled < 0n ? -scaled : scaled).toString();
+  if (scale === 0) return `${sign}${digits}`;
+  const padded = digits.padStart(scale + 1, '0');
+  const point = padded.length - scale;
+  return `${sign}${padded.slice(0, point)}.${padded.slice(point)}`;
+}
+
+/**
+ * Default-mode blur formatter. Gives plain text exactly `decimals` fraction digits:
+ * leading integer zeros trimmed (one `0` kept), a short fraction padded with zeros, a
+ * long one rounded half away from zero, with carry into the integer part (`9.995` at 2
+ * → `10.00`). Every integer digit is kept, however many. A zero result is unsigned
+ * (`-0.001` at 2 → `0.00`).
+ *
+ * Returns `null`, meaning "leave the text alone", when `text` is not plain (`''`, `-`,
+ * `.`, `-.`, `1e-7`, `1,000`, ` 1.5`, `12abc`) or `decimals` is not an integer from 0
+ * to 100. Never throws.
+ */
+export function formatAmountText(text: string, decimals: number): string | null {
+  // Both gates run before any BigInt() call, so BigInt never sees bad input.
+  if (!isFormattableDecimals(decimals) || !PLAIN_AMOUNT_PATTERN.test(text)) return null;
+  const { negative, int, frac } = splitPlain(text);
+  let magnitude = BigInt(`${int}${frac.slice(0, decimals).padEnd(decimals, '0')}` || '0');
+  // The dropped part is at least one half exactly when its first digit is 5 or more,
+  // so that one digit decides the rounding. charAt gives '' when nothing is dropped.
+  if (frac.charAt(decimals) >= '5') magnitude += 1n;
+  return fromScaled(negative ? -magnitude : magnitude, decimals);
+}
+
+/**
+ * One default-mode arrow-key step. Every number comes straight from AmountField's
+ * props and is read as its shortest round-trip decimal, never added as a float.
+ */
+export interface AmountStepOptions {
+  /** +1 for ArrowUp, -1 for ArrowDown. */
+  readonly direction: 1 | -1;
+  /** AmountField `step`. */
+  readonly step: number;
+  /** AmountField `decimals`. Same usable range as `formatAmountText`. */
+  readonly decimals: number;
+  /** Inclusive lower bound. Ignored when `NaN` or infinite. */
+  readonly min?: number;
+  /** Inclusive upper bound, applied after `min`. Ignored when `NaN` or infinite. */
+  readonly max?: number;
+}
+
+/**
+ * Default-mode arrow-key step: `value ± step`, clamped to `min` then `max`, then
+ * formatted by `formatAmountText`. All exact, at any magnitude.
+ *
+ * The base is the value's display text. An empty or incomplete one (`''`, `-`, `.`,
+ * `-.`, and values that display as `''`) counts as `0`. Returns `null`, meaning "write
+ * nothing", when the base is any other non-plain text (`1,000`, `12abc`, `NaN`), when
+ * `step` is `NaN` or infinite, or when `decimals` is unusable. Never throws.
+ */
+export function stepAmountText(value: unknown, options: AmountStepOptions): string | null {
+  const { direction, step, decimals, min, max } = options;
+  if (!isFormattableDecimals(decimals)) return null;
+
+  // A number base goes through numberToDecimalString, a bigint through toString.
+  const displayed = toAmountDisplayText(value);
+  const base = displayed === '' || INCOMPLETE_TEXTS.has(displayed) ? '0' : displayed;
+  // Never step from a guessed prefix of text the formatter would leave alone.
+  if (!PLAIN_AMOUNT_PATTERN.test(base)) return null;
+
+  // A non-finite step writes nothing.
+  const stepText = numberToDecimalString(step);
+  if (stepText === null) return null;
+
+  // Both operands at one scale, so the add is exact integer arithmetic.
+  const scale = Math.max(fractionDigits(base), fractionDigits(stepText));
+  let next = fromScaled(
+    toScaled(base, scale) + BigInt(direction) * toScaled(stepText, scale),
+    scale
+  );
+
+  // Min first, then max, so max wins when min > max. A non-finite bound is skipped.
+  const lower = min === undefined ? null : numberToDecimalString(min);
+  if (lower !== null && compareDecimalStrings(next, lower) < 0) next = lower;
+  const upper = max === undefined ? null : numberToDecimalString(max);
+  if (upper !== null && compareDecimalStrings(next, upper) > 0) next = upper;
+
+  // Formatted after the clamp, as before.
+  return formatAmountText(next, decimals);
 }

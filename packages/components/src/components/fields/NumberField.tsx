@@ -102,10 +102,10 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
   };
 
   // Common validation for numeric values. `storedValue` is what the form holds,
-  // passed to the custom check unchanged rather than the parsed number (INV-12).
+  // passed to the custom check unchanged rather than the parsed number.
   const validateNumericValue = (value: number, storedValue: unknown): string | true => {
     // Run standard validation. Messages come from the consumer's own rules, so a
-    // bound taken from the `min`/`max` props keeps its wording (INV-13).
+    // bound taken from the `min`/`max` props keeps its wording.
     const standardValidation = validateField(
       value,
       mergedValidation,
@@ -253,7 +253,7 @@ export function NumberField<TFieldValues extends FieldValues = FieldValues>({
               e.preventDefault();
             }
 
-            // INV-12 / INV-13: in readonly mode Escape and the arrows never write and are not
+            // In readonly mode Escape and the arrows never write and are not
             // preventDefault-ed, so native caret movement and ancestor Escape handlers apply.
             if (
               ro.isFocusableReadOnly &&

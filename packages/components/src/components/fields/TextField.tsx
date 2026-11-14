@@ -132,7 +132,7 @@ export function TextField<TFieldValues extends FieldValues = FieldValues>({
 
           // Handle keyboard events
           const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-            // INV-12: no Escape-clear (and no preventDefault) in readonly mode.
+            // No Escape-clear (and no preventDefault) in readonly mode.
             if (e.key === 'Escape' && !ro.isFocusableReadOnly) {
               // Escape-clear is a user edit too — notify with the cleared value.
               handleEscapeKey((value) => {

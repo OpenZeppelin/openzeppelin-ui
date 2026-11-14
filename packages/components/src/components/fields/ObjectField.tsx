@@ -111,7 +111,7 @@ export function ObjectField<TFieldValues extends FieldValues = FieldValues>({
             return getRequiredMessage(validation);
           }
 
-          // An empty optional value passes; the custom check never sees one (INV-9).
+          // An empty optional value passes; the custom check never sees one.
           if (isEmpty) return true;
 
           // Additional object validation can be added here (e.g., based on `components` schema)

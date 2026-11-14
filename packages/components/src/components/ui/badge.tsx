@@ -40,7 +40,8 @@ const toneClasses: Record<BadgeVariant, Record<BadgeTone, string>> = {
     info: 'bg-info text-info-foreground',
     success: 'bg-success text-success-foreground',
     warning: 'bg-warning text-warning-foreground',
-    danger: 'bg-destructive text-destructive-foreground',
+    // Dark fill pinned to red-900 so white text keeps its contrast (see buttonVariants destructive).
+    danger: 'bg-destructive text-destructive-foreground dark:bg-red-900',
   },
 };
 
@@ -71,17 +72,17 @@ export const Badge = React.forwardRef<BadgeElement, BadgeProps>(function Badge(
   },
   ref
 ): React.ReactElement {
-  // INV-373/374: only the consumer-owned activation prop changes the host element.
+  // Only the consumer-owned activation prop changes the host element.
   const isInteractive = typeof onActivate === 'function';
   // Pressed is meaningful only on the button form; a span must not expose aria-pressed.
   const isPressed = isInteractive && pressed === true;
   const hasIcon = icon != null && icon !== false;
-  // INV-375/380: the graphic stays decorative; non-empty text names it separately.
+  // The graphic stays decorative; non-empty text names it separately.
   const hasIconLabel = hasIcon && typeof iconLabel === 'string' && iconLabel.length > 0;
-  // INV-382: untyped invalid values fail closed instead of unmounting a containing surface.
+  // Untyped invalid values fail closed instead of unmounting a containing surface.
   const variantClasses = toneClasses[variant] ?? toneClasses.filled;
   const toneClass = variantClasses[tone] ?? variantClasses.neutral;
-  // INV-385/394: remove Slot collisions before spreading host props.
+  // Remove Slot collisions before spreading host props.
   const {
     onClick: slotOnClick,
     type: _ignoredType,
@@ -130,7 +131,7 @@ export const Badge = React.forwardRef<BadgeElement, BadgeProps>(function Badge(
   }
 
   const handleClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
-    // INV-394: overlay bookkeeping runs before consumer activation.
+    // Overlay bookkeeping runs before consumer activation.
     slotOnClick?.(event);
     onActivate(event);
   };

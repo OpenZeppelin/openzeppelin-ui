@@ -82,11 +82,11 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
   };
 
   // Validation function for big integer strings. `storedValue` is what the form
-  // holds, passed to the custom check unchanged (INV-12).
+  // holds, passed to the custom check unchanged.
   const validateBigIntValue = (value: string, storedValue: unknown): string | true => {
     // Run standard validation with integer pattern (includes pattern validation).
     // Messages come from the consumer's own rules, so the injected integer
-    // pattern keeps its wording unless the consumer set `pattern` (INV-13).
+    // pattern keeps its wording unless the consumer set `pattern`.
     const standardValidation = validateField(
       value,
       enhancedValidation,
@@ -213,7 +213,7 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
               e.preventDefault();
             }
 
-            // Handle escape key to clear input (INV-12: not in readonly mode, no preventDefault)
+            // Handle escape key to clear input (not in readonly mode, no preventDefault)
             if (e.key === 'Escape' && !ro.isFocusableReadOnly) {
               handleEscapeKey(field.onChange, field.value)(e);
               return;

@@ -3,7 +3,9 @@ import { Controller, FieldValues } from 'react-hook-form';
 
 import {
   AMOUNT_REQUIRED_MESSAGE,
+  formatAmountText,
   isEmptyAmountValue,
+  stepAmountText,
   validateExactAmount,
 } from './utils/decimalValidation';
 import { FieldLabelRow } from './utils/FieldLabelRow';
@@ -19,7 +21,6 @@ import {
   getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
-  handleNumericKeys,
   runCustomCheck,
 } from './utils';
 
@@ -31,7 +32,8 @@ interface AmountFieldCommonProps<TFieldValues extends FieldValues = FieldValues>
     ReadOnlyModeProps,
     LabelEndProps {
   /**
-   * Default mode: decimal places the value is formatted to on blur.
+   * Default mode: decimal places the value is formatted to on blur, exactly, rounding
+   * half away from zero.
    * Exact-entry mode: the most decimal places allowed. More is a validation error,
    * never a rounding. Counted on the text as typed (`1.500` has 3).
    * @default 2
@@ -78,7 +80,7 @@ export interface AmountFieldProps<TFieldValues extends FieldValues = FieldValues
   max?: number;
 
   /**
-   * Step value for increment/decrement
+   * Step value for increment/decrement. Added exactly, as a decimal, with no float.
    */
   step?: number;
 
@@ -136,7 +138,7 @@ export interface AmountFieldExactProps<TFieldValues extends FieldValues = FieldV
   validateAmount?: (value: string) => boolean | string;
 }
 
-/** Default-mode props the exact branch never reads (INV-7). */
+/** Default-mode props the exact branch never reads. */
 const NO_DEFAULT_MODE_PROPS: Pick<AmountFieldProps, 'min' | 'max' | 'step' | 'validateAmount'> = {};
 
 /**
@@ -157,6 +159,10 @@ const NO_DEFAULT_MODE_PROPS: Pick<AmountFieldProps, 'min' | 'max' | 'step' | 'va
  * - Automatic error handling and reporting
  * - Full accessibility support with ARIA attributes
  * - Keyboard navigation with arrow keys for numeric increment/decrement
+ *
+ * Default mode formats on blur and on arrow keys without floating-point math: the
+ * typed digits are kept and padded, or rounded half away from zero, to `decimals`.
+ * Text that is not a plain decimal is left as it is.
  *
  * Exact-entry mode (`formatOnBlur={false}`), for money values: the text the user types
  * is never rewritten. With `allowGrouping`, `,` thousands groups are accepted. The form
@@ -184,10 +190,10 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
     readOnly,
     readOnlyMode,
   } = props;
-  // INV-1: exact mode only on a strict `false`; omitted, `true` and type-bypass values
+  // Exact mode only on a strict `false`; omitted, `true` and type-bypass values
   // all keep the default mode.
   const exactProps = props.formatOnBlur === false ? props : undefined;
-  // INV-7: reduced to a boolean once; only exact mode reads it.
+  // Reduced to a boolean once; only exact mode reads it.
   const allowGrouping = !!exactProps?.allowGrouping;
   const {
     min,
@@ -198,25 +204,7 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
-  // INV-10: AmountField has always ignored `readOnly` on its own, so only the explicit
-  // opt-in feeds it in; default mode passes `undefined` everywhere, exactly as today.
-  const ro = getReadOnlyState(readOnlyMode === 'readonly' ? readOnly : undefined, readOnlyMode);
-
-  // Formatter for displaying currency/token values
-  const formatCurrency = (value: string | number): string => {
-    if (value === '' || value === undefined || value === null) return '';
-
-    const numValue = typeof value === 'string' ? parseFloat(value) : value;
-    if (isNaN(numValue)) return '';
-
-    return numValue.toFixed(decimals);
-  };
-
-  // Parse string input to number
-  const parseAmount = (value: string): number => {
-    const parsed = parseFloat(value);
-    return isNaN(parsed) ? 0 : parsed;
-  };
+  const ro = getReadOnlyState(readOnly, readOnlyMode);
 
   return (
     <div
@@ -235,7 +223,7 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
         name={name}
         rules={{
           // The rules are re-registered on every render, so a runtime mode flip
-          // validates with the mode now rendered (INV-24).
+          // validates with the mode now rendered.
           validate: exactProps
             ? (value) => {
                 const result = validateExactAmount(value, {
@@ -248,8 +236,8 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
                   requiredMessage: getRequiredMessage(validation, AMOUNT_REQUIRED_MESSAGE),
                 });
                 // validateExactAmount also passes an empty optional value; the
-                // custom check must never see one (INV-9). It gets the stored
-                // exact string, never a float (INV-12).
+                // custom check must never see one. It gets the stored
+                // exact string, never a float.
                 if (result !== true || isEmptyAmountValue(value)) return result;
                 return runCustomCheck(value, validation);
               }
@@ -342,19 +330,19 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
                       }
                     }}
                     onBlur={(e) => {
-                      // Format on blur. INV-14: never in readonly mode; blur still marks touched.
-                      if (e.target.value && !ro.isFocusableReadOnly) {
-                        const parsed = parseFloat(e.target.value);
-                        if (!isNaN(parsed)) {
-                          field.onChange(formatCurrency(parsed));
-                        }
+                      // Format on blur, never in readonly mode; blur still marks touched.
+                      // An unchanged result is still written, which keeps validation timing as
+                      // it was. `null` (non-plain text, unusable decimals) writes nothing.
+                      if (!ro.isFocusableReadOnly) {
+                        const formatted = formatAmountText(e.target.value, decimals);
+                        if (formatted !== null) field.onChange(formatted);
                       }
                       if (field.onBlur) {
                         field.onBlur();
                       }
                     }}
                     onKeyDown={(e) => {
-                      // INV-12 / INV-13: in readonly mode Escape and the arrows never write and
+                      // In readonly mode Escape and the arrows never write and
                       // are not preventDefault-ed.
                       if (ro.isFocusableReadOnly) return;
 
@@ -366,17 +354,18 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
                         return;
                       }
 
-                      // Handle arrow keys for increment/decrement
+                      // Arrow keys step exactly. preventDefault runs even when nothing is
+                      // written, so the caret never jumps on an arrow press in this field.
                       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-                        handleNumericKeys(
-                          (newValue) => {
-                            field.onChange(formatCurrency(newValue));
-                          },
-                          parseAmount(field.value || ''),
+                        e.preventDefault();
+                        const next = stepAmountText(field.value, {
+                          direction: e.key === 'ArrowUp' ? 1 : -1,
                           step,
+                          decimals,
                           min,
-                          max
-                        )(e);
+                          max,
+                        });
+                        if (next !== null) field.onChange(next);
                       }
                     }}
                     {...ro.controlProps}

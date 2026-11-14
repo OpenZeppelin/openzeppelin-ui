@@ -18,7 +18,7 @@ interface AmountExactEntryValues {
  * (`formatOnBlur={false}`, `allowGrouping`), on their own small form so the submitted
  * payload shows every digit each field hands to the form.
  *
- * The `data-testid`s are stable hooks for the SF-10 browser precision check. AmountField
+ * The `data-testid`s are stable hooks for the browser precision check. AmountField
  * does not forward arbitrary attributes, so the field ids sit on wrapper elements.
  */
 export function AmountExactEntryDemo(): React.ReactElement {
@@ -48,8 +48,9 @@ export function AmountExactEntryDemo(): React.ReactElement {
         <p className="text-muted-foreground text-sm">
           With <code>formatOnBlur={'{false}'}</code> the text you type is never rewritten, and the
           form gets it as a string with grouping commas removed. Extra decimals and malformed input
-          are validation errors, never roundings. Try a value past 2^53 or with {decimals + 1}{' '}
-          decimals in both fields.
+          are validation errors, never roundings. The default field pads or rounds to {decimals}{' '}
+          decimals on blur, keeping every digit you typed. Try a value past 2^53 or with{' '}
+          {decimals + 1} decimals in both fields.
         </p>
       </div>
 

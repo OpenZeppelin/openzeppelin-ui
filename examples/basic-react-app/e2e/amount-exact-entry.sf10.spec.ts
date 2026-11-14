@@ -7,7 +7,7 @@
  * what was typed; a valid case must reach the payload as the text minus commas, and real
  * viem `parseUnits` of that payload must equal an independent BigInt reference; an invalid
  * or over-limit case must show its error and leave the submit count unchanged. The default
- * field next to it must still format on blur as today.
+ * field next to it must still format on blur (exactly, since 006 SF-1).
  *
  * Set SF10_EVIDENCE_DIR to also write a JSON readout and screenshots for the stage artifact.
  */
@@ -179,14 +179,15 @@ test('SC-003: exact-entry keeps every digit in the running app; default field un
   const submit = page.getByTestId('amount-exact-submit');
   const results: CaseResult[] = [];
 
-  // Default field still formats on blur as today (SC-002), including the known float artefact.
+  // Default field still formats on blur (SC-002). 006 SF-1 restated the 0.1 row: 005 pinned
+  // the float artefact 0.100000000000000006; the default field now writes the exact text.
   await plain.fill('1.5');
   await heading.click();
   await expect(plain).toHaveValue('1.500000000000000000');
   const defaultOneFive = await plain.inputValue();
   await plain.fill('0.1');
   await heading.click();
-  await expect(plain).toHaveValue('0.100000000000000006');
+  await expect(plain).toHaveValue('0.100000000000000000');
   const defaultReadout = { '1.5': defaultOneFive, '0.1': await plain.inputValue() };
 
   for (const typed of VALID) {

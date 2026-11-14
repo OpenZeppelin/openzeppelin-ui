@@ -5,6 +5,29 @@
     <link rel="icon" type="image/svg+xml" href="/OZ-Logo-FavIconColor.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OpenZeppelin UI - Example App</title>
+    <script>
+      // Apply the theme before first paint so a dark reload never flashes a light frame.
+      // Mirrors the ThemeProvider in src/main.tsx (storage key "theme", default "light",
+      // "system" follows the OS), so the provider finds the class already set after mount.
+      (function () {
+        var theme = 'light';
+        try {
+          theme = localStorage.getItem('theme') || 'light';
+        } catch (e) {
+          // Storage can throw (private window, blocked site data): keep the provider's default.
+        }
+        var dark = theme === 'dark';
+        if (theme === 'system') {
+          try {
+            dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          } catch (e) {}
+        }
+        var root = document.documentElement;
+        root.classList.remove('light', 'dark');
+        root.classList.add(dark ? 'dark' : 'light');
+        root.style.colorScheme = dark ? 'dark' : 'light';
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,6 +1,13 @@
 import { Plus, X } from 'lucide-react';
 import React from 'react';
-import { Controller, FieldValues, useFieldArray, useFormContext, useWatch } from 'react-hook-form';
+import {
+  Controller,
+  FieldValues,
+  get,
+  useFieldArray,
+  useFormContext,
+  useWatch,
+} from 'react-hook-form';
 
 import { isMapEntryArray, type FieldValidation, type FormFieldType } from '@openzeppelin/ui-types';
 import { getDefaultValueForType } from '@openzeppelin/ui-utils';
@@ -30,7 +37,7 @@ function formatLabeledType(baseLabel: string, typeHint?: string): string {
 /**
  * The map's whole rule: structure first, then the custom check for a map with at
  * least one complete entry. The Controller rule and the error effect both call
- * it, so a custom-check error is never cleared behind the rule's back (INV-21).
+ * it, so a custom-check error is never cleared behind the rule's back.
  * `runCheck: false` gives the structural result alone.
  */
 function validateMapValue(
@@ -48,7 +55,7 @@ function validateMapValue(
   if (structural !== true || !runCheck) return structural;
 
   // Same "complete entry" test as validateMapStructure's required rule: a map
-  // without one is empty, and the custom check never sees an empty map (INV-9).
+  // without one is empty, and the custom check never sees an empty map.
   const hasCompleteEntry =
     isMapEntryArray(value) &&
     value.some(
@@ -129,6 +136,10 @@ export interface MapFieldProps<TFieldValues extends FieldValues = FieldValues>
  * 4. BaseField provides consistent layout and hook form integration
  * 5. This component handles map-specific rendering and validation
  *
+ * Render it inside a react-hook-form `FormProvider`. Without one it still validates through its
+ * own rule, but it does not mirror its entries' key and value errors into the map's own error,
+ * because that sync needs the form context.
+ *
  * The component stores data in a chain-agnostic format as an array of {key, value} objects.
  * The adapter is responsible for converting this to the chain-specific format (e.g., SorobanMapEntry[])
  * when submitting to the blockchain.
@@ -195,14 +206,12 @@ export function MapField<TFieldValues extends FieldValues = FieldValues>({
 
     let childHasError = false;
     for (let i = 0; i < mapArray.length; i++) {
-      const keyPath = `${name}.${i}.key`;
-      const valuePath = `${name}.${i}.value`;
-      const keyError = (formContext.formState.errors as Record<string, { message?: string }>)[
-        keyPath
-      ]?.message;
-      const valueError = (formContext.formState.errors as Record<string, { message?: string }>)[
-        valuePath
-      ]?.message;
+      // RHF nests errors (`errors.map[0].key`), so read by path, not as a flat key.
+      const { errors } = formContext.formState;
+      const keyError = (get(errors, `${name}.${i}.key`) as { message?: string } | undefined)
+        ?.message;
+      const valueError = (get(errors, `${name}.${i}.value`) as { message?: string } | undefined)
+        ?.message;
       if (keyError || valueError) {
         childHasError = true;
         break;
@@ -210,7 +219,7 @@ export function MapField<TFieldValues extends FieldValues = FieldValues>({
     }
 
     // A read-only map skips its Controller rule, so the effect must not raise a
-    // custom-check error the rule would never clear (INV-17).
+    // custom-check error the rule would never clear.
     const effectValidation: FieldValidation = {
       required: mapRequired,
       messages: mapRequiredMessage !== undefined ? { required: mapRequiredMessage } : undefined,
@@ -225,9 +234,11 @@ export function MapField<TFieldValues extends FieldValues = FieldValues>({
       nextMessage = result;
     }
 
-    const currentMessage = ((formContext.formState.errors as Record<string, { message?: string }>)[
-      name as string
-    ]?.message || undefined) as string | undefined;
+    // Read the map's own error by path too: with a dotted `name` a flat read never finds the
+    // error set below, so the effect would set it again on every run.
+    const currentMessage =
+      (get(formContext.formState.errors, name) as { message?: string } | undefined)?.message ||
+      undefined;
 
     if (nextMessage && nextMessage !== currentMessage) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

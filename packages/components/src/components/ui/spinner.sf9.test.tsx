@@ -81,7 +81,9 @@ describe('LoadingButton spinner (SF-9 S2: unchanged look)', () => {
     render(<LoadingButton loading>Save</LoadingButton>);
     expect(screen.queryByRole('status')).toBeNull();
     const btn = screen.getByRole('button', { name: 'Save' });
-    expect((btn as HTMLButtonElement).disabled).toBe(true);
+    // 006 SF-5 INV-1: loading is exposed as aria-disabled, not native disabled, so focus stays.
+    expect((btn as HTMLButtonElement).disabled).toBe(false);
+    expect(btn.getAttribute('aria-disabled')).toBe('true');
   });
 
   it('renders no spinner when not loading', () => {

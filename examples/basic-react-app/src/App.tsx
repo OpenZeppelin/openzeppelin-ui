@@ -71,6 +71,7 @@ import {
   DescriptionListDemo,
   DialogDemo,
   DropdownMenuDemo,
+  EcosystemDropdownDemo,
   EmptyStateDemo,
   ENSResolutionDemo,
   ExternalLinkDemo,
@@ -148,6 +149,7 @@ type DemoKey =
   | 'progress'
   | 'timeline'
   | 'dropdown-menu'
+  | 'ecosystem-dropdown'
   // Component Gallery - Data Display
   | 'address-display'
   | 'badge'
@@ -261,6 +263,7 @@ const galleryCategories: GalleryCategory[] = [
       { key: 'progress', label: 'Progress', icon: <Loader2 className="size-4" /> },
       { key: 'timeline', label: 'Timeline', icon: <List className="size-4" /> },
       { key: 'dropdown-menu', label: 'DropdownMenu', icon: <List className="size-4" /> },
+      { key: 'ecosystem-dropdown', label: 'EcosystemDropdown', icon: <List className="size-4" /> },
     ],
   },
   {
@@ -353,6 +356,7 @@ const demoComponents: Record<
   progress: ProgressDemo,
   timeline: TimelineDemo,
   'dropdown-menu': DropdownMenuDemo,
+  'ecosystem-dropdown': EcosystemDropdownDemo,
   // Component Gallery - Data Display
   'address-display': AddressDisplayDemo,
   badge: BadgeDemo,

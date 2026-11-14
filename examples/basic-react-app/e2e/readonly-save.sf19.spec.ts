@@ -184,20 +184,44 @@ test('scenario 4: readonly save keeps focus, blocks edits, and submits every val
   await expect(page.locator('#roName')).toHaveValue('Treasury!');
   await page.keyboard.press('Backspace');
 
-  // disabled (today): focus drops to <body>, values drop out except AmountField (INV-10) and
-  // SelectField, which ignores readOnly without the opt-in (SF-20 INV-1), so `role` stays.
+  // disabled (today): focus drops to <body>, values drop out except SelectField, which ignores
+  // readOnly without the opt-in (SF-20 INV-1), so `role` stays. 006 SF-2: AmountField is locked
+  // like the other text fields, so `cap` is gone too.
   await page.getByTestId('readonly-save-mode-disabled').click();
   await startSave(page);
   expect(await page.evaluate(() => document.activeElement?.tagName)).toBe('BODY');
   const todayPayload = JSON.parse(await page.getByTestId('readonly-save-payload').innerText());
-  expect(Object.keys(todayPayload)).toStrictEqual(['cap', 'role']);
+  expect(Object.keys(todayPayload)).toStrictEqual(['role']);
   expect(todayPayload.role).toBe('operator');
+  // 006 SF-2: the amount input is locked the same way: a forced click and typing reach neither
+  // the control nor focus.
+  const cap = page.locator('#roCap');
+  await expect(cap).toBeDisabled();
+  await expect(cap).not.toHaveAttribute('readonly');
+  await cap.click({ force: true });
+  await page.keyboard.type('9');
+  await expect(cap).toHaveValue('1.50');
+  expect(await page.evaluate(() => document.activeElement?.tagName)).toBe('BODY');
+  // 006 SF-3: the notes textarea is locked like the other text fields: a forced click and
+  // typing reach neither the control nor focus.
+  const notes = page.locator('#roNotes');
+  await expect(notes).toBeDisabled();
+  await notes.click({ force: true });
+  await page.keyboard.type('x');
+  await expect(notes).toHaveValue('Multisig for protocol fees.');
+  expect(await page.evaluate(() => document.activeElement?.tagName)).toBe('BODY');
   await setTheme(page, 'light');
   await shot(demo, 'demo-disabled-saving.light.png');
   await setTheme(page, 'dark');
   await shot(demo, 'demo-disabled-saving.dark.png');
   await setTheme(page, 'light');
   await page.getByTestId('readonly-save-finish').click();
+  // 006 SF-2: after the save the amount input is editable again, with the same value.
+  await expect(cap).toBeEnabled();
+  await expect(cap).toHaveValue('1.50');
+  // 006 SF-3: after the save the notes textarea is editable again, with the same text.
+  await expect(notes).toBeEnabled();
+  await expect(notes).toHaveValue('Multisig for protocol fees.');
   await page.getByTestId('readonly-save-mode-readonly').click();
 
   evidence.scenario4 = {

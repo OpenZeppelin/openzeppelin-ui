@@ -27,13 +27,13 @@ export interface AmountFieldExactInputProps {
   readonly field: AmountFieldExactInputField;
   readonly id: string;
   readonly placeholder?: string;
-  /** Effective grouping flag, already reduced to a boolean by AmountField (INV-7). */
+  /** Effective grouping flag, already reduced to a boolean by AmountField. */
   readonly allowGrouping: boolean;
-  /** Validation and symbol padding classes, computed by AmountField (INV-3). */
+  /** Validation and symbol padding classes, computed by AmountField. */
   readonly className: string;
-  /** `getAccessibilityProps` output, computed by AmountField (INV-3, INV-29). */
+  /** `getAccessibilityProps` output, computed by AmountField. */
   readonly accessibilityProps: AccessibilityProps;
-  /** `getReadOnlyState` output, computed by AmountField (SF-19 INV-2, INV-7, INV-12). */
+  /** `getReadOnlyState` output, computed by AmountField. */
   readonly readOnlyState: ReadOnlyState;
 }
 
@@ -68,7 +68,7 @@ function stateFromValue(value: unknown): ExactInputState {
  * no formatting. Each edit writes `toAmountFormValue(text)` (commas removed from valid
  * text, raw text otherwise). A value written from outside (`reset`, `setValue`, late
  * `defaultValues`, a `name` change) is adopted during render, so no stale frame commits,
- * and adopting never writes back. No effects, timers or listeners (INV-26).
+ * and adopting never writes back. No effects, timers or listeners.
  *
  * Not exported from any barrel.
  */
@@ -83,8 +83,8 @@ export function AmountFieldExactInput({
 }: AmountFieldExactInputProps): React.ReactElement {
   const [state, setState] = useState<ExactInputState>(() => stateFromValue(field.value));
 
-  // INV-5 / INV-22: adopt an outside write in this render. Only local state changes;
-  // field.onChange is never called here (INV-18). Converges: the next render compares equal.
+  // Adopt an outside write in this render. Only local state changes;
+  // field.onChange is never called here. Converges: the next render compares equal.
   let { text } = state;
   if (!Object.is(resyncKey(field.value), resyncKey(state.seen))) {
     const adopted = stateFromValue(field.value);
@@ -92,7 +92,7 @@ export function AmountFieldExactInput({
     text = adopted.text;
   }
 
-  // INV-4 / INV-19: keep the whole edit and write exactly once. No filter, no early return.
+  // Keep the whole edit and write exactly once. No filter, no early return.
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const nextText = event.target.value;
     const nextValue = toAmountFormValue(nextText, allowGrouping);
@@ -100,14 +100,14 @@ export function AmountFieldExactInput({
     field.onChange(nextValue);
   };
 
-  // INV-20: blur only marks the field touched.
+  // Blur only marks the field touched.
   const handleBlur = (): void => {
     field.onBlur();
   };
 
-  // INV-21: Escape clears to '' (never reverts); on an empty field it blurs. Every other
+  // Escape clears to '' (never reverts); on an empty field it blurs. Every other
   // key, arrows included, keeps the browser's text-editing behaviour.
-  // SF-19 INV-12: in readonly mode Escape neither clears nor blurs, and is not preventDefault-ed.
+  // In readonly mode Escape neither clears nor blurs, and is not preventDefault-ed.
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>): void => {
     if (event.key !== 'Escape' || readOnlyState.isFocusableReadOnly) return;
     event.preventDefault();
@@ -120,7 +120,7 @@ export function AmountFieldExactInput({
     }
   };
 
-  // Same attributes, in the same order, as the default-mode input (INV-3).
+  // Same attributes, in the same order, as the default-mode input.
   return (
     <Input
       name={field.name}

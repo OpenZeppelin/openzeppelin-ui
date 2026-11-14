@@ -310,7 +310,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
       }
     }
 
-    // The custom check gets the typed text, never a resolved address (INV-12).
+    // The custom check gets the typed text, never a resolved address.
     return runCustomCheck(value, validationRef.current);
   }, []);
 
@@ -388,8 +388,8 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
     onContainerKeyDown,
   } = useAddressSuggestionField({
     inputValue,
-    // INV-15: readonly mode takes the suggestions-disabled path for this render, so an open
-    // list unmounts and Enter/Escape have nothing to apply. Derived, not latched (INV-20).
+    // Readonly mode takes the suggestions-disabled path for this render, so an open
+    // list unmounts and Enter/Escape have nothing to apply. Derived, not latched.
     suggestions: ro.isFocusableReadOnly ? false : suggestionsProp,
   });
 
@@ -453,7 +453,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-    // INV-12 / INV-21: in readonly mode Escape never clears and nothing is preventDefault-ed,
+    // In readonly mode Escape never clears and nothing is preventDefault-ed,
     // so Enter still submits the form natively.
     if (ro.isFocusableReadOnly) return;
 
@@ -653,7 +653,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
         // Identical to binding `field.value` when no resolver is mounted (INV-82).
         value={inputValue}
         {...accessibilityProps}
-        // INV-92: without a resolver the helper's describedby is used as-is; with a
+        // Without a resolver the helper's describedby is used as-is; with a
         // resolver, additively associate the dedicated resolution announcer
         // (never overwriting error/description).
         aria-describedby={
@@ -661,7 +661,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
             ? [accessibilityProps['aria-describedby'], resolutionRegionId].filter(Boolean).join(' ')
             : accessibilityProps['aria-describedby']
         }
-        // INV-15: no combobox state at all in readonly mode.
+        // No combobox state at all in readonly mode.
         aria-expanded={ro.isFocusableReadOnly ? undefined : hasSuggestions}
         aria-autocomplete={suggestionsDisabled ? undefined : 'list'}
         aria-controls={hasSuggestions ? `${id}-suggestions` : undefined}
