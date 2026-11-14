@@ -97,11 +97,24 @@ expectTypeOf<WizardNavigationProps['primaryIcon']>().toEqualTypeOf<
   ComponentProps<typeof WizardNavigation>['primaryIcon']
 >();
 
-// ---- WizardLayout handler types are unchanged -------------------------------------------------
+// ---- WizardLayout handler types (click event is a trailing argument) -------------------------------------------------
 
-expectTypeOf<WizardLayoutProps['onStepChange']>().toEqualTypeOf<(index: number) => void>();
-expectTypeOf<WizardLayoutProps['onComplete']>().toEqualTypeOf<(() => void) | undefined>();
-expectTypeOf<WizardLayoutProps['onLastStepPrimary']>().toEqualTypeOf<(() => void) | undefined>();
+expectTypeOf<WizardLayoutProps['onStepChange']>().toEqualTypeOf<
+  (index: number, event?: MouseEvent<HTMLButtonElement>) => void
+>();
+expectTypeOf<WizardLayoutProps['onComplete']>().toEqualTypeOf<
+  ((event?: MouseEvent<HTMLButtonElement>) => void) | undefined
+>();
+expectTypeOf<WizardLayoutProps['onLastStepPrimary']>().toEqualTypeOf<
+  ((event?: MouseEvent<HTMLButtonElement>) => void) | undefined
+>();
+
+// A wrapper that re-calls the props with no arguments still compiles.
+function callWithoutEvent(props: WizardLayoutProps): void {
+  props.onComplete?.();
+  props.onLastStepPrimary?.();
+  props.onStepChange(0);
+}
 expectTypeOf<WizardLayoutProps['onCancel']>().toEqualTypeOf<(() => void) | undefined>();
 expectTypeOf<WizardLayoutProps['onLastStepSecondary']>().toEqualTypeOf<(() => void) | undefined>();
 expectTypeOf<WizardLayoutProps['previousLabel']>().toEqualTypeOf<
@@ -122,6 +135,7 @@ describe('INV-9: handler widening is source-compatible (compile-time; see typech
     for (const p of [zeroArg, asyncZeroArg, legacy, withEvent, negativeDiv, negativeTwoArgs]) {
       expect(typeof p.onNext).toBe('function');
     }
+    expect(typeof callWithoutEvent).toBe('function');
   });
 
   it('no new runtime exports: the wizard barrel exports exactly the pre-SF-11 names', () => {

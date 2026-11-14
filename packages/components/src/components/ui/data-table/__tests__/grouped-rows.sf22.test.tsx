@@ -777,7 +777,7 @@ describe('INV-9: the public surface is additive (one optional prop, two type-onl
     expectTypeOf<DataTableGroupHeaderInfo<KeyRow>['rows']>().toEqualTypeOf<readonly KeyRow[]>();
     expectTypeOf<DataTableGroupHeaderInfo<KeyRow>['continued']>().toEqualTypeOf<boolean>();
     expectTypeOf<keyof DataTableGrouping<KeyRow>>().toEqualTypeOf<
-      'getGroupKey' | 'renderGroupHeader' | 'ungroupedLabel'
+      'getGroupKey' | 'renderGroupHeader' | 'ungroupedLabel' | 'groupRowClassName'
     >();
     expectTypeOf<keyof DataTableGroupHeaderInfo<KeyRow>>().toEqualTypeOf<
       'key' | 'rows' | 'continued'

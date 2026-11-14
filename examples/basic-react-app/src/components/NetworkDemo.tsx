@@ -120,6 +120,9 @@ import type { NetworkConfig } from '@openzeppelin/ui-types';
 // Compact, name-only chip
 <NetworkStatusBadge network={network} showEcosystem={false} showIcon={false} />
 
+// Small size for dense headers
+<NetworkStatusBadge network={network} size="sm" />
+
 // Network service error banner - for connection failures
 // Pass onOpenNetworkSettings to enable the "Configure Settings" button
 <NetworkServiceErrorBanner
@@ -322,6 +325,78 @@ import type { NetworkConfig } from '@openzeppelin/ui-types';
                 <NetworkStatusBadge network={iconlessNetwork} />
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Header size */}
+        <div className="space-y-2" data-testid="network-badge-size-demo">
+          <p className="text-muted-foreground text-sm">
+            Header size: <code className="text-xs">size=&quot;sm&quot;</code> tightens padding and
+            the testnet dashed border. Omit the prop (or pass{' '}
+            <code className="text-xs">size=&quot;default&quot;</code>) for today&apos;s look.
+          </p>
+          <div className="flex flex-col gap-3">
+            {networks
+              .filter((n) => !n.isTestnet)
+              .slice(0, 1)
+              .map((network) => (
+                <div
+                  key={`${network.id}-size-mainnet`}
+                  className="flex flex-wrap items-center gap-4"
+                  data-testid="size-compare-mainnet"
+                >
+                  <span className="text-muted-foreground w-24 text-xs">Mainnet:</span>
+                  <div className="flex items-center gap-3" data-testid="size-default-mainnet">
+                    <span className="text-muted-foreground text-xs">default</span>
+                    <NetworkStatusBadge network={network} />
+                  </div>
+                  <div className="flex items-center gap-3" data-testid="size-sm-mainnet">
+                    <span className="text-muted-foreground text-xs">sm</span>
+                    <NetworkStatusBadge network={network} size="sm" />
+                  </div>
+                </div>
+              ))}
+            {networks
+              .filter((n) => n.isTestnet)
+              .slice(0, 1)
+              .map((network) => (
+                <div
+                  key={`${network.id}-size-testnet`}
+                  className="flex flex-wrap items-center gap-4"
+                  data-testid="size-compare-testnet"
+                >
+                  <span className="text-muted-foreground w-24 text-xs">Testnet:</span>
+                  <div className="flex items-center gap-3" data-testid="size-default-testnet">
+                    <span className="text-muted-foreground text-xs">default</span>
+                    <NetworkStatusBadge network={network} />
+                  </div>
+                  <div className="flex items-center gap-3" data-testid="size-sm-testnet">
+                    <span className="text-muted-foreground text-xs">sm</span>
+                    <NetworkStatusBadge network={network} size="sm" />
+                  </div>
+                </div>
+              ))}
+          </div>
+          <div
+            className="flex flex-wrap items-center gap-3 rounded-md border bg-background p-3"
+            data-testid="size-sm-header-row"
+          >
+            <span className="text-sm font-medium">Compact header</span>
+            {networks.slice(0, 1).map((network) => (
+              <NetworkStatusBadge key={`${network.id}-header`} network={network} size="sm" />
+            ))}
+          </div>
+          <div
+            className="flex flex-wrap items-center gap-3 rounded-md border bg-muted p-3"
+            data-testid="size-sm-on-muted"
+          >
+            <span className="text-muted-foreground text-xs">sm on muted (AA check):</span>
+            {networks
+              .filter((n) => n.isTestnet)
+              .slice(0, 1)
+              .map((network) => (
+                <NetworkStatusBadge key={`${network.id}-muted`} network={network} size="sm" />
+              ))}
           </div>
         </div>
 

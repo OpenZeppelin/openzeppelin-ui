@@ -28,7 +28,7 @@ import { getReadOnlyState } from './utils/readOnlyState';
 
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps, ValidStateProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
@@ -42,7 +42,8 @@ import {
 export interface AddressFieldProps<TFieldValues extends FieldValues = FieldValues>
   extends BaseFieldProps<TFieldValues>,
     ReadOnlyModeProps,
-    LabelEndProps {
+    LabelEndProps,
+    ValidStateProps {
   addressing?: AddressingCapability;
 
   /**
@@ -197,6 +198,7 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   showForwardResolutionSuccessAnnouncer = true,
   announcerEndSlot,
   inputEnd,
+  showValidState,
 }: AddressFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
@@ -481,7 +483,8 @@ export function AddressField<TFieldValues extends FieldValues = FieldValues>({
   const shouldShowError = hasRealError && fieldState.isTouched;
   const validationClasses = getValidationStateClasses(
     hasRealError ? fieldState.error : undefined,
-    isPendingGate ? false : fieldState.isTouched
+    isPendingGate ? false : fieldState.isTouched,
+    showValidState
   );
 
   // Safely extract the pattern error message. The `pattern` validation rule can be either a

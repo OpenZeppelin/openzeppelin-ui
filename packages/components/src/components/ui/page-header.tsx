@@ -13,7 +13,15 @@ export interface PageHeaderProps extends Omit<React.HTMLAttributes<HTMLElement>,
    * @default 1
    */
   titleLevel?: PageHeaderTitleLevel;
-  /** Supporting text under the title. Nothing is rendered when omitted or empty. */
+  /**
+   * Content beside the title, outside the heading element, for a status pill or badge. It is
+   * not part of the heading's accessible name. Nothing is rendered when omitted or empty.
+   */
+  titleEnd?: React.ReactNode;
+  /**
+   * Supporting content under the title. Rendered in a `div`, so it may hold block content
+   * such as paragraphs or lists. Nothing is rendered when omitted or empty.
+   */
   description?: React.ReactNode;
   /**
    * Action area (buttons, menus). Sits beside the title on wide screens and wraps
@@ -26,15 +34,17 @@ const isPresent = (node: React.ReactNode): boolean =>
   node !== undefined && node !== null && node !== false && node !== '';
 
 /**
- * Header for the top of a content page: a title heading, an optional description
- * and an optional actions area. Distinct from the app bar (`Header`) and card headers.
+ * Header for the top of a content page: a title heading, an optional slot beside it, an
+ * optional description and an optional actions area. Distinct from the app bar (`Header`)
+ * and card headers.
  *
  * Renders a `<header>`. Place it inside `<main>` (or another sectioning element): a
  * `<header>` outside them is a second banner landmark next to the app bar.
  */
 export const PageHeader = React.forwardRef<HTMLElement, PageHeaderProps>(
-  ({ title, titleLevel = 1, description, actions, className, ...props }, ref) => {
+  ({ title, titleLevel = 1, titleEnd, description, actions, className, ...props }, ref) => {
     const Heading = `h${titleLevel}` as const;
+    const heading = <Heading className="text-2xl font-semibold tracking-tight">{title}</Heading>;
 
     return (
       <header
@@ -46,8 +56,17 @@ export const PageHeader = React.forwardRef<HTMLElement, PageHeaderProps>(
         {...props}
       >
         <div className="min-w-0 space-y-1">
-          <Heading className="text-2xl font-semibold tracking-tight">{title}</Heading>
-          {isPresent(description) && <p className="text-sm text-muted-foreground">{description}</p>}
+          {isPresent(titleEnd) ? (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              {heading}
+              {titleEnd}
+            </div>
+          ) : (
+            heading
+          )}
+          {isPresent(description) && (
+            <div className="text-sm text-muted-foreground">{description}</div>
+          )}
         </div>
         {isPresent(actions) && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </header>

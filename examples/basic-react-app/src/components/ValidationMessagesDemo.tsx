@@ -16,6 +16,7 @@ interface ValidationMessagesValues {
   displayName: string;
   amount: string;
   countries: string[];
+  transferAmount: string;
   defaultName: string;
   limits: Array<{ key: string; value: string }>;
 }
@@ -65,6 +66,17 @@ const AMOUNT_VALIDATION: FieldValidation = {
     typeof value === 'string' && ZERO_AMOUNT.test(value) ? 'Amount must be above zero' : true,
 };
 
+// Exact entry: `format` and `decimals` replace the malformed-text and too-many-decimals
+// texts; `min` and `max` replace the bound texts because the field sets `min` / `max`.
+const TRANSFER_AMOUNT_VALIDATION: FieldValidation = {
+  messages: {
+    format: 'Enter an amount like 1,234.56',
+    decimals: 'Use cents at most: two decimal places',
+    min: 'The minimum transfer is 10',
+    max: 'The maximum transfer is 1,000',
+  },
+};
+
 const COUNTRIES_VALIDATION: FieldValidation = {
   required: true,
   messages: { required: 'Pick at least one country' },
@@ -108,6 +120,7 @@ export function ValidationMessagesDemo(): React.ReactElement {
       displayName: '',
       amount: '',
       countries: [],
+      transferAmount: '',
       defaultName: '',
       limits: [],
     },
@@ -126,9 +139,9 @@ export function ValidationMessagesDemo(): React.ReactElement {
           Validation messages
         </h3>
         <p className="text-muted-foreground text-sm">
-          The first four fields set custom messages and a custom check in <code>validation</code>.
-          Leave them empty, break each rule, then fix them and submit. The last field sets no
-          messages and shows the default wording.
+          The first five fields set custom messages in <code>validation</code>, and most add a
+          custom check. Leave the required ones empty, break each rule, then fix them and submit.
+          The last field sets no messages and shows the default wording.
         </p>
       </div>
 
@@ -215,6 +228,23 @@ export function ValidationMessagesDemo(): React.ReactElement {
                     placeholder="Value"
                   />
                 )}
+              />
+            </div>
+
+            <div data-testid="vm-transfer-amount-field">
+              <AmountField
+                id="vmTransferAmount"
+                name="transferAmount"
+                label="Transfer amount"
+                control={form.control}
+                placeholder="10.00"
+                helperText="Optional. From 10 to 1,000, up to 2 decimals, commas allowed."
+                decimals={2}
+                min="10"
+                max="1000"
+                allowGrouping
+                formatOnBlur={false}
+                validation={TRANSFER_AMOUNT_VALIDATION}
               />
             </div>
 

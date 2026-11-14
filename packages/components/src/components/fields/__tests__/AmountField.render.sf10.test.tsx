@@ -243,6 +243,87 @@ function restateTrace(
   return { expected, baselineSteps, helperSteps };
 }
 
+/**
+ * 007 SF-2 INV-10: the symbol moved from an absolutely positioned span next to the input
+ * (with `pl-8` / `pr-8` on it) into Input's adornment slot (wrapper + slot, measured padding,
+ * `{id}-symbol` first in `aria-describedby`). For the rows with a symbol, both DOMs are
+ * projected onto the markup they share and then compared byte for byte, so every other
+ * attribute is still compared with the frozen baseline. The new markup itself is asserted
+ * positively in `AmountField.symbol.test.tsx`. Each projection throws unless it removed
+ * exactly the one symbol structure it expects, so it can't silently hide a difference.
+ */
+function projectHtml(html: string, edit: (root: HTMLElement) => void): string {
+  const root = document.createElement('div');
+  root.innerHTML = html;
+  edit(root);
+  // With a symbol, `aria-describedby` exists from the first commit, so it keeps its render
+  // position; without one, React appends it when an error or helper id first appears.
+  // Serialized attribute order is not observable to assistive tech or CSS, so both sides
+  // move this one attribute to the end of the input's list. Its value is still compared.
+  const input = root.querySelector('input');
+  const describedBy = input?.getAttribute('aria-describedby');
+  if (input && describedBy != null) {
+    input.removeAttribute('aria-describedby');
+    input.setAttribute('aria-describedby', describedBy);
+  }
+  return root.innerHTML;
+}
+
+/** Baseline side: drop the absolute symbol span and the `pl-8` / `pr-8` token. */
+function projectBaselineSymbol(html: string, symbol: string): string {
+  return projectHtml(html, (root) => {
+    const spans = Array.from(root.querySelectorAll('div.relative > span.absolute'));
+    if (spans.length !== 1 || spans[0]?.textContent !== symbol) {
+      throw new Error(`baseline projection: expected one absolute "${symbol}" span`);
+    }
+    spans[0]?.remove();
+    const input = root.querySelector('input');
+    if (!input) throw new Error('baseline projection: no input');
+    const tokens = (input.getAttribute('class') ?? '').split(/\s+/).filter(Boolean);
+    if (tokens.filter((t) => t === 'pl-8' || t === 'pr-8').length !== 1) {
+      throw new Error('baseline projection: expected exactly one pl-8 / pr-8 token');
+    }
+    input.setAttribute('class', tokens.filter((t) => t !== 'pl-8' && t !== 'pr-8').join(' '));
+  });
+}
+
+/** SF-2 side: unwrap the slot wrapper, drop slot padding and the `{id}-symbol` reference. */
+function projectSlotSymbol(html: string, symbol: string, symbolId: string): string {
+  return projectHtml(html, (root) => {
+    const wrappers = root.querySelectorAll('[data-slot="input-wrapper"]');
+    const slots = root.querySelectorAll('[data-slot$="-adornment"]');
+    const input = wrappers[0]?.querySelector(':scope > input');
+    const slot = slots[0];
+    if (wrappers.length !== 1 || slots.length !== 1 || !input || !slot) {
+      throw new Error('slot projection: expected one wrapper, one slot and the input');
+    }
+    if (slot.innerHTML !== `<span id="${symbolId}">${symbol}</span>`) {
+      throw new Error(`slot projection: unexpected slot content ${slot.innerHTML}`);
+    }
+    wrappers[0]?.replaceWith(input);
+    const style = input.getAttribute('style');
+    if (style !== null) {
+      const kept = style
+        .split(';')
+        .map((d) => d.trim())
+        .filter((d) => d && !/^padding-(left|right)\s*:/.test(d));
+      if (kept.length) input.setAttribute('style', kept.join('; '));
+      else input.removeAttribute('style');
+    }
+    const ids = (input.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean);
+    if (ids[0] !== symbolId || ids.filter((i) => i === symbolId).length !== 1) {
+      throw new Error('slot projection: the symbol id must lead aria-describedby, once');
+    }
+    if (ids.length > 1) input.setAttribute('aria-describedby', ids.slice(1).join(' '));
+    else input.removeAttribute('aria-describedby');
+  });
+}
+
+/** The trace with every step's DOM projected; value, prevented and valid untouched. */
+function projectTrace(steps: TraceStep[], project: (html: string) => string): TraceStep[] {
+  return steps.map((step) => ({ ...step, html: project(step.html) }));
+}
+
 describe('INV-2: default mode is unchanged, line for line (restated by 006 SF-1 INV-16)', () => {
   const propMatrix: Array<Omit<BaselineAmountFieldProps<FieldValues>, 'control' | 'name' | 'id'>> =
     [];
@@ -290,14 +371,31 @@ describe('INV-2: default mode is unchanged, line for line (restated by 006 SF-1 
   // loop keeps running and empties the DOM under the next test.
   it(`${propMatrix.length} prop combinations: DOM and value trace equal the baseline at every step, or the exact write where the baseline was inexact`, async () => {
     const paths = { baseline: 0, helper: 0 };
+    let projected = 0;
     for (const props of propMatrix) {
       const baseline = await trace(BASELINE, props, script);
       const { expected, baselineSteps, helperSteps } = restateTrace(baseline, script, props);
       paths.baseline += baselineSteps;
       paths.helper += helperSteps;
-      expect(await trace(CURRENT, props, script), JSON.stringify(props)).toEqual(expected);
-      expect(await trace(CURRENT_EXPLICIT_TRUE, props, script)).toEqual(expected);
+      const symbol = props.symbol ?? '';
+      if (symbol === '') {
+        expect(await trace(CURRENT, props, script), JSON.stringify(props)).toEqual(expected);
+        expect(await trace(CURRENT_EXPLICIT_TRUE, props, script)).toEqual(expected);
+      } else {
+        // 007 SF-2 INV-10: rows with a symbol compare the projected DOMs (see above).
+        projected += 1;
+        const want = projectTrace(expected, (h) => projectBaselineSymbol(h, symbol));
+        const current = (h: string): string => projectSlotSymbol(h, symbol, 'amount-symbol');
+        expect(
+          projectTrace(await trace(CURRENT, props, script), current),
+          JSON.stringify(props)
+        ).toEqual(want);
+        expect(projectTrace(await trace(CURRENT_EXPLICIT_TRUE, props, script), current)).toEqual(
+          want
+        );
+      }
     }
+    expect(projected).toBe(propMatrix.length / 2);
     // A parity run that silently compares nothing fails: both paths must be taken, and the
     // helper path only at the three float-inexact steps (blur 0.1, ArrowUp, ArrowDown at 18).
     expect(paths.helper).toBe(propMatrix.length * 3);

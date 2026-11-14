@@ -8,6 +8,8 @@
  *   P3 update without remount: a tone change keeps the other items' DOM nodes
  *   P4 active step is announced with aria-current="step"; others are not
  *   P5 element contract: ref, className merge, passthrough, descriptions, export
+ *   P6 warning tone: own marker and icon, default status text "Paused"
+ *   P7 empty statusLabel renders no status text; omitted keeps the default
  */
 import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -27,6 +29,7 @@ const STATUS: Record<TimelineTone, string> = {
   pending: 'Pending',
   active: 'In progress',
   success: 'Completed',
+  warning: 'Paused',
   failure: 'Failed',
 };
 
@@ -80,6 +83,19 @@ describe('Timeline (SF-30)', () => {
       );
       expect(icons.every((c) => c.length > 0)).toBe(true);
       expect(new Set(icons).size).toBe(4);
+    });
+
+    it('gives all five tones a distinct icon and marker', () => {
+      const tones = Object.keys(STATUS) as TimelineTone[];
+      const { container } = render(
+        <Timeline items={tones.map((tone) => ({ label: tone, tone }))} />
+      );
+      const markers = [...container.querySelectorAll('li span.rounded-full')];
+      expect(markers).toHaveLength(5);
+      expect(new Set(markers.map((m) => m.querySelector('svg')?.getAttribute('class'))).size).toBe(
+        5
+      );
+      expect(new Set(markers.map((m) => m.className)).size).toBe(5);
     });
 
     it('hides icon and connector from assistive tech, keeps status text readable', () => {
@@ -222,6 +238,108 @@ describe('Timeline (SF-30)', () => {
 
     it('is exported from the ui barrel', () => {
       expect(ui.Timeline).toBe(Timeline);
+    });
+  });
+
+  describe('P6 warning tone', () => {
+    it('exposes "Paused" as default status text and data-tone=warning', () => {
+      render(<Timeline items={[{ label: 'Deploy', tone: 'warning' }]} />);
+      const li = screen.getByRole('listitem');
+      expect(li.textContent).toBe('Deploy: Paused');
+      expect(li.getAttribute('data-tone')).toBe('warning');
+    });
+
+    it('uses a marker and icon different from every other tone', () => {
+      const others = (Object.keys(STATUS) as TimelineTone[]).filter((t) => t !== 'warning');
+      const { container } = render(
+        <Timeline
+          items={[
+            { label: 'W', tone: 'warning' },
+            ...others.map((tone) => ({ label: tone, tone })),
+          ]}
+        />
+      );
+      const markers = [...container.querySelectorAll('li span.rounded-full')];
+      const [warn, ...rest] = markers;
+      const warnIcon = warn.querySelector('svg')?.getAttribute('class');
+      expect(warnIcon).toBeTruthy();
+      rest.forEach((m) => {
+        expect(m.className).not.toBe(warn.className);
+        expect(m.querySelector('svg')?.getAttribute('class')).not.toBe(warnIcon);
+      });
+    });
+
+    it('is not the current step', () => {
+      const { container } = render(<Timeline items={[{ label: 'W', tone: 'warning' }]} />);
+      expect(container.querySelector('[aria-current]')).toBeNull();
+    });
+
+    it('statusLabel overrides the warning default', () => {
+      render(<Timeline items={[{ label: 'Deploy', tone: 'warning', statusLabel: 'Stopped' }]} />);
+      expect(screen.getByRole('listitem').textContent).toBe('Deploy: Stopped');
+    });
+
+    it('moves between warning and active without remounting the item', () => {
+      const item = (tone: TimelineTone): TimelineItem => ({ key: 'a', label: 'Deploy', tone });
+      const { rerender, container } = render(<Timeline items={[item('warning')]} />);
+      const li = container.querySelector('li');
+      rerender(<Timeline items={[item('active')]} />);
+      expect(container.querySelector('li')).toBe(li);
+      expect(li?.textContent).toBe('Deploy: In progress');
+      expect(li?.getAttribute('aria-current')).toBe('step');
+    });
+  });
+
+  describe('P7 empty statusLabel', () => {
+    it('renders no sr-only node and no ": " text for statusLabel \'\'', () => {
+      render(<Timeline items={[{ label: 'Rollback', tone: 'success', statusLabel: '' }]} />);
+      const li = screen.getByRole('listitem');
+      expect(li.querySelector('.sr-only')).toBeNull();
+      expect(li.textContent).toBe('Rollback');
+      expect(li.textContent).not.toContain(':');
+    });
+
+    it.each(Object.keys(STATUS) as TimelineTone[])("%s with '' is silent", (tone) => {
+      render(<Timeline items={[{ label: 'Step', tone, statusLabel: '' }]} />);
+      expect(screen.getByRole('listitem').textContent).toBe('Step');
+    });
+
+    it('still marks the active step with aria-current when silent', () => {
+      render(<Timeline items={[{ label: 'Step', tone: 'active', statusLabel: '' }]} />);
+      expect(screen.getByRole('listitem').getAttribute('aria-current')).toBe('step');
+    });
+
+    it('omitted statusLabel and explicit undefined keep the default text', () => {
+      render(
+        <Timeline
+          items={[
+            { label: 'A', tone: 'failure' },
+            { label: 'B', tone: 'failure', statusLabel: undefined },
+          ]}
+        />
+      );
+      const [a, b] = screen.getAllByRole('listitem');
+      expect(a.textContent).toBe('A: Failed');
+      expect(b.textContent).toBe('B: Failed');
+    });
+
+    it('a whitespace-only statusLabel still renders (only "" opts out)', () => {
+      render(<Timeline items={[{ label: 'Step', statusLabel: ' ' }]} />);
+      expect(screen.getByRole('listitem').querySelector('.sr-only')).not.toBeNull();
+    });
+
+    it('silent step and spoken step coexist in one list', () => {
+      render(
+        <Timeline
+          items={[
+            { label: 'A', tone: 'success' },
+            { label: 'B', tone: 'success', statusLabel: '' },
+          ]}
+        />
+      );
+      const [a, b] = screen.getAllByRole('listitem');
+      expect(a.textContent).toBe('A: Completed');
+      expect(b.textContent).toBe('B');
     });
   });
 });

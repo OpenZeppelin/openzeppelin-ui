@@ -61,13 +61,13 @@ export const supported = [
   is<Equals<BytesFieldProps['readOnlyMode'], ReadOnlyMode | undefined>>(),
   is<Equals<AddressFieldProps['readOnlyMode'], ReadOnlyMode | undefined>>(),
   is<Equals<DateTimeFieldProps['readOnlyMode'], ReadOnlyMode | undefined>>(),
+  is<Equals<RadioFieldProps['readOnlyMode'], ReadOnlyMode | undefined>>(),
 ];
 
 // Nowhere else: not on BaseFieldProps, not on the other fields, not on Input / Textarea.
 export const unsupported = [
   is<Equals<HasMode<BaseFieldProps>, false>>(),
   is<Equals<HasMode<BooleanFieldProps>, false>>(),
-  is<Equals<HasMode<RadioFieldProps>, false>>(),
   is<Equals<HasMode<EnumFieldProps>, false>>(),
   // SelectField / SelectGroupedField are deliberately not pinned here: SF-20 adds readOnlyMode to
   // them and owns that type contract.

@@ -14,14 +14,17 @@ import { getReadOnlyState } from './utils/readOnlyState';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { AmountFieldExactInput } from './AmountFieldExactInput';
-import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
+import { AmountFieldGroupedExactInput } from './AmountFieldGroupedExactInput';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps, ValidStateProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
+  getActiveMessages,
   getRequiredMessage,
   getValidationStateClasses,
   handleEscapeKey,
   runCustomCheck,
+  type AccessibilityProps,
 } from './utils';
 
 /**
@@ -30,7 +33,8 @@ import {
 interface AmountFieldCommonProps<TFieldValues extends FieldValues = FieldValues>
   extends BaseFieldProps<TFieldValues>,
     ReadOnlyModeProps,
-    LabelEndProps {
+    LabelEndProps,
+    ValidStateProps {
   /**
    * Default mode: decimal places the value is formatted to on blur, exactly, rounding
    * half away from zero.
@@ -41,7 +45,11 @@ interface AmountFieldCommonProps<TFieldValues extends FieldValues = FieldValues>
   decimals?: number;
 
   /**
-   * Currency/token symbol to display
+   * Currency/token symbol shown inside the input's border, in the theme's muted text
+   * colour. The text is padded clear of it, and it is announced as the first part of
+   * the input's description (`{id}-symbol`). Never part of the value. Switching between
+   * an empty and a non-empty symbol remounts the input; switching between two non-empty
+   * symbols, or between prefix and suffix, keeps focus and the typed text.
    */
   symbol?: string;
 
@@ -68,6 +76,11 @@ export interface AmountFieldProps<TFieldValues extends FieldValues = FieldValues
    * Grouping is only available in exact-entry mode (`formatOnBlur={false}`).
    */
   allowGrouping?: false;
+
+  /**
+   * Grouped display is only available in exact-entry mode (`formatOnBlur={false}`).
+   */
+  groupedDisplay?: false;
 
   /**
    * Minimum value validation
@@ -115,6 +128,34 @@ export interface AmountFieldExactProps<TFieldValues extends FieldValues = FieldV
   allowGrouping?: boolean;
 
   /**
+   * Show the value with `,` thousands groups while the field is not focused
+   * (`250,000.00`) and plain while it is (`250000.00`). Display only: the form value
+   * is always the plain text. A validly grouped string written from outside
+   * (`defaultValues`, `reset`, `setValue`) is stored plain; that write marks the form
+   * dirty, so seed plain strings to stay pristine. A read-only or disabled field stays
+   * grouped on focus and is never written, so seed a read-only amount plain: a grouped
+   * one fails validation. Needs `allowGrouping`; without it this prop does nothing.
+   * @default false
+   */
+  groupedDisplay?: boolean;
+
+  /**
+   * With `groupedDisplay`, refuse inserts that break the amount grammar or go past
+   * `decimals`. Backspace, Delete and clearing a selection always apply. Off by
+   * default; without `groupedDisplay` this prop does nothing.
+   * @default false
+   */
+  restrictInput?: boolean;
+
+  /**
+   * With `groupedDisplay`, pad the unfocused grouped display to `decimals` places
+   * (`123000` → `123,000.00`). Focused editable text stays unpadded plain. Off by
+   * default; without `groupedDisplay` this prop does nothing.
+   * @default false
+   */
+  padDecimals?: boolean;
+
+  /**
    * Inclusive lower bound. Pass a string to keep a bound beyond float precision exact.
    */
   min?: number | string;
@@ -136,6 +177,23 @@ export interface AmountFieldExactProps<TFieldValues extends FieldValues = FieldV
    * `false` passes.)
    */
   validateAmount?: (value: string) => boolean | string;
+}
+
+/**
+ * Puts `symbolId` first in `aria-describedby`, so the unit is announced right after
+ * the value and before helper and error texts. Without a symbol it returns `props`
+ * itself, so a field without one keeps exactly the attributes it had.
+ */
+function withSymbolDescription(
+  props: AccessibilityProps,
+  symbolId: string | undefined
+): AccessibilityProps {
+  if (symbolId === undefined) return props;
+  const describedBy = props['aria-describedby'];
+  return {
+    ...props,
+    'aria-describedby': describedBy ? `${symbolId} ${describedBy}` : symbolId,
+  };
 }
 
 /** Default-mode props the exact branch never reads. */
@@ -169,7 +227,9 @@ const NO_DEFAULT_MODE_PROPS: Pick<AmountFieldProps, 'min' | 'max' | 'step' | 'va
  * value is the text with grouping removed, always a `string` and never parsed to a
  * float. Too many decimals, out-of-range values and malformed text are validation
  * errors that block submit, never roundings. Arrow-key stepping is off. Convert at
- * submit with `parseUnits(value, tokenDecimals)`.
+ * submit with `parseUnits(value, tokenDecimals)`. Adding `groupedDisplay` shows the
+ * value grouped while the field is not focused; the form value stays plain.
+ * `restrictInput` and `padDecimals` are further opt-ins on that grouped input only.
  */
 export function AmountField<TFieldValues extends FieldValues = FieldValues>(
   props: AmountFieldProps<TFieldValues> | AmountFieldExactProps<TFieldValues>
@@ -195,6 +255,9 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
   const exactProps = props.formatOnBlur === false ? props : undefined;
   // Reduced to a boolean once; only exact mode reads it.
   const allowGrouping = !!exactProps?.allowGrouping;
+  // Only a strict `true` together with grouping picks the grouped input; anything
+  // else, type-bypass values included, keeps the plain exact input.
+  const groupedDisplay = allowGrouping && exactProps?.groupedDisplay === true;
   const {
     min,
     max,
@@ -204,6 +267,7 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
   const descriptionId = `${id}-description`;
+  const symbolId = `${id}-symbol`;
   const ro = getReadOnlyState(readOnly, readOnlyMode);
 
   return (
@@ -226,6 +290,17 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
           // validates with the mode now rendered.
           validate: exactProps
             ? (value) => {
+                // Exact mode's bounds are its own props, so `min` / `max` messages
+                // follow them and never `validation.min` / `validation.max`. Every
+                // key is named explicitly: an omitted one would fall back to
+                // `validation`. Read per run, so a new message or bound applies at
+                // the next validation.
+                const messages = getActiveMessages(validation, {
+                  format: true,
+                  decimals: true,
+                  min: exactProps.min !== undefined,
+                  max: exactProps.max !== undefined,
+                });
                 const result = validateExactAmount(value, {
                   required: isRequired,
                   allowGrouping,
@@ -233,7 +308,11 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
                   min: exactProps.min,
                   max: exactProps.max,
                   validateAmount: exactProps.validateAmount,
-                  requiredMessage: getRequiredMessage(validation, AMOUNT_REQUIRED_MESSAGE),
+                  requiredMessage: messages.required ?? AMOUNT_REQUIRED_MESSAGE,
+                  formatMessage: messages.format,
+                  decimalsMessage: messages.decimals,
+                  minMessage: messages.min,
+                  maxMessage: messages.max,
                 });
                 // validateExactAmount also passes an empty optional value; the
                 // custom check must never see one. It gets the stored
@@ -274,7 +353,11 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
         render={({ field, fieldState: { error, isTouched } }) => {
           const hasError = !!error?.message;
           const shouldShowError = hasError && isTouched;
-          const validationClasses = getValidationStateClasses(error, isTouched);
+          const validationClasses = getValidationStateClasses(
+            error,
+            isTouched,
+            props.showValidState
+          );
 
           // Get accessibility attributes
           const accessibilityProps = getAccessibilityProps({
@@ -288,29 +371,50 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
           // Format display value
           const displayValue = field.value !== undefined && field.value !== null ? field.value : '';
 
-          const inputClassName = `${validationClasses} ${
-            symbol && symbolPosition === 'prefix' ? 'pl-8' : ''
-          } ${symbol && symbolPosition === 'suffix' ? 'pr-8' : ''}`;
+          const inputClassName = validationClasses;
+
+          // The symbol sits in the input's adornment slot, which pads the text clear of
+          // it. The description lists the symbol id only when a slot actually renders,
+          // so a position outside the union never points at a missing node.
+          const symbolNode = symbol ? <span id={symbolId}>{symbol}</span> : undefined;
+          const startAdornment = symbolPosition === 'prefix' ? symbolNode : undefined;
+          const endAdornment = symbolPosition === 'suffix' ? symbolNode : undefined;
+          const inputAccessibilityProps = withSymbolDescription(
+            accessibilityProps,
+            startAdornment || endAdornment ? symbolId : undefined
+          );
 
           return (
             <>
               <div className="relative">
-                {symbol && symbolPosition === 'prefix' && (
-                  <span className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-500">
-                    {symbol}
-                  </span>
-                )}
-
                 {exactProps ? (
-                  <AmountFieldExactInput
-                    field={field}
-                    id={id}
-                    placeholder={placeholder}
-                    allowGrouping={allowGrouping}
-                    className={inputClassName}
-                    accessibilityProps={accessibilityProps}
-                    readOnlyState={ro}
-                  />
+                  groupedDisplay ? (
+                    <AmountFieldGroupedExactInput
+                      field={field}
+                      id={id}
+                      placeholder={placeholder}
+                      className={inputClassName}
+                      accessibilityProps={inputAccessibilityProps}
+                      readOnlyState={ro}
+                      startAdornment={startAdornment}
+                      endAdornment={endAdornment}
+                      decimals={decimals}
+                      restrictInput={exactProps.restrictInput === true}
+                      padDecimals={exactProps.padDecimals === true}
+                    />
+                  ) : (
+                    <AmountFieldExactInput
+                      field={field}
+                      id={id}
+                      placeholder={placeholder}
+                      allowGrouping={allowGrouping}
+                      className={inputClassName}
+                      accessibilityProps={inputAccessibilityProps}
+                      readOnlyState={ro}
+                      startAdornment={startAdornment}
+                      endAdornment={endAdornment}
+                    />
+                  )
                 ) : (
                   <Input
                     {...field}
@@ -321,7 +425,9 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
                     value={displayValue}
                     className={inputClassName}
                     data-slot="input"
-                    {...accessibilityProps}
+                    {...inputAccessibilityProps}
+                    startAdornment={startAdornment}
+                    endAdornment={endAdornment}
                     onChange={(e) => {
                       // Allow numeric values and decimal point
                       const value = e.target.value;
@@ -370,12 +476,6 @@ export function AmountField<TFieldValues extends FieldValues = FieldValues>(
                     }}
                     {...ro.controlProps}
                   />
-                )}
-
-                {symbol && symbolPosition === 'suffix' && (
-                  <span className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500">
-                    {symbol}
-                  </span>
                 )}
               </div>
 

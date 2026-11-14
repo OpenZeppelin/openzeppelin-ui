@@ -1,0 +1,12 @@
+{
+  "light sms closed": ["color-contrast"],
+  "light sms open": ["color-contrast"],
+  "light smsf closed": ["aria-allowed-attr", "color-contrast"],
+  "light smsf read-only": ["aria-allowed-attr", "color-contrast"],
+  "light smsf open": ["color-contrast"],
+  "dark sms closed": ["color-contrast"],
+  "dark sms open": ["color-contrast"],
+  "dark smsf closed": ["aria-allowed-attr", "color-contrast"],
+  "dark smsf read-only": ["aria-allowed-attr", "color-contrast"],
+  "dark smsf open": ["color-contrast"]
+}

@@ -199,8 +199,14 @@ describe('SF-36 INV-13 — a message applies only to a rule the consumer set', (
       const lowDefault = await verdictOf(f, '0.5', {});
       const highDefault = await verdictOf(f, '11', {});
       expect(typeof lowDefault).toBe('string');
-      expect(low).toBe(lowDefault);
-      expect(high).toBe(highDefault);
+      if (mode === 'default') {
+        expect(low).toBe(lowDefault);
+        expect(high).toBe(highDefault);
+      } else {
+        // Exact mode reads messages.min / messages.max for its own min / max props.
+        expect(low).toBe('X-min');
+        expect(high).toBe('X-max');
+      }
     });
   }
 

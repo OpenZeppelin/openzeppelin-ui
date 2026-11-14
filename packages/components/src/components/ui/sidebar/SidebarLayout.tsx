@@ -36,7 +36,7 @@ export function SidebarLayout({
   footer,
   className,
   width = 289,
-  background = 'bg-[rgba(245,245,245,0.31)]',
+  background = 'bg-sidebar',
   mobileOpen,
   onMobileOpenChange,
   mobileAriaLabel = 'Menu',
@@ -90,7 +90,7 @@ export function SidebarLayout({
           {/* Panel */}
           <div
             className={cn(
-              'absolute left-0 top-0 h-full w-[85%] max-w-[320px] bg-[rgba(245,245,245,0.98)] shadow-xl transition-transform',
+              'absolute left-0 top-0 h-full w-[85%] max-w-[320px] bg-sidebar shadow-xl transition-transform',
               mobileOpen ? 'translate-x-0' : '-translate-x-full'
             )}
             role="dialog"

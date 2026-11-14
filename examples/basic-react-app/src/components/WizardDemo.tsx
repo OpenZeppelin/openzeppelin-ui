@@ -178,6 +178,7 @@ function AsyncSaveDemo() {
   const [saving, setSaving] = useState(false);
   const [savesCompleted, setSavesCompleted] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [focusRestoredTo, setFocusRestoredTo] = useState<string | null>(null);
   // The kit holds no pending state. This ref is the demo's own in-flight guard, so the
   // primary, the stepper and Enter in the step form all share one save per cycle.
   const inFlightRef = useRef(false);
@@ -193,13 +194,16 @@ function AsyncSaveDemo() {
     fieldRef.current?.focus();
   }, [step]);
 
-  const saveAndAdvance = async (source: 'primary' | 'form') => {
+  const saveAndAdvance = async (source: 'primary' | 'form', button?: HTMLButtonElement | null) => {
     if (inFlightRef.current) return;
     inFlightRef.current = true;
     // Set synchronously, before the first await, so a second activation already sees pending.
     setSaving(true);
     try {
       await simulateSave();
+      // The button was captured from the click event before the await, where it is still set.
+      button?.focus();
+      setFocusRestoredTo(button?.textContent ?? null);
       setSavesCompleted((n) => n + 1);
       if (step === lastIndex) {
         setFinished(true);
@@ -235,25 +239,27 @@ function AsyncSaveDemo() {
           variant="horizontal"
           steps={steps}
           currentStepIndex={step}
-          onStepChange={(next) => {
+          onStepChange={(next, event) => {
             // Ignore every step change while a save is in flight, stepper clicks included.
             if (inFlightRef.current) return;
             setFinished(false);
-            if (next === step + 1) void saveAndAdvance('primary');
+            if (next === step + 1) void saveAndAdvance('primary', event?.currentTarget);
             else setStep(next);
           }}
-          onComplete={() => void saveAndAdvance('primary')}
+          onComplete={(event) => void saveAndAdvance('primary', event?.currentTarget)}
           nextLabel="Save & continue"
           lastStepLabel="Save & finish"
           previousLabel="Back"
           previousDisabled={saving}
           primaryLoading={saving}
           primaryIcon={<ArrowRight className="size-4" />}
+          primaryIconPosition="start"
         />
       </div>
       <p className="text-sm text-muted-foreground" data-testid="async-save-status">
         {saving ? 'Saving…' : finished ? 'Finished' : 'Idle'} · Saves completed:{' '}
-        <span data-testid="async-save-count">{savesCompleted}</span>
+        <span data-testid="async-save-count">{savesCompleted}</span> · Focus returned to:{' '}
+        <span data-testid="async-save-focus">{focusRestoredTo ?? 'none yet'}</span>
       </p>
     </div>
   );
@@ -330,7 +336,9 @@ function MyWizard() {
           Each step saves before advancing (simulated, about 1.5 s). During the save, Back is
           disabled and the primary shows a spinner and ignores clicks, Enter and Space, while
           keeping focus. Pressing Enter in the step field runs the same guarded save, so the counter
-          goes up once per save however often you press.
+          goes up once per save however often you press. The handler captures the clicked button
+          from the event and focuses it again when the save resolves; the icon sits before the
+          label.
         </p>
         <AsyncSaveDemo />
       </div>

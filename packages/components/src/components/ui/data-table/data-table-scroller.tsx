@@ -158,11 +158,12 @@ function renderGroupRow<Row>(args: {
   info: DataTableGroupHeaderInfo<Row>;
   colSpan: number;
   content: ReactNode;
+  className: string | undefined;
   measureRef: RowMeasureRef;
   dataIndex: number | undefined;
   ariaRowIndex: number | undefined;
 }): ReactElement {
-  const { itemKey, info, colSpan, content, measureRef, dataIndex, ariaRowIndex } = args;
+  const { itemKey, info, colSpan, content, className, measureRef, dataIndex, ariaRowIndex } = args;
   return (
     <tr
       key={itemKey}
@@ -171,7 +172,7 @@ function renderGroupRow<Row>(args: {
       data-group-key={info.key ?? undefined}
       data-index={dataIndex}
       aria-rowindex={ariaRowIndex}
-      className={DATA_TABLE_GROUP_ROW_CHROME}
+      className={cn(DATA_TABLE_GROUP_ROW_CHROME, className)}
     >
       <th
         scope="row"
@@ -193,6 +194,7 @@ function renderBodyItem<Row>(args: {
   selectedKeys: ReadonlySet<string> | undefined;
   colSpan: number;
   renderGroupHeaderContent: (info: DataTableGroupHeaderInfo<Row>) => ReactNode;
+  groupRowClassName: string | undefined;
   measureRef: RowMeasureRef;
   dataIndex: number | undefined;
   ariaRowIndex: number | undefined;
@@ -204,6 +206,7 @@ function renderBodyItem<Row>(args: {
       info: item.info,
       colSpan: args.colSpan,
       content: args.renderGroupHeaderContent(item.info),
+      className: args.groupRowClassName,
       measureRef,
       dataIndex,
       ariaRowIndex,
@@ -264,6 +267,7 @@ interface VirtualizedBodyRowsProps<Row> {
   /** Non-null → the virtualizer windows these paint items instead of `bodyRows`. */
   bodyItems: readonly DataTableBodyItem<Row>[] | null;
   renderGroupHeaderContent: ((info: DataTableGroupHeaderInfo<Row>) => ReactNode) | undefined;
+  groupRowClassName: string | undefined;
   columns: readonly DataTableColumn<Row>[];
   getRowKey: (row: Row) => string;
   getRowClassName: ((row: Row) => string | undefined) | undefined;
@@ -284,6 +288,7 @@ function VirtualizedBodyRows<Row>({
   bodyRows,
   bodyItems,
   renderGroupHeaderContent,
+  groupRowClassName,
   columns,
   getRowKey,
   getRowClassName,
@@ -456,6 +461,7 @@ function VirtualizedBodyRows<Row>({
             selectedKeys,
             colSpan: spacerColSpan,
             renderGroupHeaderContent,
+            groupRowClassName,
             measureRef: IS_FIREFOX ? undefined : virtualizer.measureElement,
             dataIndex: item.index,
             ariaRowIndex: ariaRowIndexForBodyRow(item.index),
@@ -507,6 +513,8 @@ export interface DataTableScrollerProps<Row> {
   bodyItems: readonly DataTableBodyItem<Row>[] | null;
   /** Resolves a section's header content. Set iff `bodyItems` is. */
   renderGroupHeaderContent: ((info: DataTableGroupHeaderInfo<Row>) => ReactNode) | undefined;
+  /** Consumer classes for section rows (`grouping.groupRowClassName`). */
+  groupRowClassName: string | undefined;
   getRowKey: (row: Row) => string;
   getRowClassName: ((row: Row) => string | undefined) | undefined;
   selectedKeys: ReadonlySet<string> | undefined;
@@ -548,6 +556,7 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
     bodyRows,
     bodyItems,
     renderGroupHeaderContent,
+    groupRowClassName,
     getRowKey,
     getRowClassName,
     selectedKeys,
@@ -866,6 +875,7 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
               bodyRows={bodyRows}
               bodyItems={bodyItems}
               renderGroupHeaderContent={renderGroupHeaderContent}
+              groupRowClassName={groupRowClassName}
               columns={columns}
               getRowKey={getRowKey}
               getRowClassName={getRowClassName}
@@ -897,6 +907,7 @@ export function DataTableScroller<Row>(props: DataTableScrollerProps<Row>): Reac
                       selectedKeys,
                       colSpan: emptyColSpan,
                       renderGroupHeaderContent,
+                      groupRowClassName,
                       measureRef: undefined,
                       dataIndex: undefined,
                       ariaRowIndex: infiniteHasMore

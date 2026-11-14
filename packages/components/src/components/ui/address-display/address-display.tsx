@@ -53,7 +53,7 @@ function sanitizeVerifiedNameForDisplay(name: string): string {
 /**
  * Visual style for the component container.
  *
- * - `"chip"` – rounded pill with a slate background (default).
+ * - `"chip"` – rounded pill with a muted theme background (default).
  * - `"inline"` – no background, padding, or border-radius; just the text
  *    and optional action buttons. Use when dropping into existing layouts
  *    where the parent already provides styling (e.g. wallet display bars).
@@ -456,8 +456,8 @@ export function AddressDisplay({
           type="button"
           onClick={handleCopy}
           className={cn(
-            'shrink-0 text-slate-500',
-            !copied && 'hover:text-slate-700',
+            'shrink-0 text-muted-foreground',
+            !copied && 'hover:text-foreground',
             showCopyButtonOnHover
               ? 'ml-0 w-0 overflow-hidden opacity-0 transition-all duration-150 group-hover:ml-1.5 group-hover:w-3.5 group-hover:opacity-100 focus:ml-1.5 focus:w-3.5 focus:opacity-100'
               : 'ml-1.5 transition-colors'
@@ -480,7 +480,7 @@ export function AddressDisplay({
           onClick={(e) => {
             e.stopPropagation();
           }}
-          className="ml-1.5 shrink-0 text-slate-500 transition-colors hover:text-slate-700"
+          className="ml-1.5 shrink-0 text-muted-foreground transition-colors hover:text-foreground"
           aria-label="View in explorer"
         >
           <ExternalLink className="h-3.5 w-3.5" />
@@ -494,7 +494,7 @@ export function AddressDisplay({
             e.stopPropagation();
             editHandler();
           }}
-          className="ml-0 w-0 shrink-0 overflow-hidden text-slate-500 opacity-0 transition-all duration-150 hover:text-slate-700 group-hover:ml-1.5 group-hover:w-3.5 group-hover:opacity-100 focus:ml-1.5 focus:w-3.5 focus:opacity-100"
+          className="ml-0 w-0 shrink-0 overflow-hidden text-muted-foreground opacity-0 transition-all duration-150 hover:text-foreground group-hover:ml-1.5 group-hover:w-3.5 group-hover:opacity-100 focus:ml-1.5 focus:w-3.5 focus:opacity-100"
           aria-label="Edit label"
         >
           <Pencil className="h-3.5 w-3.5" />
@@ -572,7 +572,7 @@ export function AddressDisplay({
     const labelColumn = (
       <>
         <span className="inline-flex min-w-0 max-w-full items-center gap-1">
-          <span className="truncate font-sans font-medium text-slate-900 leading-snug">
+          <span className="truncate font-sans font-medium text-foreground leading-snug">
             {effectiveLabel}
           </span>
           {fallbackNote && showCrossNetworkFallbackDisclaimer ? (
@@ -594,7 +594,7 @@ export function AddressDisplay({
             </TooltipProvider>
           ) : null}
         </span>
-        <div className="flex min-w-0 items-center font-mono text-[10px] text-slate-400 leading-snug">
+        <div className="flex min-w-0 items-center font-mono text-[10px] text-muted-foreground leading-snug">
           <span className={addressTextClassName}>{displayAddress}</span>
           {actionButtons}
         </div>
@@ -607,9 +607,9 @@ export function AddressDisplay({
           'group inline-flex max-w-full min-w-0',
           // Row when an avatar leads the block; the original flex-col otherwise.
           effectiveAvatar ? 'items-center' : 'flex-col',
-          isChip && 'rounded-md bg-slate-100 px-2 py-1',
+          isChip && 'rounded-md bg-muted px-2 py-1',
           fillAvatarChipClassName,
-          'text-xs text-slate-700',
+          'text-xs text-foreground',
           expandInteractionClassName,
           className
         )}
@@ -634,9 +634,9 @@ export function AddressDisplay({
     <div
       className={cn(
         'group inline-flex max-w-full min-w-0 items-center',
-        isChip && 'rounded-md bg-slate-100 px-2 py-1',
+        isChip && 'rounded-md bg-muted px-2 py-1',
         fillAvatarChipClassName,
-        'text-xs font-mono text-slate-700',
+        'text-xs font-mono text-foreground',
         expandInteractionClassName,
         className
       )}

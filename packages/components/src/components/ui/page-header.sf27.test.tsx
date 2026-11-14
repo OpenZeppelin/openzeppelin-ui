@@ -8,9 +8,11 @@
  *   P3 empty description / actions render no container
  *   P4 responsive layout: stacked by default, side by side from `sm`
  *   P5 element contract: <header>, ref, className merge, attribute passthrough
+ *   P6 block description: the description container is a div, so block content is valid
+ *   P7 titleEnd slot: beside the heading, outside it, empty renders no row
  */
 import { render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import React from 'react';
 
 import * as ui from './index';
@@ -89,8 +91,9 @@ describe('PageHeader (SF-27)', () => {
       const { container } = render(<PageHeader title="Only title" />);
       const header = container.querySelector('header') as HTMLElement;
       expect(header.children).toHaveLength(1); // text wrapper only, no actions container
-      expect(header.querySelector('p')).toBeNull();
-      expect(header.querySelectorAll('h1')).toHaveLength(1);
+      const text = header.children[0] as HTMLElement;
+      expect(text.children).toHaveLength(1); // heading only, no description container
+      expect(text.children[0].tagName).toBe('H1');
     });
 
     it.each([
@@ -102,7 +105,7 @@ describe('PageHeader (SF-27)', () => {
       const { container } = render(<PageHeader title="T" description={empty} actions={empty} />);
       const header = container.querySelector('header') as HTMLElement;
       expect(header.children).toHaveLength(1);
-      expect(header.querySelector('p')).toBeNull();
+      expect((header.children[0] as HTMLElement).children).toHaveLength(1); // heading only
     });
   });
 
@@ -156,6 +159,112 @@ describe('PageHeader (SF-27)', () => {
 
     it('is exported from the ui barrel', () => {
       expect(ui.PageHeader).toBe(PageHeader);
+    });
+  });
+
+  describe('P6 block description', () => {
+    it('renders the description in a div, never a p', () => {
+      const { container } = render(<PageHeader title="T" description="Plain text" />);
+      expect(screen.getByText('Plain text').tagName).toBe('DIV');
+      expect(container.querySelector('header p')).toBeNull();
+    });
+
+    it('keeps block content valid: paragraphs sit inside a div, not inside a p', () => {
+      const err = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const { container } = render(
+        <PageHeader
+          title="T"
+          description={
+            <div>
+              <p>First paragraph</p>
+              <p>Second paragraph</p>
+            </div>
+          }
+        />
+      );
+      const paragraphs = [...container.querySelectorAll('header p')];
+      expect(paragraphs).toHaveLength(2);
+      paragraphs.forEach((p) => expect(p.parentElement?.closest('p')).toBeNull());
+      // React warns validateDOMNesting when a block element lands inside a p.
+      expect(err).not.toHaveBeenCalled();
+      err.mockRestore();
+    });
+
+    it('renders a list as the description', () => {
+      render(
+        <PageHeader
+          title="T"
+          description={
+            <ul>
+              <li>One</li>
+            </ul>
+          }
+        />
+      );
+      expect(screen.getByRole('list')).toBeTruthy();
+    });
+  });
+
+  describe('P7 titleEnd slot', () => {
+    it('renders titleEnd beside the heading, in the same row', () => {
+      render(<PageHeader title="Vault" titleEnd={<span data-testid="pill">Live</span>} />);
+      const heading = screen.getByRole('heading', { name: 'Vault' });
+      const pill = screen.getByTestId('pill');
+      expect(heading.parentElement).toBe(pill.parentElement);
+      expect(heading.parentElement?.classList.contains('flex')).toBe(true);
+    });
+
+    it('keeps titleEnd outside the heading element', () => {
+      render(<PageHeader title="Vault" titleEnd={<span data-testid="pill">Live</span>} />);
+      const heading = screen.getByRole('heading');
+      expect(heading.contains(screen.getByTestId('pill'))).toBe(false);
+    });
+
+    it('keeps the heading accessible name to the title alone', () => {
+      render(<PageHeader title="Vault" titleEnd={<span>Live</span>} />);
+      expect(screen.getByRole('heading', { level: 1, name: 'Vault' })).toBeTruthy();
+      expect(screen.getByRole('heading').textContent).toBe('Vault');
+    });
+
+    it('works with a custom titleLevel', () => {
+      render(<PageHeader title="Vault" titleLevel={3} titleEnd={<span>Live</span>} />);
+      expect(screen.getByRole('heading', { level: 3, name: 'Vault' })).toBeTruthy();
+    });
+
+    it('keeps the heading and description in the text column with titleEnd and actions', () => {
+      const { container } = render(
+        <PageHeader
+          title="Vault"
+          titleEnd={<span>Live</span>}
+          description="Desc"
+          actions={<button type="button">Go</button>}
+        />
+      );
+      const header = container.querySelector('header') as HTMLElement;
+      expect(header.children).toHaveLength(2);
+      const text = header.children[0] as HTMLElement;
+      expect(within(text).getByText('Live')).toBeTruthy();
+      expect(within(text).getByText('Desc')).toBeTruthy();
+    });
+
+    it.each([
+      ['undefined', undefined],
+      ['null', null],
+      ['false', false],
+      ['empty string', ''],
+    ])(
+      'titleEnd=%s renders no title row: heading is a direct child of the text column',
+      (_l, v) => {
+        const { container } = render(<PageHeader title="Vault" titleEnd={v} />);
+        const text = (container.querySelector('header') as HTMLElement).children[0] as HTMLElement;
+        expect(text.children).toHaveLength(1);
+        expect(text.children[0].tagName).toBe('H1');
+      }
+    );
+
+    it('treats 0 as present titleEnd content', () => {
+      render(<PageHeader title="Vault" titleEnd={0} />);
+      expect(screen.getByText('0')).toBeTruthy();
     });
   });
 });

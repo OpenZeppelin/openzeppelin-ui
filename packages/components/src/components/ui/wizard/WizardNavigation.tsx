@@ -78,12 +78,17 @@ export interface WizardNavigationProps {
    */
   primaryLoading?: boolean;
   /**
-   * Trailing icon of the primary.
+   * Icon of the primary (after the label unless `primaryIconPosition` says otherwise).
    * - `undefined` (default): a chevron on non-last steps, no icon on the last step.
    * - `null` or `false`: no icon on any step.
    * - any other node: rendered on every step where the primary shows.
    */
   primaryIcon?: ReactNode;
+  /**
+   * Which side of the label the primary's icon sits on.
+   * @default "end"
+   */
+  primaryIconPosition?: 'start' | 'end';
 }
 
 /**
@@ -111,6 +116,7 @@ export function WizardNavigation({
   previousDisabled = false,
   primaryLoading = false,
   primaryIcon,
+  primaryIconPosition = 'end',
 }: WizardNavigationProps) {
   const showPrimary = !isLastStep || showLastStepPrimary;
   const showSecondary =
@@ -188,8 +194,9 @@ export function WizardNavigation({
           >
             {/* Decorative: the label stays the accessible name; busy state is aria-busy. */}
             {primaryLoading && <Spinner />}
+            {primaryIconPosition === 'start' && resolvedPrimaryIcon}
             {isLastStep ? lastStepLabel : nextLabel}
-            {resolvedPrimaryIcon}
+            {primaryIconPosition !== 'start' && resolvedPrimaryIcon}
           </Button>
         )}
       </div>

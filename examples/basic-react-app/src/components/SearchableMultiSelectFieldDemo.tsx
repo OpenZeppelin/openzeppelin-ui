@@ -12,6 +12,7 @@ interface Country {
 
 interface SearchableMultiSelectFieldValues {
   countries: string[];
+  blocked: string[];
 }
 
 // Local on purpose: this demo does not share data with the SearchableMultiSelect page.
@@ -36,8 +37,11 @@ const getCountryLabel = (country: Country): string => country.name;
  * so the submitted payload shows the ids the field hands to the form, in pick order.
  *
  * `onTouched` mode on purpose: opening the picker must not flash the required error.
- * The Read-only toggle shows `readOnlyMode="readonly"`: the trigger stays focusable, the list does
- * not open, and the picked ids stay in the payload.
+ * The second field shows the picks as removable chips (`showSelected="chips"`); the payload lists
+ * the remaining chips' ids in pick order.
+ * The Read-only toggle switches both fields to `readOnlyMode="readonly"`: the trigger stays
+ * focusable, the list does not open, chips lose their remove buttons, and the picked ids stay in
+ * the payload.
  * The `data-testid`s are stable hooks for browser checks against the running app.
  */
 export function SearchableMultiSelectFieldDemo(): React.ReactElement {
@@ -45,7 +49,7 @@ export function SearchableMultiSelectFieldDemo(): React.ReactElement {
   const [readOnly, setReadOnly] = useState(false);
 
   const form = useForm<SearchableMultiSelectFieldValues>({
-    defaultValues: { countries: [] },
+    defaultValues: { countries: [], blocked: [] },
     mode: 'onTouched',
   });
 
@@ -56,7 +60,8 @@ export function SearchableMultiSelectFieldDemo(): React.ReactElement {
           Searchable Multi Select Field
         </h3>
         <p className="text-muted-foreground text-sm">
-          Submit empty to see the required error, then pick two countries and submit again.
+          Submit empty to see the required error, then pick two countries and submit again. Blocked
+          countries show as chips: remove one and submit to see it leave the payload.
         </p>
       </div>
 
@@ -96,6 +101,25 @@ export function SearchableMultiSelectFieldDemo(): React.ReactElement {
           readOnly={readOnly}
           readOnlyMode="readonly"
         />
+        <div className="bg-muted rounded-md p-3" data-testid="smsf-chips-tinted-panel">
+          <SearchableMultiSelectField
+            id="smsfBlocked"
+            name="blocked"
+            label="Blocked countries"
+            control={form.control}
+            helperText="Each pick shows as a chip you can remove. Chips keep a visible edge on this muted panel."
+            items={COUNTRIES}
+            getItemId={getCountryId}
+            getItemLabel={getCountryLabel}
+            placeholder="Select countries"
+            searchPlaceholder="Search countries..."
+            searchLabel="Search countries"
+            emptyText="No country matches your search."
+            showSelected="chips"
+            readOnly={readOnly}
+            readOnlyMode="readonly"
+          />
+        </div>
         <Button type="submit">Submit</Button>
       </form>
 

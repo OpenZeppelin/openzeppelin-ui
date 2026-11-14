@@ -1,20 +1,30 @@
 import { FieldCondition } from './fields';
 
 /**
- * Custom error text for the built-in rules of a `FieldValidation`.
+ * Custom error text for the built-in rules of a `FieldValidation`, and for a few
+ * rules a field enforces from its own props.
  *
- * A message applies only when its rule is set on the same `FieldValidation` and
- * that rule fails. An empty string counts as unset, and the field's default text
- * shows. Messages are plain strings, so they survive a form config stored as JSON.
+ * A message applies only when its rule is enforced and fails. For the keys that
+ * mirror a `FieldValidation` rule, that means the rule is set on the same
+ * `FieldValidation`. `format` and `decimals`, and `min` / `max` in AmountField's
+ * exact-entry mode, follow the field's own props instead; see each key. An empty
+ * string counts as unset, and the field's default text shows. Messages are plain
+ * strings, so they survive a form config stored as JSON.
  */
 export interface FieldValidationMessages {
   /** Shown when `required` is set and the field is empty. */
   required?: string;
 
-  /** Shown when the value is below `min`. */
+  /**
+   * Shown when the value is below `min`. AmountField's exact-entry mode uses its own
+   * `min` prop here and ignores `validation.min`.
+   */
   min?: string;
 
-  /** Shown when the value is above `max`. */
+  /**
+   * Shown when the value is above `max`. AmountField's exact-entry mode uses its own
+   * `max` prop here and ignores `validation.max`.
+   */
   max?: string;
 
   /** Shown when the text is shorter than `minLength`. */
@@ -25,6 +35,21 @@ export interface FieldValidationMessages {
 
   /** Shown when the text doesn't match `pattern`. Replaces the integer-pattern wording too. */
   pattern?: string;
+
+  /**
+   * Shown when the text can't be read as a value of the field's kind, whatever the
+   * cause. AmountField's exact-entry mode shows it in place of every malformed-text
+   * message (incomplete number, exponent, extra `.`, misplaced or disallowed `,`,
+   * other characters). Fields that don't read it ignore it.
+   */
+  format?: string;
+
+  /**
+   * Shown when the value has more decimal places than the field allows.
+   * AmountField's exact-entry mode shows it when its `decimals` limit is exceeded.
+   * Fields that don't read it ignore it.
+   */
+  decimals?: string;
 }
 
 /**
@@ -82,8 +107,9 @@ export interface FieldValidation {
   conditions?: FieldCondition[];
 
   /**
-   * Custom error text for the rules above. Each message applies only when its
-   * rule is set here and fails.
+   * Custom error text for the rules above, and for some rules a field enforces
+   * from its own props. Each message applies only when its rule is enforced and
+   * fails; see `FieldValidationMessages`.
    */
   messages?: FieldValidationMessages;
 

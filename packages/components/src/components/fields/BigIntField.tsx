@@ -6,7 +6,7 @@ import { getReadOnlyState } from './utils/readOnlyState';
 
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps, ValidStateProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
@@ -27,7 +27,8 @@ import {
 export interface BigIntFieldProps<TFieldValues extends FieldValues = FieldValues>
   extends BaseFieldProps<TFieldValues>,
     ReadOnlyModeProps,
-    LabelEndProps {
+    LabelEndProps,
+    ValidStateProps {
   /**
    * Custom validation function for big integer string values
    */
@@ -68,6 +69,7 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
   validateBigInt,
   readOnly,
   readOnlyMode,
+  showValidState,
 }: BigIntFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
@@ -149,7 +151,7 @@ export function BigIntField<TFieldValues extends FieldValues = FieldValues>({
         render={({ field, fieldState: { error, isTouched } }) => {
           const hasError = !!error;
           const shouldShowError = hasError && isTouched;
-          const validationClasses = getValidationStateClasses(error, isTouched);
+          const validationClasses = getValidationStateClasses(error, isTouched, showValidState);
 
           // Handle input change
           const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {

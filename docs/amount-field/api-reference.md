@@ -36,22 +36,23 @@ the same mode.
 Both modes take these. They come from `BaseFieldProps`, `ReadOnlyModeProps` and
 `LabelEndProps`, plus three amount props.
 
-| Prop             | Type                          | Default      | Notes                                                                                                                                               |
-| ---------------- | ----------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`             | `string`                      | required     | Input id. The helper text is `${id}-description` and the error is `${id}-error`.                                                                    |
-| `name`           | `FieldPath<TFieldValues>`     | required     | Form field name.                                                                                                                                    |
-| `control`        | `Control<TFieldValues>`       | required     | From `useForm()`.                                                                                                                                   |
-| `label`          | `string`                      | required     | Visible label. An empty string renders no label row.                                                                                                |
-| `placeholder`    | `string`                      | —            |                                                                                                                                                     |
-| `helperText`     | `string`                      | —            | Rendered below the input and linked through `aria-describedby`. In exact mode, say which separators the field uses.                                 |
-| `width`          | `'full' \| 'half' \| 'third'` | `'full'`     |                                                                                                                                                     |
-| `validation`     | `FieldValidation`             | —            | Only `validation.required` is read. It adds the label asterisk and the "required" check.                                                            |
-| `decimals`       | `number`                      | `2`          | Default mode: places the value is formatted to on blur, exactly. Exact mode: the most fraction digits allowed (see [Decimals](#decimals)).          |
-| `symbol`         | `string`                      | `''`         | Shown inside the input. Not part of the value.                                                                                                      |
-| `symbolPosition` | `'prefix' \| 'suffix'`        | `'suffix'`   |                                                                                                                                                     |
-| `readOnly`       | `boolean`                     | `false`      | Disables the field (not focusable, value left out of `handleSubmit` data) unless `readOnlyMode="readonly"` is also set.                             |
-| `readOnlyMode`   | `'disabled' \| 'readonly'`    | `'disabled'` | With `readOnly`, `'readonly'` keeps the input focusable, ignores edits and Escape, and keeps the value in `handleSubmit` data. Works in both modes. |
-| `labelEnd`       | `ReactNode`                   | —            | Content at the end of the label row (an "Optional" chip, a small action). Shown only when there is a `label`.                                       |
+| Prop             | Type                          | Default      | Notes                                                                                                                                                                                                                                |
+| ---------------- | ----------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `id`             | `string`                      | required     | Input id. The helper text is `${id}-description` and the error is `${id}-error`.                                                                                                                                                     |
+| `name`           | `FieldPath<TFieldValues>`     | required     | Form field name.                                                                                                                                                                                                                     |
+| `control`        | `Control<TFieldValues>`       | required     | From `useForm()`.                                                                                                                                                                                                                    |
+| `label`          | `string`                      | required     | Visible label. An empty string renders no label row.                                                                                                                                                                                 |
+| `placeholder`    | `string`                      | —            |                                                                                                                                                                                                                                      |
+| `helperText`     | `string`                      | —            | Rendered below the input and linked through `aria-describedby`. In exact mode, say which separators the field uses.                                                                                                                  |
+| `width`          | `'full' \| 'half' \| 'third'` | `'full'`     |                                                                                                                                                                                                                                      |
+| `validation`     | `FieldValidation`             | —            | Reads `required` (label asterisk and the "required" check), `messages` and `validate`. Exact mode also reads `messages.format`, `decimals`, `min` and `max` (see [Validation order and messages](#validation-order-and-messages)).   |
+| `decimals`       | `number`                      | `2`          | Default mode: places the value is formatted to on blur, exactly. Exact mode: the most fraction digits allowed (see [Decimals](#decimals)).                                                                                           |
+| `symbol`         | `string`                      | `''`         | Shown inside the input's border and announced with the value. Not part of the value. See [Symbol](#symbol).                                                                                                                          |
+| `symbolPosition` | `'prefix' \| 'suffix'`        | `'suffix'`   |                                                                                                                                                                                                                                      |
+| `readOnly`       | `boolean`                     | `false`      | Disables the field (not focusable, value left out of `handleSubmit` data) unless `readOnlyMode="readonly"` is also set.                                                                                                              |
+| `readOnlyMode`   | `'disabled' \| 'readonly'`    | `'disabled'` | With `readOnly`, `'readonly'` keeps the input focusable, ignores edits and Escape, and keeps the value in `handleSubmit` data. Works in both modes.                                                                                  |
+| `labelEnd`       | `ReactNode`                   | —            | Content at the end of the label row (an "Optional" chip, a small action). Shown only when there is a `label`.                                                                                                                        |
+| `showValidState` | `boolean`                     | `true`       | Shows the green success border once the field is touched without an error. `false` keeps the field neutral, so a touched, empty optional field doesn't look valid. The error border and message are unaffected. Works in both modes. |
 
 ### `AmountFieldProps` — default mode
 
@@ -60,6 +61,7 @@ interface AmountFieldProps<TFieldValues extends FieldValues = FieldValues>
   extends AmountFieldCommonProps<TFieldValues> {
   formatOnBlur?: true;
   allowGrouping?: false;
+  groupedDisplay?: false;
   min?: number;
   max?: number;
   step?: number;
@@ -74,6 +76,7 @@ Same props as before. Still an `interface` under its old name, so
 | ---------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | `formatOnBlur`   | `true` (optional)                      | Omit or pass `true`.                                                                                                          |
 | `allowGrouping`  | `false` (optional)                     | Grouping exists only in exact mode.                                                                                           |
+| `groupedDisplay` | `false` (optional)                     | Grouped display exists only in exact mode.                                                                                    |
 | `min`, `max`     | `number`                               | Inclusive. Validation compares them as floats. Arrow-key clamping is exact. A `NaN` or infinite bound is ignored by clamping. |
 | `step`           | `number`, default `0.01`               | ArrowUp / ArrowDown step, added as an exact decimal. A `NaN` or infinite `step` makes the arrow keys write nothing.           |
 | `validateAmount` | `(value: number) => boolean \| string` | Receives `parseFloat` of the value. A returned string is the error. `true` **and `false`** both pass.                         |
@@ -104,6 +107,9 @@ interface AmountFieldExactProps<TFieldValues extends FieldValues = FieldValues>
   extends AmountFieldCommonProps<TFieldValues> {
   formatOnBlur: false;
   allowGrouping?: boolean;
+  groupedDisplay?: boolean;
+  restrictInput?: boolean;
+  padDecimals?: boolean;
   min?: number | string;
   max?: number | string;
   step?: never;
@@ -111,13 +117,16 @@ interface AmountFieldExactProps<TFieldValues extends FieldValues = FieldValues>
 }
 ```
 
-| Prop             | Type                                   | Default | Notes                                                                                                                                           |
-| ---------------- | -------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `formatOnBlur`   | `false`                                | —       | Required to select this mode.                                                                                                                   |
-| `allowGrouping`  | `boolean`                              | `false` | Accept `,` thousands grouping. See [Grammar](#grammar).                                                                                         |
-| `min`, `max`     | `number \| string`                     | —       | Inclusive. Compared exactly on decimal strings. A string must be a plain decimal (no commas). See [Bounds](#bounds).                            |
-| `step`           | `never`                                | —       | Arrow-key stepping is off. ArrowUp / ArrowDown move the caret.                                                                                  |
-| `validateAmount` | `(value: string) => boolean \| string` | —       | Called last, with the comma-free value, only when every built-in check passed. Only `true` passes. See [Custom validation](#custom-validation). |
+| Prop             | Type                                   | Default | Notes                                                                                                                                             |
+| ---------------- | -------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `formatOnBlur`   | `false`                                | —       | Required to select this mode.                                                                                                                     |
+| `allowGrouping`  | `boolean`                              | `false` | Accept `,` thousands grouping. See [Grammar](#grammar).                                                                                           |
+| `groupedDisplay` | `boolean`                              | `false` | Show the value with `,` groups while the field is not focused, plain while it is. Needs `allowGrouping`. See [Grouped display](#grouped-display). |
+| `restrictInput`  | `boolean`                              | `false` | With `groupedDisplay`, refuse inserts that break the amount grammar or exceed `decimals`. Deletes always apply. See [Grouped display](#grouped-display). |
+| `padDecimals`    | `boolean`                              | `false` | With `groupedDisplay`, pad the unfocused display to `decimals` places. Focused text stays unpadded. See [Grouped display](#grouped-display).      |
+| `min`, `max`     | `number \| string`                     | —       | Inclusive. Compared exactly on decimal strings. A string must be a plain decimal (no commas). See [Bounds](#bounds).                              |
+| `step`           | `never`                                | —       | Arrow-key stepping is off. ArrowUp / ArrowDown move the caret.                                                                                    |
+| `validateAmount` | `(value: string) => boolean \| string` | —       | Called last, with the comma-free value, only when every built-in check passed. Only `true` passes. See [Custom validation](#custom-validation).   |
 
 #### Type-level rules
 
@@ -125,6 +134,7 @@ These are compile errors:
 
 ```tsx
 <AmountField {...base} allowGrouping />                         // grouping needs formatOnBlur={false}
+<AmountField {...base} groupedDisplay />                        // so does grouped display
 <AmountField {...base} min="0" />                               // string bounds need exact mode
 <AmountField {...base} formatOnBlur={false} step={1} />         // no stepping in exact mode
 <AmountField {...base} formatOnBlur={false}
@@ -135,6 +145,10 @@ These are compile errors:
 A plain `boolean` variable passed to `formatOnBlur` compiles only when no mode-specific
 prop is set.
 
+In exact mode `allowGrouping` and `groupedDisplay` are independent booleans, so both can
+come from runtime flags. `groupedDisplay` without `allowGrouping` compiles and does
+nothing: the field behaves as a plain exact field, with no warning.
+
 **`ComponentProps<typeof AmountField>` is now a union**
 (`AmountFieldProps | AmountFieldExactProps`). If you derive prop types from the
 component, `min` and `max` read as `number | string`, and `validateAmount` is a union of
@@ -143,7 +157,33 @@ a `number` validator and a `string` validator. JSX callers and
 `ComponentProps<typeof AmountField>['min']` as a `number` needs a narrowing or should
 use `AmountFieldProps['min']` directly.
 
+## Symbol
+
+`symbol` is drawn in the input's adornment slot: after the text by default, before it
+with `symbolPosition="prefix"`. It works the same in default mode, exact mode and with
+`groupedDisplay`.
+
+- **Layout.** The text is padded clear of the symbol by its measured width, so `$`
+  reserves less room than `USDC` and a long value never runs under it.
+- **Colour and size.** The theme's muted text colour (`text-muted-foreground`) at the
+  input's text size. It meets 4.5:1 contrast on the input's background in light and
+  dark, read-only fill included. On a disabled field the symbol dims with the input.
+- **Accessibility.** The symbol is rendered as `<span id="{id}-symbol">` and its id is
+  listed first in the input's `aria-describedby`, before the error and helper ids. A
+  screen reader announces it after the value, for example "Amount, edit text, 250.00,
+  USD". The accessible name stays the label.
+- **Value.** The symbol is never part of the input text, the form value or the
+  validation.
+- **Changing it.** Switching between two non-empty symbols (`USD` to `ETH`), or moving
+  the symbol between prefix and suffix, keeps the input mounted, so focus and the typed
+  text stay. Switching between an empty and a non-empty symbol remounts the input: a
+  focused field loses focus, and the form value is kept.
+
 ## Exact mode in detail
+
+The sections from here to [Changing mode at runtime](#changing-mode-at-runtime) describe
+exact mode without `groupedDisplay`. [Grouped display](#grouped-display) lists what that
+prop changes. Everything it doesn't mention is the same.
 
 ### Display text
 
@@ -209,23 +249,32 @@ Whitespace, `+`, exponents, letters and non-ASCII digits are never valid in eith
 Validation runs as `rules.validate`, so it follows your `useForm` `mode`. The first
 failing step wins:
 
-| Step | Check                                          | Message                                                               |
-| ---- | ---------------------------------------------- | --------------------------------------------------------------------- |
-| 1    | Empty (`''`, `null`, `undefined`)              | `This field is required` when `validation.required`, otherwise passes |
-| 2    | Value is not a string, finite number or bigint | `Enter a valid amount`                                                |
-| 3    | Grammar, by cause:                             |                                                                       |
-|      | — `-`, `.`, `-.`                               | `Please enter a complete number`                                      |
-|      | — a number-shaped text with one `e`/`E`        | `Scientific notation is not supported`                                |
-|      | — more than one `.`                            | `Only one decimal point is allowed`                                   |
-|      | — `,` without `allowGrouping`                  | `Grouping separators (,) are not allowed`                             |
-|      | — `,` with `allowGrouping`, bad groups         | `Use , only between groups of three digits, e.g. 1,234,567.89`        |
-|      | — validly grouped text written from outside    | `Remove the , separators from this value`                             |
-|      | — anything else                                | `Enter digits, an optional leading - and one . for decimals`          |
-| 4    | `decimals` misconfigured                       | `Amount limit is misconfigured`                                       |
-|      | Too many fraction digits                       | `Use at most {decimals} decimal places`                               |
-| 5    | `min` / `max` misconfigured                    | `Amount limit is misconfigured`                                       |
-|      | Below `min` / above `max`                      | `Value must be at least {min}` / `Value must be at most {max}`        |
-| 6    | `validateAmount`                               | Your message, or `Enter a valid amount`                               |
+| Step | Check                                          | Message                                                               | Custom text (`validation.messages`) |
+| ---- | ---------------------------------------------- | --------------------------------------------------------------------- | ----------------------------------- |
+| 1    | Empty (`''`, `null`, `undefined`)              | `This field is required` when `validation.required`, otherwise passes | `required`                          |
+| 2    | Value is not a string, finite number or bigint | `Enter a valid amount`                                                | never replaced                      |
+| 3    | Grammar, by cause:                             |                                                                       | `format`, for every cause           |
+|      | — `-`, `.`, `-.`                               | `Please enter a complete number`                                      |                                     |
+|      | — a number-shaped text with one `e`/`E`        | `Scientific notation is not supported`                                |                                     |
+|      | — more than one `.`                            | `Only one decimal point is allowed`                                   |                                     |
+|      | — `,` without `allowGrouping`                  | `Grouping separators (,) are not allowed`                             |                                     |
+|      | — `,` with `allowGrouping`, bad groups         | `Use , only between groups of three digits, e.g. 1,234,567.89`        |                                     |
+|      | — validly grouped text written from outside    | `Remove the , separators from this value`                             |                                     |
+|      | — anything else                                | `Enter digits, an optional leading - and one . for decimals`          |                                     |
+| 4    | `decimals` misconfigured                       | `Amount limit is misconfigured`                                       | never replaced                      |
+|      | Too many fraction digits                       | `Use at most {decimals} decimal places`                               | `decimals`                          |
+| 5    | `min` / `max` misconfigured                    | `Amount limit is misconfigured`                                       | never replaced                      |
+|      | Below `min` / above `max`                      | `Value must be at least {min}` / `Value must be at most {max}`        | `min` / `max`                       |
+| 6    | `validateAmount`                               | Your message, or `Enter a valid amount`                               | never replaced                      |
+| 7    | `validation.validate`, non-empty values only   | Your message, or `This field is invalid`                              | never replaced                      |
+
+A custom text replaces only its own step's message and never changes which values pass.
+It is a plain string, shown as written. An empty string, or a value that isn't a string,
+is ignored and the default shows. `min` and `max` texts apply only when the `min` or `max`
+**prop** is set; `validation.min` and `validation.max` set no bound in exact mode and
+activate no message. `format` also replaces "Remove the , separators from this value", so
+seed plain strings. Default mode ignores `format`, `decimals`, `min` and `max` messages
+and keeps its own wording.
 
 Malformed text never reads as "required". Errors are shown once the field is touched, as
 in default mode. They render through the kit's `ErrorMessage` with `role="alert"`, and
@@ -233,7 +282,9 @@ the input carries `aria-invalid` and `aria-errormessage` / `aria-describedby` po
 it.
 
 A grouped string written from outside (for example `setValue('amount', '1,000')`) is
-shown as written and fails at step 3. Only user edits strip commas.
+shown as written and fails at step 3. Only user edits strip commas. With
+[`groupedDisplay`](#grouped-display) an editable field accepts that value and stores it
+plain.
 
 ### Decimals
 
@@ -314,3 +365,164 @@ Switching `formatOnBlur` between `false` and `true`/omitted remounts the input a
 validates with the mode now rendered. Nothing is written at the switch. Exact mode shows
 whatever value is in the form, including one default mode already rounded. Default mode
 receives whatever exact mode left, including raw invalid text.
+
+## Grouped display
+
+```tsx
+<AmountField {...base} formatOnBlur={false} allowGrouping groupedDisplay />
+```
+
+Grouped display is on only when `formatOnBlur` is `false`, `allowGrouping` is truthy and
+`groupedDisplay` is exactly `true`. Any other combination renders the plain exact field
+described above, with no difference in markup or behaviour.
+
+It renders the same single `<input type="text" inputMode="decimal">` with the same
+attributes and ARIA wiring. Focus and blur swap the text in place. Nothing is announced,
+and no element is added or remounted.
+
+Two further opt-ins apply only on this grouped input (both default off; without
+`groupedDisplay` they do nothing):
+
+- **`restrictInput`.** Refuses an insert (keystroke or paste) that would break the amount
+  grammar or go past `decimals`. Backspace, Delete and clearing a selection always
+  apply. A paste is accepted or refused as a whole — never partially. Refusing a
+  keystroke does not introduce a new validation error on its own.
+- **`padDecimals`.** Pads the unfocused grouped display to `decimals` places
+  (`123000` → `123,000.00` when decimals are 2). Focused editable text stays the plain
+  unpadded value. When the value already has more fraction digits than `decimals`, the
+  display is not padded, so the over-decimal error stays visible.
+
+### What is shown
+
+| Field state                           | Shown                                       |
+| ------------------------------------- | ------------------------------------------- |
+| Not focused, valid text               | The text with `,` groups: `250,000.00`      |
+| Not focused, `padDecimals`, valid     | Grouped and padded: `123000` → `123,000.00` |
+| Focused and editable                  | The text as the user has it: `250000.00`    |
+| Read-only (`readOnlyMode="readonly"`) | Grouped, focused or not                     |
+| Disabled                              | Grouped                                     |
+| Invalid text, in any state            | The text as given, never regrouped or fixed |
+| Empty (`''`, `null`, `undefined`)     | Empty; the placeholder shows                |
+
+Grouping inserts `,` between groups of three digits in the integer part and changes
+nothing else. It uses no float and no locale API, so every digit survives at any length.
+
+| Plain text                             | Shown when not focused                           |
+| -------------------------------------- | ------------------------------------------------ |
+| `250000.00`                            | `250,000.00`                                     |
+| `-1234567.5`                           | `-1,234,567.5`                                   |
+| `1000.`                                | `1,000.`                                         |
+| `999`, `.5`, `0.000001`                | unchanged (fewer than four integer digits)       |
+| `000123.450`                           | unchanged (an integer part that starts with `0`) |
+| `12345678901234567.123456789012345678` | `12,345,678,901,234,567.123456789012345678`      |
+
+The fraction is never grouped.
+
+### Editing
+
+- **Focus** swaps the grouped text for the plain text. It writes nothing, validates
+  nothing and changes no form state.
+- **Tab or Shift+Tab into the field** selects the whole plain text, as in any text input,
+  so the next keystroke replaces the amount.
+- **`element.focus()`, `setFocus(name)` and focus after a failed submit** keep the
+  browser's own caret position, which is normally the end of the text.
+- **A mouse click** puts the caret under the pointer, measured against the plain text.
+  Because the commas disappear as the field takes focus, the caret can land up to one
+  character to the right of the clicked digit for each comma left of the click. A click
+  before the first character or past the last one is exact, and so is every click once
+  the field has focus.
+- **While focused, nothing is reformatted.** Each edit is kept whole and written once, as
+  in a plain exact field. The user can still type commas: `1,000` stays `1,000` while
+  they edit, the form value is `'1000'`, and after they leave and come back the field
+  shows `1000`.
+- **Blur** marks the field touched and shows the grouped form. It never writes the form
+  value.
+- **Switching to another window or tab** changes nothing. The field keeps its plain text
+  and selection, so a paste on return replaces what was selected.
+- **Escape** behaves as in [Keyboard](#keyboard).
+
+### Form value and writes
+
+The form value is what a plain exact field would hold: the text with every `,` removed
+when the text is valid, the raw text when it isn't, `''` when empty. A valid value never
+contains a comma, whichever form is on screen.
+
+The field writes the form value on a user edit, on Escape, and in one more case:
+
+**A correctly grouped string written from outside is stored plain.** When
+`defaultValues`, `reset`, `setValue` or `useForm({ values })` gives an editable field a
+string that matches the grouped [grammar](#grammar) (`'250,000.00'`), the field writes
+`'250000.00'` right after that render. What you should know about this write:
+
+- It marks the field and the form **dirty** (`isDirty`, `dirtyFields`), because the
+  value no longer equals the default. It does not mark the field touched.
+- It runs validation as any change does. In `mode: 'onChange'` or `'all'`, a seed that
+  breaks another rule (say it is over `max`) shows that rule's message as soon as the
+  field mounts. The message is never about the commas.
+- It fires your `watch` and `useWatch` subscribers once (twice with
+  `useForm({ values })`), always with the same plain string.
+- The shown amount does not change: the field shows `250,000.00` before and after.
+- A submit with no edit delivers `'250000.00'`.
+
+A plain string, a `number` or a `bigint` from outside is shown grouped and **not**
+written, so the form stays pristine and the value keeps its type. Seed plain strings.
+
+A wrongly grouped string (`'25,00,000'`) is not rewritten. It is shown as given and
+blocks submit with `Use , only between groups of three digits, e.g. 1,234,567.89`.
+
+A value written while the field has focus (a `reset` in a timer, for example) is shown
+plain at once, focus stays, and the next blur groups it.
+
+### Read-only and disabled fields
+
+A read-only or disabled field shows the grouped form and is never written: not on mount,
+focus, blur or Escape, and not by the write described above.
+
+| Seed                      | `readOnly` + `readOnlyMode="readonly"`                                                                       | `readOnly` (disabled)                                  |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------ |
+| Plain: `'1250000.50'`     | Shown `1,250,000.50`, form pristine, submits `'1250000.50'`                                                  | Shown `1,250,000.50`; left out of submit data          |
+| Grouped: `'1,250,000.50'` | Shown as given; the value stays grouped and **blocks submit** with `Remove the , separators from this value` | Shown as given; not validated, left out of submit data |
+
+So **seed read-only amounts plain.** The field refuses a grouped value there and doesn't
+strip it, because stripping would write a field the user can't edit and mark a review
+step dirty.
+
+In a read-only field Tab selects the grouped text, and copying gives the grouped text.
+
+When a read-only or disabled field holding a grouped string becomes editable, the value
+is stored plain at that moment (and the form becomes dirty), as for any grouped value
+arriving in an editable field.
+
+### Turning it on or off at runtime
+
+Changing `groupedDisplay` or `allowGrouping` remounts the input, which rebuilds its text
+from the form value. The change itself writes nothing. Turning grouped display on over
+an editable field that holds a grouped string stores it plain, as above.
+
+### Known limits
+
+- **A grouped seed makes the form dirty.** Described above. Seed plain to stay pristine.
+- **Another writer in the same render can lose its value.** The field stores a grouped
+  value plain from an effect. If a component rendered _above_ the field writes the same
+  field from its own effect in the same render in which a grouped value arrives (a
+  `reset('250,000.00')` together with a sibling's `setValue('amount', '5')`), the field's
+  write runs second and the form ends at `'250000.00'`. The `'5'` is lost. The screen and
+  the form still agree, and the value has no comma. A writer rendered below the field, or
+  the form's own parent, wins as expected. Plain seeds never trigger this, because the
+  field writes nothing for them.
+- **`reset(grouped)` then submit in the same tick is not validated.** react-hook-form
+  drops a field's rules inside `reset` and registers them again on the next render. A
+  `handleSubmit` call made before that render validates nothing, so
+  `reset({ amount: '250,000.00' })` followed at once by `handleSubmit(cb)()` hands `cb`
+  the grouped string. A plain exact field does the same with the same value. Submit from
+  a later event, or seed plain. `setValue(grouped)` followed by an immediate submit is
+  blocked by validation.
+- **The first mouse click is approximate.** See [Editing](#editing).
+- **Undo does not cross the focus swap.** The browser drops the input's undo history when
+  the text is replaced, so Ctrl/Cmd+Z undoes only what was typed since the field last took
+  focus.
+- **Browser coverage.** Selection, caret and window-switch behaviour are tested in
+  Chromium. Firefox and WebKit, right-aligned or right-to-left inputs, and fields inside
+  a shadow root are not.
+- **`,` and `.` only.** Grouped display follows the same grammar as `allowGrouping`. It
+  does not use the user's locale.

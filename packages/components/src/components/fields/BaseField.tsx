@@ -98,6 +98,17 @@ export interface LabelEndProps {
   labelEnd?: ReactNode;
 }
 
+/** Mixed into the props of fields that show a success border once touched without an error. */
+export interface ValidStateProps {
+  /**
+   * Whether the field shows the success border when it has been touched and has no error.
+   * `false` keeps the field neutral instead, so a touched, empty optional field doesn't look
+   * "valid". The error border is unaffected.
+   * @default true
+   */
+  showValidState?: boolean;
+}
+
 /**
  * BaseField component to provide a consistent layout for form fields
  *

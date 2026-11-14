@@ -38,6 +38,7 @@ import { RadioFieldCardDemo } from './RadioFieldCardDemo';
 import { ReadOnlySaveDemo } from './ReadOnlySaveDemo';
 import { SearchableMultiSelectFieldDemo } from './SearchableMultiSelectFieldDemo';
 import { ValidationMessagesDemo } from './ValidationMessagesDemo';
+import { ValidStateDemo } from './ValidStateDemo';
 
 // Form data interface with all field types
 interface FormFieldsData {
@@ -513,6 +514,7 @@ const form = useForm({ defaultValues: { ... } });
       <FocusOnErrorDemo />
       <ReadOnlySaveDemo />
       <LabelEndDemo />
+      <ValidStateDemo />
     </DemoSection>
   );
 }

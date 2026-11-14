@@ -230,6 +230,14 @@ export interface ExactAmountValidationOptions {
   readonly validateAmount?: (value: string) => boolean | string;
   /** Text for an empty required value. Defaults to `AMOUNT_REQUIRED_MESSAGE`. */
   readonly requiredMessage?: string;
+  /** Replaces every grammar text. Defaults to the per-issue `AMOUNT_TEXT_ISSUE_MESSAGES` text. */
+  readonly formatMessage?: string;
+  /** Replaces `Use at most {decimals} decimal places`. Never replaces the misconfigured text. */
+  readonly decimalsMessage?: string;
+  /** Replaces `Value must be at least {min}`. Never replaces the misconfigured text. */
+  readonly minMessage?: string;
+  /** Replaces `Value must be at most {max}`. Never replaces the misconfigured text. */
+  readonly maxMessage?: string;
 }
 
 /** A bound as a plain decimal string, or `null` when it cannot be used. */
@@ -243,6 +251,10 @@ function boundToDecimalString(bound: unknown): string | null {
  * The whole exact-mode rule. Returns `true` or a non-empty message, and never throws
  * (a throwing `validateAmount` propagates, as in default mode). First failure wins:
  * empty → value type → grammar → decimals → bounds → `validateAmount`.
+ *
+ * The `…Message` options only replace the text of a failure; they never change which
+ * values pass. Each is used at its one return, after any misconfigured-limit check,
+ * so a broken limit always reports itself. When given, each must be non-empty.
  */
 export function validateExactAmount(
   value: unknown,
@@ -260,24 +272,33 @@ export function validateExactAmount(
 
   // 3. Grammar. The form value is plain whenever the on-screen text was valid.
   if (!PLAIN_AMOUNT_PATTERN.test(amount)) {
-    return AMOUNT_TEXT_ISSUE_MESSAGES[classifyAmountText(amount, opts.allowGrouping)];
+    return (
+      opts.formatMessage ??
+      AMOUNT_TEXT_ISSUE_MESSAGES[classifyAmountText(amount, opts.allowGrouping)]
+    );
   }
 
   // 4. Decimals, counted as typed; a limit, never a rounding.
   const { decimals } = opts;
   if (!Number.isSafeInteger(decimals) || decimals < 0) return AMOUNT_MISCONFIGURED_MESSAGE;
-  if (fractionDigits(amount) > decimals) return `Use at most ${decimals} decimal places`;
+  if (fractionDigits(amount) > decimals) {
+    return opts.decimalsMessage ?? `Use at most ${decimals} decimal places`;
+  }
 
   // 5. Bounds: inclusive, exact, and fail closed on a bound that cannot be read.
   if (opts.min !== undefined) {
     const min = boundToDecimalString(opts.min);
     if (min === null) return AMOUNT_MISCONFIGURED_MESSAGE;
-    if (compareDecimalStrings(amount, min) < 0) return `Value must be at least ${min}`;
+    if (compareDecimalStrings(amount, min) < 0) {
+      return opts.minMessage ?? `Value must be at least ${min}`;
+    }
   }
   if (opts.max !== undefined) {
     const max = boundToDecimalString(opts.max);
     if (max === null) return AMOUNT_MISCONFIGURED_MESSAGE;
-    if (compareDecimalStrings(amount, max) > 0) return `Value must be at most ${max}`;
+    if (compareDecimalStrings(amount, max) > 0) {
+      return opts.maxMessage ?? `Value must be at most ${max}`;
+    }
   }
 
   // 6. Consumer validator: only `true` passes, a non-empty string is the error.

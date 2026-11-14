@@ -25,11 +25,15 @@ export const DATA_TABLE_ROW_CHROME =
 
 /**
  * Section row and its spanning header cell. Plain `table-row` / `table-cell`:
- * no display, position or sticky tokens.
+ * no display, position or sticky tokens. A heavier fill and small semibold muted
+ * type set sections apart from data rows; muted-foreground on this fill stays
+ * above 4.5:1 in both themes. No `uppercase`: group keys are often addresses or
+ * ids, and a case change would misreport them.
  */
-export const DATA_TABLE_GROUP_ROW_CHROME = 'border-b bg-muted/30';
+export const DATA_TABLE_GROUP_ROW_CHROME = 'border-b bg-muted/60';
 
-export const DATA_TABLE_GROUP_HEADER_CELL_CHROME = 'px-4 py-2 text-start text-sm font-medium';
+export const DATA_TABLE_GROUP_HEADER_CELL_CHROME =
+  'px-4 py-2 text-start text-xs font-semibold text-muted-foreground';
 
 /** Outer wrap when pagination is on (`data-slot="data-table-root"`). INV-238 / INV-214 */
 export const DATA_TABLE_PAGINATION_ROOT_CHROME = 'flex flex-col gap-3';

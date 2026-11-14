@@ -1,4 +1,11 @@
-import { useCallback, useId, useLayoutEffect, useRef, type ReactNode } from 'react';
+import {
+  useCallback,
+  useId,
+  useLayoutEffect,
+  useRef,
+  type MouseEvent,
+  type ReactNode,
+} from 'react';
 
 import { cn } from '@openzeppelin/ui-utils';
 
@@ -15,22 +22,37 @@ export interface WizardStepConfig extends WizardStepDef {
   isValid?: boolean;
 }
 
+/**
+ * Click handler that also receives the React click event of the button that triggered it,
+ * so `event.currentTarget` is that button (pointer or keyboard activation). Handlers that
+ * take fewer arguments still work. The parameter is optional in the type so a wrapper can
+ * still call the prop with no arguments; the layout always passes the event. In an async
+ * handler, read `currentTarget` before the first `await`: React clears it once the event
+ * has been dispatched.
+ */
+type ClickHandler = (event?: MouseEvent<HTMLButtonElement>) => void;
+
 export interface WizardLayoutProps {
   steps: WizardStepConfig[];
   currentStepIndex: number;
-  onStepChange: (index: number) => void;
+  /**
+   * Called with the new step index. When the change comes from the Next or Previous
+   * button, the click event is passed as a second argument. It is `undefined` for
+   * changes that don't come from those buttons (stepper clicks, scroll tracking).
+   */
+  onStepChange: (index: number, event?: MouseEvent<HTMLButtonElement>) => void;
   /**
    * Called when the user completes the wizard from the **scrollable** layout footer
    * (when that footer is shown), or as a fallback when the last step is confirmed
    * in **paged** layouts — see `onLastStepPrimary`.
    */
-  onComplete?: () => void;
+  onComplete?: ClickHandler;
   /**
    * Called when the user activates the primary control on the **last step** of a
    * **paged** layout (`vertical` / `horizontal`). When omitted, `onComplete` is
    * invoked instead for that interaction.
    */
-  onLastStepPrimary?: () => void;
+  onLastStepPrimary?: ClickHandler;
   onCancel?: () => void;
   /** Label for the primary control on non-final steps. @default "Next" */
   nextLabel?: string;
@@ -98,8 +120,10 @@ export interface WizardLayoutProps {
    * first `await`. See `WizardNavigation`. @default false
    */
   primaryLoading?: boolean;
-  /** Trailing icon of the primary (paged variants only). See `WizardNavigation`. */
+  /** Icon of the primary (paged variants only). See `WizardNavigation`. */
   primaryIcon?: ReactNode;
+  /** Side of the label the primary's icon sits on (paged variants only). See `WizardNavigation`. @default "end" */
+  primaryIconPosition?: 'start' | 'end';
   className?: string;
 }
 
@@ -129,6 +153,7 @@ function PagedLayout({
   previousDisabled,
   primaryLoading,
   primaryIcon,
+  primaryIconPosition,
   className,
 }: WizardLayoutProps & { variant: 'vertical' | 'horizontal' }) {
   const safeIndex = getSafeStepIndex(steps.length, currentStepIndex);
@@ -150,20 +175,20 @@ function PagedLayout({
   const currentStep = steps[safeIndex];
   const canProceed = currentStep?.isValid !== false;
 
-  const handleNext = () => {
+  const handleNext: ClickHandler = (event) => {
     if (isLastStep) {
       if (onLastStepPrimary) {
-        onLastStepPrimary();
+        onLastStepPrimary(event);
       } else {
-        onComplete?.();
+        onComplete?.(event);
       }
       return;
     }
-    onStepChange(safeIndex + 1);
+    onStepChange(safeIndex + 1, event);
   };
 
-  const handlePrevious = () => {
-    if (!isFirstStep) onStepChange(safeIndex - 1);
+  const handlePrevious: ClickHandler = (event) => {
+    if (!isFirstStep) onStepChange(safeIndex - 1, event);
   };
 
   const stepDefs = toStepDefs(steps, safeIndex);
@@ -187,6 +212,7 @@ function PagedLayout({
       previousDisabled={previousDisabled}
       primaryLoading={primaryLoading}
       primaryIcon={primaryIcon}
+      primaryIconPosition={primaryIconPosition}
     />
   );
 
