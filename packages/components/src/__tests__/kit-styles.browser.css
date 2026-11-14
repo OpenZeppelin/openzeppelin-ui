@@ -1,0 +1,11 @@
+/*
+ * The kit's real stylesheet for Chromium suites that measure geometry or computed colours.
+ * Same layer order, Tailwind import and theme as the example app, scanning only the kit's
+ * component sources. Import it from a `*.browser.test.tsx`; the jsdom suite never loads it.
+ */
+@layer base, components, utilities;
+
+@import 'tailwindcss' source(none);
+@source "../components";
+
+@import '../../../styles/global.css';

@@ -11,4 +11,4 @@ Form fields that take `validation` now honour `validation.messages` and `validat
 - `MapField` also runs the check when it refreshes the map's error after a render. Pass a stable function (defined outside the component or memoised), or an inline `validate` arrow runs again on every re-render while the map is valid.
 - Kit fields set the native `required` attribute, so a form needs `noValidate` for `messages.required` to show instead of the browser's own prompt.
 
-New exports for custom fields: `getRequiredMessage`, `runCustomCheck`, `getActiveMessages`, `REQUIRED_MESSAGE` and `CUSTOM_CHECK_FALLBACK_MESSAGE`. `validateField` takes an optional third `messages` argument.
+New exports for custom fields: `getRequiredMessage`, `runCustomCheck`, `getActiveMessages`, `REQUIRED_MESSAGE` and `CUSTOM_CHECK_FALLBACK_MESSAGE`. `validateField` takes an optional third `messages` argument. `getActiveMessages` takes an optional second argument naming the rules a field enforces from its own props.

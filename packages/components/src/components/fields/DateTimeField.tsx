@@ -6,7 +6,7 @@ import { getReadOnlyState } from './utils/readOnlyState';
 
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps, ValidStateProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
@@ -25,7 +25,8 @@ import {
 export interface DateTimeFieldProps<TFieldValues extends FieldValues = FieldValues>
   extends BaseFieldProps<TFieldValues>,
     ReadOnlyModeProps,
-    LabelEndProps {
+    LabelEndProps,
+    ValidStateProps {
   /**
    * Placeholder text displayed when the field is empty
    */
@@ -68,6 +69,7 @@ export function DateTimeField<TFieldValues extends FieldValues = FieldValues>({
   readOnly,
   readOnlyMode,
   clearOnEscape = true,
+  showValidState,
 }: DateTimeFieldProps<TFieldValues>): React.ReactElement {
   /**
    * TODO: Replace native datetime-local input with a styled popover-based
@@ -117,7 +119,7 @@ export function DateTimeField<TFieldValues extends FieldValues = FieldValues>({
         render={({ field, fieldState: { error, isTouched } }) => {
           const hasError = !!error;
           const shouldShowError = hasError && isTouched;
-          const validationClasses = getValidationStateClasses(error, isTouched);
+          const validationClasses = getValidationStateClasses(error, isTouched, showValidState);
 
           const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
             const raw = e.target.value; // YYYY-MM-DDTHH:mm or ''

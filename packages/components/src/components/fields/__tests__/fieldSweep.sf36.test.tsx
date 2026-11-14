@@ -59,6 +59,22 @@ const REPLACES: Record<string, (defaultText: string) => boolean> = {
   'M-max': (t) => t.startsWith('Maximum value is '),
 };
 
+/**
+ * Exact-mode AmountField reads `messages.min` / `messages.max` for its own `min` / `max`
+ * props, so only that spec may replace its bound texts, under every variant.
+ * Default mode keeps its wording and is still checked by `REPLACES` and the `none` rule.
+ */
+const EXACT_PROP_BOUNDS_SPEC = 'AmountFieldExact[min=1,max=10]';
+const EXACT_BOUND_REPLACES: Record<string, (defaultText: string) => boolean> = {
+  'M-min': (t) => t.startsWith('Value must be at least '),
+  'M-max': (t) => t.startsWith('Value must be at most '),
+};
+const isExactBoundMessage = (spec: FieldSpec, without: unknown, withMsg: unknown): boolean =>
+  spec.key === EXACT_PROP_BOUNDS_SPEC &&
+  typeof without === 'string' &&
+  typeof withMsg === 'string' &&
+  EXACT_BOUND_REPLACES[withMsg]?.(without) === true;
+
 const REQUIRED_DEFAULTS = ['This field is required', 'At least one item is required'];
 
 /** Field-array roots: RHF keeps their rule error at `errors[name].root` (F1, fixed in 6ba51e165). */
@@ -89,6 +105,7 @@ describe('SF-36 INV-6 — messages change the text, never the verdict', () => {
           const withMsg = await verdictOf(spec, value, withMessages);
           const where = `${vKey} ${valueLabel(value)}: ${String(without)} → ${String(withMsg)}`;
           if ((without === true) !== (withMsg === true)) problems.push(`verdict flipped, ${where}`);
+          else if (isExactBoundMessage(spec, without, withMsg)) continue;
           else if (vKey === 'none' && withMsg !== without) problems.push(`no rule set, ${where}`);
           else if (typeof without === 'string' && withMsg !== without) {
             const replaces = typeof withMsg === 'string' ? REPLACES[withMsg] : undefined;

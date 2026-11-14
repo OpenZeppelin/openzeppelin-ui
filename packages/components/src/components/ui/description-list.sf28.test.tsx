@@ -121,13 +121,13 @@ describe('DescriptionList (SF-28)', () => {
   });
 
   describe('P4 responsive layout (class contract; jsdom has no media queries)', () => {
-    it('stacks by default and becomes a 3-column grid from sm', () => {
+    it('stacks by default and becomes a content-sized label grid from sm', () => {
       const { container } = render(<DescriptionList items={five.slice(0, 1)} />);
       const group = container.querySelector('dl')!.children[0];
       expect(group.className).toContain('flex-col');
       expect(group.className).toContain('sm:grid');
-      expect(group.className).toContain('sm:grid-cols-3');
-      expect(screen.getByRole('definition').className).toContain('sm:col-span-2');
+      expect(group.className).toContain('sm:grid-cols-[auto_minmax(0,1fr)]');
+      expect(screen.getByRole('definition').className).not.toContain('sm:col-span-2');
     });
 
     it('lets long values wrap instead of overflowing', () => {

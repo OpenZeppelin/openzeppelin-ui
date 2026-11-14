@@ -581,6 +581,7 @@ export function DataTable<Row>(props: DataTableProps<Row>): ReactElement {
       bodyRows={bodyRows}
       bodyItems={bodyItems}
       renderGroupHeaderContent={renderGroupHeaderContent}
+      groupRowClassName={grouping?.groupRowClassName}
       getRowKey={getRowKey}
       getRowClassName={getRowClassName}
       selectedKeys={selection?.selectedKeys}

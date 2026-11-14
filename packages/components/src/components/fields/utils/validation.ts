@@ -17,15 +17,45 @@ export const REQUIRED_MESSAGE = 'This field is required';
  */
 export const CUSTOM_CHECK_FALLBACK_MESSAGE = 'This field is invalid';
 
-const MESSAGE_KEYS = ['required', 'min', 'max', 'minLength', 'maxLength', 'pattern'] as const;
+/**
+ * Whether `validation` itself sets the rule behind each message key. A `Record`
+ * keeps it exhaustive: a key added to `FieldValidationMessages` fails to compile
+ * here until its rule is decided. It is also the list of keys
+ * `getActiveMessages` reads.
+ */
+const RULE_IS_SET: Readonly<
+  Record<keyof FieldValidationMessages, (validation: FieldValidation) => boolean>
+> = {
+  required: (v) => Boolean(v.required),
+  min: (v) => v.min !== undefined,
+  max: (v) => v.max !== undefined,
+  minLength: (v) => v.minLength !== undefined,
+  maxLength: (v) => v.maxLength !== undefined,
+  pattern: (v) => v.pattern !== undefined,
+  // No `FieldValidation` rule backs these two; a field opts in through `fieldRules`.
+  format: () => false,
+  decimals: () => false,
+};
+
+const MESSAGE_KEYS = Object.keys(RULE_IS_SET) as ReadonlyArray<keyof FieldValidationMessages>;
 
 /**
- * The custom messages that can apply: those whose rule is set on `validation`
- * (`required` truthy, every other rule not `undefined`) and whose text is a
- * non-empty string. Anything else in `messages`, including a non-object loaded
- * from a stored config, is ignored. Returns a new object, `{}` when nothing applies.
+ * The custom messages that can apply: those whose rule the field enforces and
+ * whose text is a non-empty string. Anything else in `messages`, including a
+ * non-object loaded from a stored config, is ignored. Returns a new object, `{}`
+ * when nothing applies.
+ *
+ * A rule is enforced when it is set on `validation` (`required` truthy, every
+ * other rule not `undefined`). `format` and `decimals` have no rule on
+ * `FieldValidation`, so they are never active unless `fieldRules` says so.
+ * `fieldRules` is for a field that enforces rules from its own props: for each
+ * key it names, its boolean replaces the check on `validation`, so `false`
+ * deactivates a key even when `validation` sets the rule.
  */
-export function getActiveMessages(validation?: FieldValidation): FieldValidationMessages {
+export function getActiveMessages(
+  validation?: FieldValidation,
+  fieldRules?: Readonly<Partial<Record<keyof FieldValidationMessages, boolean>>>
+): FieldValidationMessages {
   const active: FieldValidationMessages = {};
   const messages: unknown = validation?.messages;
   if (!validation || typeof messages !== 'object' || messages === null || Array.isArray(messages)) {
@@ -33,8 +63,8 @@ export function getActiveMessages(validation?: FieldValidation): FieldValidation
   }
   const source = messages as Record<string, unknown>;
   for (const key of MESSAGE_KEYS) {
-    const ruleSet =
-      key === 'required' ? Boolean(validation.required) : validation[key] !== undefined;
+    const fieldRule = fieldRules?.[key];
+    const ruleSet = typeof fieldRule === 'boolean' ? fieldRule : RULE_IS_SET[key](validation);
     const text = source[key];
     if (ruleSet && typeof text === 'string' && text !== '') active[key] = text;
   }
@@ -110,17 +140,22 @@ export function formatValidationError(
 }
 
 /**
- * Generates common CSS classes for field validation states
+ * Generates common CSS classes for field validation states: the error border
+ * when there is an error, otherwise the success border once touched. With
+ * `showValidState` set to `false` the success border is never returned; the
+ * error border still is. Any other value, including omitted, keeps the success
+ * border.
  */
 export function getValidationStateClasses(
   error: FieldError | undefined,
-  touched?: boolean
+  touched?: boolean,
+  showValidState?: boolean
 ): string {
   if (error) {
     return 'border-destructive focus:border-destructive focus:ring-destructive/30';
   }
 
-  if (touched) {
+  if (touched && showValidState !== false) {
     return 'border-success focus:border-success focus:ring-success/30';
   }
 

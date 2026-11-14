@@ -274,11 +274,29 @@ describe('INV-4: the trigger shows the form value, stale ids and duplicates coun
     expect(q.triggerText()).toBe('Select items');
   });
 
+  const byCode = (code: string): Country => {
+    const found = COUNTRIES.find((c) => c.code === code);
+    if (found === undefined) throw new Error(`no fixture country ${code}`);
+    return found;
+  };
+
   it('formatSelectedCount gets (raw length, items.length)', () => {
     const fmt = vi.fn((n: number, total: number) => `${n}/${total}`);
     mount({ formatSelectedCount: fmt }, { countries: ['FR', 'ZZ', 'DE'] });
     expect(q.triggerText()).toBe('3/6');
-    expect(fmt).toHaveBeenLastCalledWith(3, 6);
+    expect(fmt).toHaveBeenLastCalledWith(3, 6, [byCode('FR'), byCode('DE')]);
+  });
+
+  it('formatSelectionSummary gets the same selected items, and the items can name the picks', () => {
+    const summary = vi.fn((n: number) => `${n}`);
+    mount(
+      {
+        formatSelectedCount: (_n, _t, picked) => picked.map((c) => c.name).join(' + '),
+        formatSelectionSummary: summary,
+      },
+      { countries: ['DE', 'ZZ', 'FR'] }
+    );
+    expect(q.triggerText()).toBe('Germany + France');
   });
 });
 

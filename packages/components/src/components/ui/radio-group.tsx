@@ -97,9 +97,15 @@ const RadioGroupItem = React.forwardRef<HTMLButtonElement, RadioGroupItemProps>(
               <Circle className="text-selected h-2.5 w-2.5 fill-current" />
             </RadioGroupPrimitive.Indicator>
           </span>
-          <span className="grid gap-1">
+          <span className="grid gap-0.5">
+            {/* A 20px row: its centre (10px) matches the radio's (mt-0.5 + 16px box), and a
+                20px chip such as a default Badge fits without growing the card. A long title
+                wraps, and the radio stays level with its first line. */}
             {hasTitle && (
-              <span id={titleId} className="text-sm font-medium leading-none">
+              <span
+                id={titleId}
+                className="flex min-h-5 flex-wrap items-center gap-x-2 text-sm font-medium"
+              >
                 {title}
               </span>
             )}

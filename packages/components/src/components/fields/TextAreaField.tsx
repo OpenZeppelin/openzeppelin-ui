@@ -6,7 +6,7 @@ import { getReadOnlyState } from './utils/readOnlyState';
 
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
-import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps } from './BaseField';
+import { BaseFieldProps, LabelEndProps, ReadOnlyModeProps, ValidStateProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
@@ -22,7 +22,8 @@ import {
 export interface TextAreaFieldProps<TFieldValues extends FieldValues = FieldValues>
   extends BaseFieldProps<TFieldValues>,
     ReadOnlyModeProps,
-    LabelEndProps {
+    LabelEndProps,
+    ValidStateProps {
   /**
    * Number of rows for the textarea
    */
@@ -81,6 +82,7 @@ export function TextAreaField<TFieldValues extends FieldValues = FieldValues>({
   readOnly,
   readOnlyMode,
   helperEndSlot,
+  showValidState,
 }: TextAreaFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
@@ -129,7 +131,7 @@ export function TextAreaField<TFieldValues extends FieldValues = FieldValues>({
         render={({ field, fieldState: { error, isTouched } }) => {
           const hasError = !!error;
           const shouldShowError = hasError && isTouched;
-          const validationClasses = getValidationStateClasses(error, isTouched);
+          const validationClasses = getValidationStateClasses(error, isTouched, showValidState);
 
           // Get accessibility attributes
           const accessibilityProps = getAccessibilityProps({

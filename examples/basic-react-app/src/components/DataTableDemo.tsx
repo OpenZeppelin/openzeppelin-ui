@@ -544,6 +544,8 @@ function PaginatedGroupedKeysTable(): ReactElement {
         getGroupKey: (row) => row.role,
         renderGroupHeader: ({ key, continued }) =>
           `${key ?? NO_ROLE_LABEL}${continued ? ' (continued)' : ''}`,
+        // A consumer fill for the section rows; it replaces the kit default `bg-*`.
+        groupRowClassName: 'bg-muted',
       }}
       pagination={{
         kind: 'client',
@@ -565,7 +567,8 @@ function GroupedRowsDemo(): ReactElement {
           `grouping` paints a section row before each group under one column header. Sorting by
           Label or Added reorders keys inside each role, and the roles stay in place. Select all
           picks every key and no section rows. Keys without a role go to a trailing section. The
-          paginated table repeats a split role at the top of the next page.
+          paginated table repeats a split role at the top of the next page, and its section rows
+          take a consumer fill through `groupRowClassName`.
         </p>
       </div>
       <GroupedKeysTable />

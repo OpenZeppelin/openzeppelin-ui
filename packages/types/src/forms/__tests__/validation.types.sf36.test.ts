@@ -47,7 +47,7 @@ describe('SF-36 INV-1 — FieldValidation stays additive', () => {
     expectTypeOf(none).toEqualTypeOf<FieldValidation>();
   });
 
-  it('FieldValidationMessages has exactly six optional string keys', () => {
+  it('FieldValidationMessages has exactly eight optional string keys', () => {
     expectTypeOf<FieldValidationMessages>().toEqualTypeOf<{
       required?: string;
       min?: string;
@@ -55,6 +55,8 @@ describe('SF-36 INV-1 — FieldValidation stays additive', () => {
       minLength?: string;
       maxLength?: string;
       pattern?: string;
+      format?: string;
+      decimals?: string;
     }>();
   });
 

@@ -3,7 +3,7 @@ import { Controller, FieldPath, FieldValues, PathValue } from 'react-hook-form';
 
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
-import { BaseFieldProps } from './BaseField';
+import { BaseFieldProps, ValidStateProps } from './BaseField';
 import {
   ErrorMessage,
   getAccessibilityProps,
@@ -18,7 +18,8 @@ import {
  * BooleanField component properties
  */
 export interface BooleanFieldProps<TFieldValues extends FieldValues = FieldValues>
-  extends BaseFieldProps<TFieldValues> {
+  extends BaseFieldProps<TFieldValues>,
+    ValidStateProps {
   /**
    * Custom validation function for boolean values
    */
@@ -53,6 +54,7 @@ export function BooleanField<TFieldValues extends FieldValues = FieldValues>({
   validation,
   validateBoolean,
   readOnly,
+  showValidState,
 }: BooleanFieldProps<TFieldValues>): React.ReactElement {
   const isRequired = !!validation?.required;
   const errorId = `${id}-error`;
@@ -104,7 +106,7 @@ export function BooleanField<TFieldValues extends FieldValues = FieldValues>({
         disabled={readOnly}
         render={({ field, fieldState: { error, isTouched } }) => {
           const hasError = !!error;
-          const validationClasses = getValidationStateClasses(error, isTouched);
+          const validationClasses = getValidationStateClasses(error, isTouched, showValidState);
 
           // Handle checkbox change with validation
           const handleCheckedChange = (checked: boolean | 'indeterminate'): void => {
