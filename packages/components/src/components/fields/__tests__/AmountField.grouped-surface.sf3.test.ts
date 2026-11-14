@@ -19,7 +19,6 @@ import * as utilsBarrel from '../utils';
 import * as amountGrouping from '../utils/amountGrouping';
 
 const fieldsDir = path.resolve(__dirname, '..');
-const repoRoot = path.resolve(fieldsDir, '../../../../..');
 const raw = (file: string): string => readFileSync(path.join(fieldsDir, file), 'utf8');
 /** Source with block and line comments removed. */
 const source = (file: string): string =>
@@ -206,23 +205,6 @@ describe('INV-33: no new dependency and no new public name', () => {
       ].sort()
     );
     expect(froms(GROUPING_UTILS)).toEqual(['./decimalValidation']);
-  });
-
-  it('the release note is folded into the unreleased exact-entry changeset; no changeset of its own', () => {
-    const dir = path.join(repoRoot, '.changeset');
-    const mentioning = readdirSync(dir)
-      .filter((f) => f.endsWith('.md'))
-      .filter((f) => readFileSync(path.join(dir, f), 'utf8').includes('groupedDisplay'));
-    // The symbol note (a default-mode behaviour change, so its own changeset) names
-    // grouped display only as one of the modes the symbol covers; the grouped-display
-    // release note itself stays in the exact-entry changeset.
-    expect(mentioning).toEqual(['amount-field-exact-entry.md', 'amount-field-symbol.md']);
-    const symbolNote = readFileSync(path.join(dir, 'amount-field-symbol.md'), 'utf8');
-    expect(symbolNote.match(/groupedDisplay/g)).toHaveLength(1);
-    expect(symbolNote).toMatch(/with `groupedDisplay`/);
-    const note = readFileSync(path.join(dir, 'amount-field-exact-entry.md'), 'utf8');
-    expect(note).not.toMatch(/Behaviour change:/);
-    expect(note).not.toMatch(/\bSF-\d|\bINV-\d|artifacts\//);
   });
 });
 

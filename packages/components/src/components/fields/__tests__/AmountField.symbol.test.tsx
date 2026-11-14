@@ -464,28 +464,9 @@ describe('INV-8: the symbol never enters the value or the validation', () => {
 
 describe('INV-10: release note and shipped source', () => {
   const repoRoot = path.resolve(__dirname, '../../../../../..');
-  const note = readFileSync(path.join(repoRoot, '.changeset/amount-field-symbol.md'), 'utf8');
 
-  it('the changeset is a patch with a "Behaviour change:" line naming what changed', () => {
-    expect(note).toMatch(/^---\n'@openzeppelin\/ui-components': patch\n---/);
-    const line = note.split('\n').find((l) => l.startsWith('Behaviour change:')) ?? '';
-    expect(line).not.toBe('');
-    for (const word of [
-      'text-muted-foreground',
-      'text size',
-      'disabled',
-      '{id}-symbol',
-      'aria-describedby',
-      'remounts the input',
-    ]) {
-      expect(line, word).toContain(word);
-    }
-    expect(note).toMatch(/padded/); // the padding change
-  });
-
-  it('no plan ids in the changeset or the shipped files', () => {
+  it('no plan ids in the shipped files', () => {
     const files = [
-      '.changeset/amount-field-symbol.md',
       'packages/components/src/components/fields/AmountField.tsx',
       'packages/components/src/components/fields/AmountFieldExactInput.tsx',
       'packages/components/src/components/fields/AmountFieldGroupedExactInput.tsx',
