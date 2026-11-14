@@ -11,10 +11,17 @@ async function clickVisibleText(page: Page, text: string): Promise<void> {
   throw new Error(`No visible "${text}" navigation item`);
 }
 
-test('SidebarButton badge stays one line tall while a long label truncates', async ({ page }) => {
+/** Desktop sidebar is `xl:` only; wait like ecosystem-dropdown / description-list. */
+async function openScaffold(page: Page): Promise<void> {
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/', { waitUntil: 'networkidle' });
+  await page.getByText('Layout', { exact: true }).first().waitFor({ state: 'attached' });
   await clickVisibleText(page, 'Layout');
   await clickVisibleText(page, 'Scaffold');
+}
+
+test('SidebarButton badge stays one line tall while a long label truncates', async ({ page }) => {
+  await openScaffold(page);
 
   const item = page.getByRole('button', {
     name: /Compliance checklist with a long label that should truncate/,
@@ -50,9 +57,7 @@ test('SidebarButton badge stays one line tall while a long label truncates', asy
 });
 
 test('a long SidebarButton badge still does not wrap', async ({ page }) => {
-  await page.goto('/', { waitUntil: 'networkidle' });
-  await clickVisibleText(page, 'Layout');
-  await clickVisibleText(page, 'Scaffold');
+  await openScaffold(page);
 
   const longBadgeText = 'VERY-LONG-BADGE-CODE-THAT-EXCEEDS-NARROW-SIDEBAR';
   const item = page.getByRole('button', { name: new RegExp(`Short\\s+${longBadgeText}`) });

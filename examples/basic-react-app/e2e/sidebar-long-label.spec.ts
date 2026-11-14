@@ -11,12 +11,19 @@ async function clickVisibleText(page: Page, text: string): Promise<void> {
   throw new Error(`No visible "${text}" navigation item`);
 }
 
+/** Desktop sidebar is `xl:` only; wait like ecosystem-dropdown / description-list. */
+async function openScaffold(page: Page): Promise<void> {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/', { waitUntil: 'networkidle' });
+  await page.getByText('Layout', { exact: true }).first().waitFor({ state: 'attached' });
+  await clickVisibleText(page, 'Layout');
+  await clickVisibleText(page, 'Scaffold');
+}
+
 test('a long SidebarButton label truncates on one line and keeps the trailing slot inside', async ({
   page,
 }) => {
-  await page.goto('/', { waitUntil: 'networkidle' });
-  await clickVisibleText(page, 'Layout');
-  await clickVisibleText(page, 'Scaffold');
+  await openScaffold(page);
   const dot = page.getByTestId('sidebar-long-label-dot');
   await dot.waitFor({ state: 'attached' });
   const item = page.getByRole('button', { name: /A very long contract label/ });
